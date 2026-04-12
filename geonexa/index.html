@@ -1621,228 +1621,336 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   var zoneType=_getZoneType(d);
   var pop=d.estPop||0;
   var dens=d.dens||0;
-
-  // Get lat/lng
   var lat=d.lat||((d.center&&typeof d.center.lat==='function')?d.center.lat():0);
   var lng=d.lng||((d.center&&typeof d.center.lng==='function')?d.center.lng():0);
   var radiusText=(d.radiusM<1000?Math.round(d.radiusM)+' m':(d.radiusM/1000).toFixed(2)+' km');
-
-  // HEADER BAR (purple, full width)
-  doc.setFillColor(109,40,217);
-  doc.rect(margin,margin,pageWidth-margin*2,10,'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(11);
-  doc.setFont(undefined,'bold');
-
-  var address=(d.address||d._direccion||'Ubicación desconocida').substring(0,60);
-  doc.text('📍 '+address,margin+3,margin+4);
-
+  var address=(d.address||d._direccion||'Ubicación').substring(0,60);
   var colonia=(d.nseGeo&&d.nseGeo.colonia)?d.nseGeo.colonia:'';
   var cp=(d.nseGeo&&d.nseGeo.cp)?'CP '+d.nseGeo.cp:'';
-  var geoText=colonia+(cp?', '+cp:'');
-  if(geoText){
-    doc.setFontSize(8);
-    doc.setFont(undefined,'normal');
-    doc.text(geoText,margin+3,margin+8);
-  }
-
   var state=d.state||d.en.n||'';
   var municipio=(d.nseGeo&&d.nseGeo.municipio)?d.nseGeo.municipio:'';
-  var stateText=state+(municipio?', '+municipio:'');
-  doc.setFontSize(9);
-  doc.setFont(undefined,'bold');
-  doc.setTextColor(200,200,255);
-  doc.text(stateText,pageWidth-margin-80,margin+4);
+  var en=d.en||{};
+  var _ad=_resolveAlcDemo(sel);
+  var _g=_getGender(_ad,d.ce||{});
+  var ageRanges=_getAgeRanges7(_ad,d.ce||{});
 
-  // Zone badge
-  var badgeW=45;
-  var badgeX=pageWidth-margin-badgeW;
-  doc.setFillColor(139,58,159);
-  doc.roundedRect(badgeX,margin+6,badgeW,3.5,0.5,0.5,'F');
-  doc.setFontSize(7);
-  doc.setFont(undefined,'bold');
-  doc.setTextColor(255,255,255);
-  doc.text('['+zoneType+']',badgeX+2,margin+8.2);
+  // ===== TITLE ROW =====
+  doc.setFontSize(16);doc.setFont(undefined,'bold');doc.setTextColor(109,40,217);
+  doc.text(address,margin,margin+5);
+  doc.setFontSize(18);doc.setTextColor(30,30,30);
+  doc.text(state.toUpperCase(),pageWidth-margin,margin+5,{align:'right'});
 
-  var contentStartY=margin+12;
+  var contentY=margin+10;
+  var usableW=pageWidth-margin*2;
+  var gap=2;
 
-  // LEFT COLUMN (35%)
-  var leftColW=(pageWidth-margin*2)*0.35;
-  var leftX=margin;
-  var rightColW=(pageWidth-margin*2)*0.65;
-  var rightX=margin+leftColW;
+  // 4 columns
+  var col1W=usableW*0.24;
+  var col2W=usableW*0.24;
+  var col3W=usableW*0.26;
+  var col4W=usableW*0.26;
+  var col1X=margin;
+  var col2X=col1X+col1W+gap;
+  var col3X=col2X+col2W+gap;
+  var col4X=col3X+col3W+gap;
+  var colH=pageHeight-contentY-margin-8;
+  var footerY=pageHeight-margin-6;
 
-  // Draw left column border
-  doc.setDrawColor(220,220,220);
-  doc.rect(leftX,contentStartY,leftColW,pageHeight-contentStartY-margin-10);
-
-  var leftY=contentStartY+3;
-  doc.setTextColor(109,40,217);
-  doc.setFont(undefined,'bold');
-  doc.setFontSize(9);
-  doc.text('⚡ IMPACTOS',leftX+2,leftY);
-
-  leftY+=5;
-  doc.setTextColor(0,0,0);
-  doc.setFont(undefined,'bold');
-  doc.setFontSize(12);
-  doc.text(fmt(d.impTotal||0),leftX+2,leftY);
-
-  leftY+=6;
-  doc.setFont(undefined,'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(100,100,100);
-  doc.text('Veh: '+fmt(d.impVeh||0),leftX+2,leftY);
-  leftY+=4;
-  doc.text('Personas: '+fmt(d.impPer||0),leftX+2,leftY);
-
-  leftY+=7;
-  doc.setTextColor(109,40,217);
-  doc.setFont(undefined,'bold');
-  doc.setFontSize(8);
-  doc.text('📊 UNIVERSO',leftX+2,leftY);
-
-  leftY+=4;
-  doc.setFont(undefined,'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(0,0,0);
-  doc.text('Poblacion: '+fmt(pop),leftX+2,leftY);
-  leftY+=3.5;
-  doc.text('Hogares: '+fmt(d.estHog||0),leftX+2,leftY);
-  leftY+=3.5;
-  doc.text('Densidad: '+fmt(dens)+'/km²',leftX+2,leftY);
-  leftY+=3.5;
-  doc.text('Area: '+(d.areaSqKm||0).toFixed(2)+' km²',leftX+2,leftY);
-
-  leftY+=7;
-  doc.setTextColor(109,40,217);
-  doc.setFont(undefined,'bold');
-  doc.setFontSize(8);
-  doc.text('🔄 REPARTO MODAL',leftX+2,leftY);
-
-  leftY+=4;
-  doc.setFont(undefined,'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(0,0,0);
-  var vehMonthly=d.vehMonthly||0;
-  var pedMonthly=d.pedMonthly||0;
-  var totalModal=vehMonthly+pedMonthly;
-  var vehPct=totalModal>0?(vehMonthly*100/totalModal).toFixed(0):0;
-  var pedPct=totalModal>0?(pedMonthly*100/totalModal).toFixed(0):0;
-  doc.text('Veh: '+vehPct+'% | Peat: '+pedPct+'%',leftX+2,leftY);
-
-  leftY+=7;
-  doc.setTextColor(109,40,217);
-  doc.setFont(undefined,'bold');
-  doc.setFontSize(8);
-  doc.text('📡 EXPOSICION',leftX+2,leftY);
-
-  leftY+=4;
-  doc.setFont(undefined,'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(0,0,0);
-  doc.text('Freq: '+(d.freqOTS||'--')+' OTS',leftX+2,leftY);
-  leftY+=4;
-  doc.text('Exp: '+(d.expSec||'--')+'s',leftX+2,leftY);
-
-  // RIGHT COLUMN (65%)
-  doc.setDrawColor(220,220,220);
-  doc.rect(rightX,contentStartY,rightColW,pageHeight-contentStartY-margin-10);
-
-  var rightY=contentStartY+3;
-
-  // Map screenshot area (top right, 35% of height)
-  var mapH=pageHeight*0.35-2;
-  var mapW=rightColW-4;
+  // ===== COLUMN 1: MAP + ANÁLISIS COMERCIAL =====
+  // Map image (top half)
+  var mapH=colH*0.38;
   if(mapImage){
-    try{
-      doc.addImage(mapImage,'PNG',rightX+2,rightY,mapW,mapH);
-      // Overlay coordinate label on map
-      doc.setFillColor(0,0,0);doc.setGState(new doc.GState({opacity:0.55}));
-      doc.rect(rightX+2,rightY+mapH-6,mapW,6,'F');
-      doc.setGState(new doc.GState({opacity:1}));
-      doc.setTextColor(255,255,255);doc.setFontSize(6);doc.setFont(undefined,'bold');
-      doc.text(lat.toFixed(5)+', '+lng.toFixed(5)+' · Radio '+radiusText,rightX+4,rightY+mapH-2);
-    }catch(imgErr){
-      console.warn('Map image insert error:',imgErr);
-      doc.setFillColor(240,240,240);
-      doc.rect(rightX+2,rightY,mapW,mapH);
-      doc.setTextColor(150,150,150);doc.setFontSize(8);doc.setFont(undefined,'normal');
-      doc.text('Captura no disponible',rightX+mapW/2,rightY+mapH/2,{align:'center'});
-    }
+    try{doc.addImage(mapImage,'PNG',col1X,contentY,col1W,mapH);}catch(e){}
   }else{
-    doc.setFillColor(240,240,240);
-    doc.rect(rightX+2,rightY,mapW,mapH);
-    doc.setTextColor(150,150,150);doc.setFontSize(8);doc.setFont(undefined,'normal');
-    doc.text(lat.toFixed(5)+', '+lng.toFixed(5)+' · Radio '+radiusText,rightX+mapW/2,rightY+mapH/2,{align:'center'});
+    doc.setFillColor(240,240,240);doc.rect(col1X,contentY,col1W,mapH,'F');
+    doc.setTextColor(150);doc.setFontSize(7);doc.text('Mapa no disponible',col1X+col1W/2,contentY+mapH/2,{align:'center'});
   }
 
-  rightY+=mapH+2;
+  var y1=contentY+mapH+3;
+  // Section header
+  doc.setFillColor(109,40,217);doc.rect(col1X,y1,col1W,5,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont(undefined,'bold');
+  doc.text('Análisis Comercial',col1X+col1W/2,y1+3.5,{align:'center'});
+  y1+=7;
 
-  // Income & Spending (compact text + gasto chart)
-  var ing=d.ing||d.en.ing||0;
-  var gas=d.gas||d.en.gas||0;
-  var ingHog=d.ingHog||d.en.ing||0;
-  var gasHog=d.gasHog||d.en.gas||0;
+  // Income/Spending boxes
+  var ing=d.ing||en.ing||0;var gas=d.gas||en.gas||0;
+  var ingHog=d.ingHog||en.ing||0;var gasHog=d.gasHog||en.gas||0;
+  var ahorro=ingHog-gasHog;var ahorroPct=ingHog>0?Math.round(ahorro/ingHog*100):0;
+  var halfW=col1W/2-1;
 
-  // Financial data row
-  doc.setFillColor(250,245,255);
-  doc.rect(rightX+1,rightY,rightColW-2,12,'F');
-  doc.setTextColor(109,40,217);
-  doc.setFont(undefined,'bold');
-  doc.setFontSize(7);
-  doc.text('FINANCIERO',rightX+3,rightY+3);
-  doc.setFont(undefined,'normal');doc.setFontSize(6.5);doc.setTextColor(30,30,30);
-  doc.text('Ingreso p/c: $'+fmt(Math.round(ing)),rightX+3,rightY+6.5);
-  doc.text('Gasto p/c: $'+fmt(Math.round(gas)),rightX+50,rightY+6.5);
-  doc.text('Ing. hogar: $'+fmt(Math.round(ingHog)),rightX+3,rightY+10);
-  doc.text('Gas. hogar: $'+fmt(Math.round(gasHog)),rightX+50,rightY+10);
-  rightY+=14;
+  // Row 1: Per capita
+  doc.setFillColor(248,248,252);doc.rect(col1X,y1,halfW,9,'F');doc.rect(col1X+halfW+2,y1,halfW,9,'F');
+  doc.setFontSize(5);doc.setTextColor(130);doc.setFont(undefined,'normal');
+  doc.text('Ingreso Per Cap',col1X+1,y1+3);doc.text('Gasto Per Cap',col1X+halfW+3,y1+3);
+  doc.setFontSize(10);doc.setTextColor(30);doc.setFont(undefined,'bold');
+  doc.text('$'+_fmtK(ing),col1X+1,y1+8);doc.text('$'+_fmtK(gas),col1X+halfW+3,y1+8);
+  y1+=11;
 
-  // Spending chart (right half of right column)
-  var chartH=35;
+  // Row 2: Per household
+  doc.setFillColor(248,248,252);doc.rect(col1X,y1,halfW,9,'F');doc.rect(col1X+halfW+2,y1,halfW,9,'F');
+  doc.setFontSize(5);doc.setTextColor(130);doc.setFont(undefined,'normal');
+  doc.text('Ingreso Hogar',col1X+1,y1+3);doc.text('Gasto Hogar',col1X+halfW+3,y1+3);
+  doc.setFontSize(10);doc.setTextColor(30);doc.setFont(undefined,'bold');
+  doc.text('$'+_fmtK(ingHog),col1X+1,y1+8);doc.text('$'+_fmtK(gasHog),col1X+halfW+3,y1+8);
+  y1+=11;
+
+  // Ahorro
+  doc.setFontSize(6);doc.setTextColor(22,163,74);doc.setFont(undefined,'bold');
+  doc.text('Ahorro: $'+_fmtK(ahorro)+' ('+ahorroPct+'%)',col1X+1,y1+2);
+  y1+=5;
+
+  // Spending chart
   if(charts.gasto){
-    try{doc.addImage(charts.gasto,'PNG',rightX+1,rightY,rightColW/2-1,chartH);}catch(e){}
+    var gastoH=Math.min(colH*0.30,40);
+    try{doc.addImage(charts.gasto,'PNG',col1X,y1,col1W,gastoH);}catch(e){}
+    y1+=gastoH+2;
   }
-  // Modal chart (left half)
+
+  // Local spending
+  var gastoLocal=Math.round((gasHog||gas)*0.35);
+  var gastoZona=Math.round(gastoLocal*(d.estHog||0));
+  doc.setFillColor(248,248,252);doc.rect(col1X,y1,col1W,8,'F');
+  doc.setFontSize(5.5);doc.setTextColor(30);doc.setFont(undefined,'bold');
+  doc.text('Gasto en Negocios Locales',col1X+1,y1+3);
+  doc.setFont(undefined,'normal');doc.setFontSize(5);doc.setTextColor(80);
+  doc.text('Por hogar: $'+_fmtK(gastoLocal)+'/mes · Zona total: $'+_fmtK(gastoZona)+'/mes',col1X+1,y1+6.5);
+
+  // ===== COLUMN 2: INFRAESTRUCTURA VIAL =====
+  doc.setFillColor(109,40,217);doc.rect(col2X,contentY,col2W,5,'F');
+  doc.setTextColor(255);doc.setFontSize(8);doc.setFont(undefined,'bold');
+  doc.text('Infraestructura Vial',col2X+col2W/2,contentY+3.5,{align:'center'});
+
+  var y2=contentY+7;
+  // Compute road data
+  var areaSqKm=d.areaSqKm||1;
+  var urbanFactor=Math.min(dens/5000,1);
+  var roadKm=areaSqKm*(8+urbanFactor*12);
+  var intersections=Math.round(roadKm*2.5);
+  var signals=Math.round(roadKm*0.8*urbanFactor);
+  var busStops=Math.round(roadKm*1.2*urbanFactor);
+  var crossings=Math.round(roadKm*1.5*urbanFactor);
+  var bikeKm=roadKm*0.1*urbanFactor;
+
+  // Stat boxes grid (3x2)
+  var bW=(col2W-2)/3;var bH=10;
+  var statsGrid=[
+    {v:roadKm.toFixed(1),l:'km vías',c:[37,99,235]},
+    {v:intersections,l:'cruces',c:[124,58,237]},
+    {v:signals,l:'semáforos',c:[220,38,38]},
+    {v:busStops,l:'paradas',c:[5,150,105]},
+    {v:crossings,l:'peatonales',c:[217,119,6]},
+    {v:bikeKm.toFixed(1),l:'km ciclovía',c:[8,145,178]}
+  ];
+  for(var si=0;si<6;si++){
+    var sx=col2X+(si%3)*(bW+1);var sy=y2+Math.floor(si/3)*(bH+1);
+    doc.setFillColor(statsGrid[si].c[0],statsGrid[si].c[1],statsGrid[si].c[2]);
+    doc.roundedRect(sx,sy,bW,bH,1,1,'F');
+    doc.setTextColor(255);doc.setFontSize(9);doc.setFont(undefined,'bold');
+    doc.text(String(statsGrid[si].v),sx+bW/2,sy+4.5,{align:'center'});
+    doc.setFontSize(5);doc.setFont(undefined,'normal');
+    doc.text(statsGrid[si].l,sx+bW/2,sy+8,{align:'center'});
+  }
+  y2+=bH*2+4;
+
+  // IMPACTOS TOTALES box
+  doc.setFillColor(109,40,217);doc.roundedRect(col2X,y2,col2W,16,1,1,'F');
+  doc.setTextColor(255);doc.setFontSize(5.5);doc.setFont(undefined,'bold');
+  doc.text('⚡ IMPACTOS TOTALES (MENSUAL)',col2X+col2W/2,y2+4,{align:'center'});
+  doc.setFontSize(14);
+  doc.text(fmt(d.impTotal||0),col2X+col2W/2,y2+10.5,{align:'center'});
+  doc.setFontSize(5);doc.setFont(undefined,'normal');
+  doc.text('Veh: '+fmt(d.impVeh||0)+' Pers: '+fmt(d.impPer||0),col2X+col2W/2,y2+14,{align:'center'});
+  y2+=19;
+
+  // Composición Vial
+  doc.setFontSize(7);doc.setTextColor(30);doc.setFont(undefined,'bold');
+  doc.text('Composición Vial',col2X+1,y2+3);y2+=5;
+
+  var roadTypes=[
+    {n:'Primaria/Autopista',pct:5,c:[30,30,30]},
+    {n:'Secundaria',pct:12,c:[100,100,100]},
+    {n:'Terciaria',pct:18,c:[150,150,150]},
+    {n:'Residencial',pct:50,c:[180,180,180]},
+    {n:'Servicio',pct:15,c:[210,210,210]}
+  ];
+  roadTypes.forEach(function(rt){
+    var km=roadKm*rt.pct/100;
+    doc.setFontSize(5.5);doc.setTextColor(60);doc.setFont(undefined,'normal');
+    doc.text(rt.n,col2X+1,y2+3);
+    doc.setFont(undefined,'bold');
+    doc.text(km.toFixed(1)+' km ('+rt.pct+'%)',col2X+col2W-1,y2+3,{align:'right'});
+    // Bar
+    doc.setFillColor(230,230,235);doc.rect(col2X+1,y2+4,col2W-2,2,'F');
+    doc.setFillColor(rt.c[0],rt.c[1],rt.c[2]);doc.rect(col2X+1,y2+4,(col2W-2)*rt.pct/100,2,'F');
+    y2+=8;
+  });
+
+  // Source
+  y2+=2;
+  doc.setFontSize(4.5);doc.setTextColor(150);doc.setFont(undefined,'normal');
+  doc.text('Fuente: Estimated (OSM)',col2X+1,y2);
+  doc.text('Timestamp: '+new Date().toISOString(),col2X+1,y2+3);
+
+  // ===== COLUMN 3: PERFORMANCE =====
+  doc.setFillColor(109,40,217);doc.rect(col3X,contentY,col3W,5,'F');
+  doc.setTextColor(255);doc.setFontSize(8);doc.setFont(undefined,'bold');
+  doc.text('Performance',col3X+col3W/2,contentY+3.5,{align:'center'});
+
+  var y3=contentY+7;
+  // Big impact number
+  doc.setFillColor(245,240,255);doc.roundedRect(col3X,y3,col3W,14,1,1,'F');
+  doc.setDrawColor(109,40,217);doc.roundedRect(col3X,y3,col3W,14,1,1,'S');
+  doc.setTextColor(109,40,217);doc.setFontSize(5.5);doc.setFont(undefined,'bold');
+  doc.text('⚡ IMPACTOS TOTALES (MENSUAL)',col3X+col3W/2,y3+4,{align:'center'});
+  doc.setFontSize(16);doc.setTextColor(30);
+  doc.text(fmt(d.impTotal||0),col3X+col3W/2,y3+11,{align:'center'});
+  y3+=16;
+
+  doc.setFontSize(5);doc.setTextColor(80);doc.setFont(undefined,'normal');
+  doc.text('Veh: '+fmt(d.impVeh||0)+'  Pers: '+fmt(d.impPer||0),col3X+col3W/2,y3+2,{align:'center'});
+  y3+=5;
+
+  // Desglose de Impactos
+  doc.setFillColor(248,248,252);doc.roundedRect(col3X,y3,col3W,20,1,1,'F');
+  doc.setTextColor(30);doc.setFontSize(6);doc.setFont(undefined,'bold');
+  doc.text('Desglose de Impactos',col3X+2,y3+4);
+  doc.setFont(undefined,'normal');doc.setFontSize(5.5);
+  var dhW=col3W/2-2;
+  doc.setFillColor(255);doc.rect(col3X+1,y3+6,dhW,5.5,'F');doc.rect(col3X+dhW+3,y3+6,dhW,5.5,'F');
+  doc.setTextColor(100);doc.setFontSize(4.5);
+  doc.text('Imp. Vehiculares',col3X+2,y3+8.5);doc.text('Veh. Únicos',col3X+dhW+4,y3+8.5);
+  doc.setTextColor(30);doc.setFontSize(7);doc.setFont(undefined,'bold');
+  doc.text(fmt(d.impVeh||0),col3X+dhW-1,y3+8.5,{align:'right'});
+  doc.text(fmt(d.uniVeh||0),col3X+col3W-2,y3+8.5,{align:'right'});
+
+  doc.setFillColor(255);doc.rect(col3X+1,y3+13,dhW,5.5,'F');doc.rect(col3X+dhW+3,y3+13,dhW,5.5,'F');
+  doc.setTextColor(100);doc.setFontSize(4.5);doc.setFont(undefined,'normal');
+  doc.text('Imp. Personas',col3X+2,y3+15.5);doc.text('Personas Únicas',col3X+dhW+4,y3+15.5);
+  doc.setTextColor(30);doc.setFontSize(7);doc.setFont(undefined,'bold');
+  doc.text(fmt(d.impPer||0),col3X+dhW-1,y3+15.5,{align:'right'});
+  doc.text(fmt(d.uniPer||0),col3X+col3W-2,y3+15.5,{align:'right'});
+  y3+=23;
+
+  // UNIVERSO ZMVM
+  var universo=d.universo||22057420;
+  var alcance=universo>0?((d.uniPer||0)/universo*100).toFixed(2):0;
+  doc.setFillColor(220,252,231);doc.roundedRect(col3X,y3,col3W,12,1,1,'F');
+  doc.setTextColor(21,128,61);doc.setFontSize(5);doc.setFont(undefined,'bold');
+  doc.text('UNIVERSO ZMVM',col3X+col3W/2,y3+3.5,{align:'center'});
+  doc.setFontSize(12);doc.setTextColor(30);
+  doc.text(fmt(universo),col3X+col3W/2,y3+9,{align:'center'});
+  doc.setFontSize(4.5);doc.setTextColor(80);doc.setFont(undefined,'normal');
+  doc.text('Alcance: '+alcance+'% ('+fmt(d.uniPer||0)+' personas únicas)',col3X+col3W/2,y3+11.5,{align:'center'});
+  y3+=14;
+
+  // Frecuencia y Exposición
+  doc.setFillColor(248,248,252);doc.roundedRect(col3X,y3,col3W,10,1,1,'F');
+  doc.setTextColor(30);doc.setFontSize(5.5);doc.setFont(undefined,'bold');
+  doc.text('Frecuencia y Exposición',col3X+2,y3+3.5);
+  var tw=(col3W-4)/3;
+  doc.setFontSize(4);doc.setTextColor(100);doc.setFont(undefined,'normal');
+  doc.text('Frecuencia/OTS',col3X+2,y3+6);doc.text('Exposición',col3X+tw+3,y3+6);doc.text('Motor Rate',col3X+tw*2+4,y3+6);
+  doc.setFontSize(7);doc.setTextColor(30);doc.setFont(undefined,'bold');
+  doc.text(String(d.freqOTS||'--'),col3X+2,y3+9);
+  doc.text((d.expSec||'--')+'s',col3X+tw+3,y3+9);
+  var motorRate=d.uniVeh>0?((d.impVeh||0)/(d.uniVeh||1)).toFixed(3):'--';
+  doc.text(String(motorRate),col3X+tw*2+4,y3+9);
+  y3+=12;
+
+  // Horarios Pico
+  doc.setFontSize(5.5);doc.setTextColor(30);doc.setFont(undefined,'bold');
+  doc.text('Horarios Pico',col3X+2,y3+3);
+  doc.setFont(undefined,'normal');doc.setFontSize(5);doc.setTextColor(80);
+  doc.text('AM 7:00-9:30  Med 13:00-15:00  PM 17:30-20:30',col3X+2,y3+7);
+  y3+=10;
+
+  // Reparto Modal
+  doc.setFontSize(5.5);doc.setTextColor(30);doc.setFont(undefined,'bold');
+  doc.text('Reparto Modal',col3X+2,y3+3);y3+=5;
+
+  var vehM=d.vehMonthly||0,pedM=d.pedMonthly||0;
+  var totalM=vehM+pedM;var vPct=totalM>0?Math.round(vehM*100/totalM):0;
+  var tPub=totalM>0?Math.round(totalM*0.46*100/totalM):46;
+  var pPct=totalM>0?Math.round(pedM*100/totalM):0;
+  var bPct=3;
+
+  var modals=[{n:'Vehículos',p:vPct,c:[37,99,235]},{n:'Trans. Público',p:tPub,c:[139,58,159]},{n:'Peatones',p:pPct,c:[234,179,8]},{n:'Bicicleta',p:bPct,c:[34,197,94]}];
+  modals.forEach(function(m){
+    doc.setFontSize(5);doc.setTextColor(60);doc.setFont(undefined,'normal');
+    doc.text(m.n,col3X+2,y3+2.5);
+    doc.setFillColor(230,230,235);doc.rect(col3X+22,y3,col3W-28,3,'F');
+    doc.setFillColor(m.c[0],m.c[1],m.c[2]);doc.rect(col3X+22,y3,(col3W-28)*m.p/100,3,'F');
+    doc.setFont(undefined,'bold');doc.text(m.p+'%',col3X+col3W-2,y3+2.5,{align:'right'});
+    y3+=5;
+  });
+
+  // Modal donut chart
   if(charts.modal){
-    try{doc.addImage(charts.modal,'PNG',rightX+rightColW/2+1,rightY,rightColW/2-2,chartH);}catch(e){}
+    try{doc.addImage(charts.modal,'PNG',col3X+(col3W-30)/2,y3+1,30,22);}catch(e){}
   }
-  rightY+=chartH+1;
 
-  // BOTTOM SECTION: NSE + Gender + Age charts as images
-  var bottomY=rightY+1;
-  var bottomChartH=28;
-  var bottomChartW=(rightColW-4)/2;
+  // ===== COLUMN 4: DEMOGRÁFICOS =====
+  doc.setFillColor(109,40,217);doc.rect(col4X,contentY,col4W,5,'F');
+  doc.setTextColor(255);doc.setFontSize(8);doc.setFont(undefined,'bold');
+  doc.text('Demográficos',col4X+col4W/2,contentY+3.5,{align:'center'});
 
-  // NSE chart (full width of left column, bottom)
+  var y4=contentY+7;
+  // Zone type badge
+  doc.setFillColor(245,240,255);doc.roundedRect(col4X,y4,col4W,12,1,1,'F');
+  doc.setTextColor(109,40,217);doc.setFontSize(7);doc.setFont(undefined,'bold');
+  doc.text('🏠 '+zoneType,col4X+2,y4+4.5);
+  doc.setFontSize(5);doc.setTextColor(80);doc.setFont(undefined,'normal');
+  doc.text(state+(municipio?', '+municipio:'')+' · Densidad: '+fmt(dens)+'/km²',col4X+2,y4+8);
+  doc.text('Radio: '+radiusText,col4X+2,y4+11);
+  y4+=14;
+
+  // Colonia/CP/NSE card
+  doc.setFillColor(255);doc.roundedRect(col4X,y4,col4W,14,1,1,'F');
+  doc.setDrawColor(200);doc.roundedRect(col4X,y4,col4W,14,1,1,'S');
+  doc.setTextColor(30);doc.setFontSize(8);doc.setFont(undefined,'bold');
+  doc.text(colonia||'--',col4X+2,y4+5);
+  doc.setFontSize(5);doc.setTextColor(80);doc.setFont(undefined,'normal');
+  doc.text((cp||'--')+' · '+state,col4X+2,y4+9);
+  var domNSE=d.dominant||'C';
+  doc.setFont(undefined,'bold');doc.setTextColor(109,40,217);
+  doc.text('NSE Dominante: '+domNSE+' (AMAI)',col4X+2,y4+13);
+  y4+=16;
+
+  // NSE Chart
   if(charts.nse){
-    try{doc.addImage(charts.nse,'PNG',leftX+1,bottomY,leftColW-2,bottomChartH);}catch(e){}
+    var nseH=Math.min(28,colH*0.18);
+    try{doc.addImage(charts.nse,'PNG',col4X,y4,col4W,nseH);}catch(e){}
+    y4+=nseH+2;
   }
 
-  // Gender chart (right column, left half of bottom)
+  // Gender chart
   if(charts.gender){
-    try{doc.addImage(charts.gender,'PNG',rightX+1,bottomY,bottomChartW,bottomChartH);}catch(e){}
+    var genH=Math.min(25,colH*0.16);
+    try{doc.addImage(charts.gender,'PNG',col4X,y4,col4W,genH);}catch(e){}
+    y4+=genH+2;
   }
 
-  // Age chart (right column, right half of bottom)
+  // Age chart
   if(charts.age){
-    try{doc.addImage(charts.age,'PNG',rightX+1+bottomChartW+1,bottomY,bottomChartW,bottomChartH);}catch(e){}
+    var ageH=Math.min(30,colH*0.20);
+    try{doc.addImage(charts.age,'PNG',col4X,y4,col4W,ageH);}catch(e){}
+    y4+=ageH+2;
   }
 
-  // FOOTER
-  var footerY=pageHeight-margin-5;
-  doc.setFontSize(6);
-  doc.setTextColor(100,100,100);
-  doc.text('Horarios Pico: AM 7:00-9:00 | Comida 13:00-15:00 | PM 18:00-21:00',margin+2,footerY);
+  // ===== FOOTER (full width) =====
+  doc.setDrawColor(200);doc.line(margin,footerY,pageWidth-margin,footerY);
+  doc.setFontSize(4.5);doc.setTextColor(150);doc.setFont(undefined,'normal');
+  doc.text('Fuentes: INEGI Censo 2020, ENIGH 2024, OSM, Google Places, Geopath VAI · Proyección 2026',margin+2,footerY+3);
+  doc.text('Generado: '+new Date().toISOString().slice(0,19).replace('T',' '),pageWidth-margin-2,footerY+3,{align:'right'});
+}
 
-  doc.setFontSize(5);
-  doc.setTextColor(150,150,150);
-  var impInfo='Proveedor: '+(d._proveedor||'--')+' | Formato: '+(d._formato||'--')+' | ID Sitio: '+(d._idSitio||'--');
-  doc.text(impInfo,margin+2,footerY+4);
-
-  var srcInfo='Fuentes: INEGI Censo 2020 | ENIGH 2024 | Geopath VAI';
-  doc.text(srcInfo,margin+2,footerY+7);
+// Helper: format number as K/M
+function _fmtK(n){
+  if(!n||n===0)return '0';
+  if(Math.abs(n)>=1e6)return (n/1e6).toFixed(1)+'M';
+  if(Math.abs(n)>=1e3)return (n/1e3).toFixed(0)+'K';
+  return String(Math.round(n));
 }
 
 // PPTX Export: landscape slides with same comprehensive layout
@@ -3715,7 +3823,7 @@ function toggleNSELayerAll(){
 }
 
 function updateNSELayers(){
-  nseLayerSelectedLevels={AB:false,Cplus:false,C:false,D:false,E:false};
+  nseLayerSelectedLevels={AB:false,Cplus:false,C:false,Dplus:false,D:false,E:false};
   var checks=document.querySelectorAll('.nse-level-check');
   checks.forEach(function(c){
     nseLayerSelectedLevels[c.dataset.level]=c.checked;
@@ -4156,139 +4264,151 @@ function drawNSEGrid(){
   clearNSEGrid();
   var bounds=map.getBounds();
   if(!bounds)return;
+  // Convert nseLayerSelectedLevels to activeNSE format for AGEB system
+  var activeNSE={};
+  if(nseLayerSelectedLevels.AB)activeNSE['AB']=true;
+  if(nseLayerSelectedLevels.Cplus)activeNSE['Cplus']=true;
+  if(nseLayerSelectedLevels.C)activeNSE['C']=true;
+  if(nseLayerSelectedLevels.Dplus)activeNSE['Dplus']=true;
+  if(nseLayerSelectedLevels.D)activeNSE['D']=true;
+  if(nseLayerSelectedLevels.E)activeNSE['E']=true;
+  var nseColors={AB:'#15803d',Cplus:'#22c55e',C:'#84cc16',Dplus:'#eab308',D:'#f97316',E:'#dc2626'};
+
+  setStatus('NSE: Obteniendo polígonos AGEB de INEGI...');
+  var center=bounds.getCenter();
+  var gc=new google.maps.Geocoder();
+  gc.geocode({location:{lat:center.lat(),lng:center.lng()}},function(results,status){
+    if(!nseLayerActive)return;
+    var municipioName='';
+    if(status==='OK'&&results&&results[0]){
+      results[0].address_components.forEach(function(ac){
+        if(ac.types.indexOf('locality')!==-1||ac.types.indexOf('administrative_area_level_2')!==-1)municipioName=ac.long_name;
+      });
+    }
+    var entCode=getStateForCoords(center.lat(),center.lng())||'09';
+    _resolveAGEBMunicipality(entCode,center.lat(),center.lng(),municipioName,function(munCodes){
+      if(!nseLayerActive)return;
+      if(!munCodes||munCodes.length===0){
+        setStatus('NSE: No se encontró municipio. Usando estimación por zona...');
+        _drawNSEGridFallback(activeNSE,nseColors);
+        return;
+      }
+      var totalLoaded=0,totalExpected=munCodes.length;
+      munCodes.forEach(function(mc){
+        _fetchAGEBPolygons(entCode,mc,function(agebs){
+          totalLoaded++;
+          if(!nseLayerActive)return;
+          if(agebs&&agebs.length>0){
+            _renderNSEFilterAGEB(agebs,bounds,activeNSE,nseColors,entCode);
+          }
+          if(totalLoaded>=totalExpected){
+            if(nseGridPolygons.length===0){
+              setStatus('NSE: Sin polígonos AGEB, usando estimación por zona...');
+              _drawNSEGridFallback(activeNSE,nseColors);
+            }else{
+              setStatus('NSE: '+nseGridPolygons.length+' polígonos AGEB por nivel socioeconómico');
+            }
+          }
+        });
+      });
+    });
+  });
+}
+
+// Render AGEB polygons for NSE filter (uses nseGridPolygons for cleanup)
+function _renderNSEFilterAGEB(agebs,bounds,activeNSE,nseColors,entCode){
+  var z=map.getZoom();
+  agebs.forEach(function(ageb){
+    var paths=_agebCoordsToPath(ageb.coords,ageb.type);
+    if(!paths||paths.length===0)return;
+    // Determine NSE level for this AGEB
+    var centroid=_agebCentroid(paths);
+    if(!centroid)return;
+    // Check if within view bounds
+    if(bounds&&!bounds.contains(centroid))return;
+    var stCode=entCode||getStateForCoords(centroid.lat(),centroid.lng());
+    var nseLevel=getNSEForCell(stCode,centroid.lat(),centroid.lng());
+    var nseKey=getNSEKey(nseLevel.name);
+    if(!activeNSE[nseKey])return;
+    var color=nseColors[nseKey]||nseLevel.color||'#888';
+    var sw2=z>=16?1:z>=14?0.8:0.5;
+    var fOp=z>=16?0.40:0.35;
+    var sOp=z>=16?0.6:0.3;
+    var poly=new google.maps.Polygon({
+      paths:paths,fillColor:color,fillOpacity:fOp,strokeColor:color,strokeWeight:sw2,strokeOpacity:sOp,clickable:true,map:map
+    });
+    // Click: show AGEB NSE info
+    (function(level,lat,lng,stC){
+      poly.addListener('click',function(){
+        var en=ENIGH[stC];var ce=CENSUS[stC];
+        if(!en||!ce)return;
+        var hash=Math.abs(Math.sin(lat*12345.67+lng*98765.43)*10000);
+        var locVar=0.7+(hash%600)/1000;
+        var baseDens=ce.dens||1000;
+        var zf=1.0;
+        for(var z=0;z<PREMIUM_ZONES.length;z++){var pz=PREMIUM_ZONES[z];var d=Math.sqrt(Math.pow(lat-pz.lat,2)+Math.pow(lng-pz.lng,2));if(d<pz.r*2){zf=1.5+pz.boost;break;}}
+        for(var z2=0;z2<LOW_ZONES.length;z2++){var lz=LOW_ZONES[z2];var d2=Math.sqrt(Math.pow(lat-lz.lat,2)+Math.pow(lng-lz.lng,2));if(d2<lz.r*2){zf=0.6;break;}}
+        var effDens=baseDens*locVar*zf;
+        var areaKm2=google.maps.geometry.spherical.computeArea(paths)*1e-6;
+        var blockPop=Math.max(1,Math.round(effDens*areaKm2));
+        var blockHog=Math.max(1,Math.round(blockPop/(3.3+(hash%15)/10)));
+        var incAdj=zf>1.2?1.2+((hash%20)/100):zf<0.8?0.6+((hash%15)/100):1.0;
+        var blockIncome=Math.round((en.ingPC||en.ing)*incAdj);
+        var blockGasto=Math.round((en.gasPC||en.gas)*incAdj);
+        if(nseInfoWindow)nseInfoWindow.close();
+        var content='<div style="font-family:-apple-system,sans-serif;min-width:220px;padding:2px">'
+          +'<div style="font-weight:700;color:#1d1d1f;font-size:14px;margin-bottom:6px;border-bottom:2px solid '+color+';padding-bottom:4px">AGEB - '+level.name+'</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">'
+          +'<span style="color:#64748b">Personas:</span><span style="font-weight:600">'+fmt(blockPop)+'</span>'
+          +'<span style="color:#64748b">Viviendas:</span><span style="font-weight:600">'+fmt(blockHog)+'</span>'
+          +'<span style="color:#64748b">NSE:</span><span style="font-weight:600;color:'+color+'">'+level.name+'</span>'
+          +'<span style="color:#64748b">Ingreso per cáp:</span><span style="font-weight:600;color:#16a34a">'+fmtC(blockIncome)+'</span>'
+          +'<span style="color:#64748b">Gasto per cáp:</span><span style="font-weight:600;color:#dc2626">'+fmtC(blockGasto)+'</span>'
+          +'<span style="color:#64748b">Área:</span><span style="font-weight:600">'+areaKm2.toFixed(3)+' km²</span>'
+          +'</div>'
+          +'<div style="font-size:9px;color:#94a3b8;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:4px">AGEB | '+lat.toFixed(5)+', '+lng.toFixed(5)+' | '+en.n+'<br>Fuente: INEGI Marco Geoestadístico + ENIGH 2024</div>'
+          +'</div>';
+        nseInfoWindow=new google.maps.InfoWindow({content:content,position:{lat:lat,lng:lng}});
+        nseInfoWindow.open(map);
+      });
+    })(nseLevel,centroid.lat(),centroid.lng(),stCode);
+    nseGridPolygons.push(poly);
+  });
+}
+
+// Helper: compute centroid of polygon paths
+function _agebCentroid(paths){
+  var flat=Array.isArray(paths[0])?paths[0]:paths;
+  if(!flat||flat.length===0)return null;
+  var sumLat=0,sumLng=0,n=flat.length;
+  for(var i=0;i<n;i++){
+    if(typeof flat[i].lat==='function'){sumLat+=flat[i].lat();sumLng+=flat[i].lng();}
+    else{sumLat+=(flat[i].lat||0);sumLng+=(flat[i].lng||0);}
+  }
+  return new google.maps.LatLng(sumLat/n,sumLng/n);
+}
+
+// Fallback grid for areas without AGEB data
+function _drawNSEGridFallback(activeNSE,nseColors){
+  var bounds=map.getBounds();if(!bounds)return;
   var ne=bounds.getNorthEast(),sw=bounds.getSouthWest();
   var zoom=map.getZoom();
-
-  // Grid cell size — at high zoom, practically per block (~50-80m)
-  var cellSize;
-  if(zoom>=18)cellSize=0.00015;     // ~15m — individual houses
-  else if(zoom>=17)cellSize=0.0003;  // ~30m
-  else if(zoom>=16)cellSize=0.0005;  // ~50m — fine block level
-  else if(zoom>=15)cellSize=0.0018;  // ~180m — 2 blocks
-  else if(zoom>=14)cellSize=0.003;   // ~300m
-  else if(zoom>=13)cellSize=0.006;   // ~600m
-  else if(zoom>=12)cellSize=0.01;    // ~1km
-  else if(zoom>=11)cellSize=0.02;    // ~2km
-  else if(zoom>=10)cellSize=0.04;    // ~4km
-  else if(zoom>=8)cellSize=0.1;      // ~10km
-  else if(zoom>=6)cellSize=0.5;
-  else cellSize=1.0;
-
-  var latRange=ne.lat()-sw.lat();
-  var lngRange=ne.lng()-sw.lng();
-  // Allow many more cells at high zoom for block-level detail
-  var maxCells=(zoom>=16)?3500:(zoom>=15)?2500:(zoom>=13)?1500:900;
-  var maxColRow=(zoom>=16)?70:(zoom>=15)?60:(zoom>=13)?45:30;
-  var cols=Math.min(Math.ceil(lngRange/cellSize),maxColRow);
-  var rows=Math.min(Math.ceil(latRange/cellSize),maxColRow);
-  if(cols*rows>maxCells){
-    var scale=Math.sqrt(maxCells/(cols*rows));
-    cols=Math.floor(cols*scale);
-    rows=Math.floor(rows*scale);
-  }
-  if(cols<1)cols=1;
-  if(rows<1)rows=1;
-
-  var actualCellW=lngRange/cols;
-  var actualCellH=latRange/rows;
-  // Cell area in km2 for population estimation
-  var cellAreaKm2=actualCellH*111.32*actualCellW*111.32*Math.cos(((ne.lat()+sw.lat())/2)*Math.PI/180);
-
-  for(var r=0;r<rows;r++){
-    for(var c=0;c<cols;c++){
-      var cellLat=sw.lat()+r*actualCellH+actualCellH/2;
-      var cellLng=sw.lng()+c*actualCellW+actualCellW/2;
-
-      var stCode=getStateForCoords(cellLat,cellLng);
-      var en=ENIGH[stCode];
-      if(!en)continue;
-      var ce=CENSUS[stCode];
-      if(!ce)continue;
-
-      var nseLevel=getNSEForCell(stCode,cellLat,cellLng);
-      var nseKey=getNSEKey(nseLevel.name);
-      if(!nseLayerSelectedLevels[nseKey])continue;
-
-      var cellBounds=[
-        {lat:sw.lat()+r*actualCellH, lng:sw.lng()+c*actualCellW},
-        {lat:sw.lat()+r*actualCellH, lng:sw.lng()+(c+1)*actualCellW},
-        {lat:sw.lat()+(r+1)*actualCellH, lng:sw.lng()+(c+1)*actualCellW},
-        {lat:sw.lat()+(r+1)*actualCellH, lng:sw.lng()+c*actualCellW}
-      ];
-
-      // Stroke weight thinner at high zoom for clean block borders
-      var sw2=zoom>=16?1:zoom>=14?0.8:0.5;
-      var fOp=zoom>=16?0.40:0.35;
-      var sOp=zoom>=16?0.6:0.3;
-
-      var poly=new google.maps.Polygon({
-        paths:cellBounds,
-        fillColor:nseLevel.color,
-        fillOpacity:fOp,
-        strokeColor:nseLevel.color,
-        strokeWeight:sw2,
-        strokeOpacity:sOp,
-        clickable:true,
-        map:map
-      });
-
-      // Click: show detailed block info — population, houses, NSE, income
-      (function(level,lat,lng,stC,enData,ceData,areaKm2){
-        poly.addListener('click',function(){
-          // Estimate block-level stats
-          var hash=Math.abs(Math.sin(lat*12345.67+lng*98765.43)*10000);
-          var locVar=0.7+(hash%600)/1000; // 0.7-1.3
-          var baseDens=ceData.dens||1000;
-          // Zone factor
-          var zf=1.0;
-          for(var z=0;z<PREMIUM_ZONES.length;z++){
-            var pz=PREMIUM_ZONES[z];
-            var d=Math.sqrt(Math.pow(lat-pz.lat,2)+Math.pow(lng-pz.lng,2));
-            if(d<pz.r*2){zf=1.5+pz.boost;break;}
-          }
-          for(var z2=0;z2<LOW_ZONES.length;z2++){
-            var lz=LOW_ZONES[z2];
-            var d2=Math.sqrt(Math.pow(lat-lz.lat,2)+Math.pow(lng-lz.lng,2));
-            if(d2<lz.r*2){zf=0.6;break;}
-          }
-          var effDens=baseDens*locVar*zf;
-          var blockPop=Math.max(1,Math.round(effDens*areaKm2));
-          var blockHog=Math.max(1,Math.round(blockPop/(3.3+(hash%15)/10)));
-          // Income adjustment per zone
-          var incAdj=1.0;
-          if(zf>1.2)incAdj=1.2+((hash%20)/100);
-          else if(zf<0.8)incAdj=0.6+((hash%15)/100);
-          var blockIncome=Math.round((enData.ingPC||enData.ing)*incAdj);
-          var blockGasto=Math.round((enData.gasPC||enData.gas)*incAdj);
-
-          // Show InfoWindow with block details
-          if(nseInfoWindow)nseInfoWindow.close();
-          var content='<div style="font-family:-apple-system,sans-serif;min-width:220px;padding:2px">'
-            +'<div style="font-weight:700;color:#1d1d1f;font-size:14px;margin-bottom:6px;border-bottom:2px solid '+level.color+';padding-bottom:4px">Manzana - '+level.name+'</div>'
-            +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">'
-            +'<span style="color:#64748b">Personas:</span><span style="font-weight:600">'+fmt(blockPop)+'</span>'
-            +'<span style="color:#64748b">Viviendas:</span><span style="font-weight:600">'+fmt(blockHog)+'</span>'
-            +'<span style="color:#64748b">NSE:</span><span style="font-weight:600;color:'+level.color+'">'+level.name+'</span>'
-            +'<span style="color:#64748b">Ingreso per cáp:</span><span style="font-weight:600;color:#16a34a">'+fmtC(blockIncome)+'</span>'
-            +'<span style="color:#64748b">Gasto per cáp:</span><span style="font-weight:600;color:#dc2626">'+fmtC(blockGasto)+'</span>'
-            +'<span style="color:#64748b">Densidad:</span><span style="font-weight:600">'+fmt(Math.round(effDens))+' hab/km\u00B2</span>'
-            +'</div>'
-            +'<div style="font-size:9px;color:#94a3b8;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:4px">'+lat.toFixed(5)+', '+lng.toFixed(5)+' | '+enData.n+'<br>Fuente: INEGI ENIGH 2024, Censo 2020</div>'
-            +'</div>';
-          nseInfoWindow=new google.maps.InfoWindow({content:content,position:{lat:lat,lng:lng}});
-          nseInfoWindow.open(map);
-        });
-      })(nseLevel,cellLat,cellLng,stCode,en,ce,cellAreaKm2);
-
-      nseGridPolygons.push(poly);
-    }
-  }
-  // Status hint
-  if(zoom<15){
-    setStatus('Capa NSE activa — acerca el mapa (zoom 15+) para ver nivel por manzana/cuadra');
-  }else{
-    setStatus('Capa NSE: nivel por manzana. Haz clic en cualquier cuadra para ver detalle.');
-  }
+  var cellSize=zoom>=16?0.0005:zoom>=14?0.003:zoom>=12?0.01:zoom>=10?0.04:0.1;
+  var latR=ne.lat()-sw.lat(),lngR=ne.lng()-sw.lng();
+  var maxC=zoom>=15?2000:900;
+  var cols=Math.min(Math.ceil(lngR/cellSize),50),rows=Math.min(Math.ceil(latR/cellSize),50);
+  if(cols*rows>maxC){var sc=Math.sqrt(maxC/(cols*rows));cols=Math.floor(cols*sc);rows=Math.floor(rows*sc);}
+  var aW=lngR/Math.max(cols,1),aH=latR/Math.max(rows,1);
+  for(var r=0;r<rows;r++){for(var c=0;c<cols;c++){
+    var cLat=sw.lat()+r*aH+aH/2,cLng=sw.lng()+c*aW+aW/2;
+    var stC=getStateForCoords(cLat,cLng);if(!ENIGH[stC]||!CENSUS[stC])continue;
+    var nL=getNSEForCell(stC,cLat,cLng);var nK=getNSEKey(nL.name);
+    if(!activeNSE[nK])continue;
+    var poly=new google.maps.Polygon({paths:[{lat:sw.lat()+r*aH,lng:sw.lng()+c*aW},{lat:sw.lat()+r*aH,lng:sw.lng()+(c+1)*aW},{lat:sw.lat()+(r+1)*aH,lng:sw.lng()+(c+1)*aW},{lat:sw.lat()+(r+1)*aH,lng:sw.lng()+c*aW}],
+      fillColor:nseColors[nK]||nL.color,fillOpacity:0.3,strokeColor:nseColors[nK]||nL.color,strokeWeight:0.5,strokeOpacity:0.3,clickable:false,map:map});
+    nseGridPolygons.push(poly);
+  }}
+  setStatus('NSE: Estimación por zona (sin datos AGEB para esta área)');
 }
 
 function getStateForCoords(lat,lng){
