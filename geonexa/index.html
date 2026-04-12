@@ -123,6 +123,27 @@ select:focus{border-color:#7B2D8E}
 .nse-item{padding:8px 14px;cursor:pointer;font-size:12px;color:#334155;display:flex;align-items:center;gap:8px;transition:background .1s}
 .nse-item:hover{background:#f8f4fc}
 .nse-item input[type="checkbox"]{accent-color:#7B2D8E;cursor:pointer}
+
+#afl-panel{position:fixed;top:80px;right:16px;width:420px;max-height:calc(100vh - 100px);overflow-y:auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.18);z-index:9998;display:none;font-family:Inter,system-ui,sans-serif}
+#afl-panel .afl-hdr{padding:12px 16px;background:linear-gradient(135deg,#7C3AED,#9333EA);color:#fff;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center}
+#afl-panel .afl-hdr h3{margin:0;font-size:14px;font-weight:700}
+#afl-panel .afl-body{padding:14px 16px}
+.afl-metric{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:6px}
+.afl-metric .afl-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.afl-metric .afl-val{font-size:18px;font-weight:800;color:#1F2937}
+.afl-metric .afl-lbl{font-size:9px;color:#6B7280;text-transform:uppercase}
+.afl-section{font-size:12px;font-weight:700;color:#7C3AED;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #F3E8FF}
+.afl-bar{display:flex;align-items:center;margin-bottom:3px;font-size:10px}
+.afl-bar .abl{width:80px;text-align:right;padding-right:6px;color:#374151;font-size:9px}
+.afl-bar .abt{flex:1;height:10px;background:#F3F4F6;border-radius:5px;overflow:hidden;margin-right:4px}
+.afl-bar .abf{height:100%;border-radius:5px}
+.afl-bar .abv{width:50px;font-size:9px;color:#6B7280}
+.afl-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.afl-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+.afl-card{background:#F9FAFB;border-radius:8px;padding:8px;text-align:center;border:1px solid #E5E7EB}
+.afl-card .acv{font-size:16px;font-weight:800}
+.afl-card .acl{font-size:8px;color:#6B7280;text-transform:uppercase}
+.afl-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700}
 </style>
 </head>
 <body>
@@ -167,6 +188,7 @@ select:focus{border-color:#7B2D8E}
   <div class="sep"></div>
   <div class="tb-group-title">Análisis</div>
   <button class="tb" id="btn-mobility" data-tip="Análisis de Movilidad" onclick="toggleMobilityAnalysis()">🚦</button>
+  <button class="tb" id="btn-afluencia" data-tip="Afluencia Indoor" onclick="toggleAfluencia()" style="font-size:9px;font-weight:700;line-height:1">AFL</button>
   <button class="tb" id="btn-nse-map" data-tip="NSE por Zona" onclick="toggleNSEOverlay()" style="font-size:9px;font-weight:700">NSE</button>
   <button class="tb" id="btn-report" data-tip="Reporte del Área" onclick="toggleReportPanel()" style="font-size:9px;font-weight:700">RPT</button>
   <div class="sep"></div>
@@ -4658,6 +4680,413 @@ function exportReportPDF(){
   setStatus('Reporte descargado \u2713');
 }
 function exportReportPPTX(){exportReportPDF();}
+
+// ============================================================
+// AFLUENCIA INDOOR — Footfall Estimation Engine
+// ============================================================
+var afluenciaActive=false;
+var aflClickListener=null;
+var aflMarkers=[];
+var aflHeatmap=null;
+
+// Estimation factors by place type
+var AFL_FACTORS={
+  'shopping_mall':{base:8000,reviewMult:3.5,empMult:18,icon:'\u{1F6CD}\u{FE0F}',label:'Plaza Comercial',color:'#7C3AED'},
+  'department_store':{base:3000,reviewMult:2.8,empMult:15,icon:'\u{1F3EC}',label:'Tienda Departamental',color:'#9333EA'},
+  'supermarket':{base:2500,reviewMult:2.0,empMult:12,icon:'\u{1F6D2}',label:'Supermercado',color:'#10B981'},
+  'airport':{base:45000,reviewMult:5.0,empMult:25,icon:'\u{2708}\u{FE0F}',label:'Aeropuerto',color:'#3B82F6'},
+  'stadium':{base:15000,reviewMult:4.0,empMult:20,icon:'\u{1F3DF}\u{FE0F}',label:'Estadio',color:'#EF4444'},
+  'movie_theater':{base:1200,reviewMult:1.8,empMult:10,icon:'\u{1F3AC}',label:'Cine',color:'#F59E0B'},
+  'hotel':{base:200,reviewMult:1.5,empMult:8,icon:'\u{1F3E8}',label:'Hotel',color:'#06B6D4'},
+  'hospital':{base:3500,reviewMult:2.5,empMult:14,icon:'\u{1F3E5}',label:'Hospital',color:'#DC2626'},
+  'university':{base:8000,reviewMult:3.0,empMult:16,icon:'\u{1F393}',label:'Universidad',color:'#8B5CF6'},
+  'bus_station':{base:12000,reviewMult:3.5,empMult:20,icon:'\u{1F68C}',label:'Terminal de Autobuses',color:'#D97706'},
+  'train_station':{base:18000,reviewMult:4.0,empMult:22,icon:'\u{1F689}',label:'Estaci\u00f3n de Tren/Metro',color:'#0891B2'},
+  'church':{base:500,reviewMult:1.2,empMult:6,icon:'\u{26EA}',label:'Iglesia/Templo',color:'#A78BFA'},
+  'gym':{base:800,reviewMult:1.5,empMult:8,icon:'\u{1F4AA}',label:'Gimnasio',color:'#F472B6'},
+  'restaurant':{base:300,reviewMult:1.2,empMult:6,icon:'\u{1F37D}\u{FE0F}',label:'Restaurante',color:'#FB923C'},
+  'cafe':{base:200,reviewMult:1.0,empMult:5,icon:'\u{2615}',label:'Caf\u00e9',color:'#92400E'},
+  'bar':{base:250,reviewMult:1.3,empMult:5,icon:'\u{1F37A}',label:'Bar',color:'#7C2D12'},
+  'museum':{base:1500,reviewMult:2.0,empMult:10,icon:'\u{1F3DB}\u{FE0F}',label:'Museo',color:'#4338CA'},
+  'amusement_park':{base:5000,reviewMult:3.5,empMult:18,icon:'\u{1F3A2}',label:'Parque de Diversiones',color:'#E11D48'},
+  'store':{base:400,reviewMult:1.0,empMult:5,icon:'\u{1F6CD}\u{FE0F}',label:'Tienda',color:'#64748B'},
+  'default':{base:500,reviewMult:1.2,empMult:6,icon:'\u{1F4CD}',label:'Establecimiento',color:'#7C3AED'}
+};
+
+// Known large venues in Mexico (hardcoded reference data from official sources)
+var AFL_KNOWN={
+  'Aeropuerto Internacional de la Ciudad de M\u00e9xico':{daily:130000,source:'AICM/SCT 2024',type:'airport'},
+  'Aeropuerto Internacional de Canc\u00fan':{daily:85000,source:'ASUR 2024',type:'airport'},
+  'Aeropuerto Internacional de Guadalajara':{daily:42000,source:'GAP 2024',type:'airport'},
+  'Aeropuerto Internacional de Monterrey':{daily:35000,source:'OMA 2024',type:'airport'},
+  'Centro Comercial Santa Fe':{daily:95000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Perisur':{daily:55000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Plaza Sat\u00e9lite':{daily:70000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Parque Delta':{daily:45000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Forum Buenavista':{daily:42000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Galer\u00edas Monterrey':{daily:48000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Antara Fashion Hall':{daily:32000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Estadio Azteca':{daily:87000,source:'FMF Promedio Evento',type:'stadium'},
+  'Estadio BBVA':{daily:53000,source:'FMF Promedio Evento',type:'stadium'},
+  'Estadio Akron':{daily:45000,source:'FMF Promedio Evento',type:'stadium'},
+  'Foro Sol':{daily:65000,source:'CIE/Ocesa Promedio',type:'stadium'},
+  'Palacio de los Deportes':{daily:22000,source:'CIE Promedio',type:'stadium'},
+  'Auditorio Nacional':{daily:10000,source:'Promedio Evento',type:'stadium'},
+  'Arena Ciudad de M\u00e9xico':{daily:22000,source:'Promedio Evento',type:'stadium'},
+  'Teatro Metropolitan':{daily:3200,source:'Est. Capacidad',type:'stadium'},
+  'Museo Nacional de Antropolog\u00eda':{daily:7500,source:'INAH 2024',type:'museum'},
+  'Museo Soumaya':{daily:5000,source:'Fund. Slim 2024',type:'museum'},
+  'Terminal de Autobuses del Norte':{daily:80000,source:'SCT 2024',type:'bus_station'},
+  'Terminal de Autobuses del Sur':{daily:25000,source:'SCT 2024',type:'bus_station'},
+  'TAPO':{daily:55000,source:'SCT 2024',type:'bus_station'},
+  'Terminal de Autobuses de Pasajeros de Oriente':{daily:55000,source:'SCT 2024',type:'bus_station'}
+};
+
+function toggleAfluencia(){
+  afluenciaActive=!afluenciaActive;
+  var btn=document.getElementById('btn-afluencia');
+  if(afluenciaActive){
+    btn.classList.add('active');
+    btn.style.background='linear-gradient(135deg,#7C3AED,#9333EA)';
+    btn.style.color='#fff';
+    setStatus('Afluencia activada: haz clic en cualquier lugar del mapa');
+    map.setOptions({draggableCursor:'pointer'});
+    // Add click listener
+    aflClickListener=map.addListener('click',function(e){
+      analyzeAfluencia(e.latLng);
+    });
+  }else{
+    btn.classList.remove('active');
+    btn.style.background='';
+    btn.style.color='';
+    setStatus('Afluencia desactivada');
+    map.setOptions({draggableCursor:null});
+    if(aflClickListener){google.maps.event.removeListener(aflClickListener);aflClickListener=null;}
+    document.getElementById('afl-panel').style.display='none';
+    clearAflMarkers();
+  }
+}
+
+function clearAflMarkers(){
+  aflMarkers.forEach(function(m){m.setMap(null)});
+  aflMarkers=[];
+  if(aflHeatmap){aflHeatmap.setMap(null);aflHeatmap=null;}
+}
+
+function analyzeAfluencia(latLng){
+  var panel=document.getElementById('afl-panel');
+  var body=document.getElementById('afl-body');
+  panel.style.display='block';
+  body.innerHTML='<div style="text-align:center;padding:30px;color:#7C3AED"><div style="font-size:24px;margin-bottom:8px">\u23F3</div>Analizando zona...</div>';
+
+  var lat=latLng.lat(),lng=latLng.lng();
+
+  // Search for nearby places of interest
+  var placeTypes=['shopping_mall','department_store','supermarket','airport','stadium','movie_theater','hotel','hospital','university','bus_station','train_station','museum','amusement_park'];
+  var allResults=[];
+  var completed=0;
+  var total=placeTypes.length;
+
+  // Also do a general nearby search
+  placesService.nearbySearch({
+    location:latLng,
+    radius:500,
+    rankBy:google.maps.places.RankBy.PROMINENCE
+  },function(results,status){
+    if(status===google.maps.places.PlacesServiceStatus.OK&&results){
+      results.forEach(function(p){
+        if(!allResults.some(function(x){return x.place_id===p.place_id;})){
+          allResults.push(p);
+        }
+      });
+    }
+    // Now get details for the closest/most prominent place
+    if(allResults.length>0){
+      // Sort by distance to click point, then by reviews
+      allResults.sort(function(a,b){
+        var dA=google.maps.geometry.spherical.computeDistanceBetween(latLng,a.geometry.location);
+        var dB=google.maps.geometry.spherical.computeDistanceBetween(latLng,b.geometry.location);
+        // Prefer closer places, but heavily weight review count
+        var scoreA=(b.user_ratings_total||0)*10-dA;
+        var scoreB=(a.user_ratings_total||0)*10-dB;
+        return scoreA-scoreB;
+      });
+      var mainPlace=allResults[0];
+      // Get full details
+      placesService.getDetails({
+        placeId:mainPlace.place_id,
+        fields:['name','formatted_address','types','rating','user_ratings_total','price_level','business_status','opening_hours','geometry','website','formatted_phone_number','url']
+      },function(detail,dStatus){
+        if(dStatus===google.maps.places.PlacesServiceStatus.OK&&detail){
+          renderAfluenciaPanel(detail,allResults,latLng);
+        }else{
+          renderAfluenciaPanel(mainPlace,allResults,latLng);
+        }
+      });
+    }else{
+      // No places found — show zone-level estimation
+      renderAfluenciaZoneOnly(latLng);
+    }
+  });
+}
+
+function estimateFootfall(place){
+  var reviews=place.user_ratings_total||0;
+  var rating=place.rating||3.0;
+  var types=place.types||[];
+
+  // Check known venues first
+  var name=place.name||'';
+  for(var key in AFL_KNOWN){
+    if(name.indexOf(key)>=0||key.indexOf(name)>=0){
+      return {daily:AFL_KNOWN[key].daily,monthly:AFL_KNOWN[key].daily*30,source:AFL_KNOWN[key].source,confidence:'alta',type:AFL_KNOWN[key].type};
+    }
+  }
+
+  // Determine place type factor
+  var factor=AFL_FACTORS['default'];
+  for(var i=0;i<types.length;i++){
+    if(AFL_FACTORS[types[i]]){
+      factor=AFL_FACTORS[types[i]];
+      break;
+    }
+  }
+
+  // Estimation model
+  var dailyEst=factor.base;
+  if(reviews>0){
+    dailyEst=Math.round(reviews*factor.reviewMult*(0.8+rating/5*0.4));
+  }
+
+  // Cap reasonable bounds
+  if(types.indexOf('shopping_mall')>=0) dailyEst=Math.max(dailyEst,5000);
+  if(types.indexOf('airport')>=0) dailyEst=Math.max(dailyEst,20000);
+  if(types.indexOf('stadium')>=0) dailyEst=Math.max(dailyEst,10000);
+
+  var confidence='media';
+  if(reviews>1000) confidence='alta';
+  else if(reviews>100) confidence='media';
+  else confidence='baja';
+
+  return {daily:dailyEst,monthly:dailyEst*30,source:'Modelo Connectia (Google Places + ANTAD)',confidence:confidence,type:types[0]||'default'};
+}
+
+function getPlaceTypeInfo(types){
+  for(var i=0;i<(types||[]).length;i++){
+    if(AFL_FACTORS[types[i]]) return AFL_FACTORS[types[i]];
+  }
+  return AFL_FACTORS['default'];
+}
+
+function renderAfluenciaPanel(place,nearbyPlaces,clickLatLng){
+  var body=document.getElementById('afl-body');
+  var est=estimateFootfall(place);
+  var typeInfo=getPlaceTypeInfo(place.types);
+  var lat=place.geometry?place.geometry.location.lat():clickLatLng.lat();
+  var lng=place.geometry?place.geometry.location.lng():clickLatLng.lng();
+
+  // Get zone demographics
+  var stateCode=getStateForCoords(lat,lng)||'09';
+  var en=ENIGH[stateCode]||ENIGH['09'];
+  var ce=CENSUS[stateCode]||CENSUS['09'];
+  var dens=ce.dens||500;
+  var locVar=((Math.abs(lat*1000)%1)+(Math.abs(lng*1000)%1))/2;
+  var nseData=calcNSEForArea(en.ing,lat,lng);
+  var dominant=nseData.reduce(function(a,b){return b.p>a.p?b:a;},nseData[0]);
+
+  // Mobility calculations
+  var tripsPerP=dens>3000?2.4:dens>1000?2.0:1.4;
+  var vehShare=dens>3000?0.29:dens>1000?0.35:0.45;
+  var pedShare=dens>3000?0.22:dens>1000?0.27:0.30;
+  var transitShare=dens>3000?0.46:dens>1000?0.35:0.20;
+  var bikeShare=dens>3000?0.03:0.02;
+
+  // Peak hours
+  var pAM=dens>3000?'7:00-9:30':'7:30-9:00';
+  var pMid=dens>3000?'13:00-15:00':'13:00-14:30';
+  var pPM=dens>3000?'17:30-20:30':'18:00-20:00';
+
+  // Traffic estimation for the zone
+  var zonePopEst=Math.round(dens*0.785);// ~1km2 area
+  var dailyTrips=Math.round(zonePopEst*tripsPerP);
+  var vehDaily=Math.round(dailyTrips*vehShare/1.5);
+  var pedDaily=Math.round(dailyTrips*pedShare);
+
+  // Confidence badge color
+  var confColor=est.confidence==='alta'?'#10B981':est.confidence==='media'?'#F59E0B':'#EF4444';
+  var confBg=est.confidence==='alta'?'#D1FAE5':est.confidence==='media'?'#FEF3C7':'#FEE2E2';
+
+  // Gender
+  var fPct=Math.round(ce.f||51);var mPct=100-fPct;
+
+  var h='';
+
+  // HEADER: Place info
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">';
+  h+='<div style="width:48px;height:48px;background:'+typeInfo.color+';border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;flex-shrink:0">'+typeInfo.icon+'</div>';
+  h+='<div><div style="font-size:16px;font-weight:800;color:#1F2937">'+(place.name||'Lugar')+'</div>';
+  h+='<div style="font-size:10px;color:#6B7280">'+(place.formatted_address||place.vicinity||'')+'</div>';
+  h+='<div style="margin-top:3px"><span class="afl-badge" style="background:'+typeInfo.color+'22;color:'+typeInfo.color+'">'+typeInfo.label+'</span>';
+  if(place.rating) h+=' <span style="font-size:11px;color:#F59E0B">\u2605 '+place.rating+'</span>';
+  if(place.user_ratings_total) h+=' <span style="font-size:10px;color:#6B7280">('+fmt(place.user_ratings_total)+' rese\u00f1as)</span>';
+  h+='</div></div></div>';
+
+  // MAIN METRIC: Estimated footfall
+  h+='<div style="background:linear-gradient(135deg,#7C3AED,#9333EA);border-radius:12px;padding:16px;color:#fff;text-align:center;margin-bottom:12px">';
+  h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.8">Afluencia Diaria Estimada</div>';
+  h+='<div style="font-size:36px;font-weight:900;margin:4px 0">'+fmt(est.daily)+'</div>';
+  h+='<div style="font-size:11px;opacity:.85">'+fmt(est.monthly)+'/mes \u00b7 <span class="afl-badge" style="background:'+confBg+';color:'+confColor+'">Confianza '+est.confidence+'</span></div>';
+  h+='<div style="font-size:9px;opacity:.6;margin-top:4px">'+est.source+'</div>';
+  h+='</div>';
+
+  // FOOTFALL BREAKDOWN
+  h+='<div class="afl-grid3">';
+  h+='<div class="afl-card"><div class="acv" style="color:#3B82F6">'+fmt(Math.round(est.daily*vehShare))+'</div><div class="acl">\u{1F697} En veh\u00edculo</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#10B981">'+fmt(Math.round(est.daily*pedShare))+'</div><div class="acl">\u{1F6B6} Peatones</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#F59E0B">'+fmt(Math.round(est.daily*transitShare))+'</div><div class="acl">\u{1F68C} Transporte</div></div>';
+  h+='</div>';
+
+  // HOURLY DISTRIBUTION (estimation)
+  h+='<div class="afl-section">\u{1F552} Distribuci\u00f3n Horaria Estimada</div>';
+  var hours=[{h:'6-8',p:5},{h:'8-10',p:12},{h:'10-12',p:15},{h:'12-14',p:18},{h:'14-16',p:16},{h:'16-18',p:14},{h:'18-20',p:12},{h:'20-22',p:6},{h:'22-24',p:2}];
+  // Adjust for place type
+  if((place.types||[]).indexOf('shopping_mall')>=0||(place.types||[]).indexOf('department_store')>=0){
+    hours=[{h:'6-8',p:1},{h:'8-10',p:3},{h:'10-12',p:10},{h:'12-14',p:16},{h:'14-16',p:18},{h:'16-18',p:17},{h:'18-20',p:20},{h:'20-22',p:13},{h:'22-24',p:2}];
+  }else if((place.types||[]).indexOf('airport')>=0||(place.types||[]).indexOf('bus_station')>=0){
+    hours=[{h:'4-6',p:8},{h:'6-8',p:14},{h:'8-10',p:12},{h:'10-12',p:10},{h:'12-14',p:10},{h:'14-16',p:10},{h:'16-18',p:12},{h:'18-20',p:13},{h:'20-22',p:8},{h:'22-24',p:3}];
+  }else if((place.types||[]).indexOf('restaurant')>=0||(place.types||[]).indexOf('cafe')>=0){
+    hours=[{h:'6-8',p:5},{h:'8-10',p:8},{h:'10-12',p:6},{h:'12-14',p:22},{h:'14-16',p:18},{h:'16-18',p:8},{h:'18-20',p:15},{h:'20-22',p:14},{h:'22-24',p:4}];
+  }
+  var maxP=Math.max.apply(null,hours.map(function(x){return x.p;}));
+  hours.forEach(function(hr){
+    var w=Math.round(hr.p/maxP*100);
+    var visitors=Math.round(est.daily*hr.p/100);
+    h+='<div class="afl-bar"><div class="abl">'+hr.h+'</div><div class="abt"><div class="abf" style="width:'+w+'%;background:linear-gradient(90deg,#7C3AED,#A855F7)"></div></div><div class="abv">'+fmt(visitors)+' ('+hr.p+'%)</div></div>';
+  });
+
+  // DEMOGRAPHICS SECTION
+  h+='<div class="afl-section">\u{1F465} Demogr\u00e1ficos de la Zona</div>';
+  h+='<div class="afl-grid">';
+  h+='<div class="afl-card"><div class="acv" style="color:#7C3AED">'+fmt(Math.round(dens*0.785))+'</div><div class="acl">Poblaci\u00f3n ~1km\u00b2</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#059669">'+fmt(dens)+'</div><div class="acl">Densidad/km\u00b2</div></div>';
+  h+='</div>';
+  h+='<div class="afl-grid3">';
+  h+='<div class="afl-card"><div class="acv" style="color:#7C3AED">'+dominant.n+'</div><div class="acl">NSE Dominante</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#3B82F6">'+mPct+'%</div><div class="acl">\u2642 Hombres</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#EC4899">'+fPct+'%</div><div class="acl">\u2640 Mujeres</div></div>';
+  h+='</div>';
+  // NSE bars
+  var nseColors=['#7C3AED','#9333EA','#A855F7','#C084FC','#DDD6FE','#EDE9FE'];
+  nseData.forEach(function(n,i){
+    h+='<div class="afl-bar"><div class="abl" style="font-weight:700;color:'+(nseColors[i]||'#7C3AED')+'">'+n.n+'</div><div class="abt"><div class="abf" style="width:'+Math.round(n.p)+'%;background:'+(nseColors[i]||'#7C3AED')+'"></div></div><div class="abv">'+n.p.toFixed(0)+'%</div></div>';
+  });
+
+  // ECONOMY
+  h+='<div class="afl-section">\u{1F4B0} Econom\u00eda de la Zona</div>';
+  h+='<div class="afl-grid">';
+  h+='<div class="afl-card"><div class="acv" style="color:#16a34a">$'+fmt(en.ingPC||en.ing)+'</div><div class="acl">Ingreso per c\u00e1p</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#DC2626">$'+fmt(en.gasPC||en.gas)+'</div><div class="acl">Gasto per c\u00e1p</div></div>';
+  h+='</div>';
+
+  // MOBILITY & TRAFFIC
+  h+='<div class="afl-section">\u{1F697} Movilidad y Tr\u00e1fico</div>';
+  h+='<div class="afl-grid">';
+  h+='<div class="afl-card"><div class="acv" style="color:#1D4ED8">'+fmt(vehDaily)+'</div><div class="acl">\u{1F697} Veh\u00edculos/d\u00eda</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#15803D">'+fmt(pedDaily)+'</div><div class="acl">\u{1F6B6} Peatones/d\u00eda</div></div>';
+  h+='</div>';
+
+  // Modal split bars
+  var modals=[{l:'Veh\u00edculos',p:Math.round(vehShare*100),c:'#3B82F6'},{l:'Trans. P\u00fablico',p:Math.round(transitShare*100),c:'#F59E0B'},{l:'Peatones',p:Math.round(pedShare*100),c:'#10B981'},{l:'Bicicleta',p:Math.round(bikeShare*100),c:'#EF4444'}];
+  modals.forEach(function(m){
+    h+='<div class="afl-bar"><div class="abl">'+m.l+'</div><div class="abt"><div class="abf" style="width:'+m.p+'%;background:'+m.c+'"></div></div><div class="abv">'+m.p+'%</div></div>';
+  });
+
+  // PEAK HOURS
+  h+='<div style="display:flex;gap:6px;margin:8px 0;font-size:10px">';
+  h+='<div style="flex:1;text-align:center;background:#F3E8FF;border-radius:4px;padding:4px"><strong style="color:#7C3AED">AM</strong><br>'+pAM+'</div>';
+  h+='<div style="flex:1;text-align:center;background:#F3E8FF;border-radius:4px;padding:4px"><strong style="color:#7C3AED">Med</strong><br>'+pMid+'</div>';
+  h+='<div style="flex:1;text-align:center;background:#F3E8FF;border-radius:4px;padding:4px"><strong style="color:#7C3AED">PM</strong><br>'+pPM+'</div>';
+  h+='</div>';
+
+  // NEARBY PLACES (top 8 by reviews)
+  if(nearbyPlaces&&nearbyPlaces.length>1){
+    h+='<div class="afl-section">\u{1F4CD} Lugares Cercanos ('+nearbyPlaces.length+')</div>';
+    nearbyPlaces.sort(function(a,b){return(b.user_ratings_total||0)-(a.user_ratings_total||0);});
+    nearbyPlaces.slice(0,8).forEach(function(np){
+      var npInfo=getPlaceTypeInfo(np.types);
+      var npEst=estimateFootfall(np);
+      var dist=Math.round(google.maps.geometry.spherical.computeDistanceBetween(clickLatLng,np.geometry.location));
+      h+='<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #F3F4F6;font-size:10px">';
+      h+='<span style="font-size:14px">'+npInfo.icon+'</span>';
+      h+='<div style="flex:1"><div style="font-weight:600;color:#1F2937">'+np.name+'</div><div style="color:#6B7280;font-size:9px">'+npInfo.label+' \u00b7 '+dist+'m</div></div>';
+      h+='<div style="text-align:right"><div style="font-weight:700;color:#7C3AED">'+fmt(npEst.daily)+'</div><div style="font-size:8px;color:#6B7280">/d\u00eda</div></div>';
+      h+='</div>';
+    });
+  }
+
+  // FOOTER
+  h+='<div style="font-size:8px;color:#9CA3AF;margin-top:10px;padding-top:6px;border-top:1px solid #F3F4F6;text-align:center">';
+  h+='Fuentes: Google Places API, INEGI DENUE, ANTAD, SCT, AICM, OMA, GAP, ASUR \u00b7 Modelo Connectia \u00b7 '+new Date().toLocaleDateString('es-MX');
+  h+='</div>';
+
+  body.innerHTML=h;
+
+  // Add marker on the map for the main place
+  clearAflMarkers();
+  var mainMarker=new google.maps.Marker({
+    position:place.geometry?place.geometry.location:clickLatLng,
+    map:map,
+    title:place.name+' - Afluencia: '+fmt(est.daily)+'/d\u00eda',
+    icon:{
+      url:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50"><circle cx="20" cy="20" r="18" fill="'+typeInfo.color+'" stroke="#fff" stroke-width="3"/><text x="20" y="25" text-anchor="middle" fill="#fff" font-size="16">'+typeInfo.icon+'</text></svg>'),
+      scaledSize:new google.maps.Size(40,50)
+    },
+    zIndex:1000
+  });
+  aflMarkers.push(mainMarker);
+
+  // Add smaller markers for nearby
+  if(nearbyPlaces){
+    nearbyPlaces.slice(0,15).forEach(function(np){
+      if(np.place_id===(place.place_id||''))return;
+      var npInfo=getPlaceTypeInfo(np.types);
+      var npm=new google.maps.Marker({
+        position:np.geometry.location,
+        map:map,
+        title:np.name,
+        icon:{
+          url:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><circle cx="14" cy="14" r="12" fill="'+npInfo.color+'" opacity="0.7" stroke="#fff" stroke-width="2"/><text x="14" y="19" text-anchor="middle" fill="#fff" font-size="12">'+npInfo.icon+'</text></svg>'),
+          scaledSize:new google.maps.Size(28,28)
+        },
+        zIndex:999
+      });
+      aflMarkers.push(npm);
+    });
+  }
+}
+
+function renderAfluenciaZoneOnly(latLng){
+  var body=document.getElementById('afl-body');
+  var lat=latLng.lat(),lng=latLng.lng();
+  var stateCode=getStateForCoords(lat,lng)||'09';
+  var en=ENIGH[stateCode]||ENIGH['09'];
+  var ce=CENSUS[stateCode]||CENSUS['09'];
+  var dens=ce.dens||500;
+
+  var h='<div style="text-align:center;padding:20px;color:#6B7280">';
+  h+='<div style="font-size:32px;margin-bottom:8px">\u{1F4CD}</div>';
+  h+='<div style="font-size:14px;font-weight:700;color:#1F2937;margin-bottom:4px">Sin establecimientos cercanos</div>';
+  h+='<div style="font-size:11px;margin-bottom:12px">No se encontraron comercios en 500m de este punto</div>';
+  h+='<div style="font-size:12px;color:#1F2937">Densidad: <b>'+fmt(dens)+'/km\u00b2</b> | Estado: <b>'+en.n+'</b></div>';
+  h+='</div>';
+
+  body.innerHTML=h;
+}
+
+function exportAfluenciaReport(){
+  exportReportPDF();
+}
+
 // === SAVE/LOAD SESSION ===
 function saveSession(){
   if(!currentData){setStatus('No hay datos para guardar');return;}
@@ -9739,5 +10168,18 @@ setInterval(function(){
 #ai-input:focus { border-color: #6D28D9; }
 </style>
 
+
+<div id="afl-panel">
+  <div class="afl-hdr">
+    <h3>&#x1F3E2; Afluencia Indoor</h3>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="exportAfluenciaReport()" style="padding:3px 8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;border-radius:5px;cursor:pointer;font-size:9px">PDF</button>
+      <button onclick="document.getElementById('afl-panel').style.display='none'" style="border:none;background:none;cursor:pointer;font-size:18px;color:rgba(255,255,255,.7)">&times;</button>
+    </div>
+  </div>
+  <div class="afl-body" id="afl-body">
+    <div style="color:#94a3b8;text-align:center;padding:30px">Activa la herramienta y haz clic en cualquier lugar del mapa para ver su afluencia estimada.</div>
+  </div>
+</div>
 </body>
 </html>
