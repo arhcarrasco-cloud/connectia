@@ -790,8 +790,15 @@ function onOverlayComplete(event){
     }
     multiSelections.push({overlay:event.overlay,type:event.type,data:null,color:selColor});
     // Keep the current drawing mode active for more selections
-    var currentMode=drawingManager.getDrawingMode();
-    drawingManager.setDrawingMode(currentMode||event.type);
+    // Re-activate the same tool after selection (Google resets to null)
+    var toolMap={};
+    toolMap[google.maps.drawing.OverlayType.MARKER]='marker';
+    toolMap[google.maps.drawing.OverlayType.CIRCLE]='circle';
+    toolMap[google.maps.drawing.OverlayType.RECTANGLE]='rectangle';
+    toolMap[google.maps.drawing.OverlayType.POLYGON]='polygon';
+    toolMap['marker']='marker';toolMap['circle']='circle';toolMap['rectangle']='rectangle';toolMap['polygon']='polygon';
+    var reactivateTool=toolMap[event.type]||'marker';
+    setTimeout(function(){setTool(reactivateTool);},50);
     // Analyze this selection
     analyzeMultiSelection(multiSelections.length-1);
     showMultiSelectPanel();
@@ -802,7 +809,7 @@ function onOverlayComplete(event){
   // ===== SINGLE SELECTION: normal behavior =====
   if(currentOverlay)currentOverlay.setMap(null);
   currentOverlay=event.overlay;
-  drawingManager.setDrawingMode(null);
+  drawingManager.setDrawingMode(null);map.setOptions({draggableCursor:null});
   document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('active')});
   if(vehicularHeatmap){vehicularHeatmap.setMap(null);vehicularHeatmap=null;}
   clearMobilityOverlays();
@@ -1773,18 +1780,22 @@ function setTool(tool){
   }else if(tool==='marker'){
     drawingManager.setDrawingMode(google.maps.drawing.OverlayType.MARKER);
     document.getElementById('btn-marker').classList.add('active');
+    map.setOptions({draggableCursor:'crosshair'});
     setStatus(multiSelectMode?'Modo múltiple: haz clic para colocar pines. Puedes cambiar herramienta.':'Haz clic para colocar un marcador');
   }else if(tool==='circle'){
     drawingManager.setDrawingMode(google.maps.drawing.OverlayType.CIRCLE);
     document.getElementById('btn-circle').classList.add('active');
+    map.setOptions({draggableCursor:'crosshair'});
     setStatus(multiSelectMode?'Modo múltiple: arrastra para crear un círculo.':'Arrastra para crear un circulo');
   }else if(tool==='rectangle'){
     drawingManager.setDrawingMode(google.maps.drawing.OverlayType.RECTANGLE);
     document.getElementById('btn-rect').classList.add('active');
+    map.setOptions({draggableCursor:'crosshair'});
     setStatus(multiSelectMode?'Modo múltiple: arrastra para crear un rectángulo.':'Arrastra para crear un rectangulo');
   }else if(tool==='polygon'){
     drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
     document.getElementById('btn-polygon').classList.add('active');
+    map.setOptions({draggableCursor:'crosshair'});
     setStatus(multiSelectMode?'Modo múltiple: clic para vértices, doble clic para cerrar.':'Haz clic para agregar vertices, doble clic para cerrar');
   }
 }
