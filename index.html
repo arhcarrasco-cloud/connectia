@@ -13,24 +13,333 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;}
+canvas#scene{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;}
 
-/* Video background */
-.video-bg{
-  position:fixed;top:50%;left:50%;
-  min-width:100%;min-height:100%;
-  width:auto;height:auto;
-  transform:translate(-50%,-50%) scale(1.1);
-  z-index:0;
-  object-fit:cover;
-}
-
-/* Purple overlay on top of video */
-.purple-overlay{
+/* Content */
+.overlay{
   position:fixed;top:0;left:0;width:100%;height:100%;
-  z-index:1;
-  background:
-    radial-gradient(ellipse at center, rgba(80,20,140,0.55) 0%, rgba(30,5,60,0.75) 50%, rgba(0,0,0,0.9) 100%),
-    linear-gradient(180deg, rgba(60,10,120,0.3) 0%, rgba(20,0,50,0.5) 100%);
-  mix-blend-mode:normal;
+  z-index:3;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.logo-container{
+  display:flex;flex-direction:column;align-items:center;
+  animation:fadeInScale 3s ease-out 0.5s forwards;
+  opacity:0;transform:scale(0.9);
+}
+@keyframes fadeInScale{
+  0%{opacity:0;transform:scale(0.9);}
+  100%{opacity:1;transform:scale(1);}
+}
+.logo-img{
+  width:min(450px, 78vw);height:auto;
+  filter:drop-shadow(0 0 60px rgba(140,80,220,0.35));
+}
+.subtitle{
+  margin-top:40px;
+  font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  font-size:clamp(0.75rem,1.6vw,1rem);
+  font-weight:300;
+  letter-spacing:0.25em;
+  color:rgba(255,255,255,0.5);
+  text-align:center;
+  text-transform:uppercase;
+  animation:fadeInSub 2.5s ease-out 2s forwards;
+  opacity:0;
+}
+@keyframes fadeInSub{
+  0%{opacity:0;transform:translateY(16px);}
+  100%{opacity:1;transform:translateY(0);}
 }
 
+/* Vignette */
+.vignette{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%);
+}
+</style>
+</head>
+<body>
+
+<!-- Procedural night sky canvas -->
+<canvas id="scene"></canvas>
+
+<!-- Vignette effect -->
+<div class="vignette"></div>
+
+<!-- Content -->
+<div class="overlay">
+  <div class="logo-container">
+    <img class="logo-img" src="logo.png" alt="Connectia">
+    <p class="subtitle">estamos conectando los puntos, volvemos pronto</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var c = document.getElementById('scene');
+  var ctx = c.getContext('2d');
+  var w, h, dpr;
+  var stars = [];
+  var milkyStars = [];
+  var shootingStars = [];
+  var t = 0;
+
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = window.innerWidth;
+    h = window.innerHeight;
+    c.width = w * dpr;
+    c.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    generateStars();
+  }
+
+  function generateStars(){
+    stars = [];
+    milkyStars = [];
+    // Regular stars
+    var count = Math.min(2000, Math.floor(w * h / 400));
+    for(var i = 0; i < count; i++){
+      stars.push({
+        x: Math.random() * w,
+        y: Math.random() * h * 0.72,
+        r: Math.random() < 0.92 ? Math.random() * 0.8 + 0.2 : Math.random() * 1.4 + 0.6,
+        a: Math.random() * 0.7 + 0.3,
+        twinkle: Math.random() * 0.015 + 0.003,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+    // Milky Way stars (denser band diagonal)
+    for(var i = 0; i < 800; i++){
+      var angle = -0.6;
+      var bandCenter = w * 0.45;
+      var bandY = h * 0.1;
+      var along = Math.random();
+      var spread = (Math.random() - 0.5) * w * 0.18;
+      var cx = bandCenter + along * w * 0.5 + Math.sin(angle) * along * h * 0.3 + spread;
+      var cy = bandY + along * h * 0.55 + Math.cos(angle) * along * w * 0.15 + (Math.random()-0.5) * h * 0.08;
+      if(cy > 0 && cy < h * 0.7){
+        milkyStars.push({
+          x: cx, y: cy,
+          r: Math.random() * 0.6 + 0.15,
+          a: Math.random() * 0.35 + 0.08,
+          twinkle: Math.random() * 0.01 + 0.002,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+  }
+
+  function spawnShootingStar(){
+    if(shootingStars.length < 3 && Math.random() < 0.003){
+      var startX = Math.random() * w * 0.6 + w * 0.1;
+      var startY = Math.random() * h * 0.3;
+      var angle = Math.random() * 0.5 + 0.3;
+      shootingStars.push({
+        x: startX, y: startY,
+        dx: Math.cos(angle) * (2 + Math.random() * 2),
+        dy: Math.sin(angle) * (2 + Math.random() * 2),
+        life: 0,
+        maxLife: 80 + Math.random() * 120,
+        len: 60 + Math.random() * 80,
+        a: 0.4 + Math.random() * 0.4
+      });
+    }
+  }
+
+  // Sky gradient
+  function drawSky(){
+    var grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, '#0a0a2e');
+    grad.addColorStop(0.15, '#0d1040');
+    grad.addColorStop(0.35, '#141852');
+    grad.addColorStop(0.5, '#1e2260');
+    grad.addColorStop(0.62, '#2a2a6a');
+    grad.addColorStop(0.68, '#3d3070');
+    grad.addColorStop(0.72, '#5a3575');
+    grad.addColorStop(0.76, '#7a4080');
+    grad.addColorStop(0.78, '#904570');
+    grad.addColorStop(0.8, '#a04a65');
+    grad.addColorStop(0.82, '#805878');
+    grad.addColorStop(0.85, '#506080');
+    grad.addColorStop(1, '#0a0a12');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  // Atmospheric horizon glow
+  function drawHorizonGlow(){
+    var horizonY = h * 0.78;
+    // Left side warm glow
+    var g1 = ctx.createRadialGradient(w * 0.15, horizonY, 0, w * 0.15, horizonY, w * 0.35);
+    g1.addColorStop(0, 'rgba(180,200,255,0.12)');
+    g1.addColorStop(0.4, 'rgba(140,120,180,0.06)');
+    g1.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g1;
+    ctx.fillRect(0, horizonY - h * 0.15, w, h * 0.3);
+
+    // Center subtle glow
+    var g2 = ctx.createRadialGradient(w * 0.5, horizonY, 0, w * 0.5, horizonY, w * 0.4);
+    g2.addColorStop(0, 'rgba(160,140,200,0.06)');
+    g2.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, horizonY - h * 0.1, w, h * 0.2);
+  }
+
+  // Milky Way nebula band
+  function drawMilkyWayGlow(){
+    ctx.save();
+    ctx.globalAlpha = 0.08;
+    ctx.translate(w * 0.45, h * 0.1);
+    ctx.rotate(-0.5);
+    var g = ctx.createRadialGradient(0, h * 0.25, 0, 0, h * 0.25, h * 0.35);
+    g.addColorStop(0, 'rgba(200,180,255,1)');
+    g.addColorStop(0.5, 'rgba(150,130,200,0.5)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(-w * 0.15, -h * 0.1, w * 0.3, h * 0.7);
+    ctx.restore();
+  }
+
+  // Ocean
+  function drawOcean(){
+    var oceanTop = h * 0.78;
+    var grad = ctx.createLinearGradient(0, oceanTop, 0, h);
+    grad.addColorStop(0, '#0c0c18');
+    grad.addColorStop(0.3, '#080812');
+    grad.addColorStop(1, '#050508');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, oceanTop, w, h - oceanTop);
+
+    // Subtle horizon line
+    ctx.strokeStyle = 'rgba(120,100,160,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, oceanTop);
+    ctx.lineTo(w, oceanTop);
+    ctx.stroke();
+
+    // Gentle water reflections
+    ctx.globalAlpha = 0.03;
+    for(var i = 0; i < 15; i++){
+      var ry = oceanTop + 5 + i * (h - oceanTop) / 15;
+      var rx = Math.random() * w;
+      var rw = Math.random() * 120 + 40;
+      ctx.fillStyle = 'rgba(140,130,180,1)';
+      ctx.fillRect(rx, ry + Math.sin(t * 0.005 + i) * 1.5, rw, 0.5);
+    }
+    ctx.globalAlpha = 1;
+
+    // Dark rocks near shore
+    ctx.fillStyle = '#060608';
+    ctx.beginPath();
+    ctx.moveTo(w * 0.55, oceanTop + 2);
+    ctx.quadraticCurveTo(w * 0.58, oceanTop - 3, w * 0.62, oceanTop + 1);
+    ctx.quadraticCurveTo(w * 0.64, oceanTop + 4, w * 0.55, oceanTop + 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(w * 0.7, oceanTop + 3);
+    ctx.quadraticCurveTo(w * 0.73, oceanTop - 2, w * 0.76, oceanTop + 2);
+    ctx.quadraticCurveTo(w * 0.74, oceanTop + 5, w * 0.7, oceanTop + 3);
+    ctx.fill();
+  }
+
+  // Cliff silhouette (left foreground)
+  function drawCliff(){
+    ctx.fillStyle = '#010102';
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    ctx.lineTo(0, h * 0.55);
+    ctx.quadraticCurveTo(w * 0.03, h * 0.5, w * 0.07, h * 0.52);
+    ctx.quadraticCurveTo(w * 0.1, h * 0.56, w * 0.13, h * 0.58);
+    ctx.quadraticCurveTo(w * 0.16, h * 0.6, w * 0.18, h * 0.64);
+    ctx.quadraticCurveTo(w * 0.2, h * 0.68, w * 0.22, h * 0.72);
+    ctx.quadraticCurveTo(w * 0.24, h * 0.75, w * 0.26, h * 0.78);
+    ctx.lineTo(w * 0.26, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Vegetation texture on cliff top
+    ctx.fillStyle = '#020204';
+    for(var i = 0; i < 30; i++){
+      var bx = Math.random() * w * 0.24;
+      var by = h * 0.52 + bx * 0.95;
+      if(by < h * 0.78){
+        ctx.beginPath();
+        ctx.arc(bx, by - Math.random() * 8, Math.random() * 6 + 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  // Stars rendering
+  function drawStars(){
+    for(var i = 0; i < stars.length; i++){
+      var s = stars[i];
+      var alpha = s.a * (0.6 + 0.4 * Math.sin(t * s.twinkle + s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(235,230,255,' + alpha + ')';
+      ctx.fill();
+    }
+    // Milky way stars
+    for(var i = 0; i < milkyStars.length; i++){
+      var s = milkyStars[i];
+      var alpha = s.a * (0.5 + 0.5 * Math.sin(t * s.twinkle + s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(210,200,240,' + alpha + ')';
+      ctx.fill();
+    }
+  }
+
+  // Shooting stars / satellites
+  function drawShootingStars(){
+    spawnShootingStar();
+    for(var i = shootingStars.length - 1; i >= 0; i--){
+      var ss = shootingStars[i];
+      ss.x += ss.dx;
+      ss.y += ss.dy;
+      ss.life++;
+      if(ss.life > ss.maxLife){
+        shootingStars.splice(i, 1);
+        continue;
+      }
+      var progress = ss.life / ss.maxLife;
+      var fadeIn = Math.min(progress * 5, 1);
+      var fadeOut = progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1;
+      var alpha = ss.a * fadeIn * fadeOut;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(ss.x, ss.y);
+      ctx.lineTo(ss.x - ss.dx * ss.len * 0.3, ss.y - ss.dy * ss.len * 0.3);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function draw(){
+    t++;
+    drawSky();
+    drawMilkyWayGlow();
+    drawHorizonGlow();
+    drawStars();
+    drawShootingStars();
+    drawOcean();
+    drawCliff();
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+})();
+</script>
+</body>
+</html>
