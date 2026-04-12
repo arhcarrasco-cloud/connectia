@@ -871,7 +871,40 @@ var BRAND_LOGOS={
   'disney':'https://www.google.com/s2/favicons?domain=disneyplus.com&sz=64',
   'youtube':'https://www.google.com/s2/favicons?domain=youtube.com&sz=64',
   'google':'https://www.google.com/s2/favicons?domain=google.com&sz=64',
-  'microsoft':'https://www.google.com/s2/favicons?domain=microsoft.com&sz=64'
+  'microsoft':'https://www.google.com/s2/favicons?domain=microsoft.com&sz=64',
+  'palacio de hierro':'https://www.google.com/s2/favicons?domain=elpalaciodehierro.com&sz=64',
+  'rappi':'https://www.google.com/s2/favicons?domain=rappi.com&sz=64',
+  'mercado libre':'https://www.google.com/s2/favicons?domain=mercadolibre.com.mx&sz=64',
+  'izzi':'https://www.google.com/s2/favicons?domain=izzi.mx&sz=64',
+  'totalplay':'https://www.google.com/s2/favicons?domain=totalplay.com.mx&sz=64',
+  'comex':'https://www.google.com/s2/favicons?domain=comex.com.mx&sz=64',
+  'ikea':'https://www.google.com/s2/favicons?domain=ikea.com&sz=64',
+  'miniso':'https://www.google.com/s2/favicons?domain=miniso.com&sz=64',
+  'shein':'https://www.google.com/s2/favicons?domain=shein.com&sz=64',
+  'tesla':'https://www.google.com/s2/favicons?domain=tesla.com&sz=64',
+  'apple':'https://www.google.com/s2/favicons?domain=apple.com&sz=64',
+  'samsung':'https://www.google.com/s2/favicons?domain=samsung.com&sz=64',
+  'iusacell':'https://www.google.com/s2/favicons?domain=iusacell.com.mx&sz=64',
+  'volaris':'https://www.google.com/s2/favicons?domain=volaris.com&sz=64',
+  'vivaaerobus':'https://www.google.com/s2/favicons?domain=vivaaerobus.com&sz=64',
+  'aeromexico':'https://www.google.com/s2/favicons?domain=aeromexico.com&sz=64',
+  'coca cola':'https://www.google.com/s2/favicons?domain=coca-cola.com&sz=64',
+  'bimbo':'https://www.google.com/s2/favicons?domain=bimbo.com&sz=64',
+  'gandhi':'https://www.google.com/s2/favicons?domain=gandhi.com.mx&sz=64',
+  'la europea':'https://www.google.com/s2/favicons?domain=laeuropea.com.mx&sz=64',
+  'mixup':'https://www.google.com/s2/favicons?domain=mixup.com.mx&sz=64',
+  'interceramic':'https://www.google.com/s2/favicons?domain=interceramic.com&sz=64',
+  'benavides':'https://www.google.com/s2/favicons?domain=benavides.com.mx&sz=64',
+  'san pablo':'https://www.google.com/s2/favicons?domain=farmaciasanpablo.com.mx&sz=64',
+  'cinepolis':'https://www.google.com/s2/favicons?domain=cinepolis.com&sz=64',
+  'papa johns':'https://www.google.com/s2/favicons?domain=papajohns.com&sz=64',
+  'little caesars':'https://www.google.com/s2/favicons?domain=littlecaesars.com&sz=64',
+  'chilis':'https://www.google.com/s2/favicons?domain=chilis.com&sz=64',
+  'applebees':'https://www.google.com/s2/favicons?domain=applebees.com&sz=64',
+  'vips':'https://www.google.com/s2/favicons?domain=vips.com.mx&sz=64',
+  'italiannis':'https://www.google.com/s2/favicons?domain=italiannis.com&sz=64',
+  'toks':'https://www.google.com/s2/favicons?domain=toks.com.mx&sz=64',
+  'wings':'https://www.google.com/s2/favicons?domain=wings.com.mx&sz=64'
 };
 
 var BRANDS=[
@@ -14686,7 +14719,62 @@ function _pgToggleItemVisibility(gid,selIdx,checked){
 }
 function _pgRenameGroup(gid,val){
   var grp=pinGroups.find(function(g){return g.id===gid;});
-  if(grp)grp.title=val;
+  if(!grp)return;
+  grp.title=val;
+  // Auto-detect brand from title and apply logo+color to all pins in group
+  _pgAutoDetectBrand(grp);
+}
+
+// Auto-detect brand from group title and apply logo to all group pins
+function _pgAutoDetectBrand(grp){
+  if(!grp||!grp.title)return;
+  var brandLogo=getBrandLogoUrl(grp.title);
+  if(!brandLogo){
+    // Try Google favicon as fallback for any domain-like name
+    var cleaned=grp.title.toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9.-]/g,'');
+    if(cleaned.length>=3){
+      brandLogo='https://www.google.com/s2/favicons?domain='+cleaned+'.com&sz=64';
+    }
+  }
+  if(!brandLogo)return;
+  // Determine brand color (use category color if available)
+  var brandColor=_getBrandColor(grp.title)||grp.items[0]&&multiSelections[grp.items[0].selIdx]&&multiSelections[grp.items[0].selIdx].color||'#6D28D9';
+  grp._brandLogo=brandLogo;
+  grp._brandColor=brandColor;
+  // Apply to all pins in group
+  grp.items.forEach(function(it){
+    var sel=multiSelections[it.selIdx];
+    if(!sel||!sel.overlay)return;
+    sel.color=brandColor;
+    sel._icon='';
+    sel._customImg=null;
+    // Set pin to landmark shape with brand color
+    if(typeof sel.overlay.setIcon==='function'){
+      try{sel.overlay.setIcon(_pinIcon(brandColor));}catch(e){}
+      try{sel.overlay.setLabel(null);}catch(e){}
+    }
+    // Overlay brand logo on top
+    trySetBrandLogo(sel.overlay,brandLogo,brandColor);
+  });
+  showMultiSelectPanel();
+  var dlg=document.getElementById('pin-group-manager');if(dlg)_renderGroupManager(dlg);
+}
+
+// Get a brand-specific color from common brands
+function _getBrandColor(name){
+  if(!name)return null;
+  var l=name.toLowerCase();
+  var colors={
+    'walmart':'#0071dc','oxxo':'#cc0000','starbucks':'#00704A','suburbia':'#e91e63','liverpool':'#e91e63',
+    'coppel':'#ffd700','soriana':'#009639','bodega aurrera':'#0071dc','sanborns':'#003366','costco':'#e31837',
+    'home depot':'#f96302','sams club':'#0060a9','mcdonald':'#FFC72C','kfc':'#e4002b','burger king':'#ff8800',
+    'pizza hut':'#ee3a43','dominos':'#0b6eb5','subway':'#009743','7-eleven':'#4CAF50','circle k':'#e31837',
+    'bbva':'#004481','banorte':'#c8102e','santander':'#ec0000','hsbc':'#db0011','banamex':'#003399',
+    'telcel':'#009FE3','cinepolis':'#152c6b','cinemex':'#e31837','elektra':'#FFC107','farmacia':'#16a34a',
+    'zara':'#1d1d1f','h&m':'#e50010','nike':'#1d1d1f','adidas':'#1d1d1f','pemex':'#006847'
+  };
+  for(var brand in colors){if(l.indexOf(brand)!==-1)return colors[brand];}
+  return null;
 }
 function _pgDeleteGroup(gid){
   var grp=pinGroups.find(function(g){return g.id===gid;});
@@ -14825,7 +14913,8 @@ function _pgRemoveCustomImage(pi){
   sel._customImg=null;
   var ov=sel.overlay;
   if(ov&&typeof ov.setIcon==='function'){
-    try{ov.setIcon({path:google.maps.SymbolPath.CIRCLE,scale:10,fillColor:sel.color||'#ea4335',fillOpacity:1,strokeColor:'#fff',strokeWeight:2.5});}catch(e){}
+    try{ov.setIcon(_pinIcon(sel.color||'#ea4335'));}catch(e){}
+    if(ov._logoOverlay){try{ov._logoOverlay.setMap(null);ov._logoOverlay=null;}catch(e){}}
   }
   _pgCustomizePin(pi);
   showMultiSelectPanel();
@@ -14845,7 +14934,14 @@ function _pgApplyColor(pi,color){
   sel.color=color;
   var ov=sel.overlay;if(!ov)return;
   if(typeof ov.setIcon==='function'){
-    try{ov.setIcon({path:google.maps.SymbolPath.CIRCLE,scale:10,fillColor:color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2.5});}catch(e){}
+    // Use landmark pin shape with color
+    try{ov.setIcon(_pinIcon(color));}catch(e){}
+    // Remove logo overlay if any (color change resets to clean pin)
+    if(ov._logoOverlay){try{ov._logoOverlay.setMap(null);ov._logoOverlay=null;}catch(e){}}
+    // Restore label if icon was set
+    if(sel._icon&&sel._icon!=='📍'){
+      try{ov.setLabel({text:sel._icon,fontSize:'14px',color:color});}catch(e){}
+    }
   }
   if(typeof ov.setOptions==='function'){
     try{ov.setOptions({fillColor:color,strokeColor:color});}catch(e){}
@@ -14857,11 +14953,15 @@ function _pgApplyIcon(pi,icon){
   sel._icon=icon;
   sel._customImg=null; // clear custom image when emoji selected
   var ov=sel.overlay;if(!ov)return;
+  var pinColor=sel.color||'#ea4335';
   if(typeof ov.setIcon==='function'){
-    try{ov.setIcon({path:google.maps.SymbolPath.CIRCLE,scale:12,fillColor:sel.color||'#ea4335',fillOpacity:1,strokeColor:'#fff',strokeWeight:2.5});}catch(e){}
+    // Use landmark pin shape
+    try{ov.setIcon(_pinIcon(pinColor));}catch(e){}
+    // Remove logo overlay if any
+    if(ov._logoOverlay){try{ov._logoOverlay.setMap(null);ov._logoOverlay=null;}catch(e){}}
   }
   if(typeof ov.setLabel==='function'){
-    try{ov.setLabel({text:icon,fontSize:'16px'});}catch(e){}
+    try{ov.setLabel({text:icon,fontSize:'14px',color:pinColor});}catch(e){}
   }
   showMultiSelectPanel();
 }
