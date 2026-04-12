@@ -1203,12 +1203,13 @@ function onOverlayComplete(event){
     var _restoreMode=event.type;
     var _restoreDrawing=function(){
       if(!multiSelectMode)return;
-      _setOverlaysClickable(false); // keep overlays non-clickable while drawing
-      // FIX: Re-enable the latest overlay so it stays editable (circles resizable, etc)
-      var _lastSel=multiSelections[multiSelections.length-1];
-      if(_lastSel&&_lastSel.overlay){
-        try{_lastSel.overlay.setOptions({clickable:true,editable:true,zIndex:100});}catch(e){}
-      }
+      _setOverlaysClickable(false); // keep overlays non-clickable while drawing but VISIBLE
+      // Re-enable ALL multi-selection overlays to stay editable (circles resizable, etc)
+      multiSelections.forEach(function(s){
+        if(s&&s.overlay){
+          try{s.overlay.setOptions({editable:true,zIndex:50});}catch(e){}
+        }
+      });
       try{drawingManager.setDrawingMode(_restoreMode);}catch(e){}
       var btnMap={'marker':'btn-marker','circle':'btn-circle','rectangle':'btn-rect','polygon':'btn-polygon'};
       var modeStr=String(_restoreMode).replace('google.maps.drawing.OverlayType.','').toLowerCase();
@@ -1229,8 +1230,8 @@ function onOverlayComplete(event){
     currentData=null;
   }
   currentOverlay=event.overlay;
-  // FIX: Make overlay non-blocking so you can select on top of it
-  try{currentOverlay.setOptions({clickable:false,zIndex:-1});}catch(e){}
+  // Make overlay non-blocking so you can select on top of it (low zIndex but still visible)
+  try{currentOverlay.setOptions({clickable:false,zIndex:1});}catch(e){}
   drawingManager.setDrawingMode(null);
   map.setOptions({draggableCursor:''});
   document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('active')});
@@ -3999,20 +4000,26 @@ function setupUI(){
 // When drawing mode is active, overlays must be non-clickable so DrawingManager receives clicks
 // Toggle overlay interactivity: when drawing, ALL existing overlays must not intercept mouse events
 function _setOverlaysClickable(clickable){
-  var drawZ=clickable?100:-1; // push below everything when drawing
-  var _setOne=function(ov){
+  // For multi-selection: keep overlays visible (zIndex:50) but non-clickable during drawing
+  // For single mode: push below (zIndex:1) so new drawings can be placed on top
+  var msZ=clickable?100:50; // multi-selection overlays always stay visible
+  var singleZ=clickable?100:1; // single/geo overlays can go lower
+  var _setMS=function(ov){
     if(!ov)return;
-    try{if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:drawZ,editable:clickable});}catch(e){}
-    try{if(ov.setClickable)ov.setClickable(clickable);}catch(e){}
+    try{if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:msZ});}catch(e){}
   };
-  // Multi-selection overlays
-  multiSelections.forEach(function(s){if(s&&s.overlay)_setOne(s.overlay);});
+  var _setOther=function(ov){
+    if(!ov)return;
+    try{if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:singleZ});}catch(e){}
+  };
+  // Multi-selection overlays — ALWAYS keep visible on map
+  multiSelections.forEach(function(s){if(s&&s.overlay)_setMS(s.overlay);});
   // Current single overlay
-  _setOne(currentOverlay);
+  _setOther(currentOverlay);
   // General overlays array (city selections, etc)
-  if(typeof overlays!=='undefined')overlays.forEach(_setOne);
+  if(typeof overlays!=='undefined')overlays.forEach(_setOther);
   // Geo overlays (area selector)
-  if(typeof geoOverlays!=='undefined')geoOverlays.forEach(_setOne);
+  if(typeof geoOverlays!=='undefined')geoOverlays.forEach(_setOther);
 }
 
 function setTool(tool){
