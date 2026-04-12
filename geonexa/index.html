@@ -949,7 +949,7 @@ function initMap(){
     circleOptions:shapeOpts(),
     rectangleOptions:shapeOpts(),
     polygonOptions:shapeOpts(),
-    markerOptions:{draggable:false}
+    markerOptions:{draggable:false,icon:{path:'M 0,-29 C -7.7,-29 -14,-22.7 -14,-15 C -14,-5.3 0,4 0,4 C 0,4 14,-5.3 14,-15 C 14,-22.7 7.7,-29 0,-29 Z',scale:1.1,fillColor:'#ea4335',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,anchor:new google.maps.Point(0,-15),labelOrigin:new google.maps.Point(0,-15)}}
   });
   drawingManager.setMap(map);
   google.maps.event.addListener(drawingManager,'overlaycomplete',onOverlayComplete);
@@ -1147,10 +1147,10 @@ function onOverlayComplete(event){
           event.overlay.setIcon({url:_pinImg,scaledSize:new google.maps.Size(32,32),anchor:new google.maps.Point(16,16)});
           try{event.overlay.setLabel(null);}catch(e3){}
         }else if(_pinIcon&&_pinIcon!=='📍'){
-          event.overlay.setIcon({path:google.maps.SymbolPath.CIRCLE,scale:14,fillColor:_pinColor,fillOpacity:1,strokeColor:'#fff',strokeWeight:2.5});
-          event.overlay.setLabel({text:_pinIcon,fontSize:'16px'});
+          event.overlay.setIcon({path:'M 0,-29 C -7.7,-29 -14,-22.7 -14,-15 C -14,-5.3 0,4 0,4 C 0,4 14,-5.3 14,-15 C 14,-22.7 7.7,-29 0,-29 Z',scale:1.2,fillColor:_pinColor,fillOpacity:1,strokeColor:'#fff',strokeWeight:2.5,anchor:new google.maps.Point(0,-15),labelOrigin:new google.maps.Point(0,-15)});
+          event.overlay.setLabel({text:_pinIcon,fontSize:'14px'});
         }else{
-          event.overlay.setIcon({path:google.maps.SymbolPath.CIRCLE,scale:12,fillColor:_pinColor,fillOpacity:1,strokeColor:'#fff',strokeWeight:2});
+          event.overlay.setIcon({path:'M 0,-29 C -7.7,-29 -14,-22.7 -14,-15 C -14,-5.3 0,4 0,4 C 0,4 14,-5.3 14,-15 C 14,-22.7 7.7,-29 0,-29 Z',scale:1.1,fillColor:_pinColor,fillOpacity:1,strokeColor:'#fff',strokeWeight:2,anchor:new google.maps.Point(0,-15),labelOrigin:new google.maps.Point(0,-15)});
           event.overlay.setLabel({text:String(multiSelections.length+1),color:'#fff',fontSize:'10px',fontWeight:'bold'});
         }
       }catch(e5){}
@@ -1164,10 +1164,51 @@ function onOverlayComplete(event){
     analyzeMultiSelection(multiSelections.length-1);
     showMultiSelectPanel();
     // Keep the current drawing mode active for more selections — robust multi-try restore
+    // FIX: For circles in multi-selection, add radius/center listeners + radius display
+    if(event.type===google.maps.drawing.OverlayType.CIRCLE){
+      var _msCircle=event.overlay;
+      var _msCircleIdx=multiSelections.length-1;
+      _msCircle.setOptions({editable:true});
+      var _msCircleDebounce=null;
+      _msCircle.addListener('radius_changed',function(){
+        showCircleRadiusLabel(_msCircle);
+        clearTimeout(_msCircleDebounce);
+        _msCircleDebounce=setTimeout(function(){analyzeMultiSelection(_msCircleIdx);showMultiSelectPanel();},400);
+      });
+      _msCircle.addListener('center_changed',function(){
+        showCircleRadiusLabel(_msCircle);
+        clearTimeout(_msCircleDebounce);
+        _msCircleDebounce=setTimeout(function(){analyzeMultiSelection(_msCircleIdx);showMultiSelectPanel();},400);
+      });
+      showCircleRadiusLabel(_msCircle);
+    }
+    // FIX: For rectangles, add bounds_changed listener
+    if(event.type===google.maps.drawing.OverlayType.RECTANGLE){
+      var _msRectIdx=multiSelections.length-1;
+      var _msRect=event.overlay;
+      _msRect.setOptions({editable:true});
+      _msRect.addListener('bounds_changed',function(){analyzeMultiSelection(_msRectIdx);showMultiSelectPanel();});
+    }
+    // FIX: For polygons, add path listeners
+    if(event.type===google.maps.drawing.OverlayType.POLYGON){
+      var _msPolyIdx=multiSelections.length-1;
+      var _msPoly=event.overlay;
+      _msPoly.setOptions({editable:true});
+      var _msPolyPaths=_msPoly.getPaths();
+      _msPolyPaths.forEach(function(path){
+        google.maps.event.addListener(path,'set_at',function(){analyzeMultiSelection(_msPolyIdx);showMultiSelectPanel();});
+        google.maps.event.addListener(path,'insert_at',function(){analyzeMultiSelection(_msPolyIdx);showMultiSelectPanel();});
+      });
+    }
     var _restoreMode=event.type;
     var _restoreDrawing=function(){
       if(!multiSelectMode)return;
       _setOverlaysClickable(false); // keep overlays non-clickable while drawing
+      // FIX: Re-enable the latest overlay so it stays editable (circles resizable, etc)
+      var _lastSel=multiSelections[multiSelections.length-1];
+      if(_lastSel&&_lastSel.overlay){
+        try{_lastSel.overlay.setOptions({clickable:true,editable:true,zIndex:100});}catch(e){}
+      }
       try{drawingManager.setDrawingMode(_restoreMode);}catch(e){}
       var btnMap={'marker':'btn-marker','circle':'btn-circle','rectangle':'btn-rect','polygon':'btn-polygon'};
       var modeStr=String(_restoreMode).replace('google.maps.drawing.OverlayType.','').toLowerCase();
@@ -1188,7 +1229,10 @@ function onOverlayComplete(event){
     currentData=null;
   }
   currentOverlay=event.overlay;
+  // FIX: Make overlay non-blocking so you can select on top of it
+  try{currentOverlay.setOptions({clickable:false,zIndex:-1});}catch(e){}
   drawingManager.setDrawingMode(null);
+  map.setOptions({draggableCursor:''});
   document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('active')});
   if(vehicularHeatmap){vehicularHeatmap.setMap(null);vehicularHeatmap=null;}
   clearMobilityOverlays();
@@ -2500,7 +2544,7 @@ function _msAddImportedPin(lat,lng,name){
     map:map,
     title:name,
     label:{text:String(multiSelections.length+1),color:'#fff',fontSize:'10px',fontWeight:'bold'},
-    icon:{path:google.maps.SymbolPath.CIRCLE,scale:12,fillColor:color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2}
+    icon:{path:'M 0,-29 C -7.7,-29 -14,-22.7 -14,-15 C -14,-5.3 0,4 0,4 C 0,4 14,-5.3 14,-15 C 14,-22.7 7.7,-29 0,-29 Z',scale:1.1,fillColor:color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2,anchor:new google.maps.Point(0,-15),labelOrigin:new google.maps.Point(0,-15)}
   });
   multiSelections.push({overlay:marker,type:google.maps.drawing.OverlayType.MARKER,data:null,color:color});
   var idx=multiSelections.length-1;
@@ -3850,7 +3894,7 @@ function _setOverlaysClickable(clickable){
   var drawZ=clickable?100:-1; // push below everything when drawing
   var _setOne=function(ov){
     if(!ov)return;
-    try{if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:drawZ});}catch(e){}
+    try{if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:drawZ,editable:clickable});}catch(e){}
     try{if(ov.setClickable)ov.setClickable(clickable);}catch(e){}
   };
   // Multi-selection overlays
@@ -9804,7 +9848,7 @@ function addImportMarker(place,idx,color,bounds){
     map:map,
     title:place.name,
     label:{text:String(idx+1),color:'#fff',fontSize:'10px',fontWeight:'bold'},
-    icon:{path:google.maps.SymbolPath.CIRCLE,scale:12,fillColor:color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2}
+    icon:{path:'M 0,-29 C -7.7,-29 -14,-22.7 -14,-15 C -14,-5.3 0,4 0,4 C 0,4 14,-5.3 14,-15 C 14,-22.7 7.7,-29 0,-29 Z',scale:1.1,fillColor:color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2,anchor:new google.maps.Point(0,-15),labelOrigin:new google.maps.Point(0,-15)}
   });
   // Info window on click
   var infoContent='<div style="font-family:sans-serif;font-size:12px"><b style="color:'+color+'">'+place.name+'</b>';
@@ -10087,7 +10131,7 @@ function _addRouteToGroup(routeId){
       map:map,
       title:'Ruta Punto '+(idx+1),
       label:{text:String(multiSelections.length+1),color:'#fff',fontSize:'10px',fontWeight:'bold'},
-      icon:{path:google.maps.SymbolPath.CIRCLE,scale:12,fillColor:color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2}
+      icon:{path:'M 0,-29 C -7.7,-29 -14,-22.7 -14,-15 C -14,-5.3 0,4 0,4 C 0,4 14,-5.3 14,-15 C 14,-22.7 7.7,-29 0,-29 Z',scale:1.1,fillColor:color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2,anchor:new google.maps.Point(0,-15),labelOrigin:new google.maps.Point(0,-15)}
     });
     var sel={overlay:marker,type:google.maps.drawing.OverlayType.MARKER,data:null,color:color,_icon:'🛣️',_isRoute:true};
     multiSelections.push(sel);
