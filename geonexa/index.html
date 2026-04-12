@@ -144,6 +144,10 @@ select:focus{border-color:#7B2D8E}
 .afl-card .acv{font-size:16px;font-weight:800}
 .afl-card .acl{font-size:8px;color:#6B7280;text-transform:uppercase}
 .afl-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700}
+@media(max-width:768px){#afl-panel{width:100%!important;right:0!important;left:0!important;border-radius:16px 16px 0 0!important;max-height:70vh!important;bottom:0!important;top:auto!important}#afl-body{padding:10px!important}.afl-grid,.afl-grid3{gap:4px!important}.afl-card{padding:6px 4px!important}.acv{font-size:14px!important}.acl{font-size:7px!important}.afl-section{font-size:11px!important;margin:8px 0 4px!important}}
+@media(max-width:480px){#afl-panel{max-height:60vh!important}.afl-grid{grid-template-columns:1fr 1fr!important}.afl-grid3{grid-template-columns:1fr 1fr 1fr!important}}
+@media print{#afl-panel{position:static!important;width:100%!important;max-height:none!important;box-shadow:none!important}}
+
 </style>
 </head>
 <body>
@@ -3785,7 +3789,21 @@ function _build4ColReportHTML(d, mapImgUrl){
   html+='new Chart(document.getElementById("ac"),{type:"line",data:{labels:['+aLabels.join(',')+'],datasets:[{data:['+aVals.join(',')+'],borderColor:"#7C3AED",backgroundColor:"rgba(124,58,237,0.1)",fill:true,tension:0.4,pointRadius:4,pointBackgroundColor:"#7C3AED",borderWidth:2}]},options:{plugins:{legend:{display:false}},scales:{y:{display:true,grid:{display:false},ticks:{font:{size:8},callback:function(v){return v+"%"}}},x:{grid:{display:false},ticks:{font:{size:8}}}},responsive:true,maintainAspectRatio:false}});';
   html+='};';
   html+='<\/script>';
-  html+='</body></html>';
+  
+  // AFL DATA if available
+  if(typeof lastAfluenciaData!=='undefined'&&lastAfluenciaData&&lastAfluenciaData.est){
+    var aflD=lastAfluenciaData;
+    html+='<div style="margin-top:14px;padding-top:10px;border-top:2px solid #7C3AED">';
+    html+='<div style="font-size:16px;font-weight:800;color:#7C3AED;margin-bottom:8px;text-align:center">'+aflD.typeInfo.icon+' Afluencia Indoor — '+(aflD.place.name||'')+'</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px">';
+    html+='<div style="background:linear-gradient(135deg,#7C3AED,#9333EA);color:#fff;border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;text-transform:uppercase;opacity:.7">Afluencia Diaria</div><div style="font-size:28px;font-weight:900">'+fk(aflD.est.daily)+'</div><div style="font-size:9px;opacity:.7">Confianza: '+aflD.est.confidence+'</div></div>';
+    html+='<div style="background:#F5F3FF;border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;color:#6B7280;text-transform:uppercase">Mensual</div><div style="font-size:22px;font-weight:800;color:#7C3AED">'+fk(aflD.est.monthly)+'</div><div style="font-size:9px;color:#6B7280">'+aflD.est.source+'</div></div>';
+    html+='<div style="background:#F5F3FF;border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;color:#6B7280;text-transform:uppercase">Anual</div><div style="font-size:22px;font-weight:800;color:#7C3AED">'+fk(aflD.est.daily*365)+'</div><div style="font-size:9px;color:#6B7280">'+aflD.typeInfo.label+'</div></div>';
+    if(aflD.denue){html+='<div style="background:#F5F3FF;border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;color:#6B7280;text-transform:uppercase">DENUE 500m</div><div style="font-size:22px;font-weight:800;color:#059669">'+fk(aflD.denue.total)+'</div><div style="font-size:9px;color:#6B7280">negocios</div></div>';}
+    else{html+='<div style="background:#F5F3FF;border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;color:#6B7280;text-transform:uppercase">Tipo</div><div style="font-size:18px;font-weight:800;color:#7C3AED">'+aflD.typeInfo.icon+'</div><div style="font-size:9px;color:#6B7280">'+aflD.typeInfo.label+'</div></div>';}
+    html+='</div></div>';
+  }
+html+='</body></html>';
   return html;
 }
 function exportReport(){exportReportPDF();}
@@ -4716,31 +4734,133 @@ var AFL_FACTORS={
 // Known large venues in Mexico (hardcoded reference data from official sources)
 var AFL_KNOWN={
   'Aeropuerto Internacional de la Ciudad de M\u00e9xico':{daily:130000,source:'AICM/SCT 2024',type:'airport'},
+  'Aeropuerto Internacional Benito Ju\u00e1rez':{daily:130000,source:'AICM/SCT 2024',type:'airport'},
   'Aeropuerto Internacional de Canc\u00fan':{daily:85000,source:'ASUR 2024',type:'airport'},
   'Aeropuerto Internacional de Guadalajara':{daily:42000,source:'GAP 2024',type:'airport'},
   'Aeropuerto Internacional de Monterrey':{daily:35000,source:'OMA 2024',type:'airport'},
-  'Centro Comercial Santa Fe':{daily:95000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Aeropuerto Internacional de Tijuana':{daily:28000,source:'GAP 2024',type:'airport'},
+  'Aeropuerto Internacional de Los Cabos':{daily:22000,source:'GAP 2024',type:'airport'},
+  'Aeropuerto Internacional de Puerto Vallarta':{daily:18000,source:'GAP 2024',type:'airport'},
+  'Aeropuerto Internacional de M\u00e9rida':{daily:14000,source:'ASUR 2024',type:'airport'},
+  'Aeropuerto Internacional de Quer\u00e9taro':{daily:8000,source:'OMA 2024',type:'airport'},
+  'Aeropuerto Internacional de Chihuahua':{daily:7500,source:'OMA 2024',type:'airport'},
+  'Aeropuerto Internacional de San Luis Potos\u00ed':{daily:6000,source:'OMA 2024',type:'airport'},
+  'Aeropuerto Internacional de Hermosillo':{daily:7000,source:'GAP 2024',type:'airport'},
+  'Aeropuerto Internacional de Villahermosa':{daily:6500,source:'ASUR 2024',type:'airport'},
+  'Aeropuerto Internacional Felipe \u00c1ngeles':{daily:12000,source:'AIFA/SCT 2024',type:'airport'},
+  'Centro Comercial Santa Fe':{daily:95000,source:'ANTAD/Fibra Danhos 2024',type:'shopping_mall'},
   'Perisur':{daily:55000,source:'ANTAD Est. 2024',type:'shopping_mall'},
   'Plaza Sat\u00e9lite':{daily:70000,source:'ANTAD Est. 2024',type:'shopping_mall'},
   'Parque Delta':{daily:45000,source:'ANTAD Est. 2024',type:'shopping_mall'},
   'Forum Buenavista':{daily:42000,source:'ANTAD Est. 2024',type:'shopping_mall'},
   'Galer\u00edas Monterrey':{daily:48000,source:'ANTAD Est. 2024',type:'shopping_mall'},
   'Antara Fashion Hall':{daily:32000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Galer\u00edas Vallarta':{daily:35000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'La Isla Canc\u00fan':{daily:30000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Plaza Universidad':{daily:40000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Mundo E':{daily:25000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Patio Santa Fe':{daily:28000,source:'Fibra Danhos 2024',type:'shopping_mall'},
+  'Parque Tezontle':{daily:50000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Gran Sur':{daily:30000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Parque Lindavista':{daily:38000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Galer\u00edas Insurgentes':{daily:25000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Galer\u00edas Coapa':{daily:32000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Centro Magno':{daily:28000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Paseo Interlomas':{daily:22000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Multiplaza Arag\u00f3n':{daily:35000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Galer\u00edas Toluca':{daily:25000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Galer\u00edas Atizap\u00e1n':{daily:20000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Explanada Puebla':{daily:22000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Angel\u00f3polis':{daily:35000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Punto Valle':{daily:18000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Galer\u00edas Valle Oriente':{daily:30000,source:'ANTAD Est. 2024',type:'shopping_mall'},
+  'Artz Pedregal':{daily:28000,source:'Fibra Danhos 2024',type:'shopping_mall'},
+  'Toreo Parque Central':{daily:42000,source:'ANTAD Est. 2024',type:'shopping_mall'},
   'Estadio Azteca':{daily:87000,source:'FMF Promedio Evento',type:'stadium'},
   'Estadio BBVA':{daily:53000,source:'FMF Promedio Evento',type:'stadium'},
   'Estadio Akron':{daily:45000,source:'FMF Promedio Evento',type:'stadium'},
+  'Estadio Ol\u00edmpico Universitario':{daily:35000,source:'UNAM/FMF 2024',type:'stadium'},
+  'Estadio Cuauht\u00e9moc':{daily:40000,source:'FMF 2024',type:'stadium'},
+  'Estadio Jalisco':{daily:30000,source:'FMF 2024',type:'stadium'},
+  'Estadio Caliente':{daily:28000,source:'FMF 2024',type:'stadium'},
+  'Estadio Hidalgo':{daily:25000,source:'FMF 2024',type:'stadium'},
+  'Estadio TSM':{daily:30000,source:'FMF 2024',type:'stadium'},
   'Foro Sol':{daily:65000,source:'CIE/Ocesa Promedio',type:'stadium'},
+  'Estadio GNP Seguros':{daily:65000,source:'CIE/Ocesa 2024',type:'stadium'},
   'Palacio de los Deportes':{daily:22000,source:'CIE Promedio',type:'stadium'},
   'Auditorio Nacional':{daily:10000,source:'Promedio Evento',type:'stadium'},
   'Arena Ciudad de M\u00e9xico':{daily:22000,source:'Promedio Evento',type:'stadium'},
+  'Arena Monterrey':{daily:18000,source:'Ocesa 2024',type:'stadium'},
   'Teatro Metropolitan':{daily:3200,source:'Est. Capacidad',type:'stadium'},
+  'Auditorio Telmex':{daily:8500,source:'Ocesa 2024',type:'stadium'},
+  'Pepsi Center WTC':{daily:4000,source:'Est. Capacidad',type:'stadium'},
   'Museo Nacional de Antropolog\u00eda':{daily:7500,source:'INAH 2024',type:'museum'},
   'Museo Soumaya':{daily:5000,source:'Fund. Slim 2024',type:'museum'},
+  'Museo del Templo Mayor':{daily:4000,source:'INAH 2024',type:'museum'},
+  'Palacio de Bellas Artes':{daily:6000,source:'INBA 2024',type:'museum'},
+  'Museo Nacional de Historia':{daily:5500,source:'INAH 2024',type:'museum'},
+  'Museo Frida Kahlo':{daily:3500,source:'INAH 2024',type:'museum'},
+  'Museo Jumex':{daily:2500,source:'Fund. Jumex 2024',type:'museum'},
+  'Papalote Museo del Ni\u00f1o':{daily:3000,source:'CONACULTA 2024',type:'museum'},
   'Terminal de Autobuses del Norte':{daily:80000,source:'SCT 2024',type:'bus_station'},
   'Terminal de Autobuses del Sur':{daily:25000,source:'SCT 2024',type:'bus_station'},
   'TAPO':{daily:55000,source:'SCT 2024',type:'bus_station'},
-  'Terminal de Autobuses de Pasajeros de Oriente':{daily:55000,source:'SCT 2024',type:'bus_station'}
+  'Terminal de Autobuses de Pasajeros de Oriente':{daily:55000,source:'SCT 2024',type:'bus_station'},
+  'Terminal de Autobuses del Poniente':{daily:20000,source:'SCT 2024',type:'bus_station'},
+  'Central de Autobuses de Guadalajara':{daily:40000,source:'SCT 2024',type:'bus_station'},
+  'Central de Autobuses de Monterrey':{daily:30000,source:'SCT 2024',type:'bus_station'},
+  'CAPU':{daily:35000,source:'SCT 2024',type:'bus_station'},
+  'Metro Pantitl\u00e1n':{daily:130000,source:'STC Metro 2024',type:'train_station'},
+  'Metro Indios Verdes':{daily:95000,source:'STC Metro 2024',type:'train_station'},
+  'Metro Balderas':{daily:70000,source:'STC Metro 2024',type:'train_station'},
+  'Metro Hidalgo':{daily:65000,source:'STC Metro 2024',type:'train_station'},
+  'Metro Pino Su\u00e1rez':{daily:80000,source:'STC Metro 2024',type:'train_station'},
+  'Metro Tacubaya':{daily:85000,source:'STC Metro 2024',type:'train_station'},
+  'Metro Universidad':{daily:50000,source:'STC Metro 2024',type:'train_station'},
+  'Metro Insurgentes':{daily:55000,source:'STC Metro 2024',type:'train_station'},
+  'Metro Chabacano':{daily:60000,source:'STC Metro 2024',type:'train_station'},
+  'Hospital General de M\u00e9xico':{daily:18000,source:'SS 2024',type:'hospital'},
+  'Hospital La Raza':{daily:15000,source:'IMSS 2024',type:'hospital'},
+  'Centro M\u00e9dico Nacional Siglo XXI':{daily:25000,source:'IMSS 2024',type:'hospital'},
+  'Ciudad Universitaria':{daily:180000,source:'UNAM 2024',type:'university'},
+  'Instituto Polit\u00e9cnico Nacional Zacatenco':{daily:65000,source:'IPN 2024',type:'university'},
+  'Six Flags M\u00e9xico':{daily:18000,source:'IAAPA Est. 2024',type:'amusement_park'},
+  'Xcaret':{daily:8000,source:'Grupo Xcaret 2024',type:'amusement_park'}
 };
+
+
+// Global last afluencia data for report integration
+var lastAfluenciaData=null;
+
+// INEGI DENUE integration for AFL panel
+var DENUE_TOKEN='7e914803-2e37-6094-73a7-92a526698b62';
+function fetchDENUEforAFL(lat,lng,callback){
+  var url='https://www.inegi.org.mx/app/api/denue/v1/consulta/buscar/todos/'+lat+','+lng+'/500/'+DENUE_TOKEN;
+  var xhr=new XMLHttpRequest();
+  xhr.open('GET',url,true);
+  xhr.onreadystatechange=function(){
+    if(xhr.readyState===4){
+      if(xhr.status===200){try{var data=JSON.parse(xhr.responseText);callback(data);}catch(e){callback([]);}}
+      else{callback([]);}
+    }
+  };
+  xhr.onerror=function(){callback([]);};
+  xhr.send();
+}
+function buildDENUEsummary(data){
+  if(!data||!data.length) return null;
+  var cats={},totalEmpleados=0;
+  data.forEach(function(d){
+    var act=(d.Nombre_Actividad||d.Actividad||'Otro');
+    var simple=act.length>40?act.substring(0,37)+'...':act;
+    cats[simple]=(cats[simple]||0)+1;
+    var emp=d.Per_Ocu||'0';
+    var empMap={'0 a 5 personas':3,'6 a 10 personas':8,'11 a 30 personas':20,'31 a 50 personas':40,'51 a 100 personas':75,'101 a 250 personas':175,'251 y m\u00e1s personas':400};
+    totalEmpleados+=(empMap[emp]||3);
+  });
+  var sorted=Object.keys(cats).sort(function(a,b){return cats[b]-cats[a];});
+  return {total:data.length,categories:cats,sorted:sorted.slice(0,10),totalEmpleados:totalEmpleados};
+}
 
 function toggleAfluencia(){
   afluenciaActive=!afluenciaActive;
@@ -5029,7 +5149,34 @@ function renderAfluenciaPanel(place,nearbyPlaces,clickLatLng){
   h+='Fuentes: Google Places API, INEGI DENUE, ANTAD, SCT, AICM, OMA, GAP, ASUR \u00b7 Modelo Connectia \u00b7 '+new Date().toLocaleDateString('es-MX');
   h+='</div>';
 
-  body.innerHTML=h;
+  
+  // DENUE DATA SECTION (placeholder, filled async)
+  h+='<div id="afl-denue-section"></div>';
+  // EXPORT BUTTON
+  h+='<div style="margin:12px 0;text-align:center"><button onclick="exportAfluenciaReport()" style="background:linear-gradient(135deg,#7C3AED,#9333EA);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">\u{1F4C4} Exportar Reporte AFL</button></div>';
+
+body.innerHTML=h;
+
+  // Store afluencia data for report export
+  lastAfluenciaData={place:place,est:est,typeInfo:typeInfo,nearbyPlaces:nearbyPlaces,lat:lat,lng:lng,stateCode:stateCode,en:en,ce:ce,dens:dens,nseData:nseData,dominant:dominant,vehShare:vehShare,pedShare:pedShare,transitShare:transitShare,bikeShare:bikeShare,vehDaily:vehDaily,pedDaily:pedDaily,pAM:pAM,pMid:pMid,pPM:pPM,hours:hours,mPct:mPct,fPct:fPct};
+
+  // Fetch DENUE data async
+  fetchDENUEforAFL(lat,lng,function(data){
+    var ds=document.getElementById('afl-denue-section');
+    if(!ds) return;
+    var summary=buildDENUEsummary(data);
+    if(!summary){ds.innerHTML='';return;}
+    lastAfluenciaData.denue=summary;
+    var dh='<div class="afl-section">\u{1F3E2} Establecimientos DENUE (500m)</div>';
+    dh+='<div class="afl-grid"><div class="afl-card"><div class="acv" style="color:#7C3AED">'+fmt(summary.total)+'</div><div class="acl">Total negocios</div></div><div class="afl-card"><div class="acv" style="color:#059669">'+fmt(summary.totalEmpleados)+'</div><div class="acl">Empleados est.</div></div></div>';
+    summary.sorted.forEach(function(cat){
+      var cnt=summary.categories[cat];
+      var w=Math.round(cnt/summary.total*100);
+      dh+='<div class="afl-bar"><div class="abl" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+cat+'">'+cat+'</div><div class="abt"><div class="abf" style="width:'+Math.max(w,4)+'%;background:#7C3AED"></div></div><div class="abv">'+cnt+'</div></div>';
+    });
+    ds.innerHTML=dh;
+  });
+
 
   // Add marker on the map for the main place
   clearAflMarkers();
@@ -5084,7 +5231,89 @@ function renderAfluenciaZoneOnly(latLng){
 }
 
 function exportAfluenciaReport(){
-  exportReportPDF();
+  if(!lastAfluenciaData){setStatus('Primero analiza un lugar con AFL');return;}
+  var d=lastAfluenciaData;var est=d.est;var place=d.place;var typeInfo=d.typeInfo;
+  function fk(n){if(n>=1e9)return(n/1e9).toFixed(1)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n.toLocaleString();}
+  function fm(n){return'$'+fk(n);}
+  var mapUrl='https://maps.googleapis.com/maps/api/staticmap?center='+d.lat+','+d.lng+'&zoom=16&size=600x400&maptype=roadmap&markers=color:purple%7C'+d.lat+','+d.lng+'&key=AIzaSyCSz9vl6r8FAFAI-ifVr7O1yu5yW2Qrxek';
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Reporte Afluencia - '+(place.name||'Zona')+'</title>';
+  html+='<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\/script>';
+  html+='<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">';
+  html+='<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Inter,system-ui,sans-serif;background:#fff;color:#1F2937;width:1400px;margin:0 auto;padding:24px 28px;}';
+  html+='.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;border-bottom:3px solid #7C3AED;padding-bottom:12px;}';
+  html+='.grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;}.stitle{font-size:16px;font-weight:700;color:#7C3AED;margin:10px 0 8px;text-align:center;}';
+  html+='.pcard{background:linear-gradient(135deg,#7C3AED,#9333EA);color:#fff;border-radius:10px;padding:14px;text-align:center;margin-bottom:10px;}.pcard .bnum{font-size:36px;font-weight:800;margin:4px 0 2px;}.pcard .sub{font-size:11px;opacity:0.85;}.pcard .star{font-size:10px;opacity:0.7;text-transform:uppercase;letter-spacing:1px;}';
+  html+='.mrow{display:flex;gap:8px;margin-bottom:6px;}.mbox{flex:1;border:1px solid #E5E7EB;border-radius:6px;padding:6px 8px;text-align:center;}.mbox .lb{font-size:9px;color:#6B7280;text-transform:uppercase;}.mbox .vl{font-size:18px;font-weight:700;}';
+  html+='.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}.si{border-radius:6px;padding:8px 6px;text-align:center;}';
+  html+='.bar{display:flex;align-items:center;gap:4px;margin-bottom:3px;font-size:10px;}.bar .bl{width:70px;text-align:right;color:#6B7280;flex-shrink:0;}.bar .bt{flex:1;height:14px;background:#F3F4F6;border-radius:3px;overflow:hidden;}.bar .bf{height:100%;border-radius:3px;}.bar .bv{width:50px;font-weight:600;color:#1F2937;}';
+  html+='.np{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #F3F4F6;font-size:10px;}';
+  html+='.chart-box{background:#FAFAFA;border-radius:8px;padding:10px;margin-bottom:8px;}';
+  html+='@media print{body{padding:10px 15px;width:100%;}}</style></head><body>';
+  // HEADER
+  html+='<div class="header"><div><div style="font-size:36px;font-weight:900;color:#111">'+typeInfo.icon+' '+(place.name||'Zona')+'</div>';
+  html+='<div style="font-size:13px;color:#6B7280;margin-top:2px">'+(place.formatted_address||place.vicinity||'')+'</div>';
+  if(place.rating) html+='<div style="margin-top:4px;font-size:14px;color:#F59E0B">'+'\u2605'.repeat(Math.round(place.rating))+' '+place.rating+' ('+(place.user_ratings_total||0).toLocaleString()+' rese\u00f1as)</div>';
+  html+='</div><div style="text-align:right"><div style="font-size:10px;color:#6B7280">Reporte Afluencia</div><div style="font-size:24px;font-weight:800;color:#7C3AED">Connectia</div><div style="font-size:10px;color:#9CA3AF">'+new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'})+'</div></div></div>';
+  // 4 COL GRID
+  html+='<div class="grid">';
+  // COL1: Map + main metric
+  html+='<div><img src="'+mapUrl+'" style="width:100%;border-radius:8px;margin-bottom:10px" crossorigin="anonymous">';
+  html+='<div class="pcard"><div class="star">Afluencia Diaria Estimada</div><div class="bnum">'+fk(est.daily)+'</div><div class="sub">'+fk(est.monthly)+'/mes \u00b7 Confianza: '+est.confidence+'</div></div>';
+  html+='<div class="mrow"><div class="mbox"><div class="lb">Anual</div><div class="vl">'+fk(est.daily*365)+'</div></div><div class="mbox"><div class="lb">Tipo</div><div class="vl" style="font-size:12px">'+typeInfo.label+'</div></div></div>';
+  html+='<div class="stitle">Split Modal</div>';
+  var modals=[{l:'Veh\u00edculo',p:Math.round(d.vehShare*100),c:'#3B82F6'},{l:'Peat\u00f3n',p:Math.round(d.pedShare*100),c:'#10B981'},{l:'Transporte',p:Math.round(d.transitShare*100),c:'#F59E0B'},{l:'Bicicleta',p:Math.round(d.bikeShare*100),c:'#EF4444'}];
+  modals.forEach(function(m){html+='<div class="bar"><div class="bl">'+m.l+'</div><div class="bt"><div class="bf" style="width:'+m.p+'%;background:'+m.c+'"></div></div><div class="bv">'+m.p+'%</div></div>';});
+  html+='</div>';
+  // COL2: Hourly + Demographics
+  html+='<div><div class="stitle">Distribuci\u00f3n Horaria</div>';
+  html+='<div class="chart-box"><canvas id="hourlyChart" width="300" height="200"></canvas></div>';
+  var maxP=Math.max.apply(null,(d.hours||[]).map(function(x){return x.p;}));
+  (d.hours||[]).forEach(function(hr){var w=Math.round(hr.p/maxP*100);var vis=Math.round(est.daily*hr.p/100);html+='<div class="bar"><div class="bl">'+hr.h+'</div><div class="bt"><div class="bf" style="width:'+w+'%;background:linear-gradient(90deg,#7C3AED,#A855F7)"></div></div><div class="bv">'+fk(vis)+'</div></div>';});
+  html+='<div class="stitle">Demogr\u00e1ficos</div>';
+  html+='<div class="sgrid"><div class="si" style="background:#F5F3FF"><div style="font-size:22px;font-weight:800;color:#7C3AED">'+fk(Math.round(d.dens*0.785))+'</div><div style="font-size:9px;color:#6B7280">Poblaci\u00f3n ~1km\u00b2</div></div>';
+  html+='<div class="si" style="background:#ECFDF5"><div style="font-size:22px;font-weight:800;color:#059669">'+fk(d.dens)+'</div><div style="font-size:9px;color:#6B7280">Densidad/km\u00b2</div></div></div>';
+  html+='<div class="sgrid"><div class="si" style="background:#EFF6FF"><div style="font-size:18px;font-weight:700;color:#3B82F6">\u2642 '+d.mPct+'%</div><div style="font-size:9px;color:#6B7280">Hombres</div></div>';
+  html+='<div class="si" style="background:#FDF2F8"><div style="font-size:18px;font-weight:700;color:#EC4899">\u2640 '+d.fPct+'%</div><div style="font-size:9px;color:#6B7280">Mujeres</div></div></div></div>';
+  // COL3: NSE + Economy + Mobility
+  html+='<div><div class="stitle">NSE</div>';
+  html+='<div class="chart-box"><canvas id="nseChart" width="300" height="180"></canvas></div>';
+  var nseColors=['#7C3AED','#9333EA','#A855F7','#C084FC','#DDD6FE','#EDE9FE'];
+  (d.nseData||[]).forEach(function(n,i){html+='<div class="bar"><div class="bl" style="font-weight:700;color:'+(nseColors[i]||'#7C3AED')+'">'+n.n+'</div><div class="bt"><div class="bf" style="width:'+Math.round(n.p)+'%;background:'+(nseColors[i]||'#7C3AED')+'"></div></div><div class="bv">'+n.p.toFixed(0)+'%</div></div>';});
+  html+='<div class="stitle">Econom\u00eda</div>';
+  html+='<div class="sgrid"><div class="si" style="background:#F0FDF4"><div style="font-size:20px;font-weight:800;color:#16A34A">'+fm(d.en.ingPC||d.en.ing)+'</div><div style="font-size:9px;color:#6B7280">Ingreso per c\u00e1p</div></div>';
+  html+='<div class="si" style="background:#FEF2F2"><div style="font-size:20px;font-weight:800;color:#DC2626">'+fm(d.en.gasPC||d.en.gas)+'</div><div style="font-size:9px;color:#6B7280">Gasto per c\u00e1p</div></div></div>';
+  html+='<div class="stitle">Movilidad</div>';
+  html+='<div class="sgrid"><div class="si" style="background:#EFF6FF"><div style="font-size:20px;font-weight:800;color:#1D4ED8">'+fk(d.vehDaily)+'</div><div style="font-size:9px;color:#6B7280">Veh\u00edculos/d\u00eda</div></div>';
+  html+='<div class="si" style="background:#ECFDF5"><div style="font-size:20px;font-weight:800;color:#15803D">'+fk(d.pedDaily)+'</div><div style="font-size:9px;color:#6B7280">Peatones/d\u00eda</div></div></div>';
+  html+='<div style="display:flex;gap:4px;margin:6px 0;font-size:9px;text-align:center"><div style="flex:1;background:#F3E8FF;border-radius:4px;padding:4px"><b style="color:#7C3AED">AM</b><br>'+d.pAM+'</div><div style="flex:1;background:#F3E8FF;border-radius:4px;padding:4px"><b style="color:#7C3AED">Med</b><br>'+d.pMid+'</div><div style="flex:1;background:#F3E8FF;border-radius:4px;padding:4px"><b style="color:#7C3AED">PM</b><br>'+d.pPM+'</div></div></div>';
+  // COL4: DENUE + Nearby
+  html+='<div>';
+  if(d.denue){
+    html+='<div class="stitle">DENUE (500m)</div>';
+    html+='<div class="sgrid"><div class="si" style="background:#F5F3FF"><div style="font-size:22px;font-weight:800;color:#7C3AED">'+fk(d.denue.total)+'</div><div style="font-size:9px;color:#6B7280">Negocios</div></div>';
+    html+='<div class="si" style="background:#ECFDF5"><div style="font-size:22px;font-weight:800;color:#059669">'+fk(d.denue.totalEmpleados)+'</div><div style="font-size:9px;color:#6B7280">Empleados</div></div></div>';
+    (d.denue.sorted||[]).forEach(function(cat){var cnt=d.denue.categories[cat];var w=Math.round(cnt/d.denue.total*100);html+='<div class="bar"><div class="bl" style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px" title="'+cat+'">'+cat+'</div><div class="bt"><div class="bf" style="width:'+Math.max(w,4)+'%;background:#7C3AED"></div></div><div class="bv">'+cnt+'</div></div>';});
+  }
+  if(d.nearbyPlaces&&d.nearbyPlaces.length>1){
+    html+='<div class="stitle">Lugares Cercanos ('+d.nearbyPlaces.length+')</div>';
+    d.nearbyPlaces.sort(function(a,b){return(b.user_ratings_total||0)-(a.user_ratings_total||0);});
+    d.nearbyPlaces.slice(0,10).forEach(function(np){var npInfo=getPlaceTypeInfo(np.types);var npEst=estimateFootfall(np);html+='<div class="np"><span style="font-size:14px">'+npInfo.icon+'</span><div style="flex:1"><div style="font-weight:600">'+np.name+'</div><div style="color:#6B7280;font-size:8px">'+npInfo.label+'</div></div><div style="text-align:right;font-weight:700;color:#7C3AED">'+fk(npEst.daily)+'<div style="font-size:7px;color:#6B7280;font-weight:400">/d\u00eda</div></div></div>';});
+  }
+  html+='</div></div>';
+  // FOOTER
+  html+='<div style="margin-top:16px;padding-top:10px;border-top:2px solid #7C3AED;display:flex;justify-content:space-between;font-size:9px;color:#9CA3AF"><div>Fuentes: Google Places API, INEGI DENUE, ANTAD, SCT, STC Metro, INAH, IMSS, FMF</div><div style="font-weight:600;color:#7C3AED">Powered by Connectia</div></div>';
+  // Charts
+  html+='<script>';
+  html+='new Chart(document.getElementById("hourlyChart"),{type:"bar",data:{labels:'+JSON.stringify((d.hours||[]).map(function(h){return h.h;}))+',datasets:[{data:'+JSON.stringify((d.hours||[]).map(function(h){return Math.round(est.daily*h.p/100);}))+',backgroundColor:"#7C3AED",borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:8}}},x:{ticks:{font:{size:8}}}}}});';
+  var nseLabels=(d.nseData||[]).map(function(n){return n.n;});
+  var nseValues=(d.nseData||[]).map(function(n){return Math.round(n.p);});
+  html+='new Chart(document.getElementById("nseChart"),{type:"doughnut",data:{labels:'+JSON.stringify(nseLabels)+',datasets:[{data:'+JSON.stringify(nseValues)+',backgroundColor:["#7C3AED","#9333EA","#A855F7","#C084FC","#DDD6FE","#EDE9FE"]}]},options:{responsive:true,plugins:{legend:{position:"right",labels:{font:{size:8}}}}}});';
+  html+='<\/script></body></html>';
+  var blob=new Blob([html],{type:'text/html'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='Connectia_Afluencia_'+(place.name||'Zona').replace(/\s/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.html';
+  a.click();URL.revokeObjectURL(a.href);
+  setStatus('Reporte Afluencia descargado \u2713');
 }
 
 // === SAVE/LOAD SESSION ===
