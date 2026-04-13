@@ -13394,7 +13394,7 @@ function makeDraggable(panelId,handleId){
 }
 
 // Make any element draggable by its first header-like child
-var _dragExcludeIds={'live-radius-label':1,'ar-toggle':1,'toolbar':1,'navbar':1,'coords':1,'status':1,'sidebar':1,'map':1,'topbar':1,'top-menu':1,'suggestions':1,'geo-suggestions':1,'intro-page':1,'admin-panel':1,'pin-context-menu':1,'main-menu-dropdown':1};
+var _dragExcludeIds={'live-radius-label':1,'ar-toggle':1,'toolbar':1,'navbar':1,'coords':1,'status':1,'sidebar':1,'map':1,'topbar':1,'top-menu':1,'suggestions':1,'geo-suggestions':1,'intro-page':1,'admin-panel':1,'pin-context-menu':1,'main-menu-dropdown':1,'tool-mode-popup':1,'import-menu-popup':1,'export-menu-dropdown':1,'share-dialog':1,'import-dialog':1,'heatmap-dropdown':1,'nse-layers-menu':1,'places-menu':1};
 function makePanelDraggable(el){
   if(!el||el._dragInit)return;
   if(_dragExcludeIds[el.id])return;
@@ -13402,6 +13402,10 @@ function makePanelDraggable(el){
   // CRITICAL: never touch Google Maps internal elements
   if(el.closest&&el.closest('#map'))return;
   if(el.className&&typeof el.className==='string'&&(el.className.indexOf('gm-')>=0||el.className.indexOf('gmnoprint')>=0))return;
+  // Never touch popups, menus, dropdowns, dialogs, tooltips
+  if(el.id&&(el.id.indexOf('popup')>=0||el.id.indexOf('menu')>=0||el.id.indexOf('dropdown')>=0||el.id.indexOf('dialog')>=0||el.id.indexOf('tooltip')>=0))return;
+  // Skip very small floating elements (likely menus/popups, not panels)
+  if(el.offsetHeight>0&&el.offsetHeight<60)return;
   el._dragInit=true;
   // Find a handle: title bar, header-like element, or first child
   var handle=el.querySelector('[id*="title-bar"]')||el.querySelector('.pm-header')||el.querySelector('[style*="border-bottom"]')||el.querySelector('[style*="gradient"]');
@@ -13454,11 +13458,15 @@ function _isPanelNode(node){
   // CRITICAL: never touch Google Maps internal elements inside #map
   if(node.closest&&node.closest('#map'))return false;
   if(node.className&&typeof node.className==='string'&&(node.className.indexOf('gm-')>=0||node.className.indexOf('gmnoprint')>=0))return false;
+  // Never touch popups, menus, dropdowns, dialogs, tooltips
+  if(node.id&&(node.id.indexOf('popup')>=0||node.id.indexOf('menu')>=0||node.id.indexOf('dropdown')>=0||node.id.indexOf('dialog')>=0||node.id.indexOf('tooltip')>=0))return false;
   var cs=window.getComputedStyle(node);
   var pos=cs.position;
   if(pos!=='fixed'&&pos!=='absolute')return false;
   var w=node.offsetWidth;
   if(w<80)return false;
+  // Skip very small elements (menus/popups, not panels)
+  if(node.offsetHeight>0&&node.offsetHeight<60)return false;
   var z=parseInt(cs.zIndex)||0;
   if(z<2)return false;
   return true;
@@ -13510,7 +13518,7 @@ setTimeout(function(){makeDraggable('report-panel','report-title-bar');},2000);
 // =============================================================================
 // UNIVERSAL CLOSE BUTTON SYSTEM — every panel/window gets a close/hide button
 // =============================================================================
-var _closeExcludeIds={'toolbar':1,'topbar':1,'map':1,'sidebar':1,'navbar':1,'coords':1,'status':1,'suggestions':1,'geo-suggestions':1,'intro-page':1,'admin-panel':1,'nse-legend':1,'live-radius-label':1,'ar-toggle':1,'pin-context-menu':1,'main-menu-dropdown':1,'heatmap-dropdown':1,'nse-layers-menu':1,'places-menu':1};
+var _closeExcludeIds={'toolbar':1,'topbar':1,'map':1,'sidebar':1,'navbar':1,'coords':1,'status':1,'suggestions':1,'geo-suggestions':1,'intro-page':1,'admin-panel':1,'nse-legend':1,'live-radius-label':1,'ar-toggle':1,'pin-context-menu':1,'main-menu-dropdown':1,'heatmap-dropdown':1,'nse-layers-menu':1,'places-menu':1,'tool-mode-popup':1,'import-menu-popup':1,'export-menu-dropdown':1,'share-dialog':1,'import-dialog':1};
 
 function _panelHasClose(el){
   // Check if panel already has a close button (× or ✕ in a button)
@@ -13531,11 +13539,14 @@ function ensureCloseButton(el){
   // CRITICAL: never touch Google Maps internal elements
   if(el.closest&&el.closest('#map'))return;
   if(el.className&&typeof el.className==='string'&&(el.className.indexOf('gm-')>=0||el.className.indexOf('gmnoprint')>=0))return;
+  // Never touch popups, menus, dropdowns, dialogs, tooltips
+  if(el.id&&(el.id.indexOf('popup')>=0||el.id.indexOf('menu')>=0||el.id.indexOf('dropdown')>=0||el.id.indexOf('dialog')>=0||el.id.indexOf('tooltip')>=0))return;
   // Must be a floating panel (fixed/absolute, reasonable size)
   var cs=window.getComputedStyle(el);
   var pos=cs.position;
   if(pos!=='fixed'&&pos!=='absolute')return;
   if(el.offsetWidth<80)return;
+  if(el.offsetHeight>0&&el.offsetHeight<60)return;
   var z=parseInt(cs.zIndex)||0;
   if(z<2)return;
   if(el.style.pointerEvents==='none')return;
