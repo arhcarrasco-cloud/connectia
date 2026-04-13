@@ -8059,12 +8059,12 @@ var AFL_KNOWN={
   'Aeropuerto Internacional de Guadalajara':{daily:49000,source:'GAP 2024 (17.8M pax anual)',type:'airport'},
   'Aeropuerto Internacional de Monterrey':{daily:37000,source:'OMA 2024 (13.6M pax anual)',type:'airport'},
   'Aeropuerto Internacional de Tijuana':{daily:30000,source:'GAP 2024 (10.9M pax anual)',type:'airport'},
-  'Aeropuerto Internacional Felipe \u00c1ngeles':{daily:8000,source:'AIFA 2024 (2.9M pax anual)',type:'airport'},
+  'Aeropuerto Internacional Felipe \u00c1ngeles':{daily:18000,source:'AIFA 2024 (6.4M pax anual)',type:'airport'},
   // Centros comerciales CDMX — Fuente: ICSC Mexico, ANTAD 2024, Getin trends
   // Tier 1 mega-malls: 1.2-1.7M mensual (40K-55K diario)
   'Perisur':{daily:50000,source:'ICSC/ANTAD 2024 (~1.5M mensual)',type:'shopping_mall'},
   'Plaza Sat\u00e9lite':{daily:48000,source:'ICSC/ANTAD 2024 (~1.4M mensual)',type:'shopping_mall'},
-  'Centro Comercial Santa Fe':{daily:40000,source:'ICSC/ANTAD 2024 (~1.2M mensual)',type:'shopping_mall'},
+  'Centro Comercial Santa Fe':{daily:32000,source:'Getin 2025 (-19% vs 2024, ~960K mensual)',type:'shopping_mall'},
   'Parque Tezontle':{daily:38000,source:'ICSC/ANTAD 2024 (~1.14M mensual)',type:'shopping_mall'},
   'Parque Delta':{daily:35000,source:'ICSC/ANTAD 2024 (~1.05M mensual)',type:'shopping_mall'},
   'Toreo Parque Central':{daily:33000,source:'Fibra UNO 2024 (~990K mensual)',type:'shopping_mall'},
@@ -8075,6 +8075,12 @@ var AFL_KNOWN={
   'Galer\u00edas Coapa':{daily:24000,source:'ANTAD 2024 (~720K mensual)',type:'shopping_mall'},
   'Galer\u00edas Insurgentes':{daily:22000,source:'ANTAD 2024 (~660K mensual)',type:'shopping_mall'},
   'Mundo E':{daily:20000,source:'ANTAD 2024 (~600K mensual)',type:'shopping_mall'},
+  // Estadios — Fuente: Liga MX Transfermarkt 2024 (promedio dia partido)
+  'Estadio BBVA':{daily:8000,source:'Liga MX 2024 (42K d\u00eda partido \u00f7 5 d\u00edas/sem = 8K prom)',type:'stadium'},
+  'Estadio Azteca':{daily:6000,source:'Liga MX 2024 (en remodelaci\u00f3n 2024-2026)',type:'stadium'},
+  'Estadio Akron':{daily:5000,source:'Liga MX 2024 (promedio amortizado)',type:'stadium'},
+  'Estadio Cuauht\u00e9moc':{daily:4000,source:'Liga MX 2024',type:'stadium'},
+  'Estadio Jalisco':{daily:4000,source:'Liga MX 2024',type:'stadium'},
   // Tier 3 premium: 400K-800K mensual (13K-27K diario)
   'Antara Polanco':{daily:18000,source:'Fibra Danhos 2024 (~540K mensual)',type:'shopping_mall'},
   'Artz Pedregal':{daily:15000,source:'Fibra Danhos 2024 (~450K mensual)',type:'shopping_mall'},
@@ -8141,6 +8147,8 @@ var AFL_KNOWN={
   'Parque Hundido':{daily:4000,source:'SEDEMA est. 2024',type:'park'},
   'Parque Lincoln':{daily:6000,source:'SEDEMA est. 2024',type:'park'},
   'Alameda Central':{daily:15000,source:'SEDEMA est. 2024',type:'park'},
+  'Bosque de Chapultepec':{daily:65000,source:'SEDEMA 2026 (24M anuales estimados)',type:'park'},
+  'Chapultepec':{daily:65000,source:'SEDEMA 2026 (24M anuales estimados)',type:'park'},
   'Xochimilco':{daily:8000,source:'SEDEMA 2024',type:'park'},
   'Desierto de los Leones':{daily:3000,source:'CONANP 2024',type:'park'},
   'Parque Fundidora':{daily:25000,source:'Gob Nuevo Leon 2024 (9M anual)',type:'park'},
@@ -8173,9 +8181,16 @@ var AFL_KNOWN={
   'Farmacias Benavides':{daily:180,source:'Estimado 2024',type:'pharmacy'},
   // Cines — Fuente: CANACINE (218M boletos/yr, 800 complejos)
   'Cinepolis':{daily:750,source:'CANACINE 2024 (218M boletos/yr \u00f7 800 complejos)',type:'movie_theater'},
-  'Cinemex':{daily:600,source:'CANACINE 2024',type:'movie_theater'},
+  'Cinemex':{daily:720,source:'CANACINE 2024 (301 complejos, ~72K boletos/complejo/mes)',type:'movie_theater'},
+  // Metro CDMX — Fuente: STC Metro 2024 (afluencia oficial por estación)
+  'Pantitlan':{daily:23000,source:'STC Metro 2024 (8.48M entradas anuales)',type:'train_station'},
+  'Pantitl\u00e1n':{daily:23000,source:'STC Metro 2024 (8.48M entradas anuales)',type:'train_station'},
+  'Observatorio':{daily:18000,source:'STC Metro 2024 (L1 terminal oeste)',type:'train_station'},
+  'Tacuba':{daily:15000,source:'STC Metro 2024 (L2/L7 correspondencia)',type:'train_station'},
+  'Indios Verdes':{daily:20000,source:'STC Metro 2024 (L3 terminal norte)',type:'train_station'},
+  'Taxque\u00f1a':{daily:17000,source:'STC Metro 2024 (L2 terminal sur)',type:'train_station'},
   // Iglesias principales — Fuente: Gob CDMX, INAH
-  'Basilica de Guadalupe':{daily:40000,source:'Gob CDMX 2024 (12-20M anual)',type:'church'},
+  'Basilica de Guadalupe':{daily:55000,source:'20M peregrinos anuales (ACI Prensa/Expreso 2024)',type:'church'},
   'Catedral Metropolitana':{daily:8000,source:'INAH est. 2024',type:'church'},
   // Bancos — Fuente: CNBV (~200 visitas presenciales/suc/dia)
   'BBVA':{daily:200,source:'CNBV 2024 est.',type:'bank'},
@@ -8185,8 +8200,9 @@ var AFL_KNOWN={
   'HSBC':{daily:150,source:'CNBV 2024 est.',type:'bank'},
   // Gimnasios — Fuente: Smart Fit (2,570 memb/suc, 35% asist diaria)
   'Smart Fit':{daily:900,source:'Smart Fit 2024 (2,570 memb \u00d7 35%)',type:'gym'},
-  'Sport City':{daily:700,source:'Estimado 2024',type:'gym'},
-  'Planet Fitness':{daily:600,source:'Estimado 2024',type:'gym'},
+  'Sport City':{daily:600,source:'Estimado 2024 (premium segment)',type:'gym'},
+  'Sports World':{daily:300,source:'Predik 2024 (8\u00d7 menor que Smart Fit)',type:'gym'},
+  'Planet Fitness':{daily:500,source:'Estimado 2024',type:'gym'},
   // Gobierno — Fuente: SAT citas
   'SAT':{daily:80,source:'SAT 2024 (~80 citas/dia/oficina)',type:'government'},
   'Registro Civil':{daily:60,source:'Gob CDMX est.',type:'government'},
