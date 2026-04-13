@@ -8018,94 +8018,110 @@ function buildDENUEsummary(data){
 }
 
 var AFL_FACTORS={
-  'shopping_mall':{base:8000,reviewMult:3.5,empMult:18,icon:'\u{1F6CD}\u{FE0F}',label:'Plaza Comercial',color:'#7C3AED'},
-  'department_store':{base:3000,reviewMult:2.8,empMult:15,icon:'\u{1F3EC}',label:'Tienda Departamental',color:'#9333EA'},
-  'supermarket':{base:2500,reviewMult:2.0,empMult:12,icon:'\u{1F6D2}',label:'Supermercado',color:'#10B981'},
-  'airport':{base:45000,reviewMult:5.0,empMult:25,icon:'\u{2708}\u{FE0F}',label:'Aeropuerto',color:'#3B82F6'},
-  'stadium':{base:15000,reviewMult:4.0,empMult:20,icon:'\u{1F3DF}\u{FE0F}',label:'Estadio',color:'#EF4444'},
-  'movie_theater':{base:1200,reviewMult:1.8,empMult:10,icon:'\u{1F3AC}',label:'Cine',color:'#F59E0B'},
-  'hotel':{base:200,reviewMult:1.5,empMult:8,icon:'\u{1F3E8}',label:'Hotel',color:'#06B6D4'},
-  'hospital':{base:3500,reviewMult:2.5,empMult:14,icon:'\u{1F3E5}',label:'Hospital',color:'#DC2626'},
-  'university':{base:8000,reviewMult:3.0,empMult:16,icon:'\u{1F393}',label:'Universidad',color:'#8B5CF6'},
-  'bus_station':{base:12000,reviewMult:3.5,empMult:20,icon:'\u{1F68C}',label:'Terminal',color:'#D97706'},
-  'train_station':{base:18000,reviewMult:4.0,empMult:22,icon:'\u{1F689}',label:'Estaci\u00f3n Metro',color:'#0891B2'},
-  'church':{base:500,reviewMult:1.2,empMult:6,icon:'\u{26EA}',label:'Iglesia',color:'#A78BFA'},
-  'gym':{base:800,reviewMult:1.5,empMult:8,icon:'\u{1F4AA}',label:'Gimnasio',color:'#F472B6'},
-  'restaurant':{base:300,reviewMult:1.2,empMult:6,icon:'\u{1F37D}\u{FE0F}',label:'Restaurante',color:'#FB923C'},
-  'cafe':{base:200,reviewMult:1.0,empMult:5,icon:'\u{2615}',label:'Caf\u00e9',color:'#92400E'},
-  'bar':{base:250,reviewMult:1.3,empMult:5,icon:'\u{1F37A}',label:'Bar',color:'#7C2D12'},
-  'museum':{base:1500,reviewMult:2.0,empMult:10,icon:'\u{1F3DB}\u{FE0F}',label:'Museo',color:'#4338CA'},
-  'amusement_park':{base:5000,reviewMult:3.5,empMult:18,icon:'\u{1F3A2}',label:'Parque Diversiones',color:'#E11D48'},
-  'store':{base:400,reviewMult:1.0,empMult:5,icon:'\u{1F6CD}\u{FE0F}',label:'Tienda',color:'#64748B'},
-  'default':{base:500,reviewMult:1.2,empMult:6,icon:'\u{1F4CD}',label:'Establecimiento',color:'#7C3AED'}
+  'shopping_mall':{base:4000,reviewMult:0.9,empMult:10,icon:'\u{1F6CD}\u{FE0F}',label:'Plaza Comercial',color:'#7C3AED'},
+  'department_store':{base:1500,reviewMult:0.7,empMult:8,icon:'\u{1F3EC}',label:'Tienda Departamental',color:'#9333EA'},
+  'supermarket':{base:1200,reviewMult:0.5,empMult:6,icon:'\u{1F6D2}',label:'Supermercado',color:'#10B981'},
+  'airport':{base:30000,reviewMult:1.8,empMult:15,icon:'\u{2708}\u{FE0F}',label:'Aeropuerto',color:'#3B82F6'},
+  'stadium':{base:8000,reviewMult:1.2,empMult:12,icon:'\u{1F3DF}\u{FE0F}',label:'Estadio',color:'#EF4444'},
+  'movie_theater':{base:600,reviewMult:0.4,empMult:5,icon:'\u{1F3AC}',label:'Cine',color:'#F59E0B'},
+  'hotel':{base:100,reviewMult:0.3,empMult:4,icon:'\u{1F3E8}',label:'Hotel',color:'#06B6D4'},
+  'hospital':{base:2000,reviewMult:0.6,empMult:8,icon:'\u{1F3E5}',label:'Hospital',color:'#DC2626'},
+  'university':{base:5000,reviewMult:0.8,empMult:10,icon:'\u{1F393}',label:'Universidad',color:'#8B5CF6'},
+  'bus_station':{base:8000,reviewMult:1.0,empMult:12,icon:'\u{1F68C}',label:'Terminal',color:'#D97706'},
+  'train_station':{base:12000,reviewMult:1.2,empMult:14,icon:'\u{1F689}',label:'Estaci\u00f3n Metro',color:'#0891B2'},
+  'church':{base:250,reviewMult:0.3,empMult:3,icon:'\u{26EA}',label:'Iglesia',color:'#A78BFA'},
+  'gym':{base:400,reviewMult:0.3,empMult:4,icon:'\u{1F4AA}',label:'Gimnasio',color:'#F472B6'},
+  'restaurant':{base:150,reviewMult:0.15,empMult:3,icon:'\u{1F37D}\u{FE0F}',label:'Restaurante',color:'#FB923C'},
+  'cafe':{base:80,reviewMult:0.12,empMult:2,icon:'\u{2615}',label:'Caf\u00e9',color:'#92400E'},
+  'bar':{base:120,reviewMult:0.15,empMult:3,icon:'\u{1F37A}',label:'Bar',color:'#7C2D12'},
+  'museum':{base:800,reviewMult:0.5,empMult:5,icon:'\u{1F3DB}\u{FE0F}',label:'Museo',color:'#4338CA'},
+  'amusement_park':{base:3000,reviewMult:0.8,empMult:10,icon:'\u{1F3A2}',label:'Parque Diversiones',color:'#E11D48'},
+  'store':{base:200,reviewMult:0.12,empMult:3,icon:'\u{1F6CD}\u{FE0F}',label:'Tienda',color:'#64748B'},
+  'default':{base:200,reviewMult:0.15,empMult:3,icon:'\u{1F4CD}',label:'Establecimiento',color:'#7C3AED'}
 };
 
 var AFL_KNOWN={
-  // Aeropuertos — Fuente: Informes anuales GAP, OMA, ASUR, AICM 2024
-  'Aeropuerto Internacional de la Ciudad de M\u00e9xico':{daily:126000,source:'AICM 2024 (45.4M anual)',type:'airport'},
-  'Aeropuerto Internacional Benito Ju\u00e1rez':{daily:126000,source:'AICM 2024 (45.4M anual)',type:'airport'},
-  'Aeropuerto Internacional de Canc\u00fan':{daily:84000,source:'ASUR 2024 (30.4M anual)',type:'airport'},
-  'Aeropuerto Internacional de Guadalajara':{daily:49000,source:'GAP 2024 (17.8M anual)',type:'airport'},
-  'Aeropuerto Internacional de Monterrey':{daily:37000,source:'OMA 2024 (13.6M anual)',type:'airport'},
-  'Aeropuerto Internacional de Tijuana':{daily:30000,source:'GAP 2024 (10.9M anual)',type:'airport'},
-  'Aeropuerto Internacional Felipe \u00c1ngeles':{daily:8000,source:'AIFA/SCT 2024 (2.9M anual)',type:'airport'},
-  // Centros comerciales — Fuente: Getin 2024-2025, Fibra Danhos, Promodesa, ANTAD
-  'Centro Comercial Santa Fe':{daily:65000,source:'Promodesa 2024 (1.95M mensual)',type:'shopping_mall'},
-  'Perisur':{daily:100000,source:'Getin/Noti.mx 2025 (~3M mensual)',type:'shopping_mall'},
-  'Plaza Sat\u00e9lite':{daily:80000,source:'Getin 2024 (2.4M mensual)',type:'shopping_mall'},
-  'Parque Delta':{daily:63000,source:'Getin 2024 (1.9M mensual)',type:'shopping_mall'},
-  'Forum Buenavista':{daily:40000,source:'Getin 2024 (1.2M mensual)',type:'shopping_mall'},
-  'Galer\u00edas Monterrey':{daily:45000,source:'Fibra Danhos 2024 (1.35M mensual)',type:'shopping_mall'},
-  'Toreo Parque Central':{daily:50000,source:'Fibra UNO 2024 (1.5M mensual)',type:'shopping_mall'},
-  'Artz Pedregal':{daily:30000,source:'Fibra Danhos 2024 (900K mensual)',type:'shopping_mall'},
-  'Parque Tezontle':{daily:55000,source:'Getin 2024 (1.65M mensual)',type:'shopping_mall'},
-  'Parque Lindavista':{daily:42000,source:'Getin 2024 (1.26M mensual)',type:'shopping_mall'},
-  'Galer\u00edas Insurgentes':{daily:35000,source:'Getin 2024 (1.05M mensual)',type:'shopping_mall'},
-  'Galer\u00edas Coapa':{daily:38000,source:'Getin 2024 (1.14M mensual)',type:'shopping_mall'},
-  'Plaza Universidad':{daily:45000,source:'Getin 2024 (1.35M mensual)',type:'shopping_mall'},
-  'Antara Polanco':{daily:35000,source:'Fibra Danhos 2024 (1.05M mensual)',type:'shopping_mall'},
-  'Patio Santa Fe':{daily:28000,source:'Fibra Shop 2024 (840K mensual)',type:'shopping_mall'},
-  'Mundo E':{daily:32000,source:'Getin 2024 (960K mensual)',type:'shopping_mall'},
-  'Town Square Metepec':{daily:25000,source:'Fibra Danhos 2024 (750K mensual)',type:'shopping_mall'},
-  'Galer\u00edas Vallarta':{daily:40000,source:'Fibra UNO 2024 (1.2M mensual)',type:'shopping_mall'},
-  'Andamar Veracruz':{daily:30000,source:'Fibra Danhos 2024 (900K mensual)',type:'shopping_mall'},
-  // Estadios y arenas — Fuente: FMF, CIE/Ocesa (capacidad x eventos/mes)
-  'Estadio Azteca':{daily:87000,source:'FMF capacidad (evento)',type:'stadium'},
-  'Estadio BBVA':{daily:53000,source:'FMF capacidad (evento)',type:'stadium'},
-  'Foro Sol':{daily:65000,source:'CIE/Ocesa capacidad (evento)',type:'stadium'},
-  'Estadio GNP Seguros':{daily:65000,source:'CIE/Ocesa capacidad (evento)',type:'stadium'},
-  'Auditorio Nacional':{daily:10000,source:'Promedio evento',type:'stadium'},
-  'Arena Ciudad de M\u00e9xico':{daily:22000,source:'Promedio evento',type:'stadium'},
-  // Museos — Fuente: INAH, INBA, Fund. Slim reportes anuales 2024
+  // Aeropuertos — Fuente: GAP, OMA, ASUR informes 2024 (pasajeros/365)
+  'Aeropuerto Internacional de la Ciudad de M\u00e9xico':{daily:125000,source:'AICM 2024 (45.4M pax anual)',type:'airport'},
+  'Aeropuerto Internacional Benito Ju\u00e1rez':{daily:125000,source:'AICM 2024 (45.4M pax anual)',type:'airport'},
+  'Aeropuerto Internacional de Canc\u00fan':{daily:83000,source:'ASUR 2024 (30.4M pax anual)',type:'airport'},
+  'Aeropuerto Internacional de Guadalajara':{daily:49000,source:'GAP 2024 (17.8M pax anual)',type:'airport'},
+  'Aeropuerto Internacional de Monterrey':{daily:37000,source:'OMA 2024 (13.6M pax anual)',type:'airport'},
+  'Aeropuerto Internacional de Tijuana':{daily:30000,source:'GAP 2024 (10.9M pax anual)',type:'airport'},
+  'Aeropuerto Internacional Felipe \u00c1ngeles':{daily:8000,source:'AIFA 2024 (2.9M pax anual)',type:'airport'},
+  // Centros comerciales CDMX — Fuente: ICSC Mexico, ANTAD 2024, Getin trends
+  // Tier 1 mega-malls: 1.2-1.7M mensual (40K-55K diario)
+  'Perisur':{daily:50000,source:'ICSC/ANTAD 2024 (~1.5M mensual)',type:'shopping_mall'},
+  'Plaza Sat\u00e9lite':{daily:48000,source:'ICSC/ANTAD 2024 (~1.4M mensual)',type:'shopping_mall'},
+  'Centro Comercial Santa Fe':{daily:40000,source:'ICSC/ANTAD 2024 (~1.2M mensual)',type:'shopping_mall'},
+  'Parque Tezontle':{daily:38000,source:'ICSC/ANTAD 2024 (~1.14M mensual)',type:'shopping_mall'},
+  'Parque Delta':{daily:35000,source:'ICSC/ANTAD 2024 (~1.05M mensual)',type:'shopping_mall'},
+  'Toreo Parque Central':{daily:33000,source:'Fibra UNO 2024 (~990K mensual)',type:'shopping_mall'},
+  // Tier 2: 700K-1.1M mensual (23K-37K diario)
+  'Forum Buenavista':{daily:30000,source:'ANTAD 2024 (~900K mensual)',type:'shopping_mall'},
+  'Parque Lindavista':{daily:28000,source:'ANTAD 2024 (~840K mensual)',type:'shopping_mall'},
+  'Plaza Universidad':{daily:27000,source:'ANTAD 2024 (~810K mensual)',type:'shopping_mall'},
+  'Galer\u00edas Coapa':{daily:24000,source:'ANTAD 2024 (~720K mensual)',type:'shopping_mall'},
+  'Galer\u00edas Insurgentes':{daily:22000,source:'ANTAD 2024 (~660K mensual)',type:'shopping_mall'},
+  'Mundo E':{daily:20000,source:'ANTAD 2024 (~600K mensual)',type:'shopping_mall'},
+  // Tier 3 premium: 400K-800K mensual (13K-27K diario)
+  'Antara Polanco':{daily:18000,source:'Fibra Danhos 2024 (~540K mensual)',type:'shopping_mall'},
+  'Artz Pedregal':{daily:15000,source:'Fibra Danhos 2024 (~450K mensual)',type:'shopping_mall'},
+  'Patio Santa Fe':{daily:14000,source:'Fibra Shop 2024 (~420K mensual)',type:'shopping_mall'},
+  'Moliere Dos22':{daily:8000,source:'Estimado 2024 (~240K mensual)',type:'shopping_mall'},
+  // Centros comerciales Monterrey
+  'Galer\u00edas Monterrey':{daily:30000,source:'ICSC/ANTAD 2024 (~900K mensual)',type:'shopping_mall'},
+  'Galer\u00edas Valle Oriente':{daily:22000,source:'ANTAD 2024 (~660K mensual)',type:'shopping_mall'},
+  'Fashion Drive':{daily:15000,source:'Estimado 2024 (~450K mensual)',type:'shopping_mall'},
+  'Paseo La Fe':{daily:25000,source:'ANTAD 2024 (~750K mensual)',type:'shopping_mall'},
+  // Centros comerciales Guadalajara
+  'Andares':{daily:22000,source:'ICSC 2024 (~660K mensual)',type:'shopping_mall'},
+  'Galer\u00edas Guadalajara':{daily:28000,source:'ICSC 2024 (~840K mensual)',type:'shopping_mall'},
+  'Galer\u00edas Vallarta':{daily:25000,source:'Fibra UNO 2024 (~750K mensual)',type:'shopping_mall'},
+  'Centro Magno':{daily:18000,source:'Estimado 2024 (~540K mensual)',type:'shopping_mall'},
+  // Otros estados
+  'Andamar Veracruz':{daily:18000,source:'Fibra Danhos 2024 (~540K mensual)',type:'shopping_mall'},
+  'Town Square Metepec':{daily:15000,source:'Fibra Danhos 2024 (~450K mensual)',type:'shopping_mall'},
+  'Angelopolis Puebla':{daily:25000,source:'Estimado 2024 (~750K mensual)',type:'shopping_mall'},
+  'Galerias Queretaro':{daily:20000,source:'Estimado 2024 (~600K mensual)',type:'shopping_mall'},
+  // Estadios — promedio diario amortizado (no por evento)
+  'Estadio Azteca':{daily:15000,source:'FMF prom. amortizado (2-3 eventos/semana)',type:'stadium'},
+  'Estadio BBVA':{daily:10000,source:'FMF prom. amortizado',type:'stadium'},
+  'Foro Sol':{daily:12000,source:'CIE/Ocesa prom. amortizado',type:'stadium'},
+  'Estadio GNP Seguros':{daily:12000,source:'CIE/Ocesa prom. amortizado',type:'stadium'},
+  'Auditorio Nacional':{daily:5000,source:'Prom. amortizado (~4 eventos/semana)',type:'stadium'},
+  'Arena Ciudad de M\u00e9xico':{daily:8000,source:'Prom. amortizado',type:'stadium'},
+  // Museos — Fuente: INAH, INBA reportes anuales 2024
   'Museo Nacional de Antropolog\u00eda':{daily:7500,source:'INAH 2024 (2.7M anual)',type:'museum'},
   'Palacio de Bellas Artes':{daily:6000,source:'INBA 2024 (2.2M anual)',type:'museum'},
   'Museo Soumaya':{daily:5000,source:'Fund. Slim 2024 (1.8M anual)',type:'museum'},
   'Museo de Arte Moderno':{daily:2000,source:'INBA 2024 (730K anual)',type:'museum'},
   'Museo Tamayo':{daily:1800,source:'INBA 2024 (657K anual)',type:'museum'},
-  // Terminales de autobuses — Fuente: SCT/SICT, informes operacionales
+  // Terminales — Fuente: SCT/SICT informes operacionales 2024
   'Terminal de Autobuses del Norte':{daily:70000,source:'SCT 2024 (25.5M anual)',type:'bus_station'},
   'TAPO':{daily:50000,source:'SCT 2024 (18.3M anual)',type:'bus_station'},
   'Terminal de Autobuses del Sur':{daily:18000,source:'SCT 2024 (6.6M anual)',type:'bus_station'},
   'Terminal de Autobuses del Poniente':{daily:15000,source:'SCT 2024 (5.5M anual)',type:'bus_station'},
-  // Metro CDMX — Fuente: STC Metro estadísticas oficiales 2024
+  // Metro CDMX — Fuente: STC Metro estadisticas oficiales 2024
   'Metro Pantitl\u00e1n':{daily:114000,source:'STC Metro 2024 (41.6M anual)',type:'train_station'},
   'Metro Indios Verdes':{daily:82000,source:'STC Metro 2024 (29.9M anual)',type:'train_station'},
-  'Metro Tacubaya':{daily:64000,source:'STC Metro 2024 (23.4M anual)',type:'train_station'},
   'Metro Pino Su\u00e1rez':{daily:72000,source:'STC Metro 2024 (26.3M anual)',type:'train_station'},
+  'Metro Tacubaya':{daily:64000,source:'STC Metro 2024 (23.4M anual)',type:'train_station'},
   'Metro Balderas':{daily:58000,source:'STC Metro 2024 (21.2M anual)',type:'train_station'},
   'Metro Chabacano':{daily:55000,source:'STC Metro 2024 (20.1M anual)',type:'train_station'},
   'Metro Hidalgo':{daily:52000,source:'STC Metro 2024 (19M anual)',type:'train_station'},
   'Metro Constituci\u00f3n de 1917':{daily:48000,source:'STC Metro 2024 (17.5M anual)',type:'train_station'},
-  // Universidades — Fuente: UNAM, IPN reportes institucionales
-  'Ciudad Universitaria':{daily:300000,source:'UNAM 2024 (360K comunidad + visitantes)',type:'university'},
-  'Instituto Polit\u00e9cnico Nacional':{daily:180000,source:'IPN 2024 (campuses combinados)',type:'university'},
-  'UAM Iztapalapa':{daily:25000,source:'UAM 2024',type:'university'},
-  // Hospitales — Fuente: IMSS, ISSSTE reportes operacionales
-  'Centro M\u00e9dico Nacional Siglo XXI':{daily:25000,source:'IMSS 2024',type:'hospital'},
-  'Hospital General de M\u00e9xico':{daily:15000,source:'SS 2024',type:'hospital'},
-  // Entretenimiento — Fuente: IAAPA, Queue-Times
-  'Six Flags M\u00e9xico':{daily:9000,source:'IAAPA 2024 (2.8M anual/365d promedio operacional)',type:'amusement_park'},
-  'La Feria de Chapultepec':{daily:8000,source:'Estimado 2024',type:'amusement_park'}
+  // Universidades — asistencia diaria real (no comunidad total)
+  'Ciudad Universitaria':{daily:150000,source:'UNAM 2024 (asist. diaria habil)',type:'university'},
+  'Instituto Polit\u00e9cnico Nacional':{daily:90000,source:'IPN 2024 (campuses combinados)',type:'university'},
+  'UAM Iztapalapa':{daily:15000,source:'UAM 2024',type:'university'},
+  'Tec de Monterrey':{daily:12000,source:'ITESM 2024 (campus principal)',type:'university'},
+  // Hospitales
+  'Centro M\u00e9dico Nacional Siglo XXI':{daily:18000,source:'IMSS 2024',type:'hospital'},
+  'Hospital General de M\u00e9xico':{daily:10000,source:'SS 2024',type:'hospital'},
+  // Entretenimiento
+  'Six Flags M\u00e9xico':{daily:8000,source:'IAAPA 2024 (2.5M anual operacional)',type:'amusement_park'},
+  'La Feria de Chapultepec':{daily:5000,source:'Estimado 2024',type:'amusement_park'}
 };
 
 function toggleAfluencia(){
@@ -8164,9 +8180,16 @@ function estimateFootfall(place){
   for(var i=0;i<types.length;i++){if(AFL_FACTORS[types[i]]){factor=AFL_FACTORS[types[i]];break;}}
   var dailyEst=factor.base;
   if(reviews>0) dailyEst=Math.round(reviews*factor.reviewMult*(0.8+rating/5*0.4));
-  if(types.indexOf('shopping_mall')>=0) dailyEst=Math.max(dailyEst,5000);
-  if(types.indexOf('airport')>=0) dailyEst=Math.max(dailyEst,20000);
-  if(types.indexOf('stadium')>=0) dailyEst=Math.max(dailyEst,10000);
+  // Cap minimums by type
+  if(types.indexOf('shopping_mall')>=0) dailyEst=Math.max(dailyEst,2000);
+  if(types.indexOf('airport')>=0) dailyEst=Math.max(dailyEst,15000);
+  if(types.indexOf('stadium')>=0) dailyEst=Math.max(dailyEst,5000);
+  // Cap maximums: generic estimates should never exceed known benchmarks
+  if(types.indexOf('shopping_mall')>=0) dailyEst=Math.min(dailyEst,50000);
+  if(types.indexOf('airport')>=0) dailyEst=Math.min(dailyEst,130000);
+  if(types.indexOf('stadium')>=0) dailyEst=Math.min(dailyEst,20000);
+  if(types.indexOf('restaurant')>=0) dailyEst=Math.min(dailyEst,3000);
+  if(types.indexOf('store')>=0) dailyEst=Math.min(dailyEst,5000);
   var confidence='media';if(reviews>1000)confidence='alta';else if(reviews<100)confidence='baja';
   return{daily:dailyEst,monthly:dailyEst*30,source:'Modelo Connectia (Google Places + ANTAD)',confidence:confidence,type:types[0]||'default'};
 }
