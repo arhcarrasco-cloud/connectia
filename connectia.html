@@ -1240,7 +1240,10 @@ function onOverlayComplete(event){
       // Re-enable ALL multi-selection overlays to stay editable (circles resizable, etc)
       multiSelections.forEach(function(s){
         if(s&&s.overlay){
+          try{if(!s.overlay.getMap||!s.overlay.getMap())s.overlay.setMap(map);}catch(e2){}
           try{s.overlay.setOptions({editable:true,zIndex:50});}catch(e){}
+          try{if(s.overlay.setClickable)s.overlay.setClickable(false);}catch(e3){}
+          try{if(s.overlay.setZIndex)s.overlay.setZIndex(50);}catch(e4){}
         }
       });
       try{drawingManager.setDrawingMode(_restoreMode);}catch(e){}
@@ -4063,7 +4066,16 @@ function _setOverlaysClickable(clickable){
   var singleZ=clickable?100:1; // single/geo overlays can go lower
   var _setMS=function(ov){
     if(!ov)return;
-    try{if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:msZ});}catch(e){}
+    // Use individual setters for markers (no setOptions), setOptions for shapes
+    try{
+      if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:msZ});
+      else{
+        if(ov.setClickable)ov.setClickable(clickable);
+        if(ov.setZIndex)ov.setZIndex(msZ);
+      }
+    }catch(e){}
+    // Ensure overlay stays on map
+    try{if(ov.getMap&&!ov.getMap())ov.setMap(map);}catch(e2){}
   };
   var _setOther=function(ov){
     if(!ov)return;
@@ -13387,6 +13399,9 @@ function makePanelDraggable(el){
   if(!el||el._dragInit)return;
   if(_dragExcludeIds[el.id])return;
   if(el.style.pointerEvents==='none')return;
+  // CRITICAL: never touch Google Maps internal elements
+  if(el.closest&&el.closest('#map'))return;
+  if(el.className&&typeof el.className==='string'&&(el.className.indexOf('gm-')>=0||el.className.indexOf('gmnoprint')>=0))return;
   el._dragInit=true;
   // Find a handle: title bar, header-like element, or first child
   var handle=el.querySelector('[id*="title-bar"]')||el.querySelector('.pm-header')||el.querySelector('[style*="border-bottom"]')||el.querySelector('[style*="gradient"]');
@@ -13436,6 +13451,9 @@ function _isPanelNode(node){
   if(_dragExcludeIds[node.id])return false;
   if(node.style.pointerEvents==='none')return false;
   if(node.tagName==='SCRIPT'||node.tagName==='LINK'||node.tagName==='STYLE')return false;
+  // CRITICAL: never touch Google Maps internal elements inside #map
+  if(node.closest&&node.closest('#map'))return false;
+  if(node.className&&typeof node.className==='string'&&(node.className.indexOf('gm-')>=0||node.className.indexOf('gmnoprint')>=0))return false;
   var cs=window.getComputedStyle(node);
   var pos=cs.position;
   if(pos!=='fixed'&&pos!=='absolute')return false;
@@ -13452,6 +13470,8 @@ var _dragObserver=new MutationObserver(function(mutations){
     // New nodes added to DOM
     m.addedNodes.forEach(function(node){
       if(node.nodeType!==1)return;
+      // Skip all mutations inside the map container (Google Maps internals)
+      if(node.closest&&node.closest('#map'))return;
       setTimeout(function(){
         if(_isPanelNode(node))makePanelDraggable(node);
         // Also check children (e.g. panels inside wrappers)
@@ -13508,6 +13528,9 @@ function ensureCloseButton(el){
   if(el._closeInit)return;
   if(_closeExcludeIds[el.id])return;
   if(_panelHasClose(el))return;
+  // CRITICAL: never touch Google Maps internal elements
+  if(el.closest&&el.closest('#map'))return;
+  if(el.className&&typeof el.className==='string'&&(el.className.indexOf('gm-')>=0||el.className.indexOf('gmnoprint')>=0))return;
   // Must be a floating panel (fixed/absolute, reasonable size)
   var cs=window.getComputedStyle(el);
   var pos=cs.position;
@@ -13586,6 +13609,7 @@ var _closeObserver=new MutationObserver(function(mutations){
   mutations.forEach(function(m){
     m.addedNodes.forEach(function(node){
       if(node.nodeType!==1)return;
+      if(node.closest&&node.closest('#map'))return;
       setTimeout(function(){
         ensureCloseButton(node);
         if(node.querySelectorAll){
