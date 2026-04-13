@@ -1600,32 +1600,35 @@ function _buildPDFCharts(sel,d){
   // NSE Bar Chart
   var nseArr=d.nse||[];
   if(nseArr.length>0){
-    var nseLabels=nseArr.map(function(n){return n.n;});
+    var nseLabels=nseArr.map(function(n){return n.n+' ('+Math.round(n.p)+'%)';});
     var nseValues=nseArr.map(function(n){return n.p||0;});
-    var nseBg=['#6D28D9','#8B5CF6','#A78BFA','#DDD6FE','#F9A8D4','#F87171','#FCA5A5'];
-    charts.nse=_renderChartImage({type:'bar',data:{labels:nseLabels,datasets:[{data:nseValues,backgroundColor:nseBg.slice(0,nseLabels.length),borderWidth:0,borderRadius:3}]},options:{plugins:{legend:{display:false},title:{display:true,text:'Distribución NSE',font:{size:11,weight:'bold'},color:'#1d1d1f'}},scales:{y:{beginAtZero:true,ticks:{callback:function(v){return v+'%'},font:{size:9}},grid:{color:'#f0f0f0'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}},320,160);
+    var nseBg=['#15803d','#22c55e','#84cc16','#eab308','#f97316','#dc2626'];
+    charts.nse=_renderChartImage({type:'bar',data:{labels:nseLabels,datasets:[{data:nseValues,backgroundColor:nseBg.slice(0,nseLabels.length),borderWidth:0,borderRadius:3}]},options:{plugins:{legend:{display:false},title:{display:true,text:'Distribucion NSE (AMAI)',font:{size:10,weight:'bold'},color:'#1d1d1f'},datalabels:{display:false}},scales:{y:{beginAtZero:true,max:60,ticks:{callback:function(v){return v+'%'},font:{size:9}},grid:{color:'#f0f0f0'}},x:{ticks:{font:{size:8}},grid:{display:false}}}}},320,160);
   }
 
   // Gender Pie
-  charts.gender=_renderChartImage({type:'pie',data:{labels:['Hombres '+_g.m+'%','Mujeres '+_g.f+'%'],datasets:[{data:[_g.m,_g.f],backgroundColor:['#3b82f6','#ec4899'],borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}},title:{display:true,text:'Género',font:{size:11,weight:'bold'},color:'#1d1d1f'}}}},200,160);
+  charts.gender=_renderChartImage({type:'doughnut',data:{labels:['Hombres '+_g.m+'%','Mujeres '+_g.f+'%'],datasets:[{data:[_g.m,_g.f],backgroundColor:['#3b82f6','#ec4899'],borderWidth:2,borderColor:'#fff'}]},options:{cutout:'45%',plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}},title:{display:true,text:'Genero (Censo 2020)',font:{size:10,weight:'bold'},color:'#1d1d1f'}},aspectRatio:1.3}},200,150);
 
   // Age Distribution Bar
   if(ageRanges.length>0){
-    charts.age=_renderChartImage({type:'bar',data:{labels:ageRanges.map(function(a){return a.l;}),datasets:[{data:ageRanges.map(function(a){return a.v||0;}),backgroundColor:'#8B5CF6',borderWidth:0,borderRadius:2}]},options:{indexAxis:'y',plugins:{legend:{display:false},title:{display:true,text:'Distribución por Edad',font:{size:11,weight:'bold'},color:'#1d1d1f'}},scales:{x:{beginAtZero:true,ticks:{callback:function(v){return v+'%'},font:{size:8}},grid:{color:'#f0f0f0'}},y:{ticks:{font:{size:8}},grid:{display:false}}}}},300,160);
+    charts.age=_renderChartImage({type:'bar',data:{labels:ageRanges.map(function(a){return a.l;}),datasets:[{data:ageRanges.map(function(a){return a.v||0;}),backgroundColor:'#8B5CF6',borderWidth:0,borderRadius:2}]},options:{indexAxis:'y',plugins:{legend:{display:false},title:{display:true,text:'Distribucion por Edad',font:{size:11,weight:'bold'},color:'#1d1d1f'}},scales:{x:{beginAtZero:true,ticks:{callback:function(v){return v+'%'},font:{size:8}},grid:{color:'#f0f0f0'}},y:{ticks:{font:{size:8}},grid:{display:false}}}}},300,160);
   }
 
   // Spending Pie
   if(d.en&&d.en.gt){
     var gt=d.en.gt;var total=gt.total||1;
-    var gItems=[['Alimentos',gt.alim,'#16a34a'],['Transporte',gt.trans,'#2563eb'],['Educación',gt.educ,'#f59e0b'],['Vivienda',gt.viv,'#8b5cf6'],['Salud',gt.salud,'#ef4444'],['Comunicación',gt.comunic,'#06b6d4'],['Vestido',gt.vest,'#ec4899'],['Cuidado',gt.cuida,'#f97316'],['Limpieza',gt.limp,'#84cc16']].filter(function(g){return g[1]>0;});
+    var gItems=[['Alimentos',gt.alim,'#16a34a'],['Transporte',gt.trans,'#2563eb'],['Educacion',gt.educ,'#f59e0b'],['Vivienda',gt.viv,'#8b5cf6'],['Salud',gt.salud,'#ef4444'],['Comunicacion',gt.comunic,'#06b6d4'],['Vestido',gt.vest,'#ec4899'],['Cuidado',gt.cuida,'#f97316'],['Limpieza',gt.limp,'#84cc16']].filter(function(g){return g[1]>0;});
     charts.gasto=_renderChartImage({type:'doughnut',data:{labels:gItems.map(function(g){return g[0]+' '+Math.round(g[1]/total*100)+'%';}),datasets:[{data:gItems.map(function(g){return g[1];}),backgroundColor:gItems.map(function(g){return g[2];}),borderWidth:1,borderColor:'#fff'}]},options:{cutout:'40%',plugins:{legend:{position:'right',labels:{font:{size:8},padding:4,boxWidth:8}},title:{display:true,text:'Desglose de Gasto',font:{size:11,weight:'bold'},color:'#1d1d1f'}}}},320,170);
   }
 
-  // Modal Split (Vehicle vs Pedestrian)
-  var vehM=d.vehMonthly||0,pedM=d.pedMonthly||0;
-  if(vehM+pedM>0){
-    var vP=Math.round(vehM*100/(vehM+pedM)),pP=100-vP;
-    charts.modal=_renderChartImage({type:'doughnut',data:{labels:['Vehicular '+vP+'%','Peatonal '+pP+'%'],datasets:[{data:[vP,pP],backgroundColor:['#2563eb','#f59e0b'],borderWidth:2,borderColor:'#fff'}]},options:{cutout:'50%',plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}},title:{display:true,text:'Reparto Modal',font:{size:11,weight:'bold'},color:'#1d1d1f'}}}},200,160);
+  // Modal Split - EOD 2017 calibrated (4 modes)
+  var _fp=d._flowParams||calcFlowParams(d.dens||3000,d.areaSqKm||1);
+  var _vPct=Math.round((_fp.vehShare||0.24)*100);
+  var _pPct=Math.round((_fp.pedShare||0.33)*100);
+  var _tPct=Math.max(0,100-_vPct-_pPct-3); // Transporte público = remainder minus bike
+  var _bPct=3; // Bicicleta ~3% EOD 2017
+  if(_vPct+_pPct+_tPct+_bPct>0){
+    charts.modal=_renderChartImage({type:'doughnut',data:{labels:['Vehicular '+_vPct+'%','Peatonal '+_pPct+'%','Trans. Publico '+_tPct+'%','Bicicleta '+_bPct+'%'],datasets:[{data:[_vPct,_pPct,_tPct,_bPct],backgroundColor:['#2563eb','#f59e0b','#8b5cf6','#22c55e'],borderWidth:2,borderColor:'#fff'}]},options:{cutout:'50%',plugins:{legend:{position:'bottom',labels:{font:{size:8},padding:4,boxWidth:8}},title:{display:true,text:'Reparto Modal (EOD 2017)',font:{size:10,weight:'bold'},color:'#1d1d1f'}}}},220,170);
   }
 
   return charts;
@@ -1704,7 +1707,7 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   // Section header
   doc.setFillColor(109,40,217);doc.rect(col1X,y1,col1W,5,'F');
   doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont(undefined,'bold');
-  doc.text('Análisis Comercial',col1X+col1W/2,y1+3.5,{align:'center'});
+  doc.text('Analisis Comercial',col1X+col1W/2,y1+3.5,{align:'center'});
   y1+=7;
 
   // Income/Spending boxes
@@ -1771,7 +1774,7 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   var statsGrid=[
     {v:roadKm.toFixed(1),l:'km vías',c:[37,99,235]},
     {v:intersections,l:'cruces',c:[124,58,237]},
-    {v:signals,l:'semáforos',c:[220,38,38]},
+    {v:signals,l:'semaforos',c:[220,38,38]},
     {v:busStops,l:'paradas',c:[5,150,105]},
     {v:crossings,l:'peatonales',c:[217,119,6]},
     {v:bikeKm.toFixed(1),l:'km ciclovía',c:[8,145,178]}
@@ -1790,7 +1793,7 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   // IMPACTOS TOTALES box
   doc.setFillColor(109,40,217);doc.roundedRect(col2X,y2,col2W,16,1,1,'F');
   doc.setTextColor(255);doc.setFontSize(5.5);doc.setFont(undefined,'bold');
-  doc.text('⚡ IMPACTOS TOTALES (MENSUAL)',col2X+col2W/2,y2+4,{align:'center'});
+  doc.text('IMPACTOS TOTALES (MENSUAL)',col2X+col2W/2,y2+4,{align:'center'});
   doc.setFontSize(14);
   doc.text(fmt(d.impTotal||0),col2X+col2W/2,y2+10.5,{align:'center'});
   doc.setFontSize(5);doc.setFont(undefined,'normal');
@@ -1799,7 +1802,7 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
 
   // Composición Vial
   doc.setFontSize(7);doc.setTextColor(30);doc.setFont(undefined,'bold');
-  doc.text('Composición Vial',col2X+1,y2+3);y2+=5;
+  doc.text('Composicion Vial',col2X+1,y2+3);y2+=5;
 
   var roadTypes=[
     {n:'Primaria/Autopista',pct:5,c:[30,30,30]},
@@ -1836,7 +1839,7 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   doc.setFillColor(245,240,255);doc.roundedRect(col3X,y3,col3W,14,1,1,'F');
   doc.setDrawColor(109,40,217);doc.roundedRect(col3X,y3,col3W,14,1,1,'S');
   doc.setTextColor(109,40,217);doc.setFontSize(5.5);doc.setFont(undefined,'bold');
-  doc.text('⚡ IMPACTOS TOTALES (MENSUAL)',col3X+col3W/2,y3+4,{align:'center'});
+  doc.text('IMPACTOS TOTALES (MENSUAL)',col3X+col3W/2,y3+4,{align:'center'});
   doc.setFontSize(16);doc.setTextColor(30);
   doc.text(fmt(d.impTotal||0),col3X+col3W/2,y3+11,{align:'center'});
   y3+=16;
@@ -1853,14 +1856,14 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   var dhW=col3W/2-2;
   doc.setFillColor(255);doc.rect(col3X+1,y3+6,dhW,5.5,'F');doc.rect(col3X+dhW+3,y3+6,dhW,5.5,'F');
   doc.setTextColor(100);doc.setFontSize(4.5);
-  doc.text('Imp. Vehiculares',col3X+2,y3+8.5);doc.text('Veh. Únicos',col3X+dhW+4,y3+8.5);
+  doc.text('Imp. Vehiculares',col3X+2,y3+8.5);doc.text('Veh. Unicos',col3X+dhW+4,y3+8.5);
   doc.setTextColor(30);doc.setFontSize(7);doc.setFont(undefined,'bold');
   doc.text(fmt(d.impVeh||0),col3X+dhW-1,y3+8.5,{align:'right'});
   doc.text(fmt(d.uniVeh||0),col3X+col3W-2,y3+8.5,{align:'right'});
 
   doc.setFillColor(255);doc.rect(col3X+1,y3+13,dhW,5.5,'F');doc.rect(col3X+dhW+3,y3+13,dhW,5.5,'F');
   doc.setTextColor(100);doc.setFontSize(4.5);doc.setFont(undefined,'normal');
-  doc.text('Imp. Personas',col3X+2,y3+15.5);doc.text('Personas Únicas',col3X+dhW+4,y3+15.5);
+  doc.text('Imp. Personas',col3X+2,y3+15.5);doc.text('Personas Unicas',col3X+dhW+4,y3+15.5);
   doc.setTextColor(30);doc.setFontSize(7);doc.setFont(undefined,'bold');
   doc.text(fmt(d.impPer||0),col3X+dhW-1,y3+15.5,{align:'right'});
   doc.text(fmt(d.uniPer||0),col3X+col3W-2,y3+15.5,{align:'right'});
@@ -1881,10 +1884,10 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   // Frecuencia y Exposición
   doc.setFillColor(248,248,252);doc.roundedRect(col3X,y3,col3W,10,1,1,'F');
   doc.setTextColor(30);doc.setFontSize(5.5);doc.setFont(undefined,'bold');
-  doc.text('Frecuencia y Exposición',col3X+2,y3+3.5);
+  doc.text('Frecuencia y Exposicion',col3X+2,y3+3.5);
   var tw=(col3W-4)/3;
   doc.setFontSize(4);doc.setTextColor(100);doc.setFont(undefined,'normal');
-  doc.text('Frecuencia/OTS',col3X+2,y3+6);doc.text('Exposición',col3X+tw+3,y3+6);doc.text('Motor Rate',col3X+tw*2+4,y3+6);
+  doc.text('Frecuencia/OTS',col3X+2,y3+6);doc.text('Exposicion',col3X+tw+3,y3+6);doc.text('Motor Rate',col3X+tw*2+4,y3+6);
   doc.setFontSize(7);doc.setTextColor(30);doc.setFont(undefined,'bold');
   doc.text(String(d.freqOTS||'--'),col3X+2,y3+9);
   doc.text((d.expSec||'--')+'s',col3X+tw+3,y3+9);
@@ -1903,13 +1906,13 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   doc.setFontSize(5.5);doc.setTextColor(30);doc.setFont(undefined,'bold');
   doc.text('Reparto Modal',col3X+2,y3+3);y3+=5;
 
-  var vehM=d.vehMonthly||0,pedM=d.pedMonthly||0;
-  var totalM=vehM+pedM;var vPct=totalM>0?Math.round(vehM*100/totalM):0;
-  var tPub=totalM>0?Math.round(totalM*0.46*100/totalM):46;
-  var pPct=totalM>0?Math.round(pedM*100/totalM):0;
+  var _rfp=d._flowParams||calcFlowParams(d.dens||3000,d.areaSqKm||1);
+  var vPct=Math.round((_rfp.vehShare||0.24)*100);
+  var pPct=Math.round((_rfp.pedShare||0.33)*100);
+  var tPub=Math.max(0,100-vPct-pPct-3);
   var bPct=3;
 
-  var modals=[{n:'Vehículos',p:vPct,c:[37,99,235]},{n:'Trans. Público',p:tPub,c:[139,58,159]},{n:'Peatones',p:pPct,c:[234,179,8]},{n:'Bicicleta',p:bPct,c:[34,197,94]}];
+  var modals=[{n:'Vehiculos',p:vPct,c:[37,99,235]},{n:'Trans. Publico',p:tPub,c:[139,58,159]},{n:'Peatones',p:pPct,c:[234,179,8]},{n:'Bicicleta',p:bPct,c:[34,197,94]}];
   modals.forEach(function(m){
     doc.setFontSize(5);doc.setTextColor(60);doc.setFont(undefined,'normal');
     doc.text(m.n,col3X+2,y3+2.5);
@@ -1927,13 +1930,13 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   // ===== COLUMN 4: DEMOGRÁFICOS =====
   doc.setFillColor(109,40,217);doc.rect(col4X,contentY,col4W,5,'F');
   doc.setTextColor(255);doc.setFontSize(8);doc.setFont(undefined,'bold');
-  doc.text('Demográficos',col4X+col4W/2,contentY+3.5,{align:'center'});
+  doc.text('Demograficos',col4X+col4W/2,contentY+3.5,{align:'center'});
 
   var y4=contentY+7;
   // Zone type badge
   doc.setFillColor(245,240,255);doc.roundedRect(col4X,y4,col4W,12,1,1,'F');
   doc.setTextColor(109,40,217);doc.setFontSize(7);doc.setFont(undefined,'bold');
-  doc.text('🏠 '+zoneType,col4X+2,y4+4.5);
+  doc.text(zoneType,col4X+2,y4+4.5);
   doc.setFontSize(5);doc.setTextColor(80);doc.setFont(undefined,'normal');
   doc.text(state+(municipio?', '+municipio:'')+' · Densidad: '+fmt(dens)+'/km²',col4X+2,y4+8);
   doc.text('Radio: '+radiusText,col4X+2,y4+11);
@@ -1951,11 +1954,19 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   doc.text('NSE Dominante: '+domNSE+' (AMAI)',col4X+2,y4+13);
   y4+=16;
 
-  // NSE Chart
+  // NSE Chart + percentages
   if(charts.nse){
     var nseH=Math.min(28,colH*0.18);
     try{doc.addImage(charts.nse,'PNG',col4X,y4,col4W,nseH);}catch(e){}
-    y4+=nseH+2;
+    y4+=nseH+1;
+  }
+  // NSE percentage text
+  var nseArr2=d.nse||[];
+  if(nseArr2.length>0){
+    var nseText=nseArr2.map(function(n){return n.n+': '+Math.round(n.p)+'%';}).join('  ');
+    doc.setFontSize(5);doc.setTextColor(80);doc.setFont(undefined,'normal');
+    doc.text(nseText,col4X+1,y4+2);
+    y4+=5;
   }
 
   // Gender chart
@@ -1975,8 +1986,21 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   // ===== FOOTER (full width) =====
   doc.setDrawColor(200);doc.line(margin,footerY,pageWidth-margin,footerY);
   doc.setFontSize(4.5);doc.setTextColor(150);doc.setFont(undefined,'normal');
-  doc.text('Fuentes: INEGI Censo 2020, ENIGH 2024, OSM, Google Places, Geopath VAI · Proyección 2026',margin+2,footerY+3);
+  doc.text('Fuentes: INEGI Censo 2020, ENIGH 2024, EOD 2017, STC Metro, OSM, Google Places, Geopath',margin+2,footerY+3);
   doc.text('Generado: '+new Date().toISOString().slice(0,19).replace('T',' '),pageWidth-margin-2,footerY+3,{align:'right'});
+
+  // "Ver en la web" button
+  var btnW=38,btnH=5;
+  var btnX=(pageWidth-btnW)/2;
+  var btnY=footerY+5;
+  doc.setFillColor(109,40,217);doc.roundedRect(btnX,btnY,btnW,btnH,1.5,1.5,'F');
+  doc.setTextColor(255);doc.setFontSize(6);doc.setFont(undefined,'bold');
+  doc.text('VER EN LA WEB',btnX+btnW/2,btnY+3.5,{align:'center'});
+  // Add clickable link
+  var webUrl='https://connectia.mx/geonexa/?lat='+lat.toFixed(5)+'&lng='+lng.toFixed(5);
+  doc.link(btnX,btnY,btnW,btnH,{url:webUrl});
+  doc.setFontSize(3.5);doc.setTextColor(109,40,217);doc.setFont(undefined,'normal');
+  doc.text('connectia.mx/geonexa',btnX+btnW/2,btnY+btnH+2.5,{align:'center'});
 }
 
 // Helper: format number as K/M
@@ -2769,7 +2793,7 @@ function analyzeMultiSelection(idx){
   var _msFreqOTS=(_msImpVeh/Math.max(_msUniVeh,1)).toFixed(2);
   var _msExpSec=Math.round(_calcExposureSec(effectiveDens)*100)/100;
   var _msUniverso=22057420; // ZMVM fixed population universe (Dat's Why)
-  sel.data={lat:lat,lng:lng,estPop:estPop,estHog:estHog,dens:Math.round(effectiveDens),areaSqKm:areaSqKm,radiusM:radiusM,
+  sel.data={lat:lat,lng:lng,estPop:estPop,estHog:estHog,dens:Math.round(effectiveDens),areaSqKm:areaSqKm,radiusM:radiusM,_flowParams:fp,
     state:en.n,stateCode:stateCode,ing:localIng,gas:localGas,ingHog:localIngHog,gasHog:localGasHog,nse:nseData,dominant:dominantNSE.n,ce:ce,en:en,
     vehMonthly:vehMonthlyCalc,pedMonthly:pedMonthlyCalc,vehDaily:vehDaily,pedDaily:pedDaily,totalTrips:totalTrips,
     impVeh:_msImpVeh,uniVeh:_msUniVeh,impPer:_msImpPer,uniPer:_msUniPer,impTotal:_msImpTotal,freqOTS:_msFreqOTS,expSec:_msExpSec,universo:_msUniverso};
@@ -7677,7 +7701,7 @@ function generateQuickview(){
 
   // Top 5 Gastos
   if(gt.total>0){
-    var gastos=[{n:'Alimentación',v:gt.alim},{n:'Vivienda',v:gt.viv},{n:'Transporte',v:gt.trans},{n:'Educación',v:gt.educ},{n:'Salud',v:gt.salud},{n:'Comunicación',v:gt.comunic},{n:'Cuidado',v:gt.cuida},{n:'Vestido',v:gt.vest},{n:'Limpieza',v:gt.limp}];
+    var gastos=[{n:'Alimentación',v:gt.alim},{n:'Vivienda',v:gt.viv},{n:'Transporte',v:gt.trans},{n:'Educacion',v:gt.educ},{n:'Salud',v:gt.salud},{n:'Comunicacion',v:gt.comunic},{n:'Cuidado',v:gt.cuida},{n:'Vestido',v:gt.vest},{n:'Limpieza',v:gt.limp}];
     gastos.sort(function(a,b){return(b.v||0)-(a.v||0);});
     html+='<div style="background:#fef3c7;padding:6px;border-radius:4px">';
     html+='<div style="font-weight:600;color:#92400e;margin-bottom:3px;font-size:10px">Top 5 Categorías</div>';
@@ -7869,7 +7893,7 @@ function generateDeepView(){
   h+='<div>Gasto mensual: <b style="color:#dc2626">'+fm(gt.total||0)+'</b></div>';
   h+='</div>';
   h+='<div style="font-size:9px;margin-top:4px;color:#475569">';
-  var gastos=[{n:'Alimentación',v:gt.alim},{n:'Transporte',v:gt.trans},{n:'Vivienda',v:gt.viv},{n:'Educación',v:gt.educ},{n:'Salud',v:gt.salud},{n:'Comunicación',v:gt.comunic},{n:'Cuidado Personal',v:gt.cuida},{n:'Vestido',v:gt.vest},{n:'Limpieza',v:gt.limp}];
+  var gastos=[{n:'Alimentación',v:gt.alim},{n:'Transporte',v:gt.trans},{n:'Vivienda',v:gt.viv},{n:'Educacion',v:gt.educ},{n:'Salud',v:gt.salud},{n:'Comunicacion',v:gt.comunic},{n:'Cuidado Personal',v:gt.cuida},{n:'Vestido',v:gt.vest},{n:'Limpieza',v:gt.limp}];
   gastos.sort(function(a,b){return(b.v||0)-(a.v||0);});
   gastos.forEach(function(g){h+=g.n+': <b>'+fm(g.v||0)+'</b> · ';});
   h+='</div></div>';
@@ -8354,7 +8378,7 @@ function convertToDashboard(barHtml,filter){
   // Expense Breakdown
   html+='<div id="section-exp" style="margin-bottom:8px">';
   html+='<div style="font-size:9px;font-weight:600;color:#475569;margin-bottom:4px">Gasto por Categoría</div>';
-  var gastos=[{l:'Alimentos',v:d.en.gt.alim,c:'#16a34a'},{l:'Transporte',v:d.en.gt.trans,c:'#2563eb'},{l:'Educación',v:d.en.gt.educ,c:'#7c3aed'},{l:'Vivienda',v:d.en.gt.viv,c:'#ca8a04'},{l:'Salud',v:d.en.gt.salud,c:'#ef4444'},{l:'Comunicaciones',v:d.en.gt.comunic,c:'#8b5cf6'},{l:'Cuidado',v:d.en.gt.cuida,c:'#ea580c'},{l:'Vestido',v:d.en.gt.vest,c:'#f59e0b'},{l:'Limpieza',v:d.en.gt.limp,c:'#06b6d4'}];
+  var gastos=[{l:'Alimentos',v:d.en.gt.alim,c:'#16a34a'},{l:'Transporte',v:d.en.gt.trans,c:'#2563eb'},{l:'Educacion',v:d.en.gt.educ,c:'#7c3aed'},{l:'Vivienda',v:d.en.gt.viv,c:'#ca8a04'},{l:'Salud',v:d.en.gt.salud,c:'#ef4444'},{l:'Comunicaciones',v:d.en.gt.comunic,c:'#8b5cf6'},{l:'Cuidado',v:d.en.gt.cuida,c:'#ea580c'},{l:'Vestido',v:d.en.gt.vest,c:'#f59e0b'},{l:'Limpieza',v:d.en.gt.limp,c:'#06b6d4'}];
   gastos.sort(function(a,b){return b.v-a.v;});
   var maxG=gastos[0].v;
   gastos.forEach(function(g){
@@ -12406,7 +12430,7 @@ function renderMobilityResults(osmData){
   var metrics=[
     {v:osmData.roadKm.toFixed(1),l:'km vías',c:'#2563eb'},
     {v:osmData.intersections,l:'cruces',c:'#7c3aed'},
-    {v:osmData.signals,l:'semáforos',c:'#dc2626'},
+    {v:osmData.signals,l:'semaforos',c:'#dc2626'},
     {v:osmData.busStops,l:'paradas',c:'#059669'},
     {v:osmData.crossings,l:'peatonales',c:'#d97706'},
     {v:osmData.bikeKm.toFixed(1),l:'km ciclovía',c:'#0891b2'}
@@ -13926,7 +13950,7 @@ setInterval(function(){
       if(gt.total>0){
         h+='<div style="background:#f5f5f7;padding:6px 8px;border-radius:6px;border-left:3px solid #636366;margin-bottom:6px">';
         h+='<div style="font-size:9px;font-weight:600;color:#1d1d1f;margin-bottom:4px">Desglose de Gastos</div>';
-        var gastos=[{n:'Alimentación',v:gt.alim,i:'🍽️'},{n:'Transporte',v:gt.trans,i:'🚌'},{n:'Vivienda',v:gt.viv,i:'🏠'},{n:'Educación',v:gt.educ,i:'📚'},{n:'Salud',v:gt.salud,i:'🏥'},{n:'Comunicación',v:gt.comunic,i:'📱'},{n:'Cuidado Personal',v:gt.cuida,i:'💇'},{n:'Vestido',v:gt.vest,i:'👕'},{n:'Limpieza',v:gt.limp,i:'🧹'}];
+        var gastos=[{n:'Alimentación',v:gt.alim,i:'🍽️'},{n:'Transporte',v:gt.trans,i:'🚌'},{n:'Vivienda',v:gt.viv,i:'🏠'},{n:'Educacion',v:gt.educ,i:'📚'},{n:'Salud',v:gt.salud,i:'🏥'},{n:'Comunicacion',v:gt.comunic,i:'📱'},{n:'Cuidado Personal',v:gt.cuida,i:'💇'},{n:'Vestido',v:gt.vest,i:'👕'},{n:'Limpieza',v:gt.limp,i:'🧹'}];
         gastos.sort(function(a,b){return(b.v||0)-(a.v||0);});
         gastos.forEach(function(g){if(!g.v)return;var pct=Math.round((g.v/gt.total)*100);
           h+='<div style="display:flex;align-items:center;gap:3px;margin:2px 0;font-size:9px"><span>'+g.i+'</span><div style="width:70px;color:#424245">'+g.n+'</div><div style="flex:1;background:#e8e8ed;border-radius:3px;height:10px;overflow:hidden"><div style="height:100%;background:#636366;border-radius:3px;width:'+pct+'%"></div></div><div style="width:48px;text-align:right;color:#86868b;font-size:8px">'+fm(g.v)+'</div><div style="width:22px;text-align:right;color:#aeaeb2;font-size:8px">'+pct+'%</div></div>';
@@ -14502,7 +14526,7 @@ var pinEmojiCategories=[
   {name:'Símbolos',icon:'💠',emojis:['📍','📌','🔴','🟢','🔵','⭐','💎','🔮','🏁','🚩','🎌','🏴','🏳️','🔑','🗝️','🔒','🔓','🛡️','⚔️','🔱','⚜️','♾️','💠','🔘','🏷️','📎','📐','📏','✏️','✒️','🖊️','📝','📋','📁','💼','🗂️','🗄️','🗑️','🖌️','🖍️','📌','📍','🧷','🧵','🧶','🔗','⛓️','📎','🖇️','📐','📏','🧮','📌','📍','🗂️','🗃️','🗳️','🗄️','📫','📪','📬','📭','📮','✉️','📩','📤','📥','📦','🏷️','🏷️','🧾','📋']},
   {name:'OOH/Publicidad',icon:'📺',emojis:['📺','📻','📡','🎙️','🎚️','🎛️','📢','📣','📯','🔊','🔉','🔈','🎵','🎶','🎼','🎤','🎧','📻','📺','📡','🖼️','🎨','🖌️','🖍️','✏️','✒️','🖊️','🖋️','📝','💼','📁','📂','📃','📄','📑','🧾','📊','📈','📉','📇','🗃️','🗳️','🗂️','🗄️','📋','📌','📍','🏷️','⏱️','⏲️','🧿','⚙️','🔧','🔨','⛏️','🔩','⚒️','🛠️','🔗','⛓️','🧲','🔐','🔑','🗝️','🚪','🛎️','🔔','🔕','📢','📣','📯','📯','🔔','🔕','📢','📣','🔈','🔉','🔊','📻','📺','📡','🎙️','🎚️','🎛️','🎬','🎤','🎧','📻','📺']},
   {name:'Salud',icon:'🏥',emojis:['🏥','⚕️','💊','💉','🩸','🧬','🔬','🩺','🧫','🧪','🌡️','🧴','🧼','🧹','🧺','🧻','🚽','🚰','🚿','🛁','🛀','🧖','💇','💆','🧘','🏃','🤸','🏋️','🤾','🚴','🏊','🧗','🤼','🥊','🥋','🎯','⛹️','🏌️','🏇','🎽','🎿','⛷️','🏂','🪂','🏃','🚶','🧎','🧑‍🦽','🧑‍🦼','🛴','🚲','🛹','🛼','🛺','🏎️','🏍️','🛵','🦯','🦽','🦼','🛴','🚲','🛴','🚜','🛶','⛵','🚣','🚤','🛳️','⛴️','🛥️','🛰️','🚁','🚟','🚠','🚡','🚂','🚆','🚇','🚈','🚉','🚊','🚝','🚞','🚋','🚞','🚌','🚍','🚎','🚐','🚑','🚒','🚓','🚔','🚕','🚖','🚗','🚘','🚙','🚚','🚛','🚜','🚲','🛴','🛵','🛺','🏎️','🏍️','🛴','🚲','🛹','🛼','🛺']},
-  {name:'Educación',icon:'🎓',emojis:['🎓','📚','📖','📝','📄','📃','📑','🧾','📊','📈','📉','📇','🗃️','🗳️','🗂️','🗄️','📋','📌','📍','🏷️','✏️','✒️','🖊️','🖋️','📝','💼','📁','📂','📃','📄','📑','🧾','📚','📖','📕','📗','📘','📙','📓','📔','📒','📑','🧷','🧷','🔖','📰','🗞️','📑','📊','📈','📉','📇','🗃️','🗳️','🗂️','🗄️','📋','📌','📍','🏷️','⏱️','⏲️','🧿','⚙️','🔧','🔨','⛏️','🔩','⚒️','🛠️','🔗','⛓️','🧲','🔐','🔑','🗝️','🚪','🛎️','🔔','🔕','📢','📣','📯','📯','🔔','🔕','📢','📣','🔈','🔉','🔊','📻','📺','📡','🎙️','🎚️','🎛️','🎬','🎤','🎧','📻','📺','🎓','📚','📖','📝','✏️','📐','📏','🧮']}
+  {name:'Educacion',icon:'🎓',emojis:['🎓','📚','📖','📝','📄','📃','📑','🧾','📊','📈','📉','📇','🗃️','🗳️','🗂️','🗄️','📋','📌','📍','🏷️','✏️','✒️','🖊️','🖋️','📝','💼','📁','📂','📃','📄','📑','🧾','📚','📖','📕','📗','📘','📙','📓','📔','📒','📑','🧷','🧷','🔖','📰','🗞️','📑','📊','📈','📉','📇','🗃️','🗳️','🗂️','🗄️','📋','📌','📍','🏷️','⏱️','⏲️','🧿','⚙️','🔧','🔨','⛏️','🔩','⚒️','🛠️','🔗','⛓️','🧲','🔐','🔑','🗝️','🚪','🛎️','🔔','🔕','📢','📣','📯','📯','🔔','🔕','📢','📣','🔈','🔉','🔊','📻','📺','📡','🎙️','🎚️','🎛️','🎬','🎤','🎧','📻','📺','🎓','📚','📖','📝','✏️','📐','📏','🧮']}
 ];
 // OOH icon categories for pin customization
 var pinOOHTypes=[
