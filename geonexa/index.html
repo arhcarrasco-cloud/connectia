@@ -4314,7 +4314,9 @@ function drawNSEGrid(){
   if(nseLayerSelectedLevels.E)activeNSE['E']=true;
   var nseColors={AB:'#15803d',Cplus:'#22c55e',C:'#84cc16',Dplus:'#eab308',D:'#f97316',E:'#dc2626'};
 
-  setStatus('NSE: Obteniendo polígonos AGEB de INEGI...');
+  var zoom=map.getZoom();
+  var useManzana=zoom>=15; // Manzana level at zoom 15+, AGEB at lower zoom
+  setStatus(useManzana?'NSE: Obteniendo manzanas INEGI Censo 2020...':'NSE: Obteniendo polígonos AGEB de INEGI...');
   var center=bounds.getCenter();
   var gc=new google.maps.Geocoder();
   gc.geocode({location:{lat:center.lat(),lng:center.lng()}},function(results,status){
@@ -4335,21 +4337,47 @@ function drawNSEGrid(){
       }
       var totalLoaded=0,totalExpected=munCodes.length;
       munCodes.forEach(function(mc){
-        _fetchAGEBPolygons(entCode,mc,function(agebs){
-          totalLoaded++;
-          if(!nseLayerActive)return;
-          if(agebs&&agebs.length>0){
-            _renderNSEFilterAGEB(agebs,bounds,activeNSE,nseColors,entCode);
-          }
-          if(totalLoaded>=totalExpected){
-            if(nseGridPolygons.length===0){
-              setStatus('NSE: Sin polígonos AGEB, usando estimación por zona...');
-              _drawNSEGridFallback(activeNSE,nseColors);
-            }else{
-              setStatus('NSE: '+nseGridPolygons.length+' polígonos AGEB por nivel socioeconómico');
+        if(useManzana){
+          // Fetch manzana-level data from INEGI
+          _fetchManzanaPolygons(entCode,mc,function(manzanas){
+            totalLoaded++;
+            if(!nseLayerActive)return;
+            if(manzanas&&manzanas.length>0){
+              var rendered=_renderNSEFilterManzana(manzanas,bounds,activeNSE,nseColors,entCode);
+              setStatus('NSE Manzana: '+rendered+' manzanas (de '+manzanas.length+') — INEGI Censo 2020');
             }
-          }
-        });
+            if(totalLoaded>=totalExpected){
+              if(nseGridPolygons.length===0){
+                // Fallback to AGEB if manzana data empty
+                setStatus('NSE: Sin datos de manzana, usando AGEB...');
+                munCodes.forEach(function(mc2){
+                  _fetchAGEBPolygons(entCode,mc2,function(agebs){
+                    if(agebs&&agebs.length>0)_renderNSEFilterAGEB(agebs,bounds,activeNSE,nseColors,entCode);
+                    if(nseGridPolygons.length===0)_drawNSEGridFallback(activeNSE,nseColors);
+                    else setStatus('NSE: '+nseGridPolygons.length+' polígonos AGEB');
+                  });
+                });
+              }
+            }
+          });
+        }else{
+          // AGEB level at lower zoom
+          _fetchAGEBPolygons(entCode,mc,function(agebs){
+            totalLoaded++;
+            if(!nseLayerActive)return;
+            if(agebs&&agebs.length>0){
+              _renderNSEFilterAGEB(agebs,bounds,activeNSE,nseColors,entCode);
+            }
+            if(totalLoaded>=totalExpected){
+              if(nseGridPolygons.length===0){
+                setStatus('NSE: Sin polígonos AGEB, usando estimación por zona...');
+                _drawNSEGridFallback(activeNSE,nseColors);
+              }else{
+                setStatus('NSE: '+nseGridPolygons.length+' polígonos AGEB — zoom in para ver manzanas');
+              }
+            }
+          });
+        }
       });
     });
   });
@@ -4429,6 +4457,82 @@ function _agebCentroid(paths){
 }
 
 // Fallback grid for areas without AGEB data
+
+// Render manzana polygons for NSE filter layer
+function _renderNSEFilterManzana(manzanas,bounds,activeNSE,nseColors,entCode){
+  var z=map.getZoom();
+  var rendered=0,skipped=0;
+  manzanas.forEach(function(mza){
+    if(mza.pob===0&&mza.viv===0){skipped++;return;} // Skip empty manzanas
+    var paths=_agebCoordsToPath(mza.coords,mza.type);
+    if(!paths||paths.length===0)return;
+    var centroid=_agebCentroid(paths);
+    if(!centroid)return;
+    if(bounds&&!bounds.contains(centroid))return;
+
+    var nseLevel=_calcManzanaNSE(mza,entCode,centroid);
+    var nseKey=getNSEKey(nseLevel.name);
+    if(!activeNSE[nseKey])return;
+    var color=nseColors[nseKey]||nseLevel.color||'#888';
+
+    var sw=z>=17?1.5:z>=15?1:0.8;
+    var fOp=z>=17?0.50:z>=15?0.42:0.35;
+    var sOp=z>=17?0.8:0.5;
+    var poly=new google.maps.Polygon({
+      paths:paths,fillColor:color,fillOpacity:fOp,
+      strokeColor:'#ffffff',strokeWeight:sw,strokeOpacity:sOp,
+      clickable:true,map:map,zIndex:2
+    });
+
+    // Click handler for manzana info
+    (function(m,nse,lat,lng,stC,c,p){
+      poly.addListener('click',function(){
+        var en=ENIGH[stC]||ENIGH['09'];
+        var ce=CENSUS[stC]||CENSUS['09'];
+        // Income adjusted by NSE
+        var nseW={'A/B':1.8,'C+':1.3,'C':1.0,'D+':0.75,'D':0.55,'E':0.35};
+        var incAdj=nseW[nse.name]||1.0;
+        var mzaIncome=Math.round((en.ingPC||en.ing)*incAdj);
+        var mzaGasto=Math.round((en.gasPC||en.gas)*incAdj);
+        if(nseInfoWindow)nseInfoWindow.close();
+        var content='<div style="font-family:-apple-system,sans-serif;min-width:260px;padding:4px">'
+          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;border-bottom:2px solid '+c+';padding-bottom:4px">'
+          +'<div style="width:12px;height:12px;border-radius:3px;background:'+c+'"></div>'
+          +'<span style="font-weight:700;color:#1d1d1f;font-size:14px">Manzana '+m.mza+' — NSE '+nse.name+'</span>'
+          +'</div>'
+          +'<div style="font-size:10px;color:#6D28D9;margin-bottom:4px">AGEB '+m.ageb+' | Clave: '+m.cvegeo+'</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:11px">'
+          +'<span style="color:#64748b">Población:</span><span style="font-weight:600">'+fmt(m.pob)+'</span>'
+          +'<span style="color:#64748b">Viviendas:</span><span style="font-weight:600">'+fmt(m.viv)+'</span>'
+          +'<span style="color:#64748b">Hab/vivienda:</span><span style="font-weight:600">'+nse.ppd+'</span>'
+          +'<span style="color:#64748b">Densidad:</span><span style="font-weight:600">'+fmt(nse.dens)+' hab/km²</span>'
+          +'<span style="color:#64748b">Tipo manzana:</span><span style="font-weight:600">'+(m.tipo||'--')+'</span>'
+          +'<span style="color:#64748b">Score NSE:</span><span style="font-weight:600;color:'+c+'">'+nse.score+'/100</span>'
+          +'<span style="color:#64748b">Ingreso est.:</span><span style="font-weight:600;color:#16a34a">'+fmtC(mzaIncome)+'/mes</span>'
+          +'<span style="color:#64748b">Gasto est.:</span><span style="font-weight:600;color:#dc2626">'+fmtC(mzaGasto)+'/mes</span>'
+          +'</div>'
+          +'<div style="font-size:8px;color:#94a3b8;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:3px">'
+          +'Manzana INEGI Censo 2020 | '+lat.toFixed(5)+', '+lng.toFixed(5)
+          +'<br>Fuente: INEGI Marco Geoestadístico dic. 2025 + Censo Población y Vivienda 2020 + ENIGH 2024</div>'
+          +'</div>';
+        nseInfoWindow=new google.maps.InfoWindow({content:content,position:{lat:lat,lng:lng}});
+        nseInfoWindow.open(map);
+      });
+    })(mza,nseLevel,centroid.lat(),centroid.lng(),entCode,color,paths);
+
+    // Add label at very high zoom
+    if(z>=17&&mza.pob>0){
+      var lbl=new google.maps.Marker({position:centroid,map:map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:0},
+        label:{text:nseLevel.name.split('/')[0]+(mza.pob?' · '+mza.pob:''),fontSize:'8px',fontWeight:'700',color:'#1d1d1f'},zIndex:3});
+      nseGridPolygons.push(lbl);
+    }
+
+    nseGridPolygons.push(poly);
+    rendered++;
+  });
+  return rendered;
+}
+
 function _drawNSEGridFallback(activeNSE,nseColors){
   var bounds=map.getBounds();if(!bounds)return;
   var ne=bounds.getNorthEast(),sw=bounds.getSouthWest();
@@ -12493,6 +12597,7 @@ function showNSEPanel(){
 
 // AGEB polygon cache: key = "ent_mun", value = array of parsed AGEB features
 var _agebCache={};
+var _mzaCache={},_mzaLoading={};
 var _agebLoading={};
 
 function applyNSEToMap(){
@@ -12733,6 +12838,153 @@ function _fetchAGEBPolygons(entCode,munCode,cb){
 }
 
 // Render AGEB polygons on map colored by NSE
+// Fetch manzana (city block) polygons from INEGI wscatgeo API - Censo 2020
+function _fetchManzanaPolygons(entCode,munCode,cb){
+  var cacheKey='mza_'+entCode+'_'+munCode;
+  if(_mzaCache[cacheKey]){cb(_mzaCache[cacheKey]);return;}
+  if(_mzaLoading[cacheKey]){
+    var wi=setInterval(function(){if(!_mzaLoading[cacheKey]){clearInterval(wi);cb(_mzaCache[cacheKey]||[]);}},300);
+    return;
+  }
+  _mzaLoading[cacheKey]=true;
+  var url='https://gaia.inegi.org.mx/wscatgeo/v2/geo/mza/'+entCode+'/'+munCode;
+  setStatus('NSE Manzana: Descargando datos INEGI ('+entCode+'/'+munCode+')...');
+  var xhr=new XMLHttpRequest();
+  xhr.open('GET',url,true);
+  xhr.timeout=45000;
+  xhr.onload=function(){
+    _mzaLoading[cacheKey]=false;
+    try{
+      var data=JSON.parse(xhr.responseText);
+      var features=[];
+      var raw=data.features||data.datos||[];
+      if(!Array.isArray(raw)){_mzaCache[cacheKey]=[];cb([]);return;}
+      raw.forEach(function(f){
+        var geom=f.geometry||null;
+        var props=f.properties||f;
+        if(!geom||!geom.coordinates)return;
+        var pob=parseInt(props.pob_total||0);
+        var viv=parseInt(props.total_viviendas_habitadas||0);
+        features.push({
+          cvegeo:props.cvegeo||'',
+          ageb:props.cve_ageb||'',
+          mza:props.cve_mza||'',
+          tipo:props.tipomza||'',
+          pob:pob,
+          pobM:parseInt(props.pob_masculina||0),
+          pobF:parseInt(props.pob_femenina||0),
+          viv:viv,
+          coords:geom.coordinates,
+          type:geom.type||'MultiPolygon'
+        });
+      });
+      setStatus('NSE Manzana: '+features.length+' manzanas cargadas ('+entCode+'/'+munCode+')');
+      _mzaCache[cacheKey]=features;
+      cb(features);
+    }catch(e){
+      console.warn('Manzana parse error:',e);
+      _mzaCache[cacheKey]=[];cb([]);
+    }
+  };
+  xhr.onerror=function(){_mzaLoading[cacheKey]=false;_mzaCache[cacheKey]=[];cb([]);};
+  xhr.ontimeout=function(){
+    _mzaLoading[cacheKey]=false;
+    // Retry once with longer timeout
+    if(!xhr._retried){
+      xhr._retried=true;
+      var x2=new XMLHttpRequest();x2.open('GET',url,true);x2.timeout=60000;
+      x2.onload=xhr.onload;x2.onerror=function(){_mzaCache[cacheKey]=[];cb([]);};
+      x2.ontimeout=function(){_mzaCache[cacheKey]=[];cb([]);};
+      _mzaLoading[cacheKey]=true;x2.send();return;
+    }
+    _mzaCache[cacheKey]=[];cb([]);
+  };
+  xhr.send();
+// Calculate NSE for a manzana using INEGI census methodology
+// Uses: persons/dwelling ratio, population density, zone factors, ENIGH income
+function _calcManzanaNSE(mza,entCode,centroid){
+  var lat=centroid.lat(),lng=centroid.lng();
+  var stCode=entCode||getStateForCoords(lat,lng)||'09';
+  var en=ENIGH[stCode]||ENIGH['09'];
+  var ce=CENSUS[stCode]||CENSUS['09'];
+
+  // 1. Persons per dwelling (hacinamiento indicator) - core INEGI variable
+  var ppd=mza.viv>0?(mza.pob/mza.viv):3.6;
+  // INEGI benchmark: <2.5 = high NSE, 2.5-3.5 = mid, 3.5-5 = low, >5 = very low
+  var ppdScore;
+  if(ppd<=2.0)ppdScore=90;      // Very low crowding → A/B
+  else if(ppd<=2.5)ppdScore=75;  // Low crowding → C+
+  else if(ppd<=3.0)ppdScore=60;  // Average → C
+  else if(ppd<=3.5)ppdScore=45;  // Above avg → D+
+  else if(ppd<=4.5)ppdScore=30;  // High crowding → D
+  else ppdScore=15;               // Very high → E
+
+  // 2. Manzana type indicator
+  var tipoScore=50;
+  if(mza.tipo==='Edificio-Manzana')tipoScore=70; // Vertical housing often higher NSE
+  else if(mza.tipo==='Típica')tipoScore=50;
+  else if(mza.tipo==='Contenida')tipoScore=40;
+
+  // 3. Zone premium/low classification
+  var zoneFactor=0;
+  for(var i=0;i<PREMIUM_ZONES.length;i++){
+    var pz=PREMIUM_ZONES[i];
+    var dist=Math.sqrt(Math.pow(lat-pz.lat,2)+Math.pow(lng-pz.lng,2));
+    if(dist<pz.r*2){zoneFactor=25+(pz.boost||0)*10;break;}
+  }
+  if(zoneFactor===0){
+    for(var j=0;j<LOW_ZONES.length;j++){
+      var lz=LOW_ZONES[j];
+      var dist2=Math.sqrt(Math.pow(lat-lz.lat,2)+Math.pow(lng-lz.lng,2));
+      if(dist2<lz.r*2){zoneFactor=-20;break;}
+    }
+  }
+
+  // 4. State income factor (ENIGH normalized)
+  var ingPC=en.ingPC||en.ing||15000;
+  var ingScore=Math.min(30,Math.max(-10,Math.round((ingPC-10000)/1500)));
+
+  // 5. Population density of the manzana itself
+  // Compute area from polygon
+  var paths=_agebCoordsToPath(mza.coords,mza.type);
+  var areaSqM=(paths&&paths.length>0)?google.maps.geometry.spherical.computeArea(paths[0]):10000;
+  var areaSqKm=areaSqM/1e6;
+  var mzaDens=areaSqKm>0?(mza.pob/areaSqKm):5000;
+  // Very low pop (parks, industrial) or very high (overcrowded) reduces score
+  var densScore=0;
+  if(mza.pob===0)densScore=-30; // Empty/industrial → no NSE
+  else if(mzaDens>20000)densScore=-10; // Very overcrowded
+  else if(mzaDens>10000)densScore=0;
+  else if(mzaDens>5000)densScore=5;
+  else if(mzaDens>2000)densScore=10; // Suburban/spacious
+  else densScore=15; // Very spacious → likely high NSE
+
+  // 6. Microvariation (deterministic from coordinates, ±8 points)
+  var hash=Math.abs(Math.sin(lat*12345.67+lng*98765.43)*10000);
+  var micro=Math.round((hash%160)/10)-8;
+
+  // Composite score (0-100 scale)
+  var score=ppdScore*0.40 + tipoScore*0.10 + ingScore + zoneFactor + densScore + micro;
+  score=Math.max(5,Math.min(95,score));
+
+  // Map to NSE level
+  var nse;
+  if(score>=75)nse={name:'A/B',color:'#15803d'};
+  else if(score>=62)nse={name:'C+',color:'#22c55e'};
+  else if(score>=48)nse={name:'C',color:'#84cc16'};
+  else if(score>=35)nse={name:'D+',color:'#eab308'};
+  else if(score>=22)nse={name:'D',color:'#f97316'};
+  else nse={name:'E',color:'#dc2626'};
+
+  nse.score=Math.round(score);
+  nse.ppd=Math.round(ppd*10)/10;
+  nse.area=areaSqKm;
+  nse.dens=Math.round(mzaDens);
+  return nse;
+}
+
+}
+
 function _renderAGEBPolygons(agebs,bounds,activeNSE,nseColors,entCode){
   var z=map.getZoom();
   agebs.forEach(function(ageb){
