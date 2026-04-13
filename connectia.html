@@ -2237,7 +2237,7 @@ function _msRenderPinReport(sel,d){
   r+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin-bottom:4px">';
   r+='<div style="text-align:center;padding:3px;background:#dbeafe;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#1d4ed8">'+fmt(d.vehMonthly||0)+'</div><div style="font-size:6px;color:#94a3b8">🚗 veh/mes</div></div>';
   r+='<div style="text-align:center;padding:3px;background:#dcfce7;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#15803d">'+fmt(d.pedMonthly||0)+'</div><div style="font-size:6px;color:#94a3b8">🚶 peat/mes</div></div>';
-  r+='<div style="text-align:center;padding:3px;background:#fef9c3;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#a16207">'+fmt(d.totalTrips||0)+'</div><div style="font-size:6px;color:#94a3b8">🔄 viajes/día</div></div>';
+  r+='<div style="text-align:center;padding:3px;background:#fef9c3;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#a16207">'+fmt((d.totalTrips||0)*30)+'</div><div style="font-size:6px;color:#94a3b8">🔄 viajes/mes</div></div>';
   r+='</div>';
   // Row 5: Impacts
   if(d.impTotal){
@@ -2929,7 +2929,7 @@ function showMultiSelectReport(filterGroupId){
     html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:6px">';
     html+='<div style="text-align:center;padding:5px;background:#dbeafe;border-radius:6px"><div style="font-size:12px;font-weight:800;color:#1d4ed8">'+fmt(d.vehMonthly)+'</div><div style="font-size:7px;color:#94a3b8">🚗 veh/mes</div></div>';
     html+='<div style="text-align:center;padding:5px;background:#dcfce7;border-radius:6px"><div style="font-size:12px;font-weight:800;color:#15803d">'+fmt(d.pedMonthly)+'</div><div style="font-size:7px;color:#94a3b8">🚶 peat/mes</div></div>';
-    html+='<div style="text-align:center;padding:5px;background:#fef9c3;border-radius:6px"><div style="font-size:12px;font-weight:800;color:#a16207">'+fmt(d.totalTrips)+'</div><div style="font-size:7px;color:#94a3b8">🔄 viajes/día</div></div>';
+    html+='<div style="text-align:center;padding:5px;background:#fef9c3;border-radius:6px"><div style="font-size:12px;font-weight:800;color:#a16207">'+fmt((d.totalTrips||0)*30)+'</div><div style="font-size:7px;color:#94a3b8">🔄 viajes/mes</div></div>';
     html+='</div>';
     // Impact
     if(d.impTotal){
@@ -5667,7 +5667,7 @@ function _drawTrafGrid(){
           clickable:true,map:map,zIndex:1
         });
         (function(nm,t){poly.addListener('click',function(){
-          var iw=new google.maps.InfoWindow({content:'<div style="font-size:11px;padding:4px"><b>'+nm+'</b><br>Tráfico: '+Math.round(t).toLocaleString()+' viajes/día</div>',position:new google.maps.LatLng(col.centroid.lat,col.centroid.lng)});iw.open(map);
+          var iw=new google.maps.InfoWindow({content:'<div style="font-size:11px;padding:4px"><b>'+nm+'</b><br>Tráfico: '+Math.round(t*30).toLocaleString()+' viajes/mes</div>',position:new google.maps.LatLng(col.centroid.lat,col.centroid.lng)});iw.open(map);
         })})(col.name,traf);
         _trafHeatPolys.push(poly);
         if(z>=14){
@@ -7947,7 +7947,7 @@ function generateDeepView(){
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px">';
   h+='<div>Vehículos/mes: <b>'+f(vehD*30)+'</b></div>';
   h+='<div>Peatones/mes: <b>'+f(pedD*30)+'</b></div>';
-  h+='<div>Viajes/día: <b>'+f(totalTrips)+'</b></div>';
+  h+='<div>Viajes/mes: <b>'+f(totalTrips*30)+'</b></div>';
   h+='<div>OOH veh/mes: <b>'+f(Math.round(vehD*30*0.52))+'</b></div>';
   h+='</div></div>';
 
@@ -8350,16 +8350,16 @@ function renderAfluenciaPanel(place,nearbyPlaces,clickLatLng){
   if(place.user_ratings_total) h+=' <span style="font-size:10px;color:#6B7280">('+fmt(place.user_ratings_total)+' rese\u00f1as)</span>';
   h+='</div></div></div>';
   h+='<div style="background:linear-gradient(135deg,#7C3AED,#9333EA);border-radius:12px;padding:16px;color:#fff;text-align:center;margin-bottom:12px">';
-  h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.8">Afluencia Diaria Estimada</div>';
-  h+='<div style="font-size:36px;font-weight:900;margin:4px 0">'+fmt(est.daily)+'</div>';
-  h+='<div style="font-size:11px;opacity:.85">'+fmt(est.monthly)+'/mes \u00b7 <span class="afl-badge" style="background:'+confBg+';color:'+confColor+'">Confianza '+est.confidence+'</span></div>';
+  h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.8">Afluencia Mensual Estimada</div>';
+  h+='<div style="font-size:36px;font-weight:900;margin:4px 0">'+fmt(est.monthly)+'</div>';
+  h+='<div style="font-size:11px;opacity:.85">'+fmt(est.daily)+'/d\u00eda \u00b7 <span class="afl-badge" style="background:'+confBg+';color:'+confColor+'">Confianza '+est.confidence+'</span></div>';
   h+='<div style="font-size:9px;opacity:.6;margin-top:4px">'+est.source+'</div></div>';
   h+='<div class="afl-grid3">';
-  h+='<div class="afl-card"><div class="acv" style="color:#3B82F6">'+fmt(Math.round(est.daily*vehShare))+'</div><div class="acl">\u{1F697} Veh\u00edculo</div></div>';
-  h+='<div class="afl-card"><div class="acv" style="color:#10B981">'+fmt(Math.round(est.daily*pedShare))+'</div><div class="acl">\u{1F6B6} Peatones</div></div>';
-  h+='<div class="afl-card"><div class="acv" style="color:#F59E0B">'+fmt(Math.round(est.daily*transitShare))+'</div><div class="acl">\u{1F68C} Transporte</div></div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#3B82F6">'+fmt(Math.round(est.monthly*vehShare))+'</div><div class="acl">\u{1F697} Veh\u00edculo/mes</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#10B981">'+fmt(Math.round(est.monthly*pedShare))+'</div><div class="acl">\u{1F6B6} Peatones/mes</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#F59E0B">'+fmt(Math.round(est.monthly*transitShare))+'</div><div class="acl">\u{1F68C} Transporte/mes</div></div></div>';
   h+='<div class="afl-section">\u{1F552} Distribuci\u00f3n Horaria</div>';
-  hours.forEach(function(hr){var w=Math.round(hr.p/maxP*100);var visitors=Math.round(est.daily*hr.p/100);h+='<div class="afl-bar"><div class="abl">'+hr.h+'</div><div class="abt"><div class="abf" style="width:'+w+'%;background:linear-gradient(90deg,#7C3AED,#A855F7)"></div></div><div class="abv">'+fmt(visitors)+' ('+hr.p+'%)</div></div>';});
+  hours.forEach(function(hr){var w=Math.round(hr.p/maxP*100);var visitors=Math.round(est.monthly*hr.p/100);h+='<div class="afl-bar"><div class="abl">'+hr.h+'</div><div class="abt"><div class="abf" style="width:'+w+'%;background:linear-gradient(90deg,#7C3AED,#A855F7)"></div></div><div class="abv">'+fmt(visitors)+' ('+hr.p+'%)</div></div>';});
   h+='<div class="afl-section">\u{1F465} Demogr\u00e1ficos</div>';
   h+='<div class="afl-grid"><div class="afl-card"><div class="acv" style="color:#7C3AED">'+fmt(Math.round(dens*0.785))+'</div><div class="acl">Poblaci\u00f3n ~1km\u00b2</div></div><div class="afl-card"><div class="acv" style="color:#059669">'+fmt(dens)+'</div><div class="acl">Densidad/km\u00b2</div></div></div>';
   h+='<div class="afl-grid3"><div class="afl-card"><div class="acv" style="color:#7C3AED">'+dominant.n+'</div><div class="acl">NSE</div></div><div class="afl-card"><div class="acv" style="color:#3B82F6">'+mPct+'%</div><div class="acl">\u2642 Hombres</div></div><div class="afl-card"><div class="acv" style="color:#EC4899">'+fPct+'%</div><div class="acl">\u2640 Mujeres</div></div></div>';
@@ -8368,7 +8368,7 @@ function renderAfluenciaPanel(place,nearbyPlaces,clickLatLng){
   h+='<div class="afl-section">\u{1F4B0} Econom\u00eda</div>';
   h+='<div class="afl-grid"><div class="afl-card"><div class="acv" style="color:#16a34a">$'+fmt(en.ingPC||en.ing)+'</div><div class="acl">Ingreso per c\u00e1p</div></div><div class="afl-card"><div class="acv" style="color:#DC2626">$'+fmt(en.gasPC||en.gas)+'</div><div class="acl">Gasto per c\u00e1p</div></div></div>';
   h+='<div class="afl-section">\u{1F697} Movilidad</div>';
-  h+='<div class="afl-grid"><div class="afl-card"><div class="acv" style="color:#1D4ED8">'+fmt(vehDaily)+'</div><div class="acl">\u{1F697} Veh/d\u00eda</div></div><div class="afl-card"><div class="acv" style="color:#15803D">'+fmt(pedDaily)+'</div><div class="acl">\u{1F6B6} Peat/d\u00eda</div></div></div>';
+  h+='<div class="afl-grid"><div class="afl-card"><div class="acv" style="color:#1D4ED8">'+fmt(vehDaily*30)+'</div><div class="acl">\u{1F697} Veh/mes</div></div><div class="afl-card"><div class="acv" style="color:#15803D">'+fmt(pedDaily*30)+'</div><div class="acl">\u{1F6B6} Peat/mes</div></div></div>';
   var modals=[{l:'Veh\u00edculos',p:Math.round(vehShare*100),c:'#3B82F6'},{l:'Trans. P\u00fablico',p:Math.round(transitShare*100),c:'#F59E0B'},{l:'Peatones',p:Math.round(pedShare*100),c:'#10B981'},{l:'Bicicleta',p:Math.round(bikeShare*100),c:'#EF4444'}];
   modals.forEach(function(m){h+='<div class="afl-bar"><div class="abl">'+m.l+'</div><div class="abt"><div class="abf" style="width:'+m.p+'%;background:'+m.c+'"></div></div><div class="abv">'+m.p+'%</div></div>';});
   h+='<div style="display:flex;gap:6px;margin:8px 0;font-size:10px">';
@@ -8382,7 +8382,7 @@ function renderAfluenciaPanel(place,nearbyPlaces,clickLatLng){
     h+='<div class="afl-section">\u{1F4CD} Lugares Cercanos ('+nearbyPlaces.length+')</div>';
     nearbyPlaces.sort(function(a,b){return(b.user_ratings_total||0)-(a.user_ratings_total||0);});
     nearbyPlaces.slice(0,8).forEach(function(np){var npInfo=getPlaceTypeInfo(np.types);var npEst=estimateFootfall(np);var dist=Math.round(google.maps.geometry.spherical.computeDistanceBetween(clickLatLng,np.geometry.location));
-    h+='<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #F3F4F6;font-size:10px"><span style="font-size:14px">'+npInfo.icon+'</span><div style="flex:1"><div style="font-weight:600;color:#1F2937">'+np.name+'</div><div style="color:#6B7280;font-size:9px">'+npInfo.label+' \u00b7 '+dist+'m</div></div><div style="text-align:right"><div style="font-weight:700;color:#7C3AED">'+fmt(npEst.daily)+'</div><div style="font-size:8px;color:#6B7280">/d\u00eda</div></div></div>';});
+    h+='<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #F3F4F6;font-size:10px"><span style="font-size:14px">'+npInfo.icon+'</span><div style="flex:1"><div style="font-weight:600;color:#1F2937">'+np.name+'</div><div style="color:#6B7280;font-size:9px">'+npInfo.label+' \u00b7 '+dist+'m</div></div><div style="text-align:right"><div style="font-weight:700;color:#7C3AED">'+fmt(npEst.monthly)+'</div><div style="font-size:8px;color:#6B7280">/mes</div></div></div>';});
   }
   h+='<div style="font-size:8px;color:#9CA3AF;margin-top:10px;padding-top:6px;border-top:1px solid #F3F4F6;text-align:center">Fuentes: Google Places API, INEGI DENUE, ANTAD, SCT, STC Metro, INAH \u00b7 '+new Date().toLocaleDateString('es-MX')+'</div>';
   body.innerHTML=h;
@@ -8400,7 +8400,7 @@ function renderAfluenciaPanel(place,nearbyPlaces,clickLatLng){
   });
   // Map markers
   clearAflMarkers();
-  var mainMarker=new google.maps.Marker({position:place.geometry?place.geometry.location:clickLatLng,map:map,title:place.name+' - '+fmt(est.daily)+'/d\u00eda',icon:{url:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50"><circle cx="20" cy="20" r="18" fill="'+typeInfo.color+'" stroke="#fff" stroke-width="3"/><text x="20" y="25" text-anchor="middle" fill="#fff" font-size="16">'+typeInfo.icon+'</text></svg>'),scaledSize:new google.maps.Size(40,50)},zIndex:1000});
+  var mainMarker=new google.maps.Marker({position:place.geometry?place.geometry.location:clickLatLng,map:map,title:place.name+' - '+fmt(est.monthly)+'/mes',icon:{url:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50"><circle cx="20" cy="20" r="18" fill="'+typeInfo.color+'" stroke="#fff" stroke-width="3"/><text x="20" y="25" text-anchor="middle" fill="#fff" font-size="16">'+typeInfo.icon+'</text></svg>'),scaledSize:new google.maps.Size(40,50)},zIndex:1000});
   aflMarkers.push(mainMarker);
   if(nearbyPlaces){nearbyPlaces.slice(0,15).forEach(function(np){if(np.place_id===(place.place_id||''))return;var npInfo=getPlaceTypeInfo(np.types);var npm=new google.maps.Marker({position:np.geometry.location,map:map,title:np.name,icon:{url:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><circle cx="14" cy="14" r="12" fill="'+npInfo.color+'" opacity="0.7" stroke="#fff" stroke-width="2"/><text x="14" y="19" text-anchor="middle" fill="#fff" font-size="12">'+npInfo.icon+'</text></svg>'),scaledSize:new google.maps.Size(28,28)},zIndex:999});aflMarkers.push(npm);});}
 }
