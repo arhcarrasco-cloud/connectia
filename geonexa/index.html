@@ -209,6 +209,7 @@ select:focus{border-color:#0071e3}
   <div id="top-menu" style="display:flex;gap:2px;margin-right:6px">
     <div class="tmenu-item" onclick="_showMainMenu()">Archivo ▾</div>
     <div class="tmenu-item" onclick="_showExportMenu(this)">Exportar ▾</div>
+    <div class="tmenu-item" id="tmenu-filtros" onclick="toggleGlobalFilterPanel()" title="Filtrar el reporte por demográficos, movilidad, día, horario">🎛️ Filtros</div>
   </div>
   <div id="search-box">
     <input type="text" id="search-input" placeholder="Buscador general" autocomplete="off">
@@ -1236,21 +1237,49 @@ function onOverlayComplete(event){
     var _restoreMode=event.type;
     var _restoreDrawing=function(){
       if(!multiSelectMode)return;
-      _setOverlaysClickable(false); // keep overlays non-clickable while drawing but VISIBLE
-      // Re-enable ALL multi-selection overlays to stay editable (circles resizable, etc)
+      // HARDENED: Force every multiSelection overlay to remain on the map
       multiSelections.forEach(function(s){
-        if(s&&s.overlay){
-          try{s.overlay.setOptions({editable:true,zIndex:50});}catch(e){}
-        }
+        if(!s||!s.overlay)return;
+        try{
+          // Re-attach to map if somehow detached
+          if(typeof s.overlay.getMap==='function'){
+            if(s.overlay.getMap()!==map) s.overlay.setMap(map);
+          }else{
+            s.overlay.setMap(map);
+          }
+        }catch(e2){}
+        try{
+          if(s.overlay.setOptions&&s.type!==google.maps.drawing.OverlayType.MARKER){
+            s.overlay.setOptions({editable:true,clickable:false,zIndex:50});
+          }else if(s.type===google.maps.drawing.OverlayType.MARKER){
+            if(s.overlay.setClickable)s.overlay.setClickable(false);
+            if(s.overlay.setZIndex)s.overlay.setZIndex(50);
+          }
+        }catch(e){}
       });
       try{drawingManager.setDrawingMode(_restoreMode);}catch(e){}
+      try{map.setOptions({draggableCursor:'crosshair'});}catch(e6){}
       var btnMap={'marker':'btn-marker','circle':'btn-circle','rectangle':'btn-rect','polygon':'btn-polygon'};
       var modeStr=String(_restoreMode).replace('google.maps.drawing.OverlayType.','').toLowerCase();
       var tbtn=document.getElementById(btnMap[modeStr]);
       if(tbtn)tbtn.classList.add('active');
     };
-    setTimeout(_restoreDrawing,100);
-    setTimeout(_restoreDrawing,350);
+    setTimeout(_restoreDrawing,50);
+    setTimeout(_restoreDrawing,200);
+    setTimeout(_restoreDrawing,500);
+    // GUARDIAN: periodic watchdog that re-attaches any detached multi-selection overlay
+    // Runs for 5 seconds after each addition to catch any late detaching
+    (function(){
+      var ticks=0;
+      var guard=setInterval(function(){
+        ticks++;
+        if(!multiSelectMode||ticks>10){clearInterval(guard);return;}
+        multiSelections.forEach(function(s){
+          if(!s||!s.overlay)return;
+          try{if(typeof s.overlay.getMap==='function'&&s.overlay.getMap()!==map)s.overlay.setMap(map);}catch(e){}
+        });
+      },500);
+    })();
     setStatus('Selección '+(multiSelections.length)+' agregada. Puedes seguir agregando o cambiar de herramienta.');
     return;
   }
@@ -1264,7 +1293,7 @@ function onOverlayComplete(event){
   }
   currentOverlay=event.overlay;
   // Make overlay non-blocking so you can select on top of it (low zIndex but still visible)
-  try{currentOverlay.setOptions({clickable:false,zIndex:1});}catch(e){}
+  try{currentOverlay.setOptions({clickable:false,zIndex:1,editable:true});}catch(e){}
   drawingManager.setDrawingMode(null);
   map.setOptions({draggableCursor:''});
   document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('active')});
@@ -1607,7 +1636,7 @@ function _buildPDFCharts(sel,d){
   }
 
   // Gender Pie
-  charts.gender=_renderChartImage({type:'doughnut',data:{labels:['Hombres '+_g.m+'%','Mujeres '+_g.f+'%'],datasets:[{data:[_g.m,_g.f],backgroundColor:['#3b82f6','#ec4899'],borderWidth:2,borderColor:'#fff'}]},options:{cutout:'45%',plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}},title:{display:true,text:'Genero (Censo 2020)',font:{size:10,weight:'bold'},color:'#1d1d1f'}},aspectRatio:1.3}},200,150);
+  charts.gender=_renderChartImage({type:'doughnut',data:{labels:['Hombres '+_g.m+'%','Mujeres '+_g.f+'%'],datasets:[{data:[_g.m,_g.f],backgroundColor:['#3b82f6','#ec4899'],borderWidth:2,borderColor:'#fff'}]},options:{cutout:'40%',plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}},title:{display:true,text:'Genero (Censo 2020)',font:{size:10,weight:'bold'},color:'#1d1d1f'}},aspectRatio:1.0}},180,180);
 
   // Age Distribution Bar
   if(ageRanges.length>0){
@@ -1618,7 +1647,7 @@ function _buildPDFCharts(sel,d){
   if(d.en&&d.en.gt){
     var gt=d.en.gt;var total=gt.total||1;
     var gItems=[['Alimentos',gt.alim,'#16a34a'],['Transporte',gt.trans,'#2563eb'],['Educacion',gt.educ,'#f59e0b'],['Vivienda',gt.viv,'#8b5cf6'],['Salud',gt.salud,'#ef4444'],['Comunicacion',gt.comunic,'#06b6d4'],['Vestido',gt.vest,'#ec4899'],['Cuidado',gt.cuida,'#f97316'],['Limpieza',gt.limp,'#84cc16']].filter(function(g){return g[1]>0;});
-    charts.gasto=_renderChartImage({type:'doughnut',data:{labels:gItems.map(function(g){return g[0]+' '+Math.round(g[1]/total*100)+'%';}),datasets:[{data:gItems.map(function(g){return g[1];}),backgroundColor:gItems.map(function(g){return g[2];}),borderWidth:1,borderColor:'#fff'}]},options:{cutout:'40%',plugins:{legend:{position:'right',labels:{font:{size:8},padding:4,boxWidth:8}},title:{display:true,text:'Desglose de Gasto',font:{size:11,weight:'bold'},color:'#1d1d1f'}}}},320,170);
+    charts.gasto=_renderChartImage({type:'doughnut',data:{labels:gItems.map(function(g){return g[0]+' '+Math.round(g[1]/total*100)+'%';}),datasets:[{data:gItems.map(function(g){return g[1];}),backgroundColor:gItems.map(function(g){return g[2];}),borderWidth:1,borderColor:'#fff'}]},options:{cutout:'40%',aspectRatio:1.4,plugins:{legend:{position:'right',labels:{font:{size:8},padding:4,boxWidth:8}},title:{display:true,text:'Desglose de Gasto',font:{size:11,weight:'bold'},color:'#1d1d1f'}}}},300,200);
   }
 
   // Modal Split - EOD 2017 calibrated (4 modes)
@@ -1628,7 +1657,7 @@ function _buildPDFCharts(sel,d){
   var _tPct=Math.max(0,100-_vPct-_pPct-3); // Transporte público = remainder minus bike
   var _bPct=3; // Bicicleta ~3% EOD 2017
   if(_vPct+_pPct+_tPct+_bPct>0){
-    charts.modal=_renderChartImage({type:'doughnut',data:{labels:['Vehicular '+_vPct+'%','Peatonal '+_pPct+'%','Trans. Publico '+_tPct+'%','Bicicleta '+_bPct+'%'],datasets:[{data:[_vPct,_pPct,_tPct,_bPct],backgroundColor:['#2563eb','#f59e0b','#8b5cf6','#22c55e'],borderWidth:2,borderColor:'#fff'}]},options:{cutout:'50%',plugins:{legend:{position:'bottom',labels:{font:{size:8},padding:4,boxWidth:8}},title:{display:true,text:'Reparto Modal (EOD 2017)',font:{size:10,weight:'bold'},color:'#1d1d1f'}}}},220,170);
+    charts.modal=_renderChartImage({type:'doughnut',data:{labels:['Vehicular '+_vPct+'%','Peatonal '+_pPct+'%','Trans. Publico '+_tPct+'%','Bicicleta '+_bPct+'%'],datasets:[{data:[_vPct,_pPct,_tPct,_bPct],backgroundColor:['#2563eb','#f59e0b','#8b5cf6','#22c55e'],borderWidth:2,borderColor:'#fff'}]},options:{cutout:'45%',aspectRatio:1.0,plugins:{legend:{position:'bottom',labels:{font:{size:8},padding:4,boxWidth:8}},title:{display:true,text:'Reparto Modal (EOD 2017)',font:{size:10,weight:'bold'},color:'#1d1d1f'}}}},180,180);
   }
 
   return charts;
@@ -1997,7 +2026,7 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   doc.setTextColor(255);doc.setFontSize(6);doc.setFont(undefined,'bold');
   doc.text('VER EN LA WEB',btnX+btnW/2,btnY+3.5,{align:'center'});
   // Add clickable link
-  var webUrl='https://connectia.mx/geonexa/?lat='+lat.toFixed(5)+'&lng='+lng.toFixed(5);
+  var webUrl='https://connectia.mx/geonexa/?lat='+lat.toFixed(5)+'&lng='+lng.toFixed(5)+'&r='+Math.round(d.radiusM||500);
   doc.link(btnX,btnY,btnW,btnH,{url:webUrl});
   doc.setFontSize(3.5);doc.setTextColor(109,40,217);doc.setFont(undefined,'normal');
   doc.text('connectia.mx/geonexa',btnX+btnW/2,btnY+btnH+2.5,{align:'center'});
@@ -2234,7 +2263,7 @@ function _msRenderPinReport(sel,d){
   r+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin-bottom:4px">';
   r+='<div style="text-align:center;padding:3px;background:#dbeafe;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#1d4ed8">'+fmt(d.vehMonthly||0)+'</div><div style="font-size:6px;color:#94a3b8">🚗 veh/mes</div></div>';
   r+='<div style="text-align:center;padding:3px;background:#dcfce7;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#15803d">'+fmt(d.pedMonthly||0)+'</div><div style="font-size:6px;color:#94a3b8">🚶 peat/mes</div></div>';
-  r+='<div style="text-align:center;padding:3px;background:#fef9c3;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#a16207">'+fmt(d.totalTrips||0)+'</div><div style="font-size:6px;color:#94a3b8">🔄 viajes/día</div></div>';
+  r+='<div style="text-align:center;padding:3px;background:#fef9c3;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#a16207">'+fmt((d.totalTrips||0)*30)+'</div><div style="font-size:6px;color:#94a3b8">🔄 viajes/mes</div></div>';
   r+='</div>';
   // Row 5: Impacts
   if(d.impTotal){
@@ -2926,7 +2955,7 @@ function showMultiSelectReport(filterGroupId){
     html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:6px">';
     html+='<div style="text-align:center;padding:5px;background:#dbeafe;border-radius:6px"><div style="font-size:12px;font-weight:800;color:#1d4ed8">'+fmt(d.vehMonthly)+'</div><div style="font-size:7px;color:#94a3b8">🚗 veh/mes</div></div>';
     html+='<div style="text-align:center;padding:5px;background:#dcfce7;border-radius:6px"><div style="font-size:12px;font-weight:800;color:#15803d">'+fmt(d.pedMonthly)+'</div><div style="font-size:7px;color:#94a3b8">🚶 peat/mes</div></div>';
-    html+='<div style="text-align:center;padding:5px;background:#fef9c3;border-radius:6px"><div style="font-size:12px;font-weight:800;color:#a16207">'+fmt(d.totalTrips)+'</div><div style="font-size:7px;color:#94a3b8">🔄 viajes/día</div></div>';
+    html+='<div style="text-align:center;padding:5px;background:#fef9c3;border-radius:6px"><div style="font-size:12px;font-weight:800;color:#a16207">'+fmt((d.totalTrips||0)*30)+'</div><div style="font-size:7px;color:#94a3b8">🔄 viajes/mes</div></div>';
     html+='</div>';
     // Impact
     if(d.impTotal){
@@ -3215,7 +3244,32 @@ function analyzeOverlay(overlay,type){
     // Capture formatted address from geocoder result
     var _formattedAddress='';
     if(status==='OK'&&results&&results[0]){_formattedAddress=results[0].formatted_address||'';}
-    currentData={en:enArea,ce:ceArea,center:center,radiusM:radiusM,areaSqKm:areaSqKm,stateCode:stateCode,estPop:estPop,estHog:estHog,nse:nse,dominant:dominant,address:_formattedAddress};
+    // Compute impact/performance metrics for PDF report
+    var _cDens=Math.round(effectiveDens);
+    var _cFP=calcFlowParams(_cDens,areaSqKm);
+    var _cTotalTrips=Math.round(estPop*_cFP.tripsPerP);
+    var _cVehMonthly=Math.round(_cTotalTrips*_cFP.vehShare*_cFP.throughMult*30);
+    var _cPedMonthly=Math.round(_cTotalTrips*_cFP.pedShare*_cFP.throughMult*30);
+    var _cVehDaily=Math.round(_cVehMonthly/30);
+    var _cPedDaily=Math.round(_cPedMonthly/30);
+    var _cOccupancy=1.6+(_cDens>5000?0.3:0);
+    var _cOTS=Math.max(1,Math.round((_cFP.tripsPerP*_cFP.vehShare*30)/Math.max(0.001,(_cVehMonthly>0?_cVehMonthly/(estPop*_cFP.tripsPerP*_cFP.vehShare*30)*_cFP.tripsPerP:0.05))));
+    _cOTS=Math.max(2,Math.min(12,Math.round(_cFP.tripsPerP*1.8)));
+    var _cImpVeh=_cVehMonthly;
+    var _cUniVeh=Math.round(_cImpVeh/_cOTS);
+    var _cImpPer=Math.round(_cImpVeh*_cOccupancy);
+    var _cUniPer=Math.round(_cImpPer/_cOTS);
+    var _cImpTotal=_cImpVeh+_cImpPer;
+    var _cFreqOTS=(_cImpVeh/Math.max(_cUniVeh,1)).toFixed(2);
+    var _cExpSec=Math.round(_calcExposureSec(_cDens)*100)/100;
+    var _cUniverso=22057420;
+    var _cLocalIng=Math.round((enArea.ingPC||enArea.ing));
+    var _cLocalGas=Math.round((enArea.gasPC||enArea.gas));
+    currentData={en:enArea,ce:ceArea,center:center,radiusM:radiusM,areaSqKm:areaSqKm,stateCode:stateCode,estPop:estPop,estHog:estHog,nse:nse,dominant:dominant,address:_formattedAddress,
+      lat:clat,lng:clng,dens:_cDens,state:enArea.n,_flowParams:_cFP,
+      ing:_cLocalIng,gas:_cLocalGas,ingHog:Math.round(enArea.ing),gasHog:Math.round(enArea.gas),
+      vehMonthly:_cVehMonthly,pedMonthly:_cPedMonthly,vehDaily:_cVehDaily,pedDaily:_cPedDaily,totalTrips:_cTotalTrips,
+      impVeh:_cImpVeh,uniVeh:_cUniVeh,impPer:_cImpPer,uniPer:_cUniPer,impTotal:_cImpTotal,freqOTS:_cFreqOTS,expSec:_cExpSec,universo:_cUniverso};
 
     // Async: reverse geocode for colonia-level NSE refinement
     (function(cd,enRef,clatRef,clngRef){
@@ -3948,6 +4002,8 @@ function setupUI(){
         var prevColor=SELECTION_COLORS[0];
         multiSelections.push({overlay:currentOverlay,type:currentOverlay.getRadius?'circle':currentOverlay.getBounds?'rectangle':currentOverlay.getPaths?'polygon':'marker',data:currentData?JSON.parse(JSON.stringify(currentData)):null,color:prevColor});
         try{if(currentOverlay.setOptions)currentOverlay.setOptions({fillColor:prevColor,fillOpacity:0.12,strokeColor:prevColor,strokeWeight:2,strokeOpacity:0.7});}catch(e3){}
+        // transfer to multi: clear single tracker so future draws go through multi branch cleanly
+        currentOverlay=null;currentData=null;
       }
       multiSelectMode=true;multiMarkerMode=(toolName==='marker');setTool(toolName);showMultiSelectPanel();popup.remove();
     };
@@ -4063,11 +4119,22 @@ function _setOverlaysClickable(clickable){
   var singleZ=clickable?100:1; // single/geo overlays can go lower
   var _setMS=function(ov){
     if(!ov)return;
-    try{if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:msZ});}catch(e){}
+    // Use individual setters for markers (no setOptions), setOptions for shapes
+    try{
+      if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:msZ});
+      else{
+        if(ov.setClickable)ov.setClickable(clickable);
+        if(ov.setZIndex)ov.setZIndex(msZ);
+      }
+    }catch(e){}
+    // Ensure overlay stays on map
+    try{if(ov.getMap&&!ov.getMap())ov.setMap(map);}catch(e2){}
   };
   var _setOther=function(ov){
     if(!ov)return;
-    try{if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:singleZ});}catch(e){}
+    var opts={clickable:clickable,zIndex:singleZ};
+    if(ov===currentOverlay)opts.editable=true;
+    try{if(ov.setOptions)ov.setOptions(opts);}catch(e){}
   };
   // Multi-selection overlays — ALWAYS keep visible on map
   multiSelections.forEach(function(s){if(s&&s.overlay)_setMS(s.overlay);});
@@ -4107,24 +4174,39 @@ function setTool(tool){
     _setOverlaysClickable(false);
     drawingManager.setDrawingMode(google.maps.drawing.OverlayType.MARKER);
     document.getElementById('btn-marker').classList.add('active');
+    map.setOptions({draggableCursor:'crosshair'});
     if(multiSelectMode)multiMarkerMode=true;
     setStatus(multiSelectMode?'Modo múltiple: haz clic para colocar pines. Puedes cambiar herramienta.':'Haz clic para colocar un marcador');
   }else if(tool==='circle'){
     _setOverlaysClickable(false);
     drawingManager.setDrawingMode(google.maps.drawing.OverlayType.CIRCLE);
     document.getElementById('btn-circle').classList.add('active');
+    map.setOptions({draggableCursor:'crosshair'});
     setStatus(multiSelectMode?'Modo múltiple: arrastra para crear un círculo.':'Arrastra para crear un circulo');
   }else if(tool==='rectangle'){
     _setOverlaysClickable(false);
     drawingManager.setDrawingMode(google.maps.drawing.OverlayType.RECTANGLE);
     document.getElementById('btn-rect').classList.add('active');
+    map.setOptions({draggableCursor:'crosshair'});
     setStatus(multiSelectMode?'Modo múltiple: arrastra para crear un rectángulo.':'Arrastra para crear un rectangulo');
   }else if(tool==='polygon'){
     _setOverlaysClickable(false);
     drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
     document.getElementById('btn-polygon').classList.add('active');
+    map.setOptions({draggableCursor:'crosshair'});
     setStatus(multiSelectMode?'Modo múltiple: clic para vértices, doble clic para cerrar.':'Haz clic para agregar vertices, doble clic para cerrar');
   }
+  // Also pass cursor through drawingManager options for robust cursor enforcement during drawing
+  try{
+    if(drawingManager&&drawingManager.setOptions){
+      if(tool==='circle'||tool==='rectangle'||tool==='polygon'||tool==='marker'){
+        drawingManager.setOptions({
+          markerOptions:{draggable:true,cursor:'crosshair'},
+          circleOptions:{draggableCursor:'crosshair'}
+        });
+      }
+    }
+  }catch(e){}
 }
 
 function clearAll(){
@@ -5628,7 +5710,7 @@ function _drawTrafGrid(){
           clickable:true,map:map,zIndex:1
         });
         (function(nm,t){poly.addListener('click',function(){
-          var iw=new google.maps.InfoWindow({content:'<div style="font-size:11px;padding:4px"><b>'+nm+'</b><br>Tráfico: '+Math.round(t).toLocaleString()+' viajes/día</div>',position:new google.maps.LatLng(col.centroid.lat,col.centroid.lng)});iw.open(map);
+          var iw=new google.maps.InfoWindow({content:'<div style="font-size:11px;padding:4px"><b>'+nm+'</b><br>Tráfico: '+Math.round(t*30).toLocaleString()+' viajes/mes</div>',position:new google.maps.LatLng(col.centroid.lat,col.centroid.lng)});iw.open(map);
         })})(col.name,traf);
         _trafHeatPolys.push(poly);
         if(z>=14){
@@ -6898,6 +6980,14 @@ function doSearch(val){
     setStatus('Búsqueda limpiada del mapa');
     return;
   }
+  // AFL bulk search: if Afluencia is active, brand/name search → bulk AFL report
+  if(typeof afluenciaActive!=='undefined'&&afluenciaActive){
+    // Allow coord skip & city skip — those still apply
+    if(!/^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/.test(val)){
+      aflBulkSearch(val);
+      return;
+    }
+  }
   // Check for city auto-selection
   var city=matchCity(val);
   if(city){selectCity(city);return;}
@@ -6956,6 +7046,8 @@ function askAI(query){
 }
 
 function exportReport(){
+  // Unified: use the new comprehensive PDF report
+  if(typeof exportReportPDF==='function'){return exportReportPDF();}
   if(!currentData){alert('Selecciona un area primero');return;}
   var d=currentData;
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Connectia - Reporte '+d.en.n+'</title>';
@@ -6994,6 +7086,8 @@ function exportReport(){
 }
 
 function exportPDF(){
+  // Unified: use the new comprehensive PDF report
+  if(typeof exportReportPDF==='function'){return exportReportPDF();}
   if(!currentData){alert('Selecciona un area primero');return;}
   var d=currentData;
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Connectia PDF - '+d.en.n+'</title>';
@@ -7311,6 +7405,309 @@ function switchReportView(view){
   updateReportContent();
 }
 
+// ===== REPORT SEGMENTATION FILTERS =====
+// Dimensions: demographic (NSE, género, edad) + movilidad + día + horario
+var _reportFilters={nse:'all',gender:'all',age:'all',mobility:'all',dayType:'all',timeOfDay:'all'};
+
+function _populateReportFilterOptions(){
+  if(!currentData)return;
+  var d=currentData;
+  var nseSel=document.getElementById('flt-nse');
+  var ageSel=document.getElementById('flt-age');
+  if(nseSel){
+    var curN=nseSel.value;
+    nseSel.innerHTML='<option value="all">Todos los NSE</option>';
+    (d.nse||[]).forEach(function(n){
+      var opt=document.createElement('option');
+      opt.value=n.n;opt.textContent='NSE '+n.n+' · '+Math.round(n.p)+'%';
+      nseSel.appendChild(opt);
+    });
+    try{nseSel.value=curN||'all';}catch(e){}
+  }
+  if(ageSel){
+    var curA=ageSel.value;
+    ageSel.innerHTML='<option value="all">Todas las edades</option>';
+    var alc=(typeof _resolveAlcDemo==='function'?_resolveAlcDemo(d):null);
+    var ages=(typeof _getAgeRanges7==='function'?_getAgeRanges7(alc,d.ce||{}):[]);
+    ages.forEach(function(a){
+      var opt=document.createElement('option');
+      opt.value=a.l;opt.textContent=a.l+' años · '+(a.v||0).toFixed(1)+'%';
+      ageSel.appendChild(opt);
+    });
+    try{ageSel.value=curA||'all';}catch(e){}
+  }
+  // Also populate the global filter panel selects (same IDs prefixed with gflt-)
+  var gn=document.getElementById('gflt-nse');
+  var ga=document.getElementById('gflt-age');
+  if(gn){
+    var cGn=gn.value;
+    gn.innerHTML='<option value="all">Todos los NSE</option>';
+    (d.nse||[]).forEach(function(n){
+      var opt=document.createElement('option');
+      opt.value=n.n;opt.textContent='NSE '+n.n+' · '+Math.round(n.p)+'%';
+      gn.appendChild(opt);
+    });
+    try{gn.value=cGn||'all';}catch(e){}
+  }
+  if(ga){
+    var cGa=ga.value;
+    ga.innerHTML='<option value="all">Todas las edades</option>';
+    var alc2=(typeof _resolveAlcDemo==='function'?_resolveAlcDemo(d):null);
+    var ages2=(typeof _getAgeRanges7==='function'?_getAgeRanges7(alc2,d.ce||{}):[]);
+    ages2.forEach(function(a){
+      var opt=document.createElement('option');
+      opt.value=a.l;opt.textContent=a.l+' años · '+(a.v||0).toFixed(1)+'%';
+      ga.appendChild(opt);
+    });
+    try{ga.value=cGa||'all';}catch(e){}
+  }
+}
+
+function applyReportFilters(){
+  // Read from whichever panel is active (global gflt-* or report-local flt-*)
+  var g=function(id){return document.getElementById(id);};
+  var pick=function(ids){for(var i=0;i<ids.length;i++){var el=g(ids[i]);if(el&&typeof el.value!=='undefined')return el.value;}return null;};
+  _reportFilters.nse=pick(['gflt-nse','flt-nse'])||'all';
+  _reportFilters.gender=pick(['gflt-gender','flt-gender'])||'all';
+  _reportFilters.age=pick(['gflt-age','flt-age'])||'all';
+  _reportFilters.mobility=pick(['gflt-mobility'])||'all';
+  _reportFilters.dayType=pick(['gflt-daytype'])||'all';
+  _reportFilters.timeOfDay=pick(['gflt-timeofday'])||'all';
+  updateReportContent();
+  // Visual feedback on the open panel
+  ['flt-summary-hint','gflt-summary-hint'].forEach(function(id){
+    var hint=document.getElementById(id);if(!hint)return;
+    var anyActive=_hasAnyFilterActive();
+    hint.textContent=anyActive?'✓ Filtros aplicados — reporte segmentado':'✓ Mostrando totales (sin filtros)';
+    hint.style.color='#059669';hint.style.fontWeight='700';
+  });
+  // Update topbar filter button badge
+  _updateFilterButtonBadge();
+  try{setTimeout(function(){toggleReportSegmentPanel(false);},600);}catch(e){}
+  try{setTimeout(function(){toggleGlobalFilterPanel(false);},600);}catch(e){}
+}
+
+function resetReportFilters(){
+  _reportFilters={nse:'all',gender:'all',age:'all',mobility:'all',dayType:'all',timeOfDay:'all'};
+  ['flt-nse','flt-gender','flt-age','gflt-nse','gflt-gender','gflt-age','gflt-mobility','gflt-daytype','gflt-timeofday'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='all';
+  });
+  updateReportContent();
+  _updateFilterButtonBadge();
+}
+
+function _hasAnyFilterActive(){
+  var f=_reportFilters||{};
+  return(f.nse!=='all'||f.gender!=='all'||f.age!=='all'||f.mobility!=='all'||f.dayType!=='all'||f.timeOfDay!=='all');
+}
+
+function _updateFilterButtonBadge(){
+  var btn=document.getElementById('tmenu-filtros');
+  if(!btn)return;
+  var active=_hasAnyFilterActive();
+  // Count active dims
+  var count=0;var f=_reportFilters||{};
+  ['nse','gender','age','mobility','dayType','timeOfDay'].forEach(function(k){if(f[k]&&f[k]!=='all')count++;});
+  var existing=btn.querySelector('.flt-badge');if(existing)existing.remove();
+  if(active){
+    var b=document.createElement('span');
+    b.className='flt-badge';
+    b.textContent=String(count);
+    b.style.cssText='margin-left:5px;background:#6D28D9;color:#fff;border-radius:8px;padding:1px 6px;font-size:9px;font-weight:700;vertical-align:middle';
+    btn.appendChild(b);
+    btn.style.background='rgba(109,40,217,.08)';
+    btn.style.color='#6D28D9';
+  }else{
+    btn.style.background='';
+    btn.style.color='';
+  }
+}
+
+// Toggle the GLOBAL filter panel (opened from topbar button)
+function toggleGlobalFilterPanel(forceState){
+  var panel=document.getElementById('global-filter-panel');
+  if(!panel)return;
+  var isHidden=(panel.style.display==='none'||panel.style.display==='');
+  var shouldShow;
+  if(forceState===true)shouldShow=true;
+  else if(forceState===false)shouldShow=false;
+  else shouldShow=isHidden;
+  panel.style.display=shouldShow?'flex':'none';
+  if(shouldShow){
+    // Also close the smaller report-panel filter so there's only one source of truth
+    try{toggleReportSegmentPanel(false);}catch(e){}
+    // Populate options (need currentData)
+    if(currentData){try{_populateReportFilterOptions();}catch(e){}}
+    else{
+      // show a friendly hint if there's no data yet
+      var hint=document.getElementById('gflt-summary-hint');
+      if(hint){hint.textContent='Primero selecciona un área en el mapa para activar los filtros.';hint.style.color='#d97706';hint.style.fontWeight='600';}
+    }
+    // Sync selects with current state
+    var set=function(id,v){var el=document.getElementById(id);if(el)el.value=v||'all';};
+    set('gflt-nse',_reportFilters.nse);
+    set('gflt-gender',_reportFilters.gender);
+    set('gflt-age',_reportFilters.age);
+    set('gflt-mobility',_reportFilters.mobility);
+    set('gflt-daytype',_reportFilters.dayType);
+    set('gflt-timeofday',_reportFilters.timeOfDay);
+  }
+}
+
+// Toggle the collapsible demographic filter panel (in-report, legacy)
+function toggleReportSegmentPanel(forceState){
+  var bar=document.getElementById('report-segment-bar');
+  if(!bar)return;
+  var btn=document.getElementById('btn-report-filters');
+  var isHidden=(bar.style.display==='none'||bar.style.display==='');
+  var shouldShow;
+  if(forceState===true)shouldShow=true;
+  else if(forceState===false)shouldShow=false;
+  else shouldShow=isHidden;
+  bar.style.display=shouldShow?'block':'none';
+  if(shouldShow){
+    try{_populateReportFilterOptions();}catch(e){}
+    if(btn){
+      btn.style.background='rgba(255,255,255,.35)';
+      btn.style.borderColor='rgba(255,255,255,.7)';
+    }
+  }else{
+    if(btn){
+      btn.style.background='rgba(255,255,255,.15)';
+      btn.style.borderColor='rgba(255,255,255,.4)';
+    }
+  }
+}
+
+// Compute intersection factor + filtered data envelope for ALL active filters
+// Dimensions: NSE, género, edad, movilidad, día (semana/sábado/domingo), horario
+function _computeFilterEnvelope(){
+  var d=currentData;if(!d)return null;
+  var pop=d.estPop||0;var hog=d.estHog||0;
+  var f=_reportFilters||{};
+  var nsePct=100,genPct=100,agePct=100;
+  var nseLabel='Todos',genLabel='Todos',ageLabel='Todos';
+  // NSE
+  if(f.nse&&f.nse!=='all'){
+    var hit=(d.nse||[]).filter(function(n){return n.n===f.nse})[0];
+    if(hit){nsePct=hit.p||0;nseLabel=hit.n;}
+  }
+  // Género
+  var alc=(typeof _resolveAlcDemo==='function'?_resolveAlcDemo(d):null);
+  var gen=(typeof _getGender==='function'?_getGender(alc,d.ce||{}):{m:50,f:50});
+  if(f.gender==='m'){genPct=gen.m||0;genLabel='Hombres';}
+  else if(f.gender==='f'){genPct=gen.f||0;genLabel='Mujeres';}
+  // Edad
+  if(f.age&&f.age!=='all'){
+    var ages=(typeof _getAgeRanges7==='function'?_getAgeRanges7(alc,d.ce||{}):[]);
+    var ahit=ages.filter(function(a){return a.l===f.age})[0];
+    if(ahit){agePct=ahit.v||0;ageLabel=ahit.l+' años';}
+  }
+  // ===== MOVILIDAD (no reduce población, pero enfoca impactos) =====
+  // Ese filtro NO recorta la población: cambia qué share de movilidad se considera.
+  var dens=(d.ce&&d.ce.dens)||0;
+  var vehShareFull=dens>3000?0.29:dens>1000?0.35:0.45;
+  var transitShareFull=dens>3000?0.46:dens>1000?0.35:0.20;
+  var pedShareFull=dens>3000?0.22:dens>1000?0.27:0.30;
+  var bikeShareFull=dens>3000?0.03:0.02;
+  var mobFocus=1,mobLabel='Todos los modos',mobKey='all';
+  if(f.mobility==='vehicle'){mobFocus=vehShareFull;mobLabel='Vehículos';mobKey='vehicle';}
+  else if(f.mobility==='pedestrian'){mobFocus=pedShareFull;mobLabel='Peatones';mobKey='pedestrian';}
+  else if(f.mobility==='transit'){mobFocus=transitShareFull;mobLabel='Transporte público';mobKey='transit';}
+  else if(f.mobility==='bike'){mobFocus=bikeShareFull;mobLabel='Bicicleta';mobKey='bike';}
+  // ===== DÍA DE LA SEMANA =====
+  // Multiplicador típico de tráfico diario según día (EOD ZMVM + observación mall)
+  var dayMult=1,dayLabel='Toda la semana',dayKey='all';
+  if(f.dayType==='weekday'){dayMult=1.00;dayLabel='Lun–Vie';dayKey='weekday';}     // baseline
+  else if(f.dayType==='saturday'){dayMult=1.15;dayLabel='Sábado';dayKey='saturday';}  // mayor actividad comercial
+  else if(f.dayType==='sunday'){dayMult=0.72;dayLabel='Domingo';dayKey='sunday';}    // menor tráfico
+  // La fracción de días del periodo (para normalizar escalas mensuales: 5/7, 1/7, 1/7)
+  var dayFracPeriod=1;
+  if(f.dayType==='weekday')dayFracPeriod=5/7;
+  else if(f.dayType==='saturday')dayFracPeriod=1/7;
+  else if(f.dayType==='sunday')dayFracPeriod=1/7;
+  // ===== HORARIO DEL DÍA =====
+  // Fracciones típicas del total diario por bloque horario (EOD ZMVM)
+  var timeFrac=1,timeLabel='Todo el día',timeKey='all';
+  if(f.timeOfDay==='morning'){timeFrac=0.30;timeLabel='Mañana (6–12 h)';timeKey='morning';}
+  else if(f.timeOfDay==='midday'){timeFrac=0.25;timeLabel='Mediodía (12–16 h)';timeKey='midday';}
+  else if(f.timeOfDay==='afternoon'){timeFrac=0.30;timeLabel='Tarde (16–20 h)';timeKey='afternoon';}
+  else if(f.timeOfDay==='evening'){timeFrac=0.15;timeLabel='Noche (20–24 h)';timeKey='evening';}
+
+  // Factor demográfico (reduce población)
+  var demoFactor=(nsePct/100)*(genPct/100)*(agePct/100);
+  // Factor total de movilidad (para impactos y flujos): demo × mobFocus × dayMult × timeFrac × dayFracPeriod
+  var mobilityFactor=demoFactor*mobFocus*dayMult*timeFrac*dayFracPeriod;
+  var anyDemo=(f.nse!=='all'||f.gender!=='all'||f.age!=='all');
+  var anyMob=(f.mobility!=='all'||f.dayType!=='all'||f.timeOfDay!=='all');
+  var anyActive=anyDemo||anyMob;
+  return{
+    factor:demoFactor,           // población filtrada (para KPIs demográficos)
+    mobilityFactor:mobilityFactor, // flujos/impactos filtrados
+    anyActive:anyActive,
+    anyDemo:anyDemo,
+    anyMob:anyMob,
+    nseLabel:nseLabel,nsePct:nsePct,
+    genLabel:genLabel,genPct:genPct,
+    ageLabel:ageLabel,agePct:agePct,
+    mobKey:mobKey,mobLabel:mobLabel,mobFocus:mobFocus,
+    dayKey:dayKey,dayLabel:dayLabel,dayMult:dayMult,dayFracPeriod:dayFracPeriod,
+    timeKey:timeKey,timeLabel:timeLabel,timeFrac:timeFrac,
+    filteredPop:Math.round(pop*demoFactor),
+    filteredHog:Math.round(hog*demoFactor)
+  };
+}
+
+function _renderFilterSummary(env){
+  if(!env||!env.anyActive)return '';
+  var d=currentData;if(!d)return '';
+  var ce=d.ce||{};var en=d.en||{};var gt=en.gt||{};
+  var pop=d.estPop||0;var hog=d.estHog||0;var dens=ce.dens||0;
+  var fp=calcFlowParams(dens,d.areaSqKm||0.785);
+  // Impactos basados en el mobilityFactor (demo × modo × día × horario × periodicidad)
+  var baseVeh=Math.round(pop*fp.tripsPerP*fp.vehShare*fp.throughMult*30);
+  var scaledVeh=Math.round(baseVeh*env.mobilityFactor/Math.max(env.mobFocus,1e-9));
+  // Impactos contextualizados: si movilidad='vehicle' → solo impVeh; si 'pedestrian' → impPer; etc.
+  var impVeh=0,impPer=0;
+  if(env.mobKey==='all'||env.mobKey==='vehicle')impVeh=Math.round(pop*env.factor*fp.tripsPerP*fp.vehShare*fp.throughMult*30*env.dayMult*env.timeFrac*env.dayFracPeriod);
+  if(env.mobKey==='all'||env.mobKey==='pedestrian')impPer=Math.round(pop*env.factor*fp.tripsPerP*fp.pedShare*fp.throughMult*30*env.dayMult*env.timeFrac*env.dayFracPeriod);
+  // Impacto "persona" original (× 1.44 ocupación vehicular)
+  var impPerVeh=Math.round(impVeh*1.44);
+  var impTotal=impVeh+impPer+impPerVeh;
+  // Ingresos agregados (per cápita × pob filtrada)
+  var ingPC=d.ing||en.ingPC||en.ing||0;
+  var gasPC=d.gas||en.gasPC||en.gas||0;
+  var aggIng=Math.round(ingPC*env.filteredPop);
+  var aggGas=Math.round(gasPC*env.filteredPop);
+  var ingHog=d.ingHog||en.ing||0;
+  var aggIngHog=Math.round(ingHog*env.filteredHog);
+  function f(n){if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Math.round(n).toLocaleString('es-MX');}
+  var h='';
+  h+='<div style="background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;padding:10px 12px;border-radius:8px;margin-bottom:10px">';
+  h+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;opacity:.9;margin-bottom:4px;display:flex;justify-content:space-between"><span>🎯 Segmento activo</span><span style="font-weight:600">Factor: '+(env.mobilityFactor*100).toFixed(3)+'%</span></div>';
+  h+='<div style="font-size:11px;font-weight:600;margin-bottom:6px;line-height:1.8">';
+  var pill=function(txt){return'<span style="background:rgba(255,255,255,.2);padding:2px 6px;border-radius:4px;margin-right:4px;display:inline-block">'+txt+'</span>';};
+  if(_reportFilters.nse!=='all')h+=pill('NSE '+env.nseLabel+' ('+env.nsePct.toFixed(1)+'%)');
+  if(_reportFilters.gender!=='all')h+=pill(env.genLabel+' ('+env.genPct.toFixed(1)+'%)');
+  if(_reportFilters.age!=='all')h+=pill(env.ageLabel+' ('+env.agePct.toFixed(1)+'%)');
+  if(_reportFilters.mobility!=='all')h+=pill('🚦 '+env.mobLabel+' ('+(env.mobFocus*100).toFixed(0)+'%)');
+  if(_reportFilters.dayType!=='all')h+=pill('📅 '+env.dayLabel+' (×'+env.dayMult.toFixed(2)+')');
+  if(_reportFilters.timeOfDay!=='all')h+=pill('🕐 '+env.timeLabel+' ('+(env.timeFrac*100).toFixed(0)+'%)');
+  h+='</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:10px">';
+  h+='<div style="background:rgba(255,255,255,.15);padding:6px 8px;border-radius:6px"><div style="font-size:8px;opacity:.85;text-transform:uppercase">Pob. filtrada</div><div style="font-size:14px;font-weight:800">'+f(env.filteredPop)+'</div><div style="font-size:8px;opacity:.75">'+(env.factor*100).toFixed(2)+'% del total</div></div>';
+  h+='<div style="background:rgba(255,255,255,.15);padding:6px 8px;border-radius:6px"><div style="font-size:8px;opacity:.85;text-transform:uppercase">Hogares filt.</div><div style="font-size:14px;font-weight:800">'+f(env.filteredHog)+'</div><div style="font-size:8px;opacity:.75">de '+f(hog)+'</div></div>';
+  h+='<div style="background:rgba(255,255,255,.15);padding:6px 8px;border-radius:6px"><div style="font-size:8px;opacity:.85;text-transform:uppercase">⚡ Impacto total</div><div style="font-size:14px;font-weight:800">'+f(impTotal)+'</div><div style="font-size:8px;opacity:.75">'+f(impVeh)+' veh + '+f(impPer+impPerVeh)+' per /mes</div></div>';
+  h+='</div>';
+  h+='<div style="margin-top:6px;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-size:10px">';
+  h+='<div style="background:rgba(255,255,255,.15);padding:6px 8px;border-radius:6px"><div style="font-size:8px;opacity:.85;text-transform:uppercase">Ingreso agregado</div><div style="font-size:13px;font-weight:800">$'+f(aggIng)+'</div><div style="font-size:8px;opacity:.75">per cápita × pob. filtrada / mes</div></div>';
+  h+='<div style="background:rgba(255,255,255,.15);padding:6px 8px;border-radius:6px"><div style="font-size:8px;opacity:.85;text-transform:uppercase">Gasto agregado</div><div style="font-size:13px;font-weight:800">$'+f(aggGas)+'</div><div style="font-size:8px;opacity:.75">per cápita × pob. filtrada / mes</div></div>';
+  h+='</div>';
+  h+='<div style="font-size:8px;opacity:.75;margin-top:6px">Ingreso hogar agregado del segmento: <b>$'+f(aggIngHog)+'</b>/mes</div>';
+  h+='</div>';
+  return h;
+}
+
 function updateReportContent(){
   var content=document.getElementById('report-content');
 
@@ -7318,8 +7715,11 @@ function updateReportContent(){
     content.innerHTML='<div style="color:#94a3b8;font-size:12px">No hay datos disponibles</div>';
     return;
   }
+  _populateReportFilterOptions();
+  var _env=_computeFilterEnvelope();
+  var _filterBanner=_renderFilterSummary(_env);
 
-  var html=_reportDeepView?generateDeepView():generateQuickview();
+  var html=_filterBanner+(_reportDeepView?generateDeepView():generateQuickview());
   // Add save/load session buttons at bottom
   html+='<div style="display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0">';
   html+='<button onclick="saveSession()" style="flex:1;padding:4px;background:#1d1d1f;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:9px">💾 Guardar sesión</button>';
@@ -7908,7 +8308,7 @@ function generateDeepView(){
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px">';
   h+='<div>Vehículos/mes: <b>'+f(vehD*30)+'</b></div>';
   h+='<div>Peatones/mes: <b>'+f(pedD*30)+'</b></div>';
-  h+='<div>Viajes/día: <b>'+f(totalTrips)+'</b></div>';
+  h+='<div>Viajes/mes: <b>'+f(totalTrips*30)+'</b></div>';
   h+='<div>OOH veh/mes: <b>'+f(Math.round(vehD*30*0.52))+'</b></div>';
   h+='</div></div>';
 
@@ -7919,19 +8319,351 @@ function generateDeepView(){
 
 function exportReportPDF(){
   setStatus('Generando PDF del reporte...');
-  var content=document.getElementById('report-content');
-  if(!content||!currentData){setStatus('Sin datos para exportar');return;}
-  // Use print-based PDF export
+  if(!currentData){setStatus('Sin datos para exportar');return;}
+  var d=currentData;
+  var ce=d.ce||{};var en=d.en||{};var gt=en.gt||{};
+  // ===== Filter envelope =====
+  var _pdfEnv=(typeof _computeFilterEnvelope==='function'?_computeFilterEnvelope():null);
+  var _segActive=!!(_pdfEnv&&_pdfEnv.anyActive);
+  var _demoFactor=_pdfEnv?_pdfEnv.factor:1;       // población
+  var _mobFactor=_pdfEnv?_pdfEnv.mobilityFactor:1; // flujos
+  var pop=Math.round((d.estPop||0)*(_segActive?_demoFactor:1));
+  var hog=Math.round((d.estHog||0)*(_segActive?_demoFactor:1));
+  var popFull=d.estPop||0;
+  var hogFull=d.estHog||0;
+  var dens=ce.dens||0;
+  var alc=(typeof _resolveAlcDemo==='function'?_resolveAlcDemo(d):null);
+  var gen=(typeof _getGender==='function'?_getGender(alc,ce):{m:50,f:50});
+  var ages=(typeof _getAgeRanges7==='function'?_getAgeRanges7(alc,ce):[]);
+  // ===== Centro / radio =====
+  var centerLat=(d.center&&typeof d.center.lat==='function')?d.center.lat():null;
+  var centerLng=(d.center&&typeof d.center.lng==='function')?d.center.lng():null;
+  var radiusM=d.radiusM||0;
+  var areaStr=(d.areaSqKm<1?(d.areaSqKm*1e6).toFixed(0)+' m²':(d.areaSqKm||0).toFixed(2)+' km²');
+  var radiusStr=(radiusM<1000?Math.round(radiusM)+' m':(radiusM/1000).toFixed(2)+' km');
+  // ===== Conectividad =====
+  var inet=ce.inet||0;
+  // ===== Movilidad =====
+  var fp=calcFlowParams(dens,d.areaSqKm||0.785);
+  var transitShare=dens>3000?0.46:dens>1000?0.35:0.20;
+  var bikeShare=dens>3000?0.03:0.02;
+  // Full (sin filtros) — para tabla comparativa
+  var totalTripsFull=Math.round(popFull*fp.tripsPerP);
+  var vehMonthlyFull=Math.round(totalTripsFull*fp.vehShare*fp.throughMult*30);
+  var pedMonthlyFull=Math.round(totalTripsFull*fp.pedShare*fp.throughMult*30);
+  var impVehFull=vehMonthlyFull;
+  var impPerFull=Math.round(vehMonthlyFull*1.44);
+  var impTotalFull=impVehFull+impPerFull;
+  // Filtrado (si hay filtros activos)
+  var fracMob=_segActive?(_mobFactor/Math.max(_demoFactor,1e-9)):1;
+  var dayMult=_pdfEnv?_pdfEnv.dayMult:1;
+  var timeFrac=_pdfEnv?_pdfEnv.timeFrac:1;
+  var dayFrac=_pdfEnv?_pdfEnv.dayFracPeriod:1;
+  var totalTrips=Math.round(pop*fp.tripsPerP*dayMult*timeFrac*dayFrac);
+  var vehMonthly=Math.round(pop*fp.tripsPerP*fp.vehShare*fp.throughMult*30*dayMult*timeFrac*dayFrac);
+  var pedMonthly=Math.round(pop*fp.tripsPerP*fp.pedShare*fp.throughMult*30*dayMult*timeFrac*dayFrac);
+  var transitMonthly=Math.round(pop*fp.tripsPerP*transitShare*fp.throughMult*30*dayMult*timeFrac*dayFrac);
+  var bikeMonthly=Math.round(pop*fp.tripsPerP*bikeShare*fp.throughMult*30*dayMult*timeFrac*dayFrac);
+  var impVeh=vehMonthly;
+  var impPer=Math.round(vehMonthly*1.44);
+  var impTotal=impVeh+impPer;
+  // OTS (Opportunities To See) — contactos visuales promedio
+  var _motorRate=(typeof _calcMotorRate==='function'?_calcMotorRate(dens):(dens>3000?0.31:dens>1000?0.44:0.58));
+  var otsMonthly=(fp.tripsPerP*fp.vehShare*30)/Math.max(_motorRate,0.01);
+  // OOH vehicular (51% del flujo visible)
+  var oohVeh=Math.round(vehMonthly*0.52);
+  // ===== Ingresos =====
+  var ingPC=d.ing||en.ingPC||en.ing||0;
+  var gasPC=d.gas||en.gasPC||en.gas||0;
+  var ingHog=d.ingHog||en.ing||0;
+  var gasHog=d.gasHog||en.gas||0;
+  var ahorroPC=ingPC-gasPC;
+  var ahorroHog=ingHog-gasHog;
+  // Agregados (ingreso total del segmento)
+  var aggIngPobl=Math.round(ingPC*pop);
+  var aggGasPobl=Math.round(gasPC*pop);
+  var aggIngHog=Math.round(ingHog*hog);
+  // ===== NSE =====
+  var nseArr=d.nse||[];
+  var nseMax=nseArr.length>0?Math.max.apply(null,nseArr.map(function(x){return x.p||0})):1;
+  // ===== Gastos =====
+  var gastosArr=[
+    {n:'Alimentación',v:gt.alim||0,c:'#d97706'},
+    {n:'Transporte',v:gt.trans||0,c:'#2563eb'},
+    {n:'Vivienda',v:gt.viv||0,c:'#8b5cf6'},
+    {n:'Educación',v:gt.educ||0,c:'#16a34a'},
+    {n:'Salud',v:gt.salud||0,c:'#dc2626'},
+    {n:'Comunicaciones',v:gt.comunic||0,c:'#0891b2'},
+    {n:'Cuidado personal',v:gt.cuida||0,c:'#ea580c'},
+    {n:'Limpieza',v:gt.limp||0,c:'#64748b'},
+    {n:'Vestido',v:gt.vest||0,c:'#be185d'}
+  ];
+  var gastoTotal=gt.total||gastosArr.reduce(function(a,x){return a+(x.v||0);},0)||1;
+  gastosArr.sort(function(a,b){return(b.v||0)-(a.v||0);});
+  var gastoMax=Math.max.apply(null,gastosArr.map(function(x){return x.v||0}));
+  // ===== Distribución horaria típica =====
+  var hourlyData=[
+    {h:'6-8 h',p:5,l:'Temprano'},
+    {h:'8-10 h',p:12,l:'Rush matutino'},
+    {h:'10-12 h',p:13,l:'Media mañana'},
+    {h:'12-14 h',p:15,l:'Mediodía'},
+    {h:'14-16 h',p:14,l:'Tarde temprana'},
+    {h:'16-18 h',p:15,l:'Salida oficinas'},
+    {h:'18-20 h',p:13,l:'Rush vespertino'},
+    {h:'20-22 h',p:8,l:'Noche temprana'},
+    {h:'22-24 h',p:3,l:'Noche'},
+    {h:'0-6 h',p:2,l:'Madrugada'}
+  ];
+  var hourMax=Math.max.apply(null,hourlyData.map(function(x){return x.p;}));
+  var _fmtN=function(n){return(Math.round(n||0)).toLocaleString('es-MX');};
+  var _fmtM=function(n){return'$'+_fmtN(n);};
+  var _pill=function(txt,bg){bg=bg||'#6D28D9';return'<span style="background:'+bg+';color:#fff;padding:2px 8px;border-radius:10px;margin-right:5px;font-size:9px;font-weight:600;display:inline-block;margin-bottom:3px">'+txt+'</span>';};
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Connectia — '+(en.n||'Reporte')+'</title>';
+  html+='<style>';
+  html+='@page{size:letter;margin:14mm}';
+  html+='*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}';
+  html+='body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;margin:0;padding:0;color:#1d1d1f;font-size:11px;line-height:1.4}';
+  html+='.hdr{background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;padding:18px 22px;margin-bottom:14px;border-radius:8px}';
+  html+='.hdr h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px}';
+  html+='.hdr p{margin:4px 0 0;font-size:11px;opacity:.9}';
+  html+='h2{font-size:13px;margin:16px 0 8px;color:#1d1d1f;border-left:4px solid #6D28D9;padding:4px 0 4px 10px;background:#faf5ff;font-weight:700}';
+  html+='h3{font-size:11px;margin:10px 0 5px;color:#6D28D9;font-weight:700;text-transform:uppercase;letter-spacing:.5px}';
+  html+='.kpi4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 12px}';
+  html+='.kpi3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 12px}';
+  html+='.kpi2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:6px 0 12px}';
+  html+='.kpi{background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:9px 11px}';
+  html+='.kpi .lbl{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:#6D28D9;font-weight:600}';
+  html+='.kpi .val{font-size:17px;font-weight:800;color:#1d1d1f;margin-top:2px}';
+  html+='.kpi .sub{font-size:8px;color:#64748b;margin-top:2px;line-height:1.3}';
+  html+='.impact{background:linear-gradient(135deg,#faf5ff,#f3e8ff);border:1px solid #d8b4fe}';
+  html+='.impact .val{color:#6D28D9}';
+  html+='table{width:100%;border-collapse:collapse;margin:6px 0 12px;font-size:10px}';
+  html+='th{background:#6D28D9;color:#fff;padding:6px 8px;text-align:left;font-weight:600;font-size:10px}';
+  html+='td{padding:6px 8px;border-bottom:1px solid #e2e8f0}';
+  html+='tr:nth-child(even) td{background:#faf5ff}';
+  html+='.num{text-align:right;font-variant-numeric:tabular-nums}';
+  html+='.bar-row{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:10px}';
+  html+='.bar-lbl{width:110px;color:#475569;font-weight:500}';
+  html+='.bar-track{flex:1;background:#e9d5ff;border-radius:3px;height:12px;overflow:hidden;position:relative}';
+  html+='.bar-fill{height:100%;border-radius:3px}';
+  html+='.bar-val{width:110px;text-align:right;color:#1d1d1f;font-weight:600;font-variant-numeric:tabular-nums;font-size:10px}';
+  html+='.footer{margin-top:20px;padding-top:10px;border-top:2px solid #e9d5ff;font-size:8px;color:#94a3b8;text-align:center}';
+  html+='.page-break{page-break-before:always}';
+  html+='.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}';
+  html+='.box{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px}';
+  html+='.box .bxt{font-size:10px;font-weight:700;color:#6D28D9;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}';
+  html+='.modal-row{display:flex;align-items:center;gap:8px;margin:4px 0}';
+  html+='.modal-lbl{width:90px;font-size:10px;color:#475569}';
+  html+='.modal-track{flex:1;background:#e2e8f0;border-radius:3px;height:10px;overflow:hidden}';
+  html+='.modal-fill{height:100%}';
+  html+='.modal-val{width:60px;text-align:right;font-size:10px;color:#1d1d1f;font-weight:600}';
+  html+='.loc-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 12px;font-size:10px;margin-bottom:10px}';
+  html+='.loc-box span{display:inline-block;margin-right:14px}';
+  html+='.loc-box b{color:#1d1d1f}';
+  html+='@media print{.no-print{display:none}}';
+  html+='.toolbar{position:fixed;top:10px;right:10px;background:#1d1d1f;color:#fff;padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:600;z-index:9999;border:none;font-size:12px}';
+  html+='</style></head><body>';
+  html+='<button class="toolbar no-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>';
+
+  // ===== HEADER =====
+  html+='<div class="hdr">';
+  html+='<h1>Connectia — Reporte de Inteligencia Geoespacial</h1>';
+  html+='<p>'+escapeHtmlPDF(en.n||'Área seleccionada')+' · Área: '+areaStr+' · Radio: '+radiusStr+' · '+new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'})+'</p>';
+  html+='</div>';
+
+  // ===== SEGMENT BANNER =====
+  if(_segActive){
+    html+='<div style="background:#faf5ff;border:2px solid #6D28D9;border-radius:8px;padding:12px 14px;margin-bottom:14px">';
+    html+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#6D28D9;font-weight:700;margin-bottom:6px">🎯 Reporte segmentado — Filtros activos</div>';
+    html+='<div style="margin-bottom:6px">';
+    if(_reportFilters.nse!=='all')html+=_pill('NSE '+_pdfEnv.nseLabel+' ('+_pdfEnv.nsePct.toFixed(1)+'%)','#6D28D9');
+    if(_reportFilters.gender!=='all')html+=_pill(_pdfEnv.genLabel+' ('+_pdfEnv.genPct.toFixed(1)+'%)','#8B3A9F');
+    if(_reportFilters.age!=='all')html+=_pill(_pdfEnv.ageLabel+' ('+_pdfEnv.agePct.toFixed(1)+'%)','#A855F7');
+    if(_reportFilters.mobility!=='all')html+=_pill('🚦 '+_pdfEnv.mobLabel+' ('+(_pdfEnv.mobFocus*100).toFixed(0)+'%)','#2563eb');
+    if(_reportFilters.dayType!=='all')html+=_pill('📅 '+_pdfEnv.dayLabel+' (×'+_pdfEnv.dayMult.toFixed(2)+')','#059669');
+    if(_reportFilters.timeOfDay!=='all')html+=_pill('🕐 '+_pdfEnv.timeLabel+' ('+(_pdfEnv.timeFrac*100).toFixed(0)+'%)','#dc2626');
+    html+='</div>';
+    html+='<div style="font-size:10px;color:#64748b;line-height:1.5">';
+    html+='Factor demográfico: <b>'+(_demoFactor*100).toFixed(3)+'%</b> · ';
+    html+='Factor de movilidad total: <b>'+(_mobFactor*100).toFixed(3)+'%</b><br>';
+    html+='Población total del área: '+_fmtN(popFull)+' → <b>Población filtrada: '+_fmtN(pop)+'</b> · Hogares: '+_fmtN(hogFull)+' → <b>'+_fmtN(hog)+'</b>';
+    html+='</div></div>';
+  }
+
+  // ===== UBICACIÓN =====
+  html+='<div class="loc-box">';
+  html+='<span><b>📍 Ubicación:</b> '+escapeHtmlPDF(en.n||'—')+'</span>';
+  if(centerLat!==null)html+='<span><b>Centro:</b> '+centerLat.toFixed(5)+', '+centerLng.toFixed(5)+'</span>';
+  html+='<span><b>Área:</b> '+areaStr+'</span>';
+  html+='<span><b>Radio:</b> '+radiusStr+'</span>';
+  html+='</div>';
+
+  // ===== POBLACIÓN (KPIs principales) =====
+  html+='<h2>👥 Población y Demografía</h2>';
+  html+='<div class="kpi4">';
+  html+='<div class="kpi"><div class="lbl">Población</div><div class="val">'+_fmtN(pop)+'</div><div class="sub">personas (proyección 2026)</div></div>';
+  html+='<div class="kpi"><div class="lbl">Hogares</div><div class="val">'+_fmtN(hog)+'</div><div class="sub">unidades habitacionales</div></div>';
+  html+='<div class="kpi"><div class="lbl">Densidad</div><div class="val">'+_fmtN(dens)+'</div><div class="sub">hab/km²</div></div>';
+  html+='<div class="kpi"><div class="lbl">Edad mediana</div><div class="val">'+(ce.med||'—')+'</div><div class="sub">años · Internet: '+Math.round(inet)+'%</div></div>';
+  html+='</div>';
+
+  // ===== GÉNERO + EDAD grid =====
+  html+='<div class="grid2">';
+  // Gender
+  html+='<div class="box"><div class="bxt">Género</div>';
+  html+='<div style="display:flex;height:24px;border-radius:4px;overflow:hidden;margin:6px 0">';
+  html+='<div style="background:#2563eb;width:'+gen.m+'%;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">👨 '+gen.m+'%</div>';
+  html+='<div style="background:#ec4899;width:'+gen.f+'%;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">👩 '+gen.f+'%</div>';
+  html+='</div>';
+  html+='<div style="font-size:10px;color:#475569;margin-top:4px">';
+  html+='<div>Hombres: <b>'+_fmtN(Math.round(pop*gen.m/100))+'</b> · '+gen.m+'%</div>';
+  html+='<div>Mujeres: <b>'+_fmtN(Math.round(pop*gen.f/100))+'</b> · '+gen.f+'%</div>';
+  html+='</div></div>';
+  // Ages
+  html+='<div class="box"><div class="bxt">Edad (7 rangos)</div>';
+  if(ages.length>0){
+    var ageMax=Math.max.apply(null,ages.map(function(a){return a.v||0}));
+    ages.forEach(function(a){
+      var pct=a.v||0;
+      var widthPct=Math.round((pct/ageMax)*100);
+      var personas=Math.round(pop*pct/100);
+      html+='<div class="bar-row">';
+      html+='<div class="bar-lbl" style="width:56px;font-size:9px">'+a.l+'</div>';
+      html+='<div class="bar-track" style="background:#e2e8f0;height:10px"><div class="bar-fill" style="width:'+widthPct+'%;background:'+(a.c||'#6D28D9')+'"></div></div>';
+      html+='<div class="bar-val" style="width:90px;font-size:9px">'+_fmtN(personas)+' ('+pct.toFixed(1)+'%)</div>';
+      html+='</div>';
+    });
+  }
+  html+='</div>';
+  html+='</div>';
+
+  // ===== NSE =====
+  if(nseArr.length>0){
+    html+='<h2>🏠 Distribución por Nivel Socioeconómico</h2>';
+    html+='<div class="box">';
+    html+='<div style="font-size:10px;color:#475569;margin-bottom:6px">NSE dominante: <b style="color:#6D28D9">'+(d.dominant||nseArr[0].n)+'</b></div>';
+    nseArr.forEach(function(n){
+      var pct=n.p||0;
+      var widthPct=Math.round((pct/nseMax)*100);
+      var personas=Math.round(pop*pct/100);
+      html+='<div class="bar-row">';
+      html+='<div class="bar-lbl" style="font-weight:700;color:'+(n.c||'#6D28D9')+'">'+n.n+'</div>';
+      html+='<div class="bar-track" style="background:'+(n.c||'#6D28D9')+'22"><div class="bar-fill" style="width:'+widthPct+'%;background:'+(n.c||'#6D28D9')+'"></div></div>';
+      html+='<div class="bar-val">'+_fmtN(personas)+' ('+pct.toFixed(1)+'%)</div>';
+      html+='</div>';
+    });
+    html+='<div style="font-size:9px;color:#64748b;margin-top:6px">Fuente: INEGI ENIGH 2024 · AMAI 2023</div>';
+    html+='</div>';
+  }
+
+  // ===== ECONOMÍA =====
+  html+='<div class="page-break"></div>';
+  html+='<h2>💰 Economía del Hogar (ENIGH 2024)</h2>';
+  html+='<table>';
+  html+='<tr><th>Concepto</th><th class="num">Per cápita / mes</th><th class="num">Por hogar / mes</th><th class="num">Agregado del segmento</th></tr>';
+  html+='<tr><td>Ingreso</td><td class="num" style="color:#16a34a;font-weight:700">'+_fmtM(ingPC)+'</td><td class="num" style="color:#16a34a;font-weight:700">'+_fmtM(ingHog)+'</td><td class="num" style="color:#16a34a;font-weight:700">'+_fmtM(aggIngPobl)+'</td></tr>';
+  html+='<tr><td>Gasto</td><td class="num" style="color:#dc2626;font-weight:700">'+_fmtM(gasPC)+'</td><td class="num" style="color:#dc2626;font-weight:700">'+_fmtM(gasHog)+'</td><td class="num" style="color:#dc2626;font-weight:700">'+_fmtM(aggGasPobl)+'</td></tr>';
+  html+='<tr><td><b>Ahorro</b></td><td class="num" style="color:#2563eb;font-weight:700">'+_fmtM(ahorroPC)+'</td><td class="num" style="color:#2563eb;font-weight:700">'+_fmtM(ahorroHog)+'</td><td class="num" style="color:#2563eb;font-weight:700">'+_fmtM((ingPC-gasPC)*pop)+'</td></tr>';
+  html+='</table>';
+  html+='<div style="font-size:9px;color:#64748b;margin-bottom:12px">Agregado = Per cápita × Población '+(_segActive?'filtrada':'total')+'. Ingreso hogar × Hogares '+(_segActive?'filtrados':'totales')+' = <b>'+_fmtM(aggIngHog)+'</b>/mes.</div>';
+
+  // ===== GASTOS POR CATEGORÍA =====
+  if(gastoTotal>0){
+    html+='<h2>🛒 Gasto Mensual por Categoría (por hogar)</h2>';
+    html+='<div class="box">';
+    gastosArr.forEach(function(g){
+      var pct=g.v/gastoTotal*100;
+      var widthPct=Math.round((g.v/gastoMax)*100);
+      html+='<div class="bar-row">';
+      html+='<div class="bar-lbl">'+g.n+'</div>';
+      html+='<div class="bar-track" style="background:'+g.c+'22"><div class="bar-fill" style="width:'+widthPct+'%;background:'+g.c+'"></div></div>';
+      html+='<div class="bar-val">'+_fmtM(g.v)+' · '+pct.toFixed(1)+'%</div>';
+      html+='</div>';
+    });
+    html+='<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:11px;color:#1d1d1f">';
+    html+='<span>Gasto total hogar/mes</span><b>'+_fmtM(gastoTotal)+'</b>';
+    html+='</div>';
+    html+='<div style="font-size:9px;color:#64748b;margin-top:4px">9 categorías COICOP · Fuente: INEGI ENIGH 2024 (ingreso y gasto de los hogares, trimestral convertido a mensual).</div>';
+    html+='</div>';
+  }
+
+  // ===== MOVILIDAD =====
+  html+='<h2>⚡ Movilidad e Impactos (Mensual)</h2>';
+  html+='<div class="kpi3">';
+  html+='<div class="kpi impact"><div class="lbl">Impacto Total</div><div class="val">'+_fmtN(impTotal)+'</div><div class="sub">veh + personas · mensual</div></div>';
+  html+='<div class="kpi impact"><div class="lbl">🚗 Vehículos</div><div class="val">'+_fmtN(impVeh)+'</div><div class="sub">impactos vehiculares/mes</div></div>';
+  html+='<div class="kpi impact"><div class="lbl">🚶 Personas</div><div class="val">'+_fmtN(impPer)+'</div><div class="sub">× 1.44 ocupación vehicular</div></div>';
+  html+='</div>';
+  // Desglose modal — proporcional
+  var modalData=[
+    {l:'🚗 Vehículos',p:fp.vehShare,v:vehMonthly,c:'#6D28D9'},
+    {l:'🚌 Transporte público',p:transitShare,v:transitMonthly,c:'#8B5CF6'},
+    {l:'🚶 Peatones',p:fp.pedShare,v:pedMonthly,c:'#A855F7'},
+    {l:'🚴 Bicicleta',p:bikeShare,v:bikeMonthly,c:'#C084FC'}
+  ];
+  var modalMaxV=Math.max.apply(null,modalData.map(function(x){return x.v||0;}))||1;
+  html+='<div class="box"><div class="bxt">Reparto Modal — Flujo Mensual Filtrado (EOD 2017 · INEGI)</div>';
+  modalData.forEach(function(md){
+    var pct=Math.round(md.p*100);
+    var widthPct=Math.round((md.v/modalMaxV)*100);
+    html+='<div class="modal-row"><div class="modal-lbl">'+md.l+'</div>';
+    html+='<div class="modal-track"><div class="modal-fill" style="width:'+widthPct+'%;background:'+md.c+'"></div></div>';
+    html+='<div class="modal-val">'+pct+'% · '+_fmtN(md.v)+'</div></div>';
+  });
+  html+='<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:9px;color:#64748b;line-height:1.6">';
+  html+='Viajes/día: <b>'+_fmtN(totalTrips)+'</b> · Viajes/persona: <b>'+fp.tripsPerP+'</b> · ';
+  html+='Multiplicador through-traffic: <b>'+fp.throughMult+'×</b> · ';
+  html+='Tasa motorización: <b>'+_motorRate.toFixed(2)+' veh/pers</b><br>';
+  html+='OTS (Opportunities To See) mensual: <b>'+_fmtN(otsMonthly*pop)+'</b> · ';
+  html+='OOH vehicular estimado: <b>'+_fmtN(oohVeh)+'</b> (52% del flujo visible)';
+  html+='</div></div>';
+
+  // ===== DISTRIBUCIÓN HORARIA =====
+  html+='<h2>🕐 Distribución Horaria del Flujo</h2>';
+  html+='<div class="box">';
+  hourlyData.forEach(function(hr){
+    var widthPct=Math.round(hr.p/hourMax*100);
+    var visitors=Math.round(impTotal*hr.p/100);
+    html+='<div class="bar-row">';
+    html+='<div class="bar-lbl" style="width:70px;font-size:9px">'+hr.h+'</div>';
+    html+='<div class="bar-track" style="background:#e9d5ff"><div class="bar-fill" style="width:'+widthPct+'%;background:linear-gradient(90deg,#6D28D9,#A855F7)"></div></div>';
+    html+='<div class="bar-val" style="font-size:9px">'+_fmtN(visitors)+' · '+hr.p+'%</div>';
+    html+='</div>';
+  });
+  html+='<div style="font-size:9px;color:#64748b;margin-top:6px">Distribución típica zona urbana · Picos: Rush matutino (8–10) y Rush vespertino (16–20).</div>';
+  html+='</div>';
+
+  // ===== TABLA COMPARATIVA si hay filtros =====
+  if(_segActive){
+    html+='<h2>📊 Comparativa — Total vs Segmento Filtrado</h2>';
+    html+='<table>';
+    html+='<tr><th>Indicador</th><th class="num">Total del área</th><th class="num">Segmento filtrado</th><th class="num">% del total</th></tr>';
+    html+='<tr><td>Población</td><td class="num">'+_fmtN(popFull)+'</td><td class="num"><b>'+_fmtN(pop)+'</b></td><td class="num">'+(_demoFactor*100).toFixed(2)+'%</td></tr>';
+    html+='<tr><td>Hogares</td><td class="num">'+_fmtN(hogFull)+'</td><td class="num"><b>'+_fmtN(hog)+'</b></td><td class="num">'+(_demoFactor*100).toFixed(2)+'%</td></tr>';
+    html+='<tr><td>Impactos veh/mes</td><td class="num">'+_fmtN(impVehFull)+'</td><td class="num"><b>'+_fmtN(impVeh)+'</b></td><td class="num">'+(impVehFull>0?(impVeh/impVehFull*100).toFixed(2):0)+'%</td></tr>';
+    html+='<tr><td>Impactos per/mes</td><td class="num">'+_fmtN(impPerFull)+'</td><td class="num"><b>'+_fmtN(impPer)+'</b></td><td class="num">'+(impPerFull>0?(impPer/impPerFull*100).toFixed(2):0)+'%</td></tr>';
+    html+='<tr><td>Impacto total/mes</td><td class="num">'+_fmtN(impTotalFull)+'</td><td class="num"><b>'+_fmtN(impTotal)+'</b></td><td class="num">'+(impTotalFull>0?(impTotal/impTotalFull*100).toFixed(2):0)+'%</td></tr>';
+    html+='<tr><td>Ingreso agregado/mes</td><td class="num">'+_fmtM(ingPC*popFull)+'</td><td class="num"><b>'+_fmtM(aggIngPobl)+'</b></td><td class="num">'+(_demoFactor*100).toFixed(2)+'%</td></tr>';
+    html+='</table>';
+  }
+
+  // ===== FOOTER =====
+  html+='<div class="footer">';
+  html+='Connectia · Inteligencia Geoespacial · Generado '+new Date().toLocaleString('es-MX')+'<br>';
+  html+='Fuentes: INEGI ENIGH 2024 · Censo de Población y Vivienda 2020 · EOD ZMVM 2017 · CONAPO 2020–2050 · AMAI 2023 · Geopath VAI · Google Places API · INEGI DENUE';
+  html+='</div>';
+  html+='</body></html>';
+
   var win=window.open('','_blank');
-  win.document.write('<html><head><title>Connectia - Reporte del Área</title><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px;font-size:12px}*{box-sizing:border-box}</style></head><body>');
-  win.document.write('<h1 style="color:#1d1d1f;font-weight:600">Connectia - Reporte del Area</h1>');
-  win.document.write('<p>Estado: '+(currentData.en?currentData.en.n:'')+ ' · Fecha: '+new Date().toLocaleDateString('es-MX')+'</p><hr>');
-  win.document.write(content.innerHTML);
-  win.document.write('</body></html>');
+  if(!win){setStatus('El navegador bloqueó la ventana emergente. Permite pop-ups para este sitio.');return;}
+  win.document.write(html);
   win.document.close();
-  setTimeout(function(){win.print();},500);
+  setTimeout(function(){try{win.print();}catch(e){}},700);
   setStatus('PDF listo para imprimir/guardar');
 }
+
+function escapeHtmlPDF(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function exportReportPPTX(){
   setStatus('Para exportar a PowerPoint, usa Ctrl+P > Guardar como PDF y luego convierte a PPTX');
@@ -7979,94 +8711,210 @@ function buildDENUEsummary(data){
 }
 
 var AFL_FACTORS={
-  'shopping_mall':{base:8000,reviewMult:3.5,empMult:18,icon:'\u{1F6CD}\u{FE0F}',label:'Plaza Comercial',color:'#7C3AED'},
-  'department_store':{base:3000,reviewMult:2.8,empMult:15,icon:'\u{1F3EC}',label:'Tienda Departamental',color:'#9333EA'},
-  'supermarket':{base:2500,reviewMult:2.0,empMult:12,icon:'\u{1F6D2}',label:'Supermercado',color:'#10B981'},
-  'airport':{base:45000,reviewMult:5.0,empMult:25,icon:'\u{2708}\u{FE0F}',label:'Aeropuerto',color:'#3B82F6'},
-  'stadium':{base:15000,reviewMult:4.0,empMult:20,icon:'\u{1F3DF}\u{FE0F}',label:'Estadio',color:'#EF4444'},
-  'movie_theater':{base:1200,reviewMult:1.8,empMult:10,icon:'\u{1F3AC}',label:'Cine',color:'#F59E0B'},
-  'hotel':{base:200,reviewMult:1.5,empMult:8,icon:'\u{1F3E8}',label:'Hotel',color:'#06B6D4'},
-  'hospital':{base:3500,reviewMult:2.5,empMult:14,icon:'\u{1F3E5}',label:'Hospital',color:'#DC2626'},
-  'university':{base:8000,reviewMult:3.0,empMult:16,icon:'\u{1F393}',label:'Universidad',color:'#8B5CF6'},
-  'bus_station':{base:12000,reviewMult:3.5,empMult:20,icon:'\u{1F68C}',label:'Terminal',color:'#D97706'},
-  'train_station':{base:18000,reviewMult:4.0,empMult:22,icon:'\u{1F689}',label:'Estaci\u00f3n Metro',color:'#0891B2'},
-  'church':{base:500,reviewMult:1.2,empMult:6,icon:'\u{26EA}',label:'Iglesia',color:'#A78BFA'},
-  'gym':{base:800,reviewMult:1.5,empMult:8,icon:'\u{1F4AA}',label:'Gimnasio',color:'#F472B6'},
-  'restaurant':{base:300,reviewMult:1.2,empMult:6,icon:'\u{1F37D}\u{FE0F}',label:'Restaurante',color:'#FB923C'},
-  'cafe':{base:200,reviewMult:1.0,empMult:5,icon:'\u{2615}',label:'Caf\u00e9',color:'#92400E'},
-  'bar':{base:250,reviewMult:1.3,empMult:5,icon:'\u{1F37A}',label:'Bar',color:'#7C2D12'},
-  'museum':{base:1500,reviewMult:2.0,empMult:10,icon:'\u{1F3DB}\u{FE0F}',label:'Museo',color:'#4338CA'},
-  'amusement_park':{base:5000,reviewMult:3.5,empMult:18,icon:'\u{1F3A2}',label:'Parque Diversiones',color:'#E11D48'},
-  'store':{base:400,reviewMult:1.0,empMult:5,icon:'\u{1F6CD}\u{FE0F}',label:'Tienda',color:'#64748B'},
-  'default':{base:500,reviewMult:1.2,empMult:6,icon:'\u{1F4CD}',label:'Establecimiento',color:'#7C3AED'}
+  // Methodology: base = avg daily visitors without reviews; reviewMult calibrated per category
+  // Formula: daily = max(base, reviews * reviewMult * (0.8 + rating/5 * 0.4))
+  // Sources: FEMSA, CANACINE, CNBV, SEDECO, CANIRAC, SEDEMA, SECTUR, SEP, Smart Fit
+  'shopping_mall':{base:5000,reviewMult:1.0,empMult:10,icon:'\u{1F6CD}\u{FE0F}',label:'Plaza Comercial',color:'#7C3AED',src:'ICSC/ANTAD 2024'},
+  'department_store':{base:1800,reviewMult:0.5,empMult:8,icon:'\u{1F3EC}',label:'Tienda Departamental',color:'#9333EA',src:'ANTAD'},
+  'supermarket':{base:1500,reviewMult:0.27,empMult:6,icon:'\u{1F6D2}',label:'Supermercado',color:'#10B981',src:'ANTAD/Walmart MX'},
+  'convenience_store':{base:650,reviewMult:0.17,empMult:4,icon:'\u{1F3EA}',label:'Tienda Conveniencia',color:'#059669',src:'FEMSA 13M txn/dia \u00f7 20K'},
+  'airport':{base:30000,reviewMult:1.8,empMult:15,icon:'\u{2708}\u{FE0F}',label:'Aeropuerto',color:'#3B82F6',src:'GAP/OMA/ASUR anuales'},
+  'stadium':{base:5000,reviewMult:0.8,empMult:10,icon:'\u{1F3DF}\u{FE0F}',label:'Estadio',color:'#EF4444',src:'FMF/CIE amortizado'},
+  'movie_theater':{base:500,reviewMult:0.14,empMult:4,icon:'\u{1F3AC}',label:'Cine',color:'#F59E0B',src:'CANACINE 218M/yr'},
+  'hotel':{base:80,reviewMult:0.08,empMult:3,icon:'\u{1F3E8}',label:'Hotel',color:'#06B6D4',src:'SECTUR 60.9% ocup'},
+  'hospital':{base:2000,reviewMult:0.9,empMult:8,icon:'\u{1F3E5}',label:'Hospital',color:'#DC2626',src:'IMSS/SS operacional'},
+  'university':{base:5000,reviewMult:0.8,empMult:10,icon:'\u{1F393}',label:'Universidad',color:'#8B5CF6',src:'SEP/ANUIES'},
+  'school':{base:400,reviewMult:4.0,empMult:5,icon:'\u{1F3EB}',label:'Escuela',color:'#7C3AED',src:'SEP 300-800 alumnos'},
+  'bus_station':{base:8000,reviewMult:1.0,empMult:12,icon:'\u{1F68C}',label:'Terminal',color:'#D97706',src:'SCT/SICT'},
+  'train_station':{base:12000,reviewMult:1.2,empMult:14,icon:'\u{1F689}',label:'Estaci\u00f3n Metro',color:'#0891B2',src:'STC Metro oficial'},
+  'church':{base:200,reviewMult:0.14,empMult:3,icon:'\u{26EA}',label:'Iglesia',color:'#A78BFA',src:'Est. parroquias MX'},
+  'gym':{base:500,reviewMult:0.40,empMult:5,icon:'\u{1F4AA}',label:'Gimnasio',color:'#F472B6',src:'Smart Fit 2,570 memb/suc'},
+  'restaurant':{base:120,reviewMult:0.27,empMult:3,icon:'\u{1F37D}\u{FE0F}',label:'Restaurante',color:'#FB923C',src:'CANIRAC 641K establ.'},
+  'cafe':{base:60,reviewMult:0.12,empMult:2,icon:'\u{2615}',label:'Caf\u00e9',color:'#92400E',src:'CANIRAC'},
+  'bar':{base:80,reviewMult:0.15,empMult:3,icon:'\u{1F37A}',label:'Bar',color:'#7C2D12',src:'CANIRAC'},
+  'museum':{base:800,reviewMult:0.36,empMult:5,icon:'\u{1F3DB}\u{FE0F}',label:'Museo',color:'#4338CA',src:'INAH/INBA anuales'},
+  'amusement_park':{base:3000,reviewMult:0.6,empMult:8,icon:'\u{1F3A2}',label:'Parque Diversiones',color:'#E11D48',src:'IAAPA'},
+  'park':{base:1000,reviewMult:0.36,empMult:5,icon:'\u{1F333}',label:'Parque',color:'#16A34A',src:'SEDEMA 24M/yr Chapultepec'},
+  'pharmacy':{base:180,reviewMult:0.60,empMult:4,icon:'\u{1F48A}',label:'Farmacia',color:'#E11D48',src:'FEMSA/Similares'},
+  'bank':{base:200,reviewMult:0.36,empMult:4,icon:'\u{1F3E6}',label:'Banco',color:'#1D4ED8',src:'CNBV 200 vis/suc/dia'},
+  'gas_station':{base:250,reviewMult:1.1,empMult:5,icon:'\u{26FD}',label:'Gasolinera',color:'#78716C',src:'CRE/PEMEX'},
+  'store':{base:150,reviewMult:0.12,empMult:3,icon:'\u{1F6CD}\u{FE0F}',label:'Tienda',color:'#64748B',src:'ANTAD'},
+  'market':{base:450,reviewMult:0.40,empMult:5,icon:'\u{1F34E}',label:'Mercado',color:'#EA580C',src:'SEDECO 1.088M sem/339'},
+  'government':{base:100,reviewMult:0.20,empMult:3,icon:'\u{1F3DB}\u{FE0F}',label:'Gobierno',color:'#475569',src:'SAT ~80 citas/dia'},
+  'default':{base:100,reviewMult:0.15,empMult:3,icon:'\u{1F4CD}',label:'Establecimiento',color:'#7C3AED',src:'Modelo Connectia'}
 };
 
 var AFL_KNOWN={
-  // Aeropuertos — Fuente: Informes anuales GAP, OMA, ASUR, AICM 2024
-  'Aeropuerto Internacional de la Ciudad de M\u00e9xico':{daily:126000,source:'AICM 2024 (45.4M anual)',type:'airport'},
-  'Aeropuerto Internacional Benito Ju\u00e1rez':{daily:126000,source:'AICM 2024 (45.4M anual)',type:'airport'},
-  'Aeropuerto Internacional de Canc\u00fan':{daily:84000,source:'ASUR 2024 (30.4M anual)',type:'airport'},
-  'Aeropuerto Internacional de Guadalajara':{daily:49000,source:'GAP 2024 (17.8M anual)',type:'airport'},
-  'Aeropuerto Internacional de Monterrey':{daily:37000,source:'OMA 2024 (13.6M anual)',type:'airport'},
-  'Aeropuerto Internacional de Tijuana':{daily:30000,source:'GAP 2024 (10.9M anual)',type:'airport'},
-  'Aeropuerto Internacional Felipe \u00c1ngeles':{daily:8000,source:'AIFA/SCT 2024 (2.9M anual)',type:'airport'},
-  // Centros comerciales — Fuente: Getin 2024-2025, Fibra Danhos, Promodesa, ANTAD
-  'Centro Comercial Santa Fe':{daily:65000,source:'Promodesa 2024 (1.95M mensual)',type:'shopping_mall'},
-  'Perisur':{daily:100000,source:'Getin/Noti.mx 2025 (~3M mensual)',type:'shopping_mall'},
-  'Plaza Sat\u00e9lite':{daily:80000,source:'Getin 2024 (2.4M mensual)',type:'shopping_mall'},
-  'Parque Delta':{daily:63000,source:'Getin 2024 (1.9M mensual)',type:'shopping_mall'},
-  'Forum Buenavista':{daily:40000,source:'Getin 2024 (1.2M mensual)',type:'shopping_mall'},
-  'Galer\u00edas Monterrey':{daily:45000,source:'Fibra Danhos 2024 (1.35M mensual)',type:'shopping_mall'},
-  'Toreo Parque Central':{daily:50000,source:'Fibra UNO 2024 (1.5M mensual)',type:'shopping_mall'},
-  'Artz Pedregal':{daily:30000,source:'Fibra Danhos 2024 (900K mensual)',type:'shopping_mall'},
-  'Parque Tezontle':{daily:55000,source:'Getin 2024 (1.65M mensual)',type:'shopping_mall'},
-  'Parque Lindavista':{daily:42000,source:'Getin 2024 (1.26M mensual)',type:'shopping_mall'},
-  'Galer\u00edas Insurgentes':{daily:35000,source:'Getin 2024 (1.05M mensual)',type:'shopping_mall'},
-  'Galer\u00edas Coapa':{daily:38000,source:'Getin 2024 (1.14M mensual)',type:'shopping_mall'},
-  'Plaza Universidad':{daily:45000,source:'Getin 2024 (1.35M mensual)',type:'shopping_mall'},
-  'Antara Polanco':{daily:35000,source:'Fibra Danhos 2024 (1.05M mensual)',type:'shopping_mall'},
-  'Patio Santa Fe':{daily:28000,source:'Fibra Shop 2024 (840K mensual)',type:'shopping_mall'},
-  'Mundo E':{daily:32000,source:'Getin 2024 (960K mensual)',type:'shopping_mall'},
-  'Town Square Metepec':{daily:25000,source:'Fibra Danhos 2024 (750K mensual)',type:'shopping_mall'},
-  'Galer\u00edas Vallarta':{daily:40000,source:'Fibra UNO 2024 (1.2M mensual)',type:'shopping_mall'},
-  'Andamar Veracruz':{daily:30000,source:'Fibra Danhos 2024 (900K mensual)',type:'shopping_mall'},
-  // Estadios y arenas — Fuente: FMF, CIE/Ocesa (capacidad x eventos/mes)
-  'Estadio Azteca':{daily:87000,source:'FMF capacidad (evento)',type:'stadium'},
-  'Estadio BBVA':{daily:53000,source:'FMF capacidad (evento)',type:'stadium'},
-  'Foro Sol':{daily:65000,source:'CIE/Ocesa capacidad (evento)',type:'stadium'},
-  'Estadio GNP Seguros':{daily:65000,source:'CIE/Ocesa capacidad (evento)',type:'stadium'},
-  'Auditorio Nacional':{daily:10000,source:'Promedio evento',type:'stadium'},
-  'Arena Ciudad de M\u00e9xico':{daily:22000,source:'Promedio evento',type:'stadium'},
-  // Museos — Fuente: INAH, INBA, Fund. Slim reportes anuales 2024
+  // Aeropuertos — Fuente: GAP, OMA, ASUR informes 2024 (pasajeros/365)
+  'Aeropuerto Internacional de la Ciudad de M\u00e9xico':{daily:125000,source:'AICM 2024 (45.4M pax anual)',type:'airport'},
+  'Aeropuerto Internacional Benito Ju\u00e1rez':{daily:125000,source:'AICM 2024 (45.4M pax anual)',type:'airport'},
+  'Aeropuerto Internacional de Canc\u00fan':{daily:83000,source:'ASUR 2024 (30.4M pax anual)',type:'airport'},
+  'Aeropuerto Internacional de Guadalajara':{daily:49000,source:'GAP 2024 (17.8M pax anual)',type:'airport'},
+  'Aeropuerto Internacional de Monterrey':{daily:37000,source:'OMA 2024 (13.6M pax anual)',type:'airport'},
+  'Aeropuerto Internacional de Tijuana':{daily:30000,source:'GAP 2024 (10.9M pax anual)',type:'airport'},
+  'Aeropuerto Internacional Felipe \u00c1ngeles':{daily:18000,source:'AIFA 2024 (6.4M pax anual)',type:'airport'},
+  // Centros comerciales CDMX — Fuente: ICSC Mexico, ANTAD 2024, Getin trends
+  // Tier 1 mega-malls: 1.2-1.7M mensual (40K-55K diario)
+  'Perisur':{daily:50000,source:'ICSC/ANTAD 2024 (~1.5M mensual)',type:'shopping_mall'},
+  'Plaza Sat\u00e9lite':{daily:48000,source:'ICSC/ANTAD 2024 (~1.4M mensual)',type:'shopping_mall'},
+  'Centro Comercial Santa Fe':{daily:32000,source:'Getin 2025 (-19% vs 2024, ~960K mensual)',type:'shopping_mall'},
+  'Parque Tezontle':{daily:38000,source:'ICSC/ANTAD 2024 (~1.14M mensual)',type:'shopping_mall'},
+  'Parque Delta':{daily:35000,source:'ICSC/ANTAD 2024 (~1.05M mensual)',type:'shopping_mall'},
+  'Toreo Parque Central':{daily:33000,source:'Fibra UNO 2024 (~990K mensual)',type:'shopping_mall'},
+  // Tier 2: 700K-1.1M mensual (23K-37K diario)
+  'Forum Buenavista':{daily:30000,source:'ANTAD 2024 (~900K mensual)',type:'shopping_mall'},
+  'Parque Lindavista':{daily:28000,source:'ANTAD 2024 (~840K mensual)',type:'shopping_mall'},
+  'Plaza Universidad':{daily:27000,source:'ANTAD 2024 (~810K mensual)',type:'shopping_mall'},
+  'Galer\u00edas Coapa':{daily:24000,source:'ANTAD 2024 (~720K mensual)',type:'shopping_mall'},
+  'Galer\u00edas Insurgentes':{daily:22000,source:'ANTAD 2024 (~660K mensual)',type:'shopping_mall'},
+  'Mundo E':{daily:20000,source:'ANTAD 2024 (~600K mensual)',type:'shopping_mall'},
+  // Estadios — Fuente: Liga MX Transfermarkt 2024 (promedio dia partido)
+  'Estadio BBVA':{daily:8000,source:'Liga MX 2024 (42K d\u00eda partido \u00f7 5 d\u00edas/sem = 8K prom)',type:'stadium'},
+  'Estadio Azteca':{daily:6000,source:'Liga MX 2024 (en remodelaci\u00f3n 2024-2026)',type:'stadium'},
+  'Estadio Akron':{daily:5000,source:'Liga MX 2024 (promedio amortizado)',type:'stadium'},
+  'Estadio Cuauht\u00e9moc':{daily:4000,source:'Liga MX 2024',type:'stadium'},
+  'Estadio Jalisco':{daily:4000,source:'Liga MX 2024',type:'stadium'},
+  // Tier 3 premium: 400K-800K mensual (13K-27K diario)
+  'Antara Polanco':{daily:18000,source:'Fibra Danhos 2024 (~540K mensual)',type:'shopping_mall'},
+  'Artz Pedregal':{daily:15000,source:'Fibra Danhos 2024 (~450K mensual)',type:'shopping_mall'},
+  'Patio Santa Fe':{daily:14000,source:'Fibra Shop 2024 (~420K mensual)',type:'shopping_mall'},
+  'Moliere Dos22':{daily:8000,source:'Estimado 2024 (~240K mensual)',type:'shopping_mall'},
+  // Centros comerciales Monterrey
+  'Galer\u00edas Monterrey':{daily:30000,source:'ICSC/ANTAD 2024 (~900K mensual)',type:'shopping_mall'},
+  'Galer\u00edas Valle Oriente':{daily:22000,source:'ANTAD 2024 (~660K mensual)',type:'shopping_mall'},
+  'Fashion Drive':{daily:15000,source:'Estimado 2024 (~450K mensual)',type:'shopping_mall'},
+  'Paseo La Fe':{daily:25000,source:'ANTAD 2024 (~750K mensual)',type:'shopping_mall'},
+  // Centros comerciales Guadalajara
+  'Andares':{daily:22000,source:'ICSC 2024 (~660K mensual)',type:'shopping_mall'},
+  'Galer\u00edas Guadalajara':{daily:28000,source:'ICSC 2024 (~840K mensual)',type:'shopping_mall'},
+  'Galer\u00edas Vallarta':{daily:25000,source:'Fibra UNO 2024 (~750K mensual)',type:'shopping_mall'},
+  'Centro Magno':{daily:18000,source:'Estimado 2024 (~540K mensual)',type:'shopping_mall'},
+  // Otros estados
+  'Andamar Veracruz':{daily:18000,source:'Fibra Danhos 2024 (~540K mensual)',type:'shopping_mall'},
+  'Town Square Metepec':{daily:15000,source:'Fibra Danhos 2024 (~450K mensual)',type:'shopping_mall'},
+  'Angelopolis Puebla':{daily:25000,source:'Estimado 2024 (~750K mensual)',type:'shopping_mall'},
+  'Galerias Queretaro':{daily:20000,source:'Estimado 2024 (~600K mensual)',type:'shopping_mall'},
+  // Estadios — promedio diario amortizado (no por evento)
+  'Estadio Azteca':{daily:15000,source:'FMF prom. amortizado (2-3 eventos/semana)',type:'stadium'},
+  'Estadio BBVA':{daily:10000,source:'FMF prom. amortizado',type:'stadium'},
+  'Foro Sol':{daily:12000,source:'CIE/Ocesa prom. amortizado',type:'stadium'},
+  'Estadio GNP Seguros':{daily:12000,source:'CIE/Ocesa prom. amortizado',type:'stadium'},
+  'Auditorio Nacional':{daily:5000,source:'Prom. amortizado (~4 eventos/semana)',type:'stadium'},
+  'Arena Ciudad de M\u00e9xico':{daily:8000,source:'Prom. amortizado',type:'stadium'},
+  // Museos — Fuente: INAH, INBA reportes anuales 2024
   'Museo Nacional de Antropolog\u00eda':{daily:7500,source:'INAH 2024 (2.7M anual)',type:'museum'},
   'Palacio de Bellas Artes':{daily:6000,source:'INBA 2024 (2.2M anual)',type:'museum'},
   'Museo Soumaya':{daily:5000,source:'Fund. Slim 2024 (1.8M anual)',type:'museum'},
   'Museo de Arte Moderno':{daily:2000,source:'INBA 2024 (730K anual)',type:'museum'},
   'Museo Tamayo':{daily:1800,source:'INBA 2024 (657K anual)',type:'museum'},
-  // Terminales de autobuses — Fuente: SCT/SICT, informes operacionales
+  // Terminales — Fuente: SCT/SICT informes operacionales 2024
   'Terminal de Autobuses del Norte':{daily:70000,source:'SCT 2024 (25.5M anual)',type:'bus_station'},
   'TAPO':{daily:50000,source:'SCT 2024 (18.3M anual)',type:'bus_station'},
   'Terminal de Autobuses del Sur':{daily:18000,source:'SCT 2024 (6.6M anual)',type:'bus_station'},
   'Terminal de Autobuses del Poniente':{daily:15000,source:'SCT 2024 (5.5M anual)',type:'bus_station'},
-  // Metro CDMX — Fuente: STC Metro estadísticas oficiales 2024
+  // Metro CDMX — Fuente: STC Metro estadisticas oficiales 2024
   'Metro Pantitl\u00e1n':{daily:114000,source:'STC Metro 2024 (41.6M anual)',type:'train_station'},
   'Metro Indios Verdes':{daily:82000,source:'STC Metro 2024 (29.9M anual)',type:'train_station'},
-  'Metro Tacubaya':{daily:64000,source:'STC Metro 2024 (23.4M anual)',type:'train_station'},
   'Metro Pino Su\u00e1rez':{daily:72000,source:'STC Metro 2024 (26.3M anual)',type:'train_station'},
+  'Metro Tacubaya':{daily:64000,source:'STC Metro 2024 (23.4M anual)',type:'train_station'},
   'Metro Balderas':{daily:58000,source:'STC Metro 2024 (21.2M anual)',type:'train_station'},
   'Metro Chabacano':{daily:55000,source:'STC Metro 2024 (20.1M anual)',type:'train_station'},
   'Metro Hidalgo':{daily:52000,source:'STC Metro 2024 (19M anual)',type:'train_station'},
   'Metro Constituci\u00f3n de 1917':{daily:48000,source:'STC Metro 2024 (17.5M anual)',type:'train_station'},
-  // Universidades — Fuente: UNAM, IPN reportes institucionales
-  'Ciudad Universitaria':{daily:300000,source:'UNAM 2024 (360K comunidad + visitantes)',type:'university'},
-  'Instituto Polit\u00e9cnico Nacional':{daily:180000,source:'IPN 2024 (campuses combinados)',type:'university'},
-  'UAM Iztapalapa':{daily:25000,source:'UAM 2024',type:'university'},
-  // Hospitales — Fuente: IMSS, ISSSTE reportes operacionales
-  'Centro M\u00e9dico Nacional Siglo XXI':{daily:25000,source:'IMSS 2024',type:'hospital'},
-  'Hospital General de M\u00e9xico':{daily:15000,source:'SS 2024',type:'hospital'},
-  // Entretenimiento — Fuente: IAAPA, Queue-Times
-  'Six Flags M\u00e9xico':{daily:9000,source:'IAAPA 2024 (2.8M anual/365d promedio operacional)',type:'amusement_park'},
-  'La Feria de Chapultepec':{daily:8000,source:'Estimado 2024',type:'amusement_park'}
+  // Universidades — asistencia diaria real (no comunidad total)
+  'Ciudad Universitaria':{daily:150000,source:'UNAM 2024 (asist. diaria habil)',type:'university'},
+  'Instituto Polit\u00e9cnico Nacional':{daily:90000,source:'IPN 2024 (campuses combinados)',type:'university'},
+  'UAM Iztapalapa':{daily:15000,source:'UAM 2024',type:'university'},
+  'Tec de Monterrey':{daily:12000,source:'ITESM 2024 (campus principal)',type:'university'},
+  // Hospitales
+  'Centro M\u00e9dico Nacional Siglo XXI':{daily:18000,source:'IMSS 2024',type:'hospital'},
+  'Hospital General de M\u00e9xico':{daily:10000,source:'SS 2024',type:'hospital'},
+  // Entretenimiento — Fuente: IAAPA
+  'Six Flags M\u00e9xico':{daily:8000,source:'IAAPA 2024 (2.5M anual operacional)',type:'amusement_park'},
+  'La Feria de Chapultepec':{daily:5000,source:'Estimado 2024',type:'amusement_park'},
+  // Parques y espacios publicos — Fuente: SEDEMA CDMX, CONANP
+  'Bosque de Chapultepec':{daily:65000,source:'SEDEMA 2024 (24M anual)',type:'park'},
+  'Chapultepec':{daily:65000,source:'SEDEMA 2024 (24M anual)',type:'park'},
+  'Parque Mexico':{daily:8000,source:'SEDEMA est. 2024',type:'park'},
+  'Parque Espana':{daily:5000,source:'SEDEMA est. 2024',type:'park'},
+  'Parque Hundido':{daily:4000,source:'SEDEMA est. 2024',type:'park'},
+  'Parque Lincoln':{daily:6000,source:'SEDEMA est. 2024',type:'park'},
+  'Alameda Central':{daily:15000,source:'SEDEMA est. 2024',type:'park'},
+  'Bosque de Chapultepec':{daily:65000,source:'SEDEMA 2026 (24M anuales estimados)',type:'park'},
+  'Chapultepec':{daily:65000,source:'SEDEMA 2026 (24M anuales estimados)',type:'park'},
+  'Xochimilco':{daily:8000,source:'SEDEMA 2024',type:'park'},
+  'Desierto de los Leones':{daily:3000,source:'CONANP 2024',type:'park'},
+  'Parque Fundidora':{daily:25000,source:'Gob Nuevo Leon 2024 (9M anual)',type:'park'},
+  'Parque Bicentenario':{daily:12000,source:'SEDEMA est. 2024',type:'park'},
+  // Mercados publicos — Fuente: SEDECO CDMX (1.088M semanal / 339 mercados)
+  'Central de Abastos':{daily:350000,source:'Gob CDMX 2024 (300K-500K diario)',type:'market'},
+  'Mercado de Jamaica':{daily:15000,source:'SEDECO est. 2024',type:'market'},
+  'Mercado de Sonora':{daily:8000,source:'SEDECO est. 2024',type:'market'},
+  'Mercado de la Merced':{daily:25000,source:'SEDECO est. 2024',type:'market'},
+  'Mercado de Coyoacan':{daily:5000,source:'SEDECO est. 2024',type:'market'},
+  'Mercado San Juan':{daily:4000,source:'SEDECO est. 2024',type:'market'},
+  'Mercado de Medellin':{daily:3000,source:'SEDECO est. 2024',type:'market'},
+  // Tiendas conveniencia — Fuente: FEMSA (13M txn/dia / 20K tiendas = 650)
+  'OXXO':{daily:650,source:'FEMSA 2024 (13M txn/dia \u00f7 20K tiendas)',type:'convenience_store'},
+  '7-Eleven':{daily:500,source:'7-Eleven MX estimado',type:'convenience_store'},
+  // Supermercados — Fuente: ANTAD, informes Walmex/Soriana
+  'Walmart':{daily:3000,source:'Walmex 2024 est. (Supercenter)',type:'supermarket'},
+  'Walmart Supercenter':{daily:3000,source:'Walmex 2024 est.',type:'supermarket'},
+  'Sam\u0027s Club':{daily:2500,source:'Walmex 2024 est.',type:'supermarket'},
+  'Costco':{daily:3500,source:'Costco MX est. 2024',type:'supermarket'},
+  'Soriana':{daily:2000,source:'Soriana informe 2024',type:'supermarket'},
+  'Chedraui':{daily:1800,source:'Chedraui informe 2024',type:'supermarket'},
+  'Bodega Aurrera':{daily:2200,source:'Walmex 2024 est.',type:'supermarket'},
+  'La Comer':{daily:1500,source:'La Comer informe 2024',type:'supermarket'},
+  'HEB':{daily:2500,source:'HEB MX est. (Monterrey)',type:'supermarket'},
+  // Farmacias — Fuente: Similares 9M/mes/9,600 + compras directas
+  'Farmacias Similares':{daily:200,source:'FEMSA 2024 (~200 clientes/dia)',type:'pharmacy'},
+  'Farmacias del Ahorro':{daily:250,source:'Estimado 2024',type:'pharmacy'},
+  'Farmacias Guadalajara':{daily:300,source:'Estimado 2024',type:'pharmacy'},
+  'Farmacias Benavides':{daily:180,source:'Estimado 2024',type:'pharmacy'},
+  // Cines — Fuente: CANACINE (218M boletos/yr, 800 complejos)
+  'Cinepolis':{daily:750,source:'CANACINE 2024 (218M boletos/yr \u00f7 800 complejos)',type:'movie_theater'},
+  'Cinemex':{daily:720,source:'CANACINE 2024 (301 complejos, ~72K boletos/complejo/mes)',type:'movie_theater'},
+  // Metro CDMX — Fuente: STC Metro 2024 (afluencia oficial por estación)
+  'Pantitlan':{daily:23000,source:'STC Metro 2024 (8.48M entradas anuales)',type:'train_station'},
+  'Pantitl\u00e1n':{daily:23000,source:'STC Metro 2024 (8.48M entradas anuales)',type:'train_station'},
+  'Observatorio':{daily:18000,source:'STC Metro 2024 (L1 terminal oeste)',type:'train_station'},
+  'Tacuba':{daily:15000,source:'STC Metro 2024 (L2/L7 correspondencia)',type:'train_station'},
+  'Indios Verdes':{daily:20000,source:'STC Metro 2024 (L3 terminal norte)',type:'train_station'},
+  'Taxque\u00f1a':{daily:17000,source:'STC Metro 2024 (L2 terminal sur)',type:'train_station'},
+  // Iglesias principales — Fuente: Gob CDMX, INAH
+  'Basilica de Guadalupe':{daily:55000,source:'20M peregrinos anuales (ACI Prensa/Expreso 2024)',type:'church'},
+  'Catedral Metropolitana':{daily:8000,source:'INAH est. 2024',type:'church'},
+  // Bancos — Fuente: CNBV (~200 visitas presenciales/suc/dia)
+  'BBVA':{daily:200,source:'CNBV 2024 est.',type:'bank'},
+  'Banamex':{daily:180,source:'CNBV 2024 est.',type:'bank'},
+  'Banorte':{daily:170,source:'CNBV 2024 est.',type:'bank'},
+  'Santander':{daily:160,source:'CNBV 2024 est.',type:'bank'},
+  'HSBC':{daily:150,source:'CNBV 2024 est.',type:'bank'},
+  // Gimnasios — Fuente: Smart Fit (2,570 memb/suc, 35% asist diaria)
+  'Smart Fit':{daily:900,source:'Smart Fit 2024 (2,570 memb \u00d7 35%)',type:'gym'},
+  'Sport City':{daily:600,source:'Estimado 2024 (premium segment)',type:'gym'},
+  'Sports World':{daily:300,source:'Predik 2024 (8\u00d7 menor que Smart Fit)',type:'gym'},
+  'Planet Fitness':{daily:500,source:'Estimado 2024',type:'gym'},
+  // Gobierno — Fuente: SAT citas
+  'SAT':{daily:80,source:'SAT 2024 (~80 citas/dia/oficina)',type:'government'},
+  'Registro Civil':{daily:60,source:'Gob CDMX est.',type:'government'},
+  // Gasolineras
+  'Pemex':{daily:250,source:'CRE/PEMEX est. 2024',type:'gas_station'},
+  'Shell':{daily:200,source:'Estimado 2024',type:'gas_station'},
+  'BP':{daily:180,source:'Estimado 2024',type:'gas_station'},
+  // Restaurantes cadena — Fuente: CANIRAC/estimados operacionales
+  'Starbucks':{daily:400,source:'CANIRAC est. 2024',type:'cafe'},
+  'Vips':{daily:350,source:'Alsea est. 2024',type:'restaurant'},
+  'Sanborns':{daily:300,source:'Grupo Carso est. 2024',type:'restaurant'},
+  'IHOP':{daily:250,source:'CMR est. 2024',type:'restaurant'},
+  'Toks':{daily:280,source:'Grupo Gigante est.',type:'restaurant'},
+  'McDonald\u0027s':{daily:500,source:'Arcos Dorados est. MX',type:'restaurant'},
+  'Burger King':{daily:400,source:'Estimado 2024',type:'restaurant'},
+  'Domino\u0027s':{daily:150,source:'Alsea est. (incluye delivery)',type:'restaurant'},
+  'Subway':{daily:200,source:'Estimado 2024',type:'restaurant'},
+  'KFC':{daily:350,source:'Estimado 2024',type:'restaurant'},
+  'Little Caesars':{daily:250,source:'Estimado 2024',type:'restaurant'}
 };
 
 function toggleAfluencia(){
@@ -8076,9 +8924,16 @@ function toggleAfluencia(){
     btn.classList.add('active');
     btn.style.background='linear-gradient(135deg,#7C3AED,#9333EA)';
     btn.style.color='#fff';
-    setStatus('Afluencia activada: haz clic en cualquier lugar del mapa');
-    map.setOptions({draggableCursor:'pointer'});
-    aflClickListener=map.addListener('click',function(e){analyzeAfluencia(e.latLng);});
+    setStatus('Afluencia activada: haz clic en cualquier lugar del mapa, o busca una marca (ej: "oxxo") para reporte masivo');
+    map.setOptions({draggableCursor:'crosshair'});
+    aflClickListener=map.addListener('click',function(e){
+      // If a drawing tool is active or freehand/route is on, don't hijack the click — let the tool own it
+      try{if(drawingManager&&drawingManager.getDrawingMode())return;}catch(_){ }
+      if(typeof freehandMode!=='undefined'&&freehandMode)return;
+      if(typeof routeActive!=='undefined'&&routeActive)return;
+      if(typeof measuring!=='undefined'&&measuring)return;
+      analyzeAfluencia(e.latLng);
+    });
   }else{
     btn.classList.remove('active');
     btn.style.background='';btn.style.color='';
@@ -8093,6 +8948,132 @@ function clearAflMarkers(){
   aflMarkers.forEach(function(m){m.setMap(null)});aflMarkers=[];
   if(aflHeatmap){aflHeatmap.setMap(null);aflHeatmap=null;}
 }
+
+// ===== AFL BULK SEARCH: search a brand (e.g. "oxxo") and render combined footfall report =====
+function aflBulkSearch(query){
+  query=(query||'').trim();if(!query)return;
+  var panel=document.getElementById('afl-panel');
+  var body=document.getElementById('afl-body');
+  panel.style.display='block';
+  body.innerHTML='<div style="text-align:center;padding:30px;color:#7C3AED"><div style="font-size:24px;margin-bottom:8px">⏳</div>Buscando todos los <b>'+query+'</b> en la zona...</div>';
+  if(!placesService){try{placesService=new google.maps.places.PlacesService(map);}catch(ex){body.innerHTML='<div style="color:#dc2626;padding:20px">Error: PlacesService no disponible</div>';return;}}
+  clearAflMarkers();
+  var bounds=map.getBounds();
+  var center=map.getCenter();
+  // Use textSearch with bounds bias for best brand coverage
+  var req={query:query,bounds:bounds};
+  var allPlaces=[];
+  var pageCount=0;
+  var collect=function(results,status,pagination){
+    pageCount++;
+    if(status===google.maps.places.PlacesServiceStatus.OK&&results){
+      results.forEach(function(p){
+        if(bounds&&p.geometry&&p.geometry.location&&!bounds.contains(p.geometry.location))return;
+        if(!allPlaces.some(function(x){return x.place_id===p.place_id;}))allPlaces.push(p);
+      });
+      if(pagination&&pagination.hasNextPage&&pageCount<3){
+        setTimeout(function(){pagination.nextPage();},1800);
+        return;
+      }
+    }
+    renderAflBulkReport(query,allPlaces,center);
+  };
+  try{placesService.textSearch(req,collect);}catch(ex){body.innerHTML='<div style="color:#dc2626;padding:20px">Error en búsqueda: '+ex.message+'</div>';}
+}
+
+function renderAflBulkReport(query,places,centerLatLng){
+  var body=document.getElementById('afl-body');
+  if(!places||places.length===0){
+    body.innerHTML='<div style="padding:20px;text-align:center;color:#64748b"><div style="font-size:18px;margin-bottom:8px">🔍</div>No se encontraron <b>'+query+'</b> en el área visible. Haz zoom/pan y reintenta.</div>';
+    return;
+  }
+  // Compute footfall for each place
+  var items=places.map(function(p){
+    var est=estimateFootfall(p);
+    return{place:p,est:est};
+  });
+  // Sort by monthly descending
+  items.sort(function(a,b){return b.est.monthly-a.est.monthly;});
+  // Aggregate
+  var totalMonthly=items.reduce(function(a,x){return a+x.est.monthly;},0);
+  var totalDaily=items.reduce(function(a,x){return a+x.est.daily;},0);
+  var avgMonthly=Math.round(totalMonthly/items.length);
+  var avgDaily=Math.round(totalDaily/items.length);
+  var minItem=items[items.length-1],maxItem=items[0];
+  var confCounts={alta:0,media:0,baja:0};
+  items.forEach(function(x){confCounts[x.est.confidence]=(confCounts[x.est.confidence]||0)+1;});
+  // Drop markers
+  clearAflMarkers();
+  var bounds=new google.maps.LatLngBounds();
+  items.forEach(function(x,i){
+    try{
+      var mk=new google.maps.Marker({
+        position:x.place.geometry.location,
+        map:map,
+        title:x.place.name+' · '+fmt(x.est.monthly)+'/mes',
+        label:{text:String(i+1),color:'#fff',fontSize:'10px',fontWeight:'bold'},
+        icon:{path:'M 0,-29 C -7.7,-29 -14,-22.7 -14,-15 C -14,-5.3 0,4 0,4 C 0,4 14,-5.3 14,-15 C 14,-22.7 7.7,-29 0,-29 Z',scale:1,fillColor:'#7C3AED',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,anchor:new google.maps.Point(0,-15),labelOrigin:new google.maps.Point(0,-15)},
+        zIndex:9900+i
+      });
+      bounds.extend(x.place.geometry.location);
+      aflMarkers.push(mk);
+    }catch(e){}
+  });
+  if(!bounds.isEmpty()){try{map.fitBounds(bounds);}catch(e){}}
+  // Render report
+  var h='';
+  h+='<div style="background:linear-gradient(135deg,#7C3AED,#9333EA);color:#fff;padding:14px 16px;border-radius:10px 10px 0 0">';
+  h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.85">Reporte masivo de afluencia</div>';
+  h+='<div style="font-size:18px;font-weight:800;margin-top:2px">'+escapeHtml(query.toUpperCase())+' · '+items.length+' ubicaciones</div>';
+  h+='<div style="font-size:11px;opacity:.85;margin-top:4px">Total estimado: <b>'+fmt(totalMonthly)+'</b> visitas/mes · <b>'+fmt(totalDaily)+'</b>/día</div>';
+  // Disclaimer: show only if any item came out as a distinct anchor/mall match
+  var _hasAnchor=items.some(function(x){return x.est&&x.est.confidence==='alta'&&x.est.type==='shopping_mall';});
+  if(_hasAnchor){
+    h+='<div style="font-size:9px;opacity:.75;margin-top:4px;line-height:1.3">Nota: "Total" suma ubicaciones distintas. Si un mall aparece listado, ya representa la afluencia total del centro comercial (no sumar con sus tiendas internas).</div>';
+  }
+  h+='</div>';
+  // Summary cards
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px;background:#faf5ff">';
+  h+='<div style="background:#fff;border:1px solid #e9d5ff;border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:#7C3AED;letter-spacing:.5px">Promedio mensual</div><div style="font-size:18px;font-weight:800;color:#1d1d1f">'+fmt(avgMonthly)+'</div></div>';
+  h+='<div style="background:#fff;border:1px solid #e9d5ff;border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:#7C3AED;letter-spacing:.5px">Promedio diario</div><div style="font-size:18px;font-weight:800;color:#1d1d1f">'+fmt(avgDaily)+'</div></div>';
+  h+='<div style="background:#fff;border:1px solid #e9d5ff;border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:#16a34a;letter-spacing:.5px">Max (1 ubicación)</div><div style="font-size:14px;font-weight:700;color:#1d1d1f">'+fmt(maxItem.est.monthly)+'/mes</div><div style="font-size:9px;color:#64748b;margin-top:2px">'+escapeHtml((maxItem.place.name||'').slice(0,28))+'</div></div>';
+  h+='<div style="background:#fff;border:1px solid #e9d5ff;border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:#dc2626;letter-spacing:.5px">Min (1 ubicación)</div><div style="font-size:14px;font-weight:700;color:#1d1d1f">'+fmt(minItem.est.monthly)+'/mes</div><div style="font-size:9px;color:#64748b;margin-top:2px">'+escapeHtml((minItem.place.name||'').slice(0,28))+'</div></div>';
+  h+='</div>';
+  // Confidence badge row
+  h+='<div style="padding:0 14px 10px;background:#faf5ff;font-size:10px;color:#64748b">';
+  h+='Confianza: ';
+  h+='<span style="color:#16a34a;font-weight:600">● Alta '+(confCounts.alta||0)+'</span> · ';
+  h+='<span style="color:#d97706;font-weight:600">● Media '+(confCounts.media||0)+'</span> · ';
+  h+='<span style="color:#dc2626;font-weight:600">● Baja '+(confCounts.baja||0)+'</span>';
+  h+='</div>';
+  // Per-place list
+  h+='<div style="padding:10px 14px;border-top:1px solid #e9d5ff">';
+  h+='<div style="font-size:11px;font-weight:700;color:#1d1d1f;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">📍 Ubicaciones (ordenadas por volumen)</div>';
+  items.forEach(function(x,i){
+    var nm=x.place.name||'Sin nombre';
+    var addr=x.place.formatted_address||x.place.vicinity||'';
+    var confColor=x.est.confidence==='alta'?'#16a34a':(x.est.confidence==='media'?'#d97706':'#dc2626');
+    h+='<div style="padding:8px 0;border-bottom:1px solid #f1f5f9;display:flex;align-items:flex-start;gap:8px">';
+    h+='<div style="min-width:24px;height:24px;border-radius:12px;background:#7C3AED;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">'+(i+1)+'</div>';
+    h+='<div style="flex:1;min-width:0">';
+    h+='<div style="font-size:12px;font-weight:700;color:#1d1d1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(nm)+'</div>';
+    if(addr)h+='<div style="font-size:10px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(addr)+'</div>';
+    h+='<div style="font-size:10px;color:#64748b;margin-top:2px">'+(x.place.user_ratings_total||0)+' reseñas · ⭐ '+(x.place.rating||'—')+' · <span style="color:'+confColor+';font-weight:600">'+x.est.confidence+'</span></div>';
+    h+='</div>';
+    h+='<div style="text-align:right">';
+    h+='<div style="font-size:13px;font-weight:800;color:#7C3AED">'+fmt(x.est.monthly)+'</div>';
+    h+='<div style="font-size:9px;color:#64748b">/mes</div>';
+    h+='<div style="font-size:10px;color:#94a3b8;margin-top:2px">'+fmt(x.est.daily)+'/día</div>';
+    h+='</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<div style="padding:8px 14px;font-size:9px;color:#94a3b8;background:#faf5ff;border-radius:0 0 10px 10px">Modelo Connectia · calibrado con fuentes oficiales (ANTAD, ICSC, CANACINE, SEDEMA, etc). Estimaciones de apoyo para planeación.</div>';
+  body.innerHTML=h;
+}
+
+function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 function analyzeAfluencia(latLng){
   var panel=document.getElementById('afl-panel');
   var body=document.getElementById('afl-body');
@@ -8120,16 +9101,65 @@ function analyzeAfluencia(latLng){
 function estimateFootfall(place){
   var reviews=place.user_ratings_total||0;var rating=place.rating||3.0;var types=place.types||[];
   var name=place.name||'';
-  for(var key in AFL_KNOWN){if(name.indexOf(key)>=0||key.indexOf(name)>=0){return{daily:AFL_KNOWN[key].daily,monthly:AFL_KNOWN[key].daily*30,source:AFL_KNOWN[key].source,confidence:'alta',type:AFL_KNOWN[key].type};}}
+  // Strict AFL_KNOWN matching: avoid inheriting mall footfall to each store inside it.
+  // (e.g. "Liverpool Perisur" should NOT get Perisur's 50K/day). Require either exact name
+  // match OR (name starts with the key followed by a separator) AND place types align
+  // with the known entry category.
+  var _nameL=name.toLowerCase().trim();
+  for(var key in AFL_KNOWN){
+    var ent=AFL_KNOWN[key];
+    var keyL=String(key).toLowerCase().trim();
+    if(!keyL)continue;
+    var exact=(_nameL===keyL);
+    // "Perisur" or "Perisur – Centro Comercial" (followed by space/punct)
+    var prefix=(!exact && _nameL.indexOf(keyL)===0 && _nameL.length>keyL.length && /[\s\-·,.:\/\(\)\|]/.test(_nameL.charAt(keyL.length)));
+    // "Centro Comercial Perisur" (key preceded by separator, no trailing letters)
+    var suffix=(!exact && !prefix && _nameL.endsWith(keyL) && _nameL.length>keyL.length && /[\s\-·,.:\/\(\)\|]/.test(_nameL.charAt(_nameL.length-keyL.length-1)));
+    if(!exact && !prefix && !suffix) continue;
+    // Category gate: for mall-tier entries, the matched place must itself be the mall
+    // (not a store operating inside one). Otherwise skip and fall through to factor model.
+    if(ent.type==='shopping_mall'){
+      var isAnchor=(types.indexOf('shopping_mall')>=0 || types.indexOf('tourist_attraction')>=0 || types.indexOf('point_of_interest')>=0 && types.indexOf('establishment')>=0 && types.indexOf('store')<0 && types.indexOf('department_store')<0 && types.indexOf('clothing_store')<0 && types.indexOf('restaurant')<0 && types.indexOf('cafe')<0 && types.indexOf('movie_theater')<0);
+      if(!isAnchor) continue;
+    }
+    return{daily:ent.daily,monthly:ent.daily*30,source:ent.source,confidence:'alta',type:ent.type};
+  }
   var factor=AFL_FACTORS['default'];
-  for(var i=0;i<types.length;i++){if(AFL_FACTORS[types[i]]){factor=AFL_FACTORS[types[i]];break;}}
+  // Map Google Places types to our calibrated categories
+  var _typeMap={'convenience_store':'convenience_store','gas_station':'gas_station','pharmacy':'pharmacy','school':'school','secondary_school':'school','primary_school':'school','park':'park','bank':'bank','local_government_office':'government','post_office':'government','fire_station':'government','police':'government','grocery_or_supermarket':'supermarket'};
+  for(var i=0;i<types.length;i++){
+    var mapped=_typeMap[types[i]]||types[i];
+    if(AFL_FACTORS[mapped]){factor=AFL_FACTORS[mapped];break;}
+  }
   var dailyEst=factor.base;
   if(reviews>0) dailyEst=Math.round(reviews*factor.reviewMult*(0.8+rating/5*0.4));
-  if(types.indexOf('shopping_mall')>=0) dailyEst=Math.max(dailyEst,5000);
-  if(types.indexOf('airport')>=0) dailyEst=Math.max(dailyEst,20000);
-  if(types.indexOf('stadium')>=0) dailyEst=Math.max(dailyEst,10000);
+  // Category-specific min/max caps (calibrated from official sources)
+  var _capMap={
+    'shopping_mall':{min:2000,max:55000},'department_store':{min:500,max:15000},
+    'supermarket':{min:800,max:5000},'convenience_store':{min:300,max:1200},
+    'airport':{min:5000,max:130000},'stadium':{min:2000,max:20000},
+    'movie_theater':{min:200,max:2000},'hotel':{min:20,max:500},
+    'hospital':{min:500,max:20000},'university':{min:2000,max:150000},
+    'school':{min:100,max:3000},'bus_station':{min:3000,max:80000},
+    'train_station':{min:5000,max:120000},'church':{min:50,max:45000},
+    'gym':{min:200,max:2000},'restaurant':{min:50,max:1500},
+    'cafe':{min:30,max:800},'bar':{min:30,max:600},
+    'museum':{min:200,max:10000},'amusement_park':{min:1000,max:15000},
+    'park':{min:300,max:70000},'pharmacy':{min:80,max:500},
+    'bank':{min:80,max:400},'gas_station':{min:100,max:600},
+    'store':{min:50,max:3000},'market':{min:200,max:400000},
+    'government':{min:30,max:300}
+  };
+  for(var ci=0;ci<types.length;ci++){
+    var cmapped=_typeMap[types[ci]]||types[ci];
+    if(_capMap[cmapped]){
+      dailyEst=Math.max(dailyEst,_capMap[cmapped].min);
+      dailyEst=Math.min(dailyEst,_capMap[cmapped].max);
+      break;
+    }
+  }
   var confidence='media';if(reviews>1000)confidence='alta';else if(reviews<100)confidence='baja';
-  return{daily:dailyEst,monthly:dailyEst*30,source:'Modelo Connectia (Google Places + ANTAD)',confidence:confidence,type:types[0]||'default'};
+  return{daily:dailyEst,monthly:dailyEst*30,source:'Modelo Connectia ('+factor.src+' \u00d7 Google Places)',confidence:confidence,type:types[0]||'default'};
 }
 function getPlaceTypeInfo(types){for(var i=0;i<(types||[]).length;i++){if(AFL_FACTORS[types[i]])return AFL_FACTORS[types[i]];}return AFL_FACTORS['default'];}
 
@@ -8168,16 +9198,16 @@ function renderAfluenciaPanel(place,nearbyPlaces,clickLatLng){
   if(place.user_ratings_total) h+=' <span style="font-size:10px;color:#6B7280">('+fmt(place.user_ratings_total)+' rese\u00f1as)</span>';
   h+='</div></div></div>';
   h+='<div style="background:linear-gradient(135deg,#7C3AED,#9333EA);border-radius:12px;padding:16px;color:#fff;text-align:center;margin-bottom:12px">';
-  h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.8">Afluencia Diaria Estimada</div>';
-  h+='<div style="font-size:36px;font-weight:900;margin:4px 0">'+fmt(est.daily)+'</div>';
-  h+='<div style="font-size:11px;opacity:.85">'+fmt(est.monthly)+'/mes \u00b7 <span class="afl-badge" style="background:'+confBg+';color:'+confColor+'">Confianza '+est.confidence+'</span></div>';
+  h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.8">Afluencia Mensual Estimada</div>';
+  h+='<div style="font-size:36px;font-weight:900;margin:4px 0">'+fmt(est.monthly)+'</div>';
+  h+='<div style="font-size:11px;opacity:.85">'+fmt(est.daily)+'/d\u00eda \u00b7 <span class="afl-badge" style="background:'+confBg+';color:'+confColor+'">Confianza '+est.confidence+'</span></div>';
   h+='<div style="font-size:9px;opacity:.6;margin-top:4px">'+est.source+'</div></div>';
   h+='<div class="afl-grid3">';
-  h+='<div class="afl-card"><div class="acv" style="color:#3B82F6">'+fmt(Math.round(est.daily*vehShare))+'</div><div class="acl">\u{1F697} Veh\u00edculo</div></div>';
-  h+='<div class="afl-card"><div class="acv" style="color:#10B981">'+fmt(Math.round(est.daily*pedShare))+'</div><div class="acl">\u{1F6B6} Peatones</div></div>';
-  h+='<div class="afl-card"><div class="acv" style="color:#F59E0B">'+fmt(Math.round(est.daily*transitShare))+'</div><div class="acl">\u{1F68C} Transporte</div></div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#3B82F6">'+fmt(Math.round(est.monthly*vehShare))+'</div><div class="acl">\u{1F697} Veh\u00edculo/mes</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#10B981">'+fmt(Math.round(est.monthly*pedShare))+'</div><div class="acl">\u{1F6B6} Peatones/mes</div></div>';
+  h+='<div class="afl-card"><div class="acv" style="color:#F59E0B">'+fmt(Math.round(est.monthly*transitShare))+'</div><div class="acl">\u{1F68C} Transporte/mes</div></div></div>';
   h+='<div class="afl-section">\u{1F552} Distribuci\u00f3n Horaria</div>';
-  hours.forEach(function(hr){var w=Math.round(hr.p/maxP*100);var visitors=Math.round(est.daily*hr.p/100);h+='<div class="afl-bar"><div class="abl">'+hr.h+'</div><div class="abt"><div class="abf" style="width:'+w+'%;background:linear-gradient(90deg,#7C3AED,#A855F7)"></div></div><div class="abv">'+fmt(visitors)+' ('+hr.p+'%)</div></div>';});
+  hours.forEach(function(hr){var w=Math.round(hr.p/maxP*100);var visitors=Math.round(est.monthly*hr.p/100);h+='<div class="afl-bar"><div class="abl">'+hr.h+'</div><div class="abt"><div class="abf" style="width:'+w+'%;background:linear-gradient(90deg,#7C3AED,#A855F7)"></div></div><div class="abv">'+fmt(visitors)+' ('+hr.p+'%)</div></div>';});
   h+='<div class="afl-section">\u{1F465} Demogr\u00e1ficos</div>';
   h+='<div class="afl-grid"><div class="afl-card"><div class="acv" style="color:#7C3AED">'+fmt(Math.round(dens*0.785))+'</div><div class="acl">Poblaci\u00f3n ~1km\u00b2</div></div><div class="afl-card"><div class="acv" style="color:#059669">'+fmt(dens)+'</div><div class="acl">Densidad/km\u00b2</div></div></div>';
   h+='<div class="afl-grid3"><div class="afl-card"><div class="acv" style="color:#7C3AED">'+dominant.n+'</div><div class="acl">NSE</div></div><div class="afl-card"><div class="acv" style="color:#3B82F6">'+mPct+'%</div><div class="acl">\u2642 Hombres</div></div><div class="afl-card"><div class="acv" style="color:#EC4899">'+fPct+'%</div><div class="acl">\u2640 Mujeres</div></div></div>';
@@ -8186,7 +9216,7 @@ function renderAfluenciaPanel(place,nearbyPlaces,clickLatLng){
   h+='<div class="afl-section">\u{1F4B0} Econom\u00eda</div>';
   h+='<div class="afl-grid"><div class="afl-card"><div class="acv" style="color:#16a34a">$'+fmt(en.ingPC||en.ing)+'</div><div class="acl">Ingreso per c\u00e1p</div></div><div class="afl-card"><div class="acv" style="color:#DC2626">$'+fmt(en.gasPC||en.gas)+'</div><div class="acl">Gasto per c\u00e1p</div></div></div>';
   h+='<div class="afl-section">\u{1F697} Movilidad</div>';
-  h+='<div class="afl-grid"><div class="afl-card"><div class="acv" style="color:#1D4ED8">'+fmt(vehDaily)+'</div><div class="acl">\u{1F697} Veh/d\u00eda</div></div><div class="afl-card"><div class="acv" style="color:#15803D">'+fmt(pedDaily)+'</div><div class="acl">\u{1F6B6} Peat/d\u00eda</div></div></div>';
+  h+='<div class="afl-grid"><div class="afl-card"><div class="acv" style="color:#1D4ED8">'+fmt(vehDaily*30)+'</div><div class="acl">\u{1F697} Veh/mes</div></div><div class="afl-card"><div class="acv" style="color:#15803D">'+fmt(pedDaily*30)+'</div><div class="acl">\u{1F6B6} Peat/mes</div></div></div>';
   var modals=[{l:'Veh\u00edculos',p:Math.round(vehShare*100),c:'#3B82F6'},{l:'Trans. P\u00fablico',p:Math.round(transitShare*100),c:'#F59E0B'},{l:'Peatones',p:Math.round(pedShare*100),c:'#10B981'},{l:'Bicicleta',p:Math.round(bikeShare*100),c:'#EF4444'}];
   modals.forEach(function(m){h+='<div class="afl-bar"><div class="abl">'+m.l+'</div><div class="abt"><div class="abf" style="width:'+m.p+'%;background:'+m.c+'"></div></div><div class="abv">'+m.p+'%</div></div>';});
   h+='<div style="display:flex;gap:6px;margin:8px 0;font-size:10px">';
@@ -8200,7 +9230,7 @@ function renderAfluenciaPanel(place,nearbyPlaces,clickLatLng){
     h+='<div class="afl-section">\u{1F4CD} Lugares Cercanos ('+nearbyPlaces.length+')</div>';
     nearbyPlaces.sort(function(a,b){return(b.user_ratings_total||0)-(a.user_ratings_total||0);});
     nearbyPlaces.slice(0,8).forEach(function(np){var npInfo=getPlaceTypeInfo(np.types);var npEst=estimateFootfall(np);var dist=Math.round(google.maps.geometry.spherical.computeDistanceBetween(clickLatLng,np.geometry.location));
-    h+='<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #F3F4F6;font-size:10px"><span style="font-size:14px">'+npInfo.icon+'</span><div style="flex:1"><div style="font-weight:600;color:#1F2937">'+np.name+'</div><div style="color:#6B7280;font-size:9px">'+npInfo.label+' \u00b7 '+dist+'m</div></div><div style="text-align:right"><div style="font-weight:700;color:#7C3AED">'+fmt(npEst.daily)+'</div><div style="font-size:8px;color:#6B7280">/d\u00eda</div></div></div>';});
+    h+='<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #F3F4F6;font-size:10px"><span style="font-size:14px">'+npInfo.icon+'</span><div style="flex:1"><div style="font-weight:600;color:#1F2937">'+np.name+'</div><div style="color:#6B7280;font-size:9px">'+npInfo.label+' \u00b7 '+dist+'m</div></div><div style="text-align:right"><div style="font-weight:700;color:#7C3AED">'+fmt(npEst.monthly)+'</div><div style="font-size:8px;color:#6B7280">/mes</div></div></div>';});
   }
   h+='<div style="font-size:8px;color:#9CA3AF;margin-top:10px;padding-top:6px;border-top:1px solid #F3F4F6;text-align:center">Fuentes: Google Places API, INEGI DENUE, ANTAD, SCT, STC Metro, INAH \u00b7 '+new Date().toLocaleDateString('es-MX')+'</div>';
   body.innerHTML=h;
@@ -8218,7 +9248,7 @@ function renderAfluenciaPanel(place,nearbyPlaces,clickLatLng){
   });
   // Map markers
   clearAflMarkers();
-  var mainMarker=new google.maps.Marker({position:place.geometry?place.geometry.location:clickLatLng,map:map,title:place.name+' - '+fmt(est.daily)+'/d\u00eda',icon:{url:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50"><circle cx="20" cy="20" r="18" fill="'+typeInfo.color+'" stroke="#fff" stroke-width="3"/><text x="20" y="25" text-anchor="middle" fill="#fff" font-size="16">'+typeInfo.icon+'</text></svg>'),scaledSize:new google.maps.Size(40,50)},zIndex:1000});
+  var mainMarker=new google.maps.Marker({position:place.geometry?place.geometry.location:clickLatLng,map:map,title:place.name+' - '+fmt(est.monthly)+'/mes',icon:{url:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50"><circle cx="20" cy="20" r="18" fill="'+typeInfo.color+'" stroke="#fff" stroke-width="3"/><text x="20" y="25" text-anchor="middle" fill="#fff" font-size="16">'+typeInfo.icon+'</text></svg>'),scaledSize:new google.maps.Size(40,50)},zIndex:1000});
   aflMarkers.push(mainMarker);
   if(nearbyPlaces){nearbyPlaces.slice(0,15).forEach(function(np){if(np.place_id===(place.place_id||''))return;var npInfo=getPlaceTypeInfo(np.types);var npm=new google.maps.Marker({position:np.geometry.location,map:map,title:np.name,icon:{url:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><circle cx="14" cy="14" r="12" fill="'+npInfo.color+'" opacity="0.7" stroke="#fff" stroke-width="2"/><text x="14" y="19" text-anchor="middle" fill="#fff" font-size="12">'+npInfo.icon+'</text></svg>'),scaledSize:new google.maps.Size(28,28)},zIndex:999});aflMarkers.push(npm);});}
 }
@@ -11092,6 +12122,51 @@ function downloadSnapshot(){
 
 // Load shared state from URL hash on startup
 function loadSharedState(){
+  // Handle ?lat=X&lng=Y query parameters (from PDF "Ver en la web" button)
+  try{
+    var qs=window.location.search;
+    if(qs){
+      var params=new URLSearchParams(qs);
+      var qLat=parseFloat(params.get('lat'));
+      var qLng=parseFloat(params.get('lng'));
+      var qRadius=parseFloat(params.get('r'))||500;
+      if(!isNaN(qLat)&&!isNaN(qLng)&&qLat!==0&&qLng!==0){
+        // Wait for map to be ready, then create marker and analyze
+        setTimeout(function(){
+          map.setCenter({lat:qLat,lng:qLng});
+          map.setZoom(15);
+          // Create a circle overlay at the specified location
+          var circle=new google.maps.Circle({
+            center:{lat:qLat,lng:qLng},
+            radius:qRadius,
+            map:map,
+            fillColor:'#1d1d1f',fillOpacity:0.15,
+            strokeColor:'#1d1d1f',strokeWeight:2,strokeOpacity:0.8,
+            editable:true,clickable:false,zIndex:100
+          });
+          // Set as current overlay and analyze
+          if(currentOverlay&&currentOverlay.setMap)try{currentOverlay.setMap(null);}catch(e){}
+          currentOverlay=circle;
+          analyzeOverlay(circle,google.maps.drawing.OverlayType.CIRCLE);
+          // Add resize/move listeners
+          var _urlDebounce=null;
+          circle.addListener('radius_changed',function(){
+            showCircleRadiusLabel(circle);
+            clearTimeout(_urlDebounce);
+            _urlDebounce=setTimeout(function(){analyzeOverlay(circle,google.maps.drawing.OverlayType.CIRCLE);},400);
+          });
+          circle.addListener('center_changed',function(){
+            showCircleRadiusLabel(circle);
+            clearTimeout(_urlDebounce);
+            _urlDebounce=setTimeout(function(){analyzeOverlay(circle,google.maps.drawing.OverlayType.CIRCLE);},400);
+          });
+          showCircleRadiusLabel(circle);
+          setStatus('Punto cargado desde enlace web');
+        },2000);
+      }
+    }
+  }catch(e){console.warn('URL param handling error:',e);}
+
   var hash=window.location.hash;
   if(!hash||hash.indexOf('#share=')===-1)return;
   var encoded=hash.replace('#share=','');
@@ -13380,11 +14455,18 @@ function makeDraggable(panelId,handleId){
 }
 
 // Make any element draggable by its first header-like child
-var _dragExcludeIds={'live-radius-label':1,'ar-toggle':1,'toolbar':1,'navbar':1,'coords':1,'status':1,'sidebar':1,'map':1,'topbar':1,'top-menu':1,'suggestions':1,'geo-suggestions':1,'intro-page':1,'admin-panel':1,'pin-context-menu':1,'main-menu-dropdown':1};
+var _dragExcludeIds={'live-radius-label':1,'ar-toggle':1,'toolbar':1,'navbar':1,'coords':1,'status':1,'sidebar':1,'map':1,'topbar':1,'top-menu':1,'suggestions':1,'geo-suggestions':1,'intro-page':1,'admin-panel':1,'pin-context-menu':1,'main-menu-dropdown':1,'tool-mode-popup':1,'import-menu-popup':1,'export-menu-dropdown':1,'share-dialog':1,'import-dialog':1,'heatmap-dropdown':1,'nse-layers-menu':1,'places-menu':1};
 function makePanelDraggable(el){
   if(!el||el._dragInit)return;
   if(_dragExcludeIds[el.id])return;
   if(el.style.pointerEvents==='none')return;
+  // CRITICAL: never touch Google Maps internal elements
+  if(el.closest&&el.closest('#map'))return;
+  if(el.className&&typeof el.className==='string'&&(el.className.indexOf('gm-')>=0||el.className.indexOf('gmnoprint')>=0))return;
+  // Never touch popups, menus, dropdowns, dialogs, tooltips
+  if(el.id&&(el.id.indexOf('popup')>=0||el.id.indexOf('menu')>=0||el.id.indexOf('dropdown')>=0||el.id.indexOf('dialog')>=0||el.id.indexOf('tooltip')>=0))return;
+  // Skip very small floating elements (likely menus/popups, not panels)
+  if(el.offsetHeight>0&&el.offsetHeight<60)return;
   el._dragInit=true;
   // Find a handle: title bar, header-like element, or first child
   var handle=el.querySelector('[id*="title-bar"]')||el.querySelector('.pm-header')||el.querySelector('[style*="border-bottom"]')||el.querySelector('[style*="gradient"]');
@@ -13434,13 +14516,20 @@ function _isPanelNode(node){
   if(_dragExcludeIds[node.id])return false;
   if(node.style.pointerEvents==='none')return false;
   if(node.tagName==='SCRIPT'||node.tagName==='LINK'||node.tagName==='STYLE')return false;
+  // CRITICAL: never touch Google Maps internal elements inside #map
+  if(node.closest&&node.closest('#map'))return false;
+  if(node.className&&typeof node.className==='string'&&(node.className.indexOf('gm-')>=0||node.className.indexOf('gmnoprint')>=0))return false;
+  // Never touch popups, menus, dropdowns, dialogs, tooltips
+  if(node.id&&(node.id.indexOf('popup')>=0||node.id.indexOf('menu')>=0||node.id.indexOf('dropdown')>=0||node.id.indexOf('dialog')>=0||node.id.indexOf('tooltip')>=0))return false;
   var cs=window.getComputedStyle(node);
   var pos=cs.position;
   if(pos!=='fixed'&&pos!=='absolute')return false;
   var w=node.offsetWidth;
   if(w<80)return false;
+  // Skip very small elements (menus/popups, not panels)
+  if(node.offsetHeight>0&&node.offsetHeight<60)return false;
   var z=parseInt(cs.zIndex)||0;
-  if(z<3)return false;
+  if(z<2)return false;
   return true;
 }
 
@@ -13450,6 +14539,8 @@ var _dragObserver=new MutationObserver(function(mutations){
     // New nodes added to DOM
     m.addedNodes.forEach(function(node){
       if(node.nodeType!==1)return;
+      // Skip all mutations inside the map container (Google Maps internals)
+      if(node.closest&&node.closest('#map'))return;
       setTimeout(function(){
         if(_isPanelNode(node))makePanelDraggable(node);
         // Also check children (e.g. panels inside wrappers)
@@ -13485,6 +14576,135 @@ setTimeout(function(){
 // Initialize draggable on report panel after DOM ready
 setTimeout(function(){makeDraggable('report-panel','report-title-bar');},2000);
 
+// =============================================================================
+// UNIVERSAL CLOSE BUTTON SYSTEM — every panel/window gets a close/hide button
+// =============================================================================
+var _closeExcludeIds={'toolbar':1,'topbar':1,'map':1,'sidebar':1,'navbar':1,'coords':1,'status':1,'suggestions':1,'geo-suggestions':1,'intro-page':1,'admin-panel':1,'nse-legend':1,'live-radius-label':1,'ar-toggle':1,'pin-context-menu':1,'main-menu-dropdown':1,'heatmap-dropdown':1,'nse-layers-menu':1,'places-menu':1,'tool-mode-popup':1,'import-menu-popup':1,'export-menu-dropdown':1,'share-dialog':1,'import-dialog':1};
+
+function _panelHasClose(el){
+  // Check if panel already has a close button (× or ✕ in a button)
+  var btns=el.querySelectorAll('button');
+  for(var i=0;i<btns.length;i++){
+    var txt=btns[i].textContent.trim();
+    if(txt==='×'||txt==='✕'||txt==='✖'||txt==='X'||txt==='Cerrar')return true;
+    if(btns[i].classList.contains('close-btn')||btns[i].classList.contains('panel-close'))return true;
+  }
+  return false;
+}
+
+function ensureCloseButton(el){
+  if(!el||!el.style)return;
+  if(el._closeInit)return;
+  if(_closeExcludeIds[el.id])return;
+  if(_panelHasClose(el))return;
+  // CRITICAL: never touch Google Maps internal elements
+  if(el.closest&&el.closest('#map'))return;
+  if(el.className&&typeof el.className==='string'&&(el.className.indexOf('gm-')>=0||el.className.indexOf('gmnoprint')>=0))return;
+  // Never touch popups, menus, dropdowns, dialogs, tooltips
+  if(el.id&&(el.id.indexOf('popup')>=0||el.id.indexOf('menu')>=0||el.id.indexOf('dropdown')>=0||el.id.indexOf('dialog')>=0||el.id.indexOf('tooltip')>=0))return;
+  // Must be a floating panel (fixed/absolute, reasonable size)
+  var cs=window.getComputedStyle(el);
+  var pos=cs.position;
+  if(pos!=='fixed'&&pos!=='absolute')return;
+  if(el.offsetWidth<80)return;
+  if(el.offsetHeight>0&&el.offsetHeight<60)return;
+  var z=parseInt(cs.zIndex)||0;
+  if(z<2)return;
+  if(el.style.pointerEvents==='none')return;
+  if(el.tagName==='SCRIPT'||el.tagName==='LINK'||el.tagName==='STYLE')return;
+
+  el._closeInit=true;
+
+  // Find the header/title area to insert the close button
+  var header=el.querySelector('[id*="title-bar"]')||el.querySelector('.pm-header');
+  if(!header){
+    // Look for first child that looks like a header (has gradient, border-bottom, bold text)
+    var fc=el.firstElementChild;
+    if(fc&&fc.tagName==='DIV'){
+      var fcs=window.getComputedStyle(fc);
+      if(fcs.fontWeight>=600||fcs.backgroundImage.indexOf('gradient')>=0||fcs.borderBottom||fc.querySelector('b,strong,span[style*="font-weight"]')){
+        header=fc;
+      }
+    }
+  }
+
+  var closeBtn=document.createElement('button');
+  closeBtn.className='panel-close';
+  closeBtn.textContent='×';
+  closeBtn.title='Cerrar panel';
+  closeBtn.style.cssText='border:none;background:none;cursor:pointer;font-size:18px;color:rgba(255,255,255,.7);padding:0 4px;line-height:1;margin-left:8px;flex-shrink:0;transition:color .15s';
+  closeBtn.onmouseover=function(){this.style.color='#fff'};
+  closeBtn.onmouseout=function(){this.style.color='rgba(255,255,255,.7)'};
+  closeBtn.onclick=function(e){
+    e.stopPropagation();
+    el.style.display='none';
+    // If the panel has a toggle function, don't remove it — just hide
+    // For panels created dynamically, hiding is sufficient
+  };
+
+  if(header){
+    // Ensure header has flex layout for close button alignment
+    var hcs=window.getComputedStyle(header);
+    if(hcs.display!=='flex'){
+      header.style.display='flex';
+      header.style.justifyContent='space-between';
+      header.style.alignItems='center';
+      // Wrap existing content if needed
+      if(header.children.length>0&&!header.querySelector('.panel-close')){
+        // Check if already has flex layout working
+        var existingFlex=hcs.display==='flex'||header.style.display==='flex';
+        if(!existingFlex){
+          var wrapper=document.createElement('span');
+          wrapper.style.cssText='flex:1;min-width:0;overflow:hidden';
+          while(header.firstChild&&header.firstChild!==closeBtn){
+            wrapper.appendChild(header.firstChild);
+          }
+          header.insertBefore(wrapper,header.firstChild);
+        }
+      }
+    }
+    header.appendChild(closeBtn);
+  }else{
+    // No header found — add floating close button in top-right corner
+    closeBtn.style.cssText='position:absolute;top:4px;right:4px;border:none;background:rgba(0,0,0,.4);color:#fff;cursor:pointer;font-size:14px;padding:2px 6px;line-height:1;border-radius:50%;z-index:10;transition:background .15s';
+    closeBtn.onmouseover=function(){this.style.background='rgba(0,0,0,.7)'};
+    closeBtn.onmouseout=function(){this.style.background='rgba(0,0,0,.4)'};
+    if(cs.position==='fixed'||cs.position==='absolute'){
+      el.appendChild(closeBtn);
+    }
+  }
+}
+
+// Hook close button system into existing MutationObserver
+var _origObserverCb=_dragObserver._callback||null;
+var _closeObserver=new MutationObserver(function(mutations){
+  mutations.forEach(function(m){
+    m.addedNodes.forEach(function(node){
+      if(node.nodeType!==1)return;
+      if(node.closest&&node.closest('#map'))return;
+      setTimeout(function(){
+        ensureCloseButton(node);
+        if(node.querySelectorAll){
+          node.querySelectorAll('div').forEach(function(ch){
+            ensureCloseButton(ch);
+          });
+        }
+      },200);
+    });
+    if(m.type==='attributes'&&(m.attributeName==='style'||m.attributeName==='class')&&m.target.nodeType===1){
+      setTimeout(function(){ensureCloseButton(m.target);},200);
+    }
+  });
+});
+_closeObserver.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+
+// Scan all existing panels on load
+setTimeout(function(){
+  document.querySelectorAll('div,section').forEach(function(el){
+    ensureCloseButton(el);
+  });
+},2500);
+
 // === MASTER DATA-CHANGE WATCHER ===
 // Detects currentData changes and refreshes auto-report + mobility
 var _lastDataStamp2=null;
@@ -13517,18 +14737,121 @@ setInterval(function(){
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgenjs.bundle.js"></script>
 <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSz9vl6r8FAFAI-ifVr7O1yu5yW2Qrxek&libraries=drawing,places,geometry,visualization,marker&callback=initMap"></script>
 
+<!-- ============================================================ -->
+<!-- GLOBAL FILTERS PANEL — segmentación avanzada del reporte     -->
+<!-- ============================================================ -->
+<div id="global-filter-panel" style="display:none;position:fixed;top:48px;right:10px;width:340px;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(109,40,217,.2);border-radius:14px;box-shadow:0 12px 40px rgba(109,40,217,.15);z-index:95;max-height:calc(100vh - 68px);overflow:hidden;display:none;flex-direction:column">
+  <div id="gflt-title-bar" style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#6D28D9,#8B3A9F);border-radius:14px 14px 0 0;cursor:move">
+    <div>
+      <div style="font-weight:700;color:#fff;font-size:14px;letter-spacing:-.2px">🎛️ Filtros del Reporte</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.8);margin-top:1px">Segmenta por demográficos, movilidad, día y horario</div>
+    </div>
+    <button onclick="toggleGlobalFilterPanel(false)" style="border:none;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;font-size:16px;font-weight:700;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center">×</button>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:14px 16px">
+    <!-- DEMOGRÁFICOS -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:#6D28D9;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e9d5ff">👥 Demográficos</div>
+      <label style="display:block;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;margin-bottom:4px">Nivel Socioeconómico (NSE)</label>
+      <select id="gflt-nse" style="width:100%;padding:8px 10px;border:1px solid #e9d5ff;border-radius:8px;font-size:11px;background:#fff;color:#1d1d1f;cursor:pointer;margin-bottom:10px">
+        <option value="all">Todos los NSE</option>
+      </select>
+      <label style="display:block;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;margin-bottom:4px">Género</label>
+      <select id="gflt-gender" style="width:100%;padding:8px 10px;border:1px solid #e9d5ff;border-radius:8px;font-size:11px;background:#fff;color:#1d1d1f;cursor:pointer;margin-bottom:10px">
+        <option value="all">Ambos géneros</option>
+        <option value="m">👨 Hombres</option>
+        <option value="f">👩 Mujeres</option>
+      </select>
+      <label style="display:block;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;margin-bottom:4px">Rango de edad</label>
+      <select id="gflt-age" style="width:100%;padding:8px 10px;border:1px solid #e9d5ff;border-radius:8px;font-size:11px;background:#fff;color:#1d1d1f;cursor:pointer">
+        <option value="all">Todas las edades</option>
+      </select>
+    </div>
+    <!-- MOVILIDAD -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:#6D28D9;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e9d5ff">🚦 Movilidad</div>
+      <label style="display:block;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;margin-bottom:4px">Modo de transporte</label>
+      <select id="gflt-mobility" style="width:100%;padding:8px 10px;border:1px solid #e9d5ff;border-radius:8px;font-size:11px;background:#fff;color:#1d1d1f;cursor:pointer">
+        <option value="all">Todos los modos</option>
+        <option value="vehicle">🚗 Solo vehículos</option>
+        <option value="pedestrian">🚶 Solo peatones</option>
+        <option value="transit">🚌 Solo transporte público</option>
+        <option value="bike">🚴 Solo bicicleta</option>
+      </select>
+    </div>
+    <!-- TEMPORAL -->
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:#6D28D9;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e9d5ff">📅 Temporal</div>
+      <label style="display:block;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;margin-bottom:4px">Día de la semana</label>
+      <select id="gflt-daytype" style="width:100%;padding:8px 10px;border:1px solid #e9d5ff;border-radius:8px;font-size:11px;background:#fff;color:#1d1d1f;cursor:pointer;margin-bottom:10px">
+        <option value="all">Toda la semana</option>
+        <option value="weekday">📆 Lun–Vie (entre semana)</option>
+        <option value="saturday">🛒 Sábado</option>
+        <option value="sunday">⛪ Domingo</option>
+      </select>
+      <label style="display:block;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;margin-bottom:4px">Horario del día</label>
+      <select id="gflt-timeofday" style="width:100%;padding:8px 10px;border:1px solid #e9d5ff;border-radius:8px;font-size:11px;background:#fff;color:#1d1d1f;cursor:pointer">
+        <option value="all">Todo el día</option>
+        <option value="morning">🌅 Mañana (6–12 h)</option>
+        <option value="midday">☀️ Mediodía (12–16 h)</option>
+        <option value="afternoon">🌇 Tarde (16–20 h)</option>
+        <option value="evening">🌙 Noche (20–24 h)</option>
+      </select>
+    </div>
+  </div>
+  <div style="padding:10px 16px;border-top:1px solid #e9d5ff;background:#faf5ff;border-radius:0 0 14px 14px">
+    <div id="gflt-summary-hint" style="font-size:9px;color:#64748b;text-align:center;margin-bottom:6px;min-height:12px"></div>
+    <div style="display:flex;gap:6px">
+      <button onclick="applyReportFilters()" style="flex:2;padding:10px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;box-shadow:0 2px 6px rgba(109,40,217,.25)">✓ Aplicar filtros</button>
+      <button onclick="resetReportFilters()" style="flex:1;padding:10px;background:#fff;color:#6D28D9;border:1px solid #e9d5ff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600">Limpiar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Area Report Panel -->
 <div id="report-panel" style="display:none;position:fixed;top:48px;right:10px;width:400px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.08);z-index:90;max-height:calc(100vh - 68px);overflow-y:auto">
   <div style="padding:10px 16px;border-bottom:1px solid rgba(109,40,217,.15);display:flex;justify-content:space-between;align-items:center;cursor:move;background:linear-gradient(135deg,#6D28D9,#8B3A9F);border-radius:12px 12px 0 0" id="report-title-bar">
     <span style="font-weight:600;color:#fff;font-size:13px;letter-spacing:-.2px">Reporte del Area</span>
     <div style="display:flex;gap:4px;align-items:center">
       <button onclick="toggleReportDeepView()" id="btn-deep-view" style="padding:3px 8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;border-radius:5px;cursor:pointer;font-size:9px;font-weight:500" title="Vista profunda">Deep</button>
+      <button onclick="toggleReportSegmentPanel()" id="btn-report-filters" style="padding:3px 8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;border-radius:5px;cursor:pointer;font-size:9px;font-weight:500" title="Segmentar reporte">🎯 Filtros</button>
       <button onclick="exportReportPDF()" style="padding:3px 8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;border-radius:5px;cursor:pointer;font-size:9px;font-weight:500" title="Exportar PDF">PDF</button>
       <button onclick="exportReportPPTX()" style="padding:3px 8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;border-radius:5px;cursor:pointer;font-size:9px;font-weight:500" title="Exportar PowerPoint">PPTX</button>
       <button onclick="document.getElementById('report-panel').style.display='none'" style="border:none;background:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,.7)">×</button>
     </div>
   </div>
   <select id="report-filter" style="display:none"><option value="resumen">Resumen</option></select>
+  <!-- Segment filter panel — hidden by default, toggled via 🎯 Filtros button -->
+  <div id="report-segment-bar" style="display:none;padding:12px 14px;background:linear-gradient(180deg,#faf5ff,#f3e8ff);border-bottom:2px solid #6D28D9;overflow:hidden;transition:max-height .25s ease">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:11px;font-weight:800;color:#6D28D9;text-transform:uppercase;letter-spacing:.5px">🎯 Segmentación demográfica</span>
+      <button onclick="toggleReportSegmentPanel(false)" title="Cerrar" style="border:none;background:none;color:#6D28D9;cursor:pointer;font-size:14px;font-weight:700">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+      <label style="font-size:9px;font-weight:600;color:#6D28D9;text-transform:uppercase">Nivel Socioeconómico
+        <select id="flt-nse" style="width:100%;margin-top:3px;padding:6px 8px;border:1px solid #e9d5ff;border-radius:6px;font-size:11px;background:#fff;color:#1d1d1f;cursor:pointer">
+          <option value="all">Todos los NSE</option>
+        </select>
+      </label>
+      <label style="font-size:9px;font-weight:600;color:#6D28D9;text-transform:uppercase">Género
+        <select id="flt-gender" style="width:100%;margin-top:3px;padding:6px 8px;border:1px solid #e9d5ff;border-radius:6px;font-size:11px;background:#fff;color:#1d1d1f;cursor:pointer">
+          <option value="all">Ambos géneros</option>
+          <option value="m">👨 Hombres</option>
+          <option value="f">👩 Mujeres</option>
+        </select>
+      </label>
+      <label style="font-size:9px;font-weight:600;color:#6D28D9;text-transform:uppercase">Rango de edad
+        <select id="flt-age" style="width:100%;margin-top:3px;padding:6px 8px;border:1px solid #e9d5ff;border-radius:6px;font-size:11px;background:#fff;color:#1d1d1f;cursor:pointer">
+          <option value="all">Todas las edades</option>
+        </select>
+      </label>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button onclick="applyReportFilters()" style="flex:2;padding:8px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">✓ Aplicar filtros</button>
+      <button onclick="resetReportFilters()" style="flex:1;padding:8px;background:#fff;color:#6D28D9;border:1px solid #e9d5ff;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">Limpiar</button>
+    </div>
+    <div id="flt-summary-hint" style="font-size:9px;color:#64748b;margin-top:6px;text-align:center"></div>
+  </div>
   <div id="report-content" style="padding:12px 16px;min-height:200px"></div>
 </div>
 
