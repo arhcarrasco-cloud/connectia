@@ -17135,5 +17135,290 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
   <div class="afl-hdr"><h3>&#x1F4CA; Afluencia Indoor</h3><button onclick="toggleAfluencia()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:0 4px">&times;</button></div>
   <div class="afl-body" id="afl-body"></div>
 </div>
+
+<!-- ============================================================ -->
+<!-- FIX: Chip-based multi-select for NSE & Edad filters          -->
+<!-- Each chip toggles independently. Empty selection = all.      -->
+<!-- ============================================================ -->
+<script>
+(function(){
+  var NSE_BLOCKS=[
+    {key:'AB',    label:'A/B', color:'#15803d'},
+    {key:'Cplus', label:'C+',  color:'#22c55e'},
+    {key:'C',     label:'C',   color:'#eab308'},
+    {key:'Dplus', label:'C-',  color:'#fb923c'},
+    {key:'D',     label:'D+',  color:'#ea580c'},
+    {key:'E',     label:'D/E', color:'#991b1b'}
+  ];
+  var AGE_BLOCKS=[
+    {key:'0-14',  label:'0-14'},
+    {key:'15-29', label:'15-29'},
+    {key:'30-44', label:'30-44'},
+    {key:'45-59', label:'45-59'},
+    {key:'60+',   label:'60+'}
+  ];
+  var NSE_TOTAL=NSE_BLOCKS.length, AGE_TOTAL=AGE_BLOCKS.length;
+
+  function _arr(v){
+    if(Array.isArray(v))return v.slice();
+    if(v==null||v===''||v==='all')return [];
+    return [String(v)];
+  }
+  function _isAll(v,total){var a=_arr(v);return a.length===0||a.length>=total;}
+
+  // Compute 5-block age breakdown from currentData (matches census fields, or derives from alcDemo)
+  function _getAgeBlocks5(d){
+    var ce=(d&&d.ce)||{};
+    var alc=(d&&typeof _resolveAlcDemo==='function')?_resolveAlcDemo(d):null;
+    var out={};
+    if(alc){
+      out['0-14'] =alc.a014||0;
+      out['15-29']=(alc.a1519||0)+(alc.a2024||0)+(alc.a2534||0)*0.5;
+      out['30-44']=(alc.a2534||0)*0.5+(alc.a3544||0);
+      out['45-59']=(alc.a4564||0)*0.75;
+      out['60+']  =(alc.a4564||0)*0.25+(alc.a65p||0);
+    }else{
+      out['0-14'] =ce.a014 ||0;
+      out['15-29']=ce.a1529||0;
+      out['30-44']=ce.a3044||0;
+      out['45-59']=ce.a4559||0;
+      out['60+']  =ce.a60  ||0;
+    }
+    return AGE_BLOCKS.map(function(b){return {key:b.key,label:b.label,v:out[b.key]||0};});
+  }
+
+  function _nsePctFor(d,keys){
+    if(!d)return {pct:0,label:keys.join('+')};
+    var matches=(d.nse||[]).filter(function(n){return keys.indexOf(n.n)>=0;});
+    var pct=matches.reduce(function(s,n){return s+(n.p||0);},0);
+    var lbl=matches.map(function(n){return n.n;}).join('+')||keys.join('+');
+    return {pct:pct,label:lbl};
+  }
+  function _agePctFor(d,keys){
+    var blocks=_getAgeBlocks5(d);
+    var matches=blocks.filter(function(b){return keys.indexOf(b.key)>=0;});
+    var pct=matches.reduce(function(s,b){return s+(b.v||0);},0);
+    var lbl=matches.map(function(b){return b.label;}).join(', ');
+    return {pct:pct,label:lbl};
+  }
+
+  // === Chip toggle handler (exposed globally for inline onclick) ===
+  window._toggleFilterChip=function(dim,key){
+    if(!window._reportFilters)window._reportFilters={nse:[],gender:'all',age:[],mobility:'all',dayType:'all',timeOfDay:'all'};
+    var cur=_arr(window._reportFilters[dim]);
+    var idx=cur.indexOf(key);
+    if(idx>=0)cur.splice(idx,1);else cur.push(key);
+    window._reportFilters[dim]=cur;
+    _renderChipsAll();
+    _debouncedApply();
+  };
+
+  var _applyTimer=null;
+  function _debouncedApply(){
+    if(_applyTimer)clearTimeout(_applyTimer);
+    _applyTimer=setTimeout(function(){
+      try{window.applyReportFilters();}catch(e){console.error('applyReportFilters',e);}
+    },120);
+  }
+
+  function _renderChipsAll(){
+    var d=window.currentData;
+    var nseKeys=_arr(window._reportFilters&&window._reportFilters.nse);
+    var ageKeys=_arr(window._reportFilters&&window._reportFilters.age);
+    ['gflt-nse-chips','flt-nse-chips'].forEach(function(id){
+      var el=document.getElementById(id);if(!el)return;
+      var html='';
+      NSE_BLOCKS.forEach(function(b){
+        var pct=0;if(d){var hit=(d.nse||[]).filter(function(n){return n.n===b.key})[0];if(hit)pct=hit.p||0;}
+        var active=nseKeys.indexOf(b.key)>=0;
+        var pctTxt=d?' <span class="gflt-chip-pct">'+Math.round(pct)+'%</span>':'';
+        html+='<button type="button" class="gflt-chip'+(active?' gflt-chip-on':'')+'" data-nse="'+b.key+'" onclick="_toggleFilterChip(\'nse\',\''+b.key+'\')" style="--chip-c:'+b.color+'">'+b.label+pctTxt+'</button>';
+      });
+      el.innerHTML=html;
+    });
+    ['gflt-age-chips','flt-age-chips'].forEach(function(id){
+      var el=document.getElementById(id);if(!el)return;
+      var blocks=d?_getAgeBlocks5(d):AGE_BLOCKS.map(function(b){return {key:b.key,label:b.label,v:0};});
+      var html='';
+      blocks.forEach(function(b){
+        var active=ageKeys.indexOf(b.key)>=0;
+        var pctTxt=d?' <span class="gflt-chip-pct">'+(b.v||0).toFixed(1)+'%</span>':'';
+        html+='<button type="button" class="gflt-chip'+(active?' gflt-chip-on':'')+'" data-age="'+b.key+'" onclick="_toggleFilterChip(\'age\',\''+b.key+'\')" style="--chip-c:#6D28D9">'+b.label+pctTxt+'</button>';
+      });
+      el.innerHTML=html;
+    });
+  }
+  window._renderFilterChips=_renderChipsAll;
+
+  function _installChipUI(){
+    [['gflt-nse','gflt-nse-chips'],['gflt-age','gflt-age-chips'],['flt-nse','flt-nse-chips'],['flt-age','flt-age-chips']].forEach(function(pair){
+      var sel=document.getElementById(pair[0]);if(!sel||sel._chipReplaced)return;
+      var c=document.createElement('div');c.id=pair[1];c.className='gflt-chips-row';
+      sel.style.display='none';sel._chipReplaced=true;
+      sel.parentNode.insertBefore(c,sel.nextSibling);
+    });
+    if(!document.getElementById('gflt-chip-styles')){
+      var s=document.createElement('style');s.id='gflt-chip-styles';
+      s.textContent=
+        '.gflt-chips-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}'+
+        '.gflt-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border:1.5px solid #e9d5ff;border-radius:999px;background:#fff;color:#6b7280;font-size:11px;font-weight:700;cursor:pointer;transition:background .12s ease,border-color .12s ease,color .12s ease,box-shadow .12s ease;user-select:none;letter-spacing:-.1px;line-height:1.2;font-family:inherit}'+
+        '.gflt-chip:hover{border-color:var(--chip-c,#6D28D9);background:#faf5ff;color:#1d1d1f}'+
+        '.gflt-chip-on{background:var(--chip-c,#6D28D9)!important;border-color:var(--chip-c,#6D28D9)!important;color:#fff!important;box-shadow:0 2px 6px rgba(109,40,217,.22)}'+
+        '.gflt-chip-on:hover{filter:brightness(1.06)}'+
+        '.gflt-chip-pct{font-weight:500;opacity:.85;font-size:9.5px;letter-spacing:0}'+
+        '.gflt-chip-on .gflt-chip-pct{opacity:.9}';
+      document.head.appendChild(s);
+    }
+    // Migrate any legacy 'all' / scalar state to array form
+    if(window._reportFilters){
+      if(!Array.isArray(window._reportFilters.nse))window._reportFilters.nse=_arr(window._reportFilters.nse);
+      if(!Array.isArray(window._reportFilters.age))window._reportFilters.age=_arr(window._reportFilters.age);
+    }
+    _renderChipsAll();
+  }
+
+  // === Overrides ===
+  window._populateReportFilterOptions=function(){
+    _installChipUI();
+    _renderChipsAll();
+  };
+
+  window._hasAnyFilterActive=function(){
+    var f=window._reportFilters||{};
+    var nseOn=!_isAll(f.nse,NSE_TOTAL);
+    var ageOn=!_isAll(f.age,AGE_TOTAL);
+    return nseOn||ageOn||(f.gender&&f.gender!=='all')||(f.mobility&&f.mobility!=='all')||(f.dayType&&f.dayType!=='all')||(f.timeOfDay&&f.timeOfDay!=='all');
+  };
+
+  window._computeFilterEnvelope=function(){
+    var d=window.currentData;if(!d)return null;
+    var pop=d.estPop||0,hog=d.estHog||0;
+    var f=window._reportFilters||{};
+    var nseAll=_isAll(f.nse,NSE_TOTAL), ageAll=_isAll(f.age,AGE_TOTAL);
+    var nseR=nseAll?{pct:100,label:'Todos'}:_nsePctFor(d,_arr(f.nse));
+    var ageR=ageAll?{pct:100,label:'Todos'}:_agePctFor(d,_arr(f.age));
+    var nsePct=nseR.pct||0, nseLabel=nseR.label;
+    var agePct=ageR.pct||0, ageLabel=ageR.label;
+    var genPct=100, genLabel='Todos';
+    var alc=(typeof _resolveAlcDemo==='function'?_resolveAlcDemo(d):null);
+    var gen=(typeof _getGender==='function'?_getGender(alc,d.ce||{}):{m:50,f:50});
+    if(f.gender==='m'){genPct=gen.m||0;genLabel='Hombres';}
+    else if(f.gender==='f'){genPct=gen.f||0;genLabel='Mujeres';}
+    var dens=(d.ce&&d.ce.dens)||0;
+    var vehShareFull=dens>3000?0.29:dens>1000?0.35:0.45;
+    var transitShareFull=dens>3000?0.46:dens>1000?0.35:0.20;
+    var pedShareFull=dens>3000?0.22:dens>1000?0.27:0.30;
+    var bikeShareFull=dens>3000?0.03:0.02;
+    var mobFocus=1,mobLabel='Todos los modos',mobKey='all';
+    if(f.mobility==='vehicle'){mobFocus=vehShareFull;mobLabel='Vehiculos';mobKey='vehicle';}
+    else if(f.mobility==='pedestrian'){mobFocus=pedShareFull;mobLabel='Peatones';mobKey='pedestrian';}
+    else if(f.mobility==='transit'){mobFocus=transitShareFull;mobLabel='Transporte publico';mobKey='transit';}
+    else if(f.mobility==='bike'){mobFocus=bikeShareFull;mobLabel='Bicicleta';mobKey='bike';}
+    var dayMult=1,dayLabel='Toda la semana',dayKey='all',dayFracPeriod=1;
+    if(f.dayType==='weekday'){dayMult=1.00;dayLabel='Lun-Vie';dayKey='weekday';dayFracPeriod=5/7;}
+    else if(f.dayType==='saturday'){dayMult=1.15;dayLabel='Sabado';dayKey='saturday';dayFracPeriod=1/7;}
+    else if(f.dayType==='sunday'){dayMult=0.72;dayLabel='Domingo';dayKey='sunday';dayFracPeriod=1/7;}
+    var timeFrac=1,timeLabel='Todo el dia',timeKey='all';
+    if(f.timeOfDay==='morning'){timeFrac=0.30;timeLabel='Manana (6-12 h)';timeKey='morning';}
+    else if(f.timeOfDay==='midday'){timeFrac=0.25;timeLabel='Mediodia (12-16 h)';timeKey='midday';}
+    else if(f.timeOfDay==='afternoon'){timeFrac=0.30;timeLabel='Tarde (16-20 h)';timeKey='afternoon';}
+    else if(f.timeOfDay==='evening'){timeFrac=0.15;timeLabel='Noche (20-24 h)';timeKey='evening';}
+    var demoFactor=(nsePct/100)*(genPct/100)*(agePct/100);
+    var mobilityFactor=demoFactor*mobFocus*dayMult*timeFrac*dayFracPeriod;
+    var anyDemo=!nseAll||!ageAll||(f.gender&&f.gender!=='all');
+    var anyMob=(f.mobility&&f.mobility!=='all')||(f.dayType&&f.dayType!=='all')||(f.timeOfDay&&f.timeOfDay!=='all');
+    return{
+      factor:demoFactor,mobilityFactor:mobilityFactor,
+      anyActive:anyDemo||anyMob,anyDemo:anyDemo,anyMob:anyMob,
+      nseLabel:nseLabel,nsePct:nsePct,genLabel:genLabel,genPct:genPct,
+      ageLabel:ageLabel,agePct:agePct,
+      mobKey:mobKey,mobLabel:mobLabel,mobFocus:mobFocus,
+      dayKey:dayKey,dayLabel:dayLabel,dayMult:dayMult,dayFracPeriod:dayFracPeriod,
+      timeKey:timeKey,timeLabel:timeLabel,timeFrac:timeFrac,
+      filteredPop:Math.round(pop*demoFactor),filteredHog:Math.round(hog*demoFactor),
+      _nseActive:!nseAll,_ageActive:!ageAll
+    };
+  };
+
+  window._renderFilterSummary=function(env){
+    if(!env||!env.anyActive)return '';
+    var d=window.currentData;if(!d)return '';
+    var ce=d.ce||{},en=d.en||{};
+    var pop=d.estPop||0,hog=d.estHog||0,dens=ce.dens||0;
+    var fp=(typeof calcFlowParams==='function')?calcFlowParams(dens,d.areaSqKm||0.785):{tripsPerP:2.5,vehShare:.4,pedShare:.3,throughMult:1};
+    var impVeh=0,impPer=0;
+    if(env.mobKey==='all'||env.mobKey==='vehicle')impVeh=Math.round(pop*env.factor*fp.tripsPerP*fp.vehShare*fp.throughMult*30*env.dayMult*env.timeFrac*env.dayFracPeriod);
+    if(env.mobKey==='all'||env.mobKey==='pedestrian')impPer=Math.round(pop*env.factor*fp.tripsPerP*fp.pedShare*fp.throughMult*30*env.dayMult*env.timeFrac*env.dayFracPeriod);
+    var impPerVeh=Math.round(impVeh*1.44);
+    var impTotal=impVeh+impPer+impPerVeh;
+    var ingPC=d.ing||en.ingPC||en.ing||0, gasPC=d.gas||en.gasPC||en.gas||0;
+    var aggIng=Math.round(ingPC*env.filteredPop), aggGas=Math.round(gasPC*env.filteredPop);
+    var ingHog=d.ingHog||en.ing||0, aggIngHog=Math.round(ingHog*env.filteredHog);
+    function f(n){if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Math.round(n).toLocaleString('es-MX');}
+    var pill=function(t){return '<span style="background:rgba(255,255,255,.2);padding:2px 6px;border-radius:4px;margin-right:4px;display:inline-block">'+t+'</span>';};
+    var h='';
+    h+='<div style="background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;padding:10px 12px;border-radius:8px;margin-bottom:10px">';
+    h+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;opacity:.9;margin-bottom:4px;display:flex;justify-content:space-between"><span>Segmento activo</span><span style="font-weight:600">Factor: '+(env.mobilityFactor*100).toFixed(3)+'%</span></div>';
+    h+='<div style="font-size:11px;font-weight:600;margin-bottom:6px;line-height:1.8">';
+    if(env._nseActive)h+=pill('NSE '+env.nseLabel+' ('+env.nsePct.toFixed(1)+'%)');
+    if(window._reportFilters.gender&&window._reportFilters.gender!=='all')h+=pill(env.genLabel+' ('+env.genPct.toFixed(1)+'%)');
+    if(env._ageActive)h+=pill(env.ageLabel+' ('+env.agePct.toFixed(1)+'%)');
+    if(window._reportFilters.mobility&&window._reportFilters.mobility!=='all')h+=pill(env.mobLabel+' ('+(env.mobFocus*100).toFixed(0)+'%)');
+    if(window._reportFilters.dayType&&window._reportFilters.dayType!=='all')h+=pill(env.dayLabel+' (x'+env.dayMult.toFixed(2)+')');
+    if(window._reportFilters.timeOfDay&&window._reportFilters.timeOfDay!=='all')h+=pill(env.timeLabel+' ('+(env.timeFrac*100).toFixed(0)+'%)');
+    h+='</div>';
+    h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:10px">';
+    h+='<div style="background:rgba(255,255,255,.15);padding:6px 8px;border-radius:6px"><div style="font-size:8px;opacity:.85;text-transform:uppercase">Pob. filtrada</div><div style="font-size:14px;font-weight:800">'+f(env.filteredPop)+'</div><div style="font-size:8px;opacity:.75">'+(env.factor*100).toFixed(2)+'% del total</div></div>';
+    h+='<div style="background:rgba(255,255,255,.15);padding:6px 8px;border-radius:6px"><div style="font-size:8px;opacity:.85;text-transform:uppercase">Hogares filt.</div><div style="font-size:14px;font-weight:800">'+f(env.filteredHog)+'</div><div style="font-size:8px;opacity:.75">de '+f(hog)+'</div></div>';
+    h+='<div style="background:rgba(255,255,255,.15);padding:6px 8px;border-radius:6px"><div style="font-size:8px;opacity:.85;text-transform:uppercase">Impacto total</div><div style="font-size:14px;font-weight:800">'+f(impTotal)+'</div><div style="font-size:8px;opacity:.75">'+f(impVeh)+' veh + '+f(impPer+impPerVeh)+' per /mes</div></div>';
+    h+='</div>';
+    h+='<div style="margin-top:6px;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-size:10px">';
+    h+='<div style="background:rgba(255,255,255,.15);padding:6px 8px;border-radius:6px"><div style="font-size:8px;opacity:.85;text-transform:uppercase">Ingreso agregado</div><div style="font-size:13px;font-weight:800">$'+f(aggIng)+'</div><div style="font-size:8px;opacity:.75">per capita x pob. filtrada / mes</div></div>';
+    h+='<div style="background:rgba(255,255,255,.15);padding:6px 8px;border-radius:6px"><div style="font-size:8px;opacity:.85;text-transform:uppercase">Gasto agregado</div><div style="font-size:13px;font-weight:800">$'+f(aggGas)+'</div><div style="font-size:8px;opacity:.75">per capita x pob. filtrada / mes</div></div>';
+    h+='</div>';
+    h+='<div style="font-size:8px;opacity:.75;margin-top:6px">Ingreso hogar agregado del segmento: <b>$'+f(aggIngHog)+'</b>/mes</div>';
+    h+='</div>';
+    return h;
+  };
+
+  window.applyReportFilters=function(){
+    if(!window._reportFilters)window._reportFilters={nse:[],gender:'all',age:[],mobility:'all',dayType:'all',timeOfDay:'all'};
+    window._reportFilters.nse=_arr(window._reportFilters.nse);
+    window._reportFilters.age=_arr(window._reportFilters.age);
+    var g=function(id){var e=document.getElementById(id);return (e&&e.tagName==='SELECT')?e.value:null;};
+    window._reportFilters.gender  =g('gflt-gender')||g('flt-gender')||'all';
+    window._reportFilters.mobility=g('gflt-mobility')||'all';
+    window._reportFilters.dayType =g('gflt-daytype')||'all';
+    window._reportFilters.timeOfDay=g('gflt-timeofday')||'all';
+    if(typeof updateReportContent==='function')try{updateReportContent();}catch(e){}
+    ['flt-summary-hint','gflt-summary-hint'].forEach(function(id){
+      var hint=document.getElementById(id);if(!hint)return;
+      var anyActive=window._hasAnyFilterActive();
+      hint.textContent=anyActive?'Filtros aplicados - reporte segmentado':'Mostrando totales (sin filtros)';
+      hint.style.color='#059669';hint.style.fontWeight='700';
+    });
+    if(typeof _updateFilterButtonBadge==='function')try{_updateFilterButtonBadge();}catch(e){}
+  };
+
+  window.resetReportFilters=function(){
+    window._reportFilters={nse:[],gender:'all',age:[],mobility:'all',dayType:'all',timeOfDay:'all'};
+    ['flt-gender','gflt-gender','gflt-mobility','gflt-daytype','gflt-timeofday'].forEach(function(id){
+      var el=document.getElementById(id);if(el&&el.tagName==='SELECT')el.value='all';
+    });
+    _renderChipsAll();
+    if(typeof updateReportContent==='function')try{updateReportContent();}catch(e){}
+    if(typeof _updateFilterButtonBadge==='function')try{_updateFilterButtonBadge();}catch(e){}
+  };
+
+  function _ready(fn){if(document.readyState!=='loading')fn();else document.addEventListener('DOMContentLoaded',fn);}
+  _ready(function(){
+    try{_installChipUI();}catch(e){console.error('chip install',e);}
+    // Re-render chips periodically so percentages appear once data loads
+    var t=0;var iv=setInterval(function(){t++;try{_renderChipsAll();}catch(e){}if(t>30)clearInterval(iv);},500);
+  });
+  console.log('[geonexa] Chip-based NSE/Edad multi-select filters installed.');
+})();
+</script>
+
 </body>
 </html>
