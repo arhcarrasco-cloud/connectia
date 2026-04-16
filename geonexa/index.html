@@ -3001,6 +3001,13 @@ function undoLastSelection(){
     showMultiSelectPanel();
     showMultiSelectReport();
     setStatus('Selección eliminada. Total: '+multiSelections.length);
+  } else if(currentOverlay){
+    currentOverlay.setMap(null);
+    currentOverlay=null;
+    currentData=null;
+    var rp=document.getElementById('report-panel');if(rp)rp.style.display='none';
+    document.getElementById('info-window').style.display='none';
+    setStatus('Selección eliminada.');
   }
 }
 
@@ -4265,24 +4272,17 @@ function _setMapBrightness(val){
   var mapDiv=document.getElementById('map');
   if(!mapDiv)return;
   var pct=parseInt(val);
-  var dimId='_map-dim-overlay';
-  var dimEl=document.getElementById(dimId);
-  if(pct>=100){
-    // Full brightness — remove overlay
-    if(dimEl)dimEl.remove();
-    setStatus('Brillo del mapa: 100%');
-    return;
+  // Remove legacy dim overlay if it exists
+  var dimEl=document.getElementById('_map-dim-overlay');
+  if(dimEl)dimEl.remove();
+  // Apply CSS brightness filter ONLY to the map tiles layer,
+  // leaving pins, markers, selections, layers, and overlays unaffected
+  var gmStyle=mapDiv.querySelector('.gm-style');
+  if(gmStyle&&gmStyle.children.length>0){
+    var tileLayer=gmStyle.children[0];
+    tileLayer.style.transition='filter .3s ease';
+    tileLayer.style.filter=pct>=100?'':'brightness('+(pct/100)+')';
   }
-  if(!dimEl){
-    dimEl=document.createElement('div');
-    dimEl.id=dimId;
-    dimEl.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;transition:background .3s ease';
-    mapDiv.style.position='relative';
-    mapDiv.appendChild(dimEl);
-  }
-  // Convert brightness % to overlay opacity (100% = no overlay, 20% = very dark)
-  var opacity=Math.max(0,Math.min(0.8,(100-pct)/100));
-  dimEl.style.background='rgba(0,0,0,'+opacity.toFixed(2)+')';
   setStatus('Brillo del mapa: '+pct+'%');
 }
 function toggleSat(){
@@ -7717,6 +7717,7 @@ function updateReportContent(){
   }
   _populateReportFilterOptions();
   var _env=_computeFilterEnvelope();
+  window._currentEnv=_env; // expose to report generators
   var _filterBanner=_renderFilterSummary(_env);
 
   var html=_filterBanner+(_reportDeepView?generateDeepView():generateQuickview());
@@ -8018,7 +8019,12 @@ function generateFlujo(){
 
 function generateQuickview(){
   var d=currentData;if(!d)return '<div>Sin datos</div>';
-  var pop=d.estPop||0;var dens=d.ce?d.ce.dens:0;
+  var _qvEnv=window._currentEnv;
+  var _qvFiltered=(_qvEnv&&_qvEnv.anyActive);
+  var pop=_qvFiltered?_qvEnv.filteredPop:(d.estPop||0);
+  var popTotal=d.estPop||0;
+  var hog=_qvFiltered?_qvEnv.filteredHog:(d.estHog||0);
+  var dens=d.ce?d.ce.dens:0;
   var ce=d.ce||{};var en=d.en||{};var gt=en.gt||{};
 
   // Helper functions
@@ -8042,8 +8048,8 @@ function generateQuickview(){
   html+='<div style="background:#f8fafc;padding:6px;border-radius:4px;margin-bottom:6px">';
   html+='<div style="font-weight:600;color:#475569;margin-bottom:4px;font-size:10px">👥 Población</div>';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:9px">';
-  html+='<div><span style="color:#94a3b8">Total:</span> <b style="color:#334155">'+f(pop)+'</b></div>';
-  html+='<div><span style="color:#94a3b8">Hogares:</span> <b style="color:#334155">'+f(d.estHog||0)+'</b></div>';
+  html+='<div><span style="color:#94a3b8">Total:</span> <b style="color:#334155">'+f(pop)+'</b>'+(_qvFiltered?' <span style="color:#6D28D9;font-size:8px">('+(_qvEnv.factor*100).toFixed(1)+'%)</span>':'')+'</div>';
+  html+='<div><span style="color:#94a3b8">Hogares:</span> <b style="color:#334155">'+f(hog)+'</b></div>';
   html+='<div><span style="color:#94a3b8">Densidad:</span> <b style="color:#334155">'+f(dens)+'/km²</b></div>';
   html+='<div><span style="color:#94a3b8">Edad Mediana:</span> <b style="color:#334155">'+ce.med+' años</b></div>';
   html+='</div></div>';
@@ -8086,17 +8092,23 @@ function generateQuickview(){
   html+='</div>';
 
   // Tab 2: Financieros
+  var _ingPC=en.ingPC||en.ing||0;
+  var _gasPC=en.gasPC||en.gas||0;
+  var _aggIng=_qvFiltered?Math.round(_ingPC*pop):0;
+  var _aggGas=_qvFiltered?Math.round(_gasPC*pop):0;
   html+='<div id="qv-fin-content" class="qv-tab-content" style="display:none">';
   html+='<div style="background:#f0fdf4;padding:6px;border-radius:4px;margin-bottom:6px">';
   html+='<div style="font-weight:600;color:#059669;margin-bottom:3px;font-size:10px">💰 Ingreso</div>';
-  html+='<div style="font-size:12px;font-weight:700;color:#059669;margin-bottom:2px">'+fm(en.ingPC||en.ing||0)+'/mes</div>';
+  html+='<div style="font-size:12px;font-weight:700;color:#059669;margin-bottom:2px">'+fm(_ingPC)+'/mes</div>';
   html+='<div style="font-size:8px;color:#94a3b8">Ingreso per cápita mensual</div>';
+  if(_qvFiltered){html+='<div style="font-size:9px;color:#059669;margin-top:3px;font-weight:600">Agregado segmento: '+fm(_aggIng)+'/mes ('+f(pop)+' pers.)</div>';}
   html+='</div>';
 
   html+='<div style="background:#fff7ed;padding:6px;border-radius:4px;margin-bottom:6px">';
   html+='<div style="font-weight:600;color:#ea580c;margin-bottom:3px;font-size:10px">💳 Gasto</div>';
   html+='<div style="font-size:12px;font-weight:700;color:#ea580c;margin-bottom:2px">'+fm(gt.total||0)+'/mes</div>';
   html+='<div style="font-size:8px;color:#94a3b8">Gasto total por hogar</div>';
+  if(_qvFiltered){html+='<div style="font-size:9px;color:#ea580c;margin-top:3px;font-weight:600">Gasto agregado segmento: '+fm(_aggGas)+'/mes</div>';}
   html+='</div>';
 
   // Top 5 Gastos
@@ -8128,8 +8140,13 @@ function generateQuickview(){
   var transitShare=dens>3000?0.46:dens>1000?0.35:0.20;
   var bikeShare=dens>3000?0.03:0.02;
   var totalTrips=Math.round(pop*fp.tripsPerP);
-  var vehMonthly=Math.round(totalTrips*fp.vehShare*fp.throughMult*30);
-  var pedMonthly=Math.round(totalTrips*fp.pedShare*fp.throughMult*30);
+  // Apply mobility/day/time filter factors when active
+  var _qvDayMult=(_qvFiltered&&_qvEnv.dayMult)?_qvEnv.dayMult:1;
+  var _qvTimeFrac=(_qvFiltered&&_qvEnv.timeFrac)?_qvEnv.timeFrac:1;
+  var _qvDayFrac=(_qvFiltered&&_qvEnv.dayFracPeriod)?_qvEnv.dayFracPeriod:1;
+  var _qvMobMult=_qvDayMult*_qvTimeFrac*_qvDayFrac;
+  var vehMonthly=Math.round(totalTrips*fp.vehShare*fp.throughMult*30*_qvMobMult);
+  var pedMonthly=Math.round(totalTrips*fp.pedShare*fp.throughMult*30*_qvMobMult);
 
   html+='<div id="qv-mobi-content" class="qv-tab-content" style="display:none">';
   var _qvMotor=_calcMotorRate(dens);
@@ -8138,7 +8155,7 @@ function generateQuickview(){
   var _qvImpPer=Math.round(vehMonthly*1.44);
   var _qvImpTotal=_qvImpVeh+_qvImpPer;
   html+='<div style="background:linear-gradient(135deg,#faf5ff,#f0e7ff);padding:6px;border-radius:4px;margin-bottom:6px;border:1px solid #e9d5ff">';
-  html+='<div style="font-weight:600;color:#6D28D9;margin-bottom:3px;font-size:10px">⚡ Impactos Totales</div>';
+  html+='<div style="font-weight:600;color:#6D28D9;margin-bottom:3px;font-size:10px">⚡ Impactos Totales'+(_qvFiltered?' <span style="font-size:8px;color:#8B3A9F;font-weight:500">(segmento filtrado)</span>':'')+'</div>';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:9px">';
   html+='<div style="text-align:center"><div style="font-size:12px;font-weight:700;color:#6D28D9">'+f(_qvImpTotal)+'</div><div style="font-size:7px;color:#86868b">Total</div></div>';
   html+='<div style="text-align:center"><div style="font-size:11px;font-weight:600;color:#1d1d1f">'+f(_qvImpVeh)+'</div><div style="font-size:7px;color:#86868b">Veh</div></div>';
