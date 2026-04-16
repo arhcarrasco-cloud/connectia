@@ -1,0 +1,1407 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Forecast Consolidado Connectia · Suburbia + Galerías Liverpool</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body, #root { margin: 0; padding: 0; background: #f7f3fa; font-family: 'Segoe UI', Arial, sans-serif; }
+  #loader { position: fixed; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; flex-direction:column; background:#f7f3fa; z-index:9999; transition: opacity .3s; }
+  #loader.hide { opacity: 0; pointer-events: none; }
+  #loader .s { width: 48px; height: 48px; border: 4px solid #E5D4EF; border-top-color: #5C1E7A; border-radius: 50%; animation: sp 0.8s linear infinite; }
+  #loader .t { margin-top: 14px; color: #5C1E7A; font-weight: 700; }
+  #loader .h { margin-top: 6px; color: #888; font-size: 12px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+</style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+</head>
+<body>
+<div id="loader"><div class="s"></div><div class="t">Cargando Forecast Connectia…</div><div class="h">Compilando componentes (primera carga ~2-4 s)</div></div>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react" data-type="module">
+const { useState, useMemo, useCallback } = React;
+const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, ComposedChart, Line } = Recharts;
+
+
+// ============================================================
+// CONSTANTS & DATA
+// ============================================================
+
+const SUBURBIA_STORES = [
+  {"ceco":663,"name":"Cancún","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":993,"name":"Cancún Mall","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":635,"name":"Cd Victoria","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":987,"name":"Centro San Miguel","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":631,"name":"Ciudad Obregón","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":804,"name":"Ciudad del Carmen","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":589,"name":"Coacalco Power Center","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":651,"name":"Colima","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":980,"name":"Comalcalco","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":826,"name":"Cuautitlán Plaza Centella","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":626,"name":"Culiacán","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":574,"name":"Durango","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":548,"name":"Eje Central","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":885,"name":"Guadalajara Atemajac","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":637,"name":"Hermosillo","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":661,"name":"Irapuato","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":621,"name":"Lago de Guadalupe","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":873,"name":"Lerma Outlet","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":824,"name":"León Galerías Las Torres","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":638,"name":"León Torres Landa","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":999,"name":"León Vía Alta","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":986,"name":"Los Cabos Patio","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":647,"name":"Los Mochis","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":942,"name":"Los Mochis Sendero","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":645,"name":"Mazatlán","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":884,"name":"Mérida calle 56","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":682,"name":"Navojoa","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":941,"name":"Nicolas Romero","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":644,"name":"Pabellón Ecatepec","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":836,"name":"Perinorte","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":976,"name":"Playa del Carmen","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":616,"name":"Plaza Central","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":591,"name":"Puerta Texcoco","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":650,"name":"Rio de los Remedios","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":660,"name":"Salamanca","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":629,"name":"Saltillo","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":943,"name":"Saltillo Sendero","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":624,"name":"Tampico","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":578,"name":"Tehuacán","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":623,"name":"Texcoco Gran Patio","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":950,"name":"Tijuana Paseo 2000","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":944,"name":"Tijuana Sendero","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":988,"name":"Tizayuca Tizara","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":653,"name":"Tlaxcala","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":625,"name":"Toluca Alfredo del Mazo","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":537,"name":"Toluca Gran Plaza","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":666,"name":"Torreón","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":832,"name":"Tula Plaza Boulevard","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":982,"name":"Tultitlán Portal","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":936,"name":"Uriangato","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":888,"name":"Vallarta Macro Plaza","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":823,"name":"Veracruz Coyol","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":839,"name":"Villahermosa Galerías","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":825,"name":"Villahermosa Plaza Las Galas","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":883,"name":"Xalapa Paseo Jardines","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":827,"name":"Zinacantepec Plaza Mía","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":994,"name":"Zitacuaro","tier":"Mural / Backlight","format":"N/A","monitors":0},{"ceco":934,"name":"Zumpango","tier":"Mural / Backlight","format":"N/A","monitors":0},
+  {"ceco":1050,"name":"Apodaca Huinalá","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":525,"name":"Aragón","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":493,"name":"Buenavista","tier":"Pantallas 85\"","format":"Modelo 1","monitors":3},{"ceco":573,"name":"Celaya","tier":"Pantallas 85\"","format":"Monitores 55\"","monitors":12},{"ceco":554,"name":"Chihuahua","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":641,"name":"Cuemanco","tier":"Pantallas 85\"","format":"Modelo 3","monitors":3},{"ceco":1008,"name":"Galerías Cuernavaca","tier":"Pantallas 85\"","format":"Modelo 3","monitors":3},{"ceco":874,"name":"Guadalajara Gran Plaza","tier":"Pantallas 85\"","format":"Modelo 1","monitors":3},{"ceco":519,"name":"Guadalajara Plaza del Sol","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":567,"name":"Jiutepec","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":564,"name":"León Plaza Mayor","tier":"Pantallas 85\"","format":"Modelo 3","monitors":3},{"ceco":526,"name":"Lindavista","tier":"Pantallas 85\"","format":"Modelo 3","monitors":3},{"ceco":491,"name":"Miguel Angel de Quevedo","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":665,"name":"Monclova","tier":"Pantallas 85\"","format":"Modelo 2","monitors":3},{"ceco":876,"name":"Monterrey Galerías","tier":"Pantallas 85\"","format":"Modelo 1","monitors":3},{"ceco":579,"name":"Monterrey Plaza Centrika","tier":"Pantallas 85\"","format":"Modelo 2","monitors":3},{"ceco":559,"name":"Morelia Camelinas","tier":"Pantallas 85\"","format":"Modelo 3","monitors":3},{"ceco":632,"name":"Morelia las Huertas","tier":"Pantallas 85\"","format":"Modelo 3","monitors":3},{"ceco":834,"name":"Mundo E","tier":"Pantallas 85\"","format":"Modelo 1","monitors":3},{"ceco":596,"name":"Mérida Altabrisa","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":953,"name":"Mérida Gran Santa Fe","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":835,"name":"Nogales","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":655,"name":"Oaxaca Macro Plaza","tier":"Pantallas 85\"","format":"Modelo 3","monitors":3},{"ceco":627,"name":"Oaxaca Símbolos Patrios","tier":"Pantallas 85\"","format":"Modelo 3","monitors":3},{"ceco":983,"name":"Parque Tepeyac","tier":"Pantallas 85\"","format":"Modelo 1","monitors":3},{"ceco":959,"name":"Patio Saltillo","tier":"Pantallas 85\"","format":"LED","monitors":0},{"ceco":580,"name":"Plaza San Diego","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":577,"name":"Puebla Mayorazgo","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":521,"name":"Puebla Reforma","tier":"Pantallas 85\"","format":"Modelo 2","monitors":3},{"ceco":648,"name":"Querétaro Plaza de Toros","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":1009,"name":"Reynosa","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":492,"name":"Satélite","tier":"Pantallas 85\"","format":"Modelo 3","monitors":3},{"ceco":547,"name":"Tacubaya","tier":"Pantallas 85\"","format":"Modelo 2","monitors":3},{"ceco":889,"name":"Tampico Altama","tier":"Pantallas 85\"","format":"Modelo 2","monitors":3},{"ceco":995,"name":"Tijuana Peninsula","tier":"Pantallas 85\"","format":"Modelo 1","monitors":3},{"ceco":530,"name":"Torres Lindavista","tier":"Pantallas 85\"","format":"Modelo 1","monitors":3},{"ceco":656,"name":"Uruapan","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":940,"name":"Valle de Chalco","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":555,"name":"Villahermosa","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":599,"name":"Xalapa","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":523,"name":"Zócalo","tier":"Pantallas 85\"","format":"Modelo 2","monitors":3},{"ceco":552,"name":"Aguascalientes Galerías","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":594,"name":"Monterrey Citadel","tier":"Pantallas 85\"","format":"Monitores 55\"","monitors":12},{"ceco":898,"name":"Mérida X'Cumpich","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},{"ceco":1080,"name":"Aguascalientes Espacio","tier":"Pantallas 85\"","format":"Modelo 4","monitors":3},
+  {"ceco":528,"name":"Aeropuerto","tier":"Video Wall","format":"55\"","monitors":10},{"ceco":961,"name":"Alaia Guanajuato","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":916,"name":"Antenas","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":938,"name":"Apizaco","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":576,"name":"Arboledas","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":777,"name":"Atlacomulco","tier":"Video Wall","format":"55\"","monitors":6},{"ceco":499,"name":"Azcapotzalco","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":672,"name":"Campeche","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":597,"name":"Ciudad Jardín","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":561,"name":"Coacalco","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":551,"name":"Cuajimalpa","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":532,"name":"Cuautitlán","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":918,"name":"Cuautla Plaza Atrios","tier":"Video Wall","format":"55\"","monitors":6},{"ceco":954,"name":"Culiacan Explanada","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":566,"name":"Ecatepec Las Américas","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":630,"name":"El Rosario","tier":"Video Wall","format":"55\"","monitors":6},{"ceco":541,"name":"Ermita Iztapalapa","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":922,"name":"Explanada Pachuca","tier":"Video Wall","format":"N/A","monitors":0},{"ceco":937,"name":"Forum Buenavista","tier":"Video Wall","format":"55\"","monitors":20},{"ceco":991,"name":"Gran Patio Ecatepec","tier":"Video Wall","format":"LED","monitors":0},{"ceco":570,"name":"Gran Sur","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":896,"name":"Guadalajara Fray Antonio","tier":"Video Wall","format":"85\" Mod.5","monitors":0},{"ceco":652,"name":"Guadalajara Tlaquepaque","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":628,"name":"Guadalajara Vallarta","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":951,"name":"Huehuetoca","tier":"Video Wall","format":"55\"","monitors":6},{"ceco":565,"name":"Ixtapaluca Cortijo","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":921,"name":"La Paz Galerias","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":992,"name":"Los Reyes Tepozan","tier":"Video Wall","format":"LED","monitors":0},{"ceco":679,"name":"Mahatma Gandhi","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":558,"name":"Metepec","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":496,"name":"Miramontes","tier":"Video Wall","format":"LED","monitors":0},{"ceco":952,"name":"Monclova Paseo","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":667,"name":"Monterrey Gonzalitos","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":590,"name":"Monterrey Guadalupe","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":947,"name":"Monterrey Paseo Juarez","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":654,"name":"Monterrey Santa Catarina","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":557,"name":"Monterrey Universidad","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":598,"name":"Pachuca","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":920,"name":"Paseo Gomez Palacio","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":964,"name":"Paseo Querétaro","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":841,"name":"Patio Santa Fe","tier":"Video Wall","format":"85\" Mod.4","monitors":3},{"ceco":674,"name":"Patio Tlalpan","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":957,"name":"Patio Villahermosa","tier":"Video Wall","format":"LED","monitors":0},{"ceco":531,"name":"Plaza Oriente","tier":"Video Wall","format":"55\"","monitors":16},{"ceco":497,"name":"Plaza Universidad","tier":"Video Wall","format":"55\"","monitors":16},{"ceco":923,"name":"Puebla Parque","tier":"Video Wall","format":"55\"","monitors":6},{"ceco":527,"name":"Puebla Plaza Dorada","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":535,"name":"Puebla Plaza Victoria","tier":"Video Wall","format":"55\"","monitors":10},{"ceco":917,"name":"Puerta Aragon","tier":"Video Wall","format":"LED","monitors":0},{"ceco":529,"name":"Querétaro Plaza del Parque","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":949,"name":"Rosarito Pabellon","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":522,"name":"San Jerónimo","tier":"Video Wall","format":"85\" Mod.3","monitors":3},{"ceco":776,"name":"San Juan del Rio","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":668,"name":"San Luis Potosí Macro Plaza","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":571,"name":"San Luis Potosí Tangamanga","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":587,"name":"Tecámac Power Center","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":788,"name":"Tenaria","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":524,"name":"Tepeyac","tier":"Video Wall","format":"55\"","monitors":14},{"ceco":563,"name":"Tláhuac","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":955,"name":"Toluca Santin","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":945,"name":"Tonalá","tier":"Video Wall","format":"55\"","monitors":18},{"ceco":495,"name":"Toreo","tier":"Video Wall","format":"55\"","monitors":14},{"ceco":774,"name":"Tulancingo Patio","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":933,"name":"Tuxtepec","tier":"Video Wall","format":"55\"","monitors":20},{"ceco":773,"name":"Tuxtla Ambar","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":575,"name":"Tuxtla Gutiérrez","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":969,"name":"Uptown Juriquilla","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":556,"name":"Veracruz","tier":"Video Wall","format":"85\" Mod.3","monitors":3},{"ceco":1054,"name":"Veracruz Divertiplaza","tier":"Video Wall","format":"85\" Mod.4","monitors":3},{"ceco":924,"name":"Vía Vallejo","tier":"Video Wall","format":"55\"","monitors":8},{"ceco":772,"name":"Zamora Sentura","tier":"Video Wall","format":"55\"","monitors":12},{"ceco":822,"name":"Las Misiones","tier":"Video Wall","format":"LED","monitors":1}
+];
+
+// sizes: int = pantallas interiores, ext = pantallas exteriores (reciben +25% de uplift)
+const GALERIAS_STORES = [
+  {name:"Perisur", region:"CDMX", tier:"Premium", screens:11, sizes:{xxl:{int:0,ext:0}, xl:{int:1,ext:0}, grande:{int:3,ext:2}, mediana:{int:4,ext:0}, pequena:{int:1,ext:0}}},
+  {name:"Santa Anita", region:"GDL", tier:"Tier 1", screens:5, sizes:{xxl:{int:0,ext:0}, xl:{int:2,ext:0}, grande:{int:2,ext:1}, mediana:{int:0,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Coapa", region:"CDMX", tier:"Tier 1", screens:4, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:2,ext:0}, mediana:{int:2,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Mérida", region:"Sureste", tier:"Tier 1", screens:4, sizes:{xxl:{int:0,ext:0}, xl:{int:1,ext:0}, grande:{int:0,ext:2}, mediana:{int:1,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Atizapán", region:"CDMX", tier:"Tier 1", screens:3, sizes:{xxl:{int:0,ext:0}, xl:{int:2,ext:0}, grande:{int:0,ext:1}, mediana:{int:0,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Monterrey", region:"MTY", tier:"Tier 1", screens:3, sizes:{xxl:{int:0,ext:1}, xl:{int:0,ext:0}, grande:{int:2,ext:0}, mediana:{int:0,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Toluca", region:"EdoMex", tier:"Tier 2", screens:3, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:1,ext:1}, mediana:{int:0,ext:0}, pequena:{int:1,ext:0}}},
+  {name:"Serdán", region:"Centro", tier:"Tier 2", screens:3, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:3,ext:0}, mediana:{int:0,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Campeche", region:"Sureste", tier:"Tier 2", screens:3, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:1,ext:1}, mediana:{int:1,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Celaya", region:"Bajío", tier:"Tier 2", screens:3, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:2,ext:1}, mediana:{int:0,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Mazatlán", region:"Pacífico", tier:"Tier 2", screens:3, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:1,ext:1}, mediana:{int:1,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Tlaxcala", region:"Centro", tier:"Tier 2", screens:3, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:1}, grande:{int:0,ext:0}, mediana:{int:2,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Insurgentes", region:"CDMX", tier:"Tier 2", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:0,ext:0}, mediana:{int:1,ext:0}, pequena:{int:1,ext:0}}},
+  {name:"Perinorte", region:"CDMX", tier:"Tier 2", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:1,ext:0}, mediana:{int:1,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Metepec", region:"EdoMex", tier:"Tier 2", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:1,ext:0}, mediana:{int:1,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Vallarta", region:"GDL", tier:"Tier 2", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:1,ext:0}, mediana:{int:1,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Cuernavaca", region:"Centro", tier:"Tier 2", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:1,ext:0}, mediana:{int:1,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Querétaro", region:"Bajío", tier:"Tier 2", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:2,ext:0}, mediana:{int:0,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"San Juan del Río", region:"Bajío", tier:"Tier 3", screens:3, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:0,ext:1}, mediana:{int:2,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Zacatecas", region:"Bajío", tier:"Tier 3", screens:3, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:1,ext:0}, mediana:{int:2,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Saltillo", region:"Norte", tier:"Tier 3", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:0,ext:0}, mediana:{int:2,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Laguna", region:"Norte", tier:"Tier 3", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:0,ext:0}, mediana:{int:2,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Acapulco", region:"Pacífico", tier:"Tier 3", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:2,ext:0}, mediana:{int:0,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Chilpancingo", region:"Pacífico", tier:"Tier 3", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:0,ext:0}, mediana:{int:2,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"Tabasco", region:"Sureste", tier:"Tier 3", screens:2, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:1,ext:0}, mediana:{int:1,ext:0}, pequena:{int:0,ext:0}}},
+  {name:"La Paz", region:"EdoMex", tier:"Tier 3", screens:1, sizes:{xxl:{int:0,ext:0}, xl:{int:0,ext:0}, grande:{int:0,ext:0}, mediana:{int:1,ext:0}, pequena:{int:0,ext:0}}},
+];
+
+const MONTH_NAMES = ["Sep","Oct","Nov","Dic","Ene","Feb","Mar","Abr","May","Jun","Jul","Ago"];
+const SEASON = [0.85, 0.90, 1.15, 1.30, 0.75, 0.80, 0.90, 0.95, 1.05, 0.95, 0.90, 1.00];
+const PRICE_INC = [0, 0.05, 0.05, 0.05, 0.05];
+
+const SUBURBIA_EXISTING_ANNUAL = 8000000;
+// Todos los formatos operan con circuito de 8 slots (cada slot = 1 cliente).
+// Video Wall y Cubo son un único espacio físico por ubicación, vendido en 8 slots rotativos.
+const SUBURBIA_SLOT_PRICES = { "Video Wall": 15000, 'Pantallas 85"': 4500, "Mural / Backlight": 4500 };
+const SUBURBIA_SLOTS_PER_CIRCUIT = { "Video Wall": 8, 'Pantallas 85"': 8, "Mural / Backlight": 8 };
+const SUBURBIA_CUBO_SLOT_PRICE = 15000;
+const SUBURBIA_CUBO_SLOTS = 8;
+// CeCos con formato Cubo adicional (Hoja "CUBO" del archivo Sucursales_SBB)
+const SUBURBIA_CUBO_CECOS = new Set([916, 524, 496, 777, 951, 535, 672, 773, 776, 922, 918, 667]);
+const SUBURBIA_TIER_COLORS = { "Video Wall": "#00B050", 'Pantallas 85"': "#7030A0", "Mural / Backlight": "#FF6600", "Cubo": "#1976D2" };
+// Renta 100% variable (sin componente fijo) — aplica a Suburbia y Galerías/Liverpool
+const SUBURBIA_REV_SHARE = { fixed: 0, variable: 0.35 };
+
+// Tarifa por SLOT (cada pantalla tiene 8 slots = 8 clientes)
+// Las bases están calibradas para que Premium (x1.25) = tarifa objetivo del slot:
+// XXL Premium $350K · XL Premium $250K · Grande Premium $180K · Mediana Premium $120K · Pequeña Premium $70K
+const GAL_BASE_TARIFFS = { xxl: 280000, xl: 200000, grande: 144000, mediana: 96000, pequena: 56000 };
+const GAL_SLOTS_PER_SCREEN = 8;
+const GAL_EXTERIOR_UPLIFT = 1.25;    // Pantallas exteriores: +25% sobre la tarifa base
+const GAL_TIER_MULT = { Premium: 1.25, "Tier 1": 1.10, "Tier 2": 0.50, "Tier 3": 0.425 };
+const GAL_TIER_COLORS = { Premium: "#8B1A1A", "Tier 1": "#C62828", "Tier 2": "#E57373", "Tier 3": "#FFCDD2" };
+const GAL_FIXED_BASE = 0;       // Sin componente fijo
+const GAL_VAR_PCT = 0.35;       // 35% variable del Network Revenue
+// Duración de spots (segundos)
+const SPOT_DURATIONS = { xxl: "20-30 seg", xl: "20-30 seg", grande: "20-30 seg", mediana: "15 seg", pequena: "15 seg" };
+
+const INDUSTRIES = [
+  { id: "moda", name: "Moda / Ropa", color: "#E91E63", avgInvMonth: 350000, brandsY: [3,5,7,8,9], brands: "Nike, Adidas, Levi's, Puma, Under Armour, Flexi", excluded: "Zara, H&M, C&A, Shein, Forever 21" },
+  { id: "belleza", name: "Belleza / Cosméticos", color: "#9C27B0", avgInvMonth: 280000, brandsY: [2,4,5,6,7], brands: "L'Oréal, Maybelline, Estée Lauder, MAC, Clinique" },
+  { id: "alimentos", name: "Alimentos (sin alcohol)", color: "#FF9800", avgInvMonth: 300000, brandsY: [2,4,6,7,8], brands: "Coca-Cola, Nestlé, PepsiCo, Bimbo, Danone", excluded: "Cerveceras, licoreras" },
+  { id: "finanzas", name: "Servicios Financieros", color: "#4CAF50", avgInvMonth: 400000, brandsY: [1,2,3,4,5], brands: "BBVA, Banorte, Nu, Mercado Pago" },
+  { id: "entretenim", name: "Entretenimiento", color: "#00BCD4", avgInvMonth: 250000, brandsY: [1,3,4,5,5], brands: "Netflix, Disney+, Cinépolis, Spotify" },
+  { id: "telecom", name: "Telecomunicaciones", color: "#607D8B", avgInvMonth: 450000, brandsY: [1,2,3,3,4], brands: "Telcel, AT&T, Izzi, Totalplay" },
+  { id: "tech", name: "Electrónica / Tech", color: "#3F51B5", avgInvMonth: 320000, brandsY: [1,2,3,4,5], brands: "Samsung, Xiaomi, Huawei, HP" },
+  { id: "auto", name: "Automotriz / Otros", color: "#795548", avgInvMonth: 280000, brandsY: [0,1,2,3,4], brands: "VW, Nissan, Toyota, GNP" },
+];
+
+const SIZE_LABELS = { xxl: "XXL", xl: "XL", grande: "Grande", mediana: "Mediana", pequena: "Pequeña" };
+const SIZE_ORDER = ["xxl", "xl", "grande", "mediana", "pequena"];
+
+const fmt = (v) => `$${(v/1e6).toFixed(1)}M`;
+const fmtFull = (v) => `$${Math.round(v).toLocaleString("es-MX")}`;
+const fmtK = (v) => v >= 1e6 ? `$${(v/1e6).toFixed(1)}M` : `$${Math.round(v/1000).toLocaleString("es-MX")}K`;
+const fmtPct = (v) => `${Math.round(v * 100)}%`;
+
+// ============================================================
+// COMPUTATION HELPERS (occupancy-aware)
+// ============================================================
+
+function buildSuburbiaStoreRevenue(yr, occ, customPrices, customCuboPrice) {
+  let priceMult = 1;
+  for (let y = 1; y <= yr; y++) priceMult *= (1 + PRICE_INC[y]);
+  return SUBURBIA_STORES.map(store => {
+    const slotPrice = customPrices[store.tier];
+    const slots = SUBURBIA_SLOTS_PER_CIRCUIT[store.tier] || 8;
+    const hasCubo = SUBURBIA_CUBO_CECOS.has(store.ceco);
+    // Pantallas 85": cada pantalla es independiente, se vende en circuito.
+    // 1 slot = aparecer en TODAS las pantallas de la tienda. Precio del slot = tarifa × núm. pantallas.
+    const screenCount = store.tier === 'Pantallas 85"' ? (store.monitors || 1) : 1;
+    const circuitSlotPrice = slotPrice * screenCount;             // Precio real por slot de circuito
+    const tierMonthly = circuitSlotPrice * slots;                 // Capacidad total mensual (circuitSlotPrice × 8 slots)
+    const cuboMonthly = hasCubo ? customCuboPrice * SUBURBIA_CUBO_SLOTS : 0;
+    const monthlyPotential = tierMonthly + cuboMonthly;
+    const annualPotential = monthlyPotential * 12;
+    const monthlyProjected = monthlyPotential * occ * priceMult;
+    const annualProjected = monthlyProjected * 12;
+    return { ...store, slotPrice, slots, hasCubo, screenCount, circuitSlotPrice, tierMonthly, cuboMonthly, monthlyPotential, annualPotential, monthlyProjected, annualProjected, priceMult };
+  });
+}
+
+function buildGaleriasStoreRevenue(yr, occ, galTierMults) {
+  let priceMult = 1;
+  for (let y = 1; y <= yr; y++) priceMult *= (1 + PRICE_INC[y]);
+  return GALERIAS_STORES.map(store => {
+    const tierMult = GAL_TIER_MULT[store.tier];
+    const customTierMult = galTierMults[store.tier] || 1;
+    const screenDetails = [];
+    let extCount = 0;
+    SIZE_ORDER.forEach(size => {
+      const counts = store.sizes[size] || {int:0, ext:0};
+      ["int","ext"].forEach(loc => {
+        const qty = counts[loc] || 0;
+        if (qty === 0) return;
+        if (loc === "ext") extCount += qty;
+        const uplift = loc === "ext" ? GAL_EXTERIOR_UPLIFT : 1;
+        const slotPrice = GAL_BASE_TARIFFS[size] * tierMult * uplift * customTierMult;   // precio por slot
+        const screenMonthly = slotPrice * GAL_SLOTS_PER_SCREEN;         // capacidad por pantalla (8 slots)
+        const subtotal = screenMonthly * qty;                           // capacidad total de este bloque
+        screenDetails.push({ size, location: loc, count: qty, slotPrice, screenMonthly, subtotal });
+      });
+    });
+    const monthlyPotential = screenDetails.reduce((s, d) => s + d.subtotal, 0);
+    const annualPotential = monthlyPotential * 12;
+    const monthlyProjected = monthlyPotential * occ * priceMult;
+    const annualProjected = monthlyProjected * 12;
+    return { ...store, screenDetails, tierMult, extCount, monthlyPotential, annualPotential, monthlyProjected, annualProjected, priceMult };
+  });
+}
+
+function buildMonthlyData(occ, customPrices, customCuboPrice, sbbRevSharePct, galRevSharePct, galTierMults) {
+  const data = [];
+  for (let mi = 0; mi < 60; mi++) {
+    const yr = Math.floor(mi / 12);
+    const mo = mi % 12;
+    const yrStart = [26,27,28,29,30][yr];
+    const moYr = mo < 4 ? yrStart : yrStart + 1;
+    const label = `${MONTH_NAMES[mo]} ${String(moYr).padStart(2,'0')}`;
+    const s = SEASON[mo];
+    let priceMult = 1;
+    for (let y = 1; y <= yr; y++) priceMult *= (1 + PRICE_INC[y]);
+
+    const suburbiaStores = buildSuburbiaStoreRevenue(yr, occ, customPrices, customCuboPrice);
+    const suburbiaNetworkRev = suburbiaStores.reduce((sum, st) => sum + (st.monthlyProjected * s), 0);
+    const suburbiaExisting = (SUBURBIA_EXISTING_ANNUAL / 12) * priceMult * s;
+    let suburbiaByTier = { "Video Wall": 0, 'Pantallas 85"': 0, "Mural / Backlight": 0, "Cubo": 0 };
+    suburbiaStores.forEach(st => {
+      suburbiaByTier[st.tier] += st.tierMonthly * occ * priceMult * s;
+      if (st.hasCubo) suburbiaByTier["Cubo"] += customCuboPrice * SUBURBIA_CUBO_SLOTS * occ * priceMult * s;
+    });
+    const suburbiaTotalGross = suburbiaExisting + suburbiaNetworkRev;
+    const suburbiaPagoFijo = 0;  // sin componente fijo
+    const suburbiaPagoVar = suburbiaTotalGross * sbbRevSharePct;
+
+    const galeriasStores = buildGaleriasStoreRevenue(yr, occ, galTierMults);
+    const galeriasNetworkRev = galeriasStores.reduce((sum, st) => sum + (st.monthlyProjected * s), 0);
+    let galeriasByTier = { Premium: 0, "Tier 1": 0, "Tier 2": 0, "Tier 3": 0 };
+    galeriasStores.forEach(st => { galeriasByTier[st.tier] += st.monthlyProjected * s; });
+    const galeriasFixedToLiv = (GAL_FIXED_BASE/12) * (Math.pow(1.05, yr)) * s;
+    const galeriasVarToLiv = galeriasNetworkRev * galRevSharePct;
+
+    const indRevs = {};
+    INDUSTRIES.forEach(ind => {
+      const brands = ind.brandsY[yr];
+      indRevs[ind.id] = brands * ind.avgInvMonth * priceMult * s;
+    });
+
+    data.push({
+      month: mi, label, yr, mo,
+      suburbiaExisting, suburbiaNetworkRev, suburbiaTotalGross, suburbiaPagoFijo, suburbiaPagoVar, suburbiaByTier,
+      galeriasNetworkRev, galeriasFixedToLiv, galeriasVarToLiv, galeriasByTier,
+      indRevs, totalGross: suburbiaTotalGross + galeriasNetworkRev
+    });
+  }
+  return data;
+}
+
+function buildAnnualData(monthly) {
+  const annual = [null, null, null, null, null];
+  monthly.forEach(m => {
+    if (!annual[m.yr]) {
+      annual[m.yr] = { yr: m.yr, suburbiaTotalGross: 0, suburbiaPagoFijo: 0, suburbiaPagoVar: 0, galeriasNetworkRev: 0, galeriasFixedToLiv: 0, galeriasVarToLiv: 0, indRevs: {} };
+      INDUSTRIES.forEach(ind => annual[m.yr].indRevs[ind.id] = 0);
+    }
+    annual[m.yr].suburbiaTotalGross += m.suburbiaTotalGross;
+    annual[m.yr].suburbiaPagoFijo += m.suburbiaPagoFijo;
+    annual[m.yr].suburbiaPagoVar += m.suburbiaPagoVar;
+    annual[m.yr].galeriasNetworkRev += m.galeriasNetworkRev;
+    annual[m.yr].galeriasFixedToLiv += m.galeriasFixedToLiv;
+    annual[m.yr].galeriasVarToLiv += m.galeriasVarToLiv;
+    INDUSTRIES.forEach(ind => annual[m.yr].indRevs[ind.id] += m.indRevs[ind.id]);
+  });
+  return annual.filter(Boolean);
+}
+
+// ============================================================
+// SHARED UI COMPONENTS
+// ============================================================
+
+const TABS = [
+  { key: "resumen", label: "Resumen" },
+  { key: "industrias", label: "Industrias" },
+  { key: "tarifSuburbia", label: "Tarifario Suburbia" },
+  { key: "tarifGalerias", label: "Tarifario Galerías" },
+  { key: "plazas", label: "Proyección por Plaza" },
+  { key: "mensual", label: "Ingresos Mensuales" },
+  { key: "pago", label: "Pago a Liverpool" },
+  { key: "politica", label: "Política Comercial" },
+];
+
+function TabBar({ view, setView, style }) {
+  return (
+    <div style={style.tabs}>
+      {TABS.map(t => (
+        <button key={t.key} style={style.tabBtn(view === t.key)} onClick={() => setView(t.key)}>{t.label}</button>
+      ))}
+    </div>
+  );
+}
+
+
+function TariffPanel({ sbbPriceVW, setSbbPriceVW, sbbPriceP85, setSbbPriceP85, sbbPriceMural, setSbbPriceMural, sbbPriceCubo, setSbbPriceCubo, sbbRevShare, setSbbRevShare, galRevShare, setGalRevShare, galMultPremium, setGalMultPremium, galMultT1, setGalMultT1, galMultT2, setGalMultT2, galMultT3, setGalMultT3 }) {
+  const [open, setOpen] = useState(false);
+  const inputStyle = { width: "90px", padding: "6px 8px", borderRadius: "6px", border: "1px solid #E5D4EF", fontSize: "13px", textAlign: "right", fontWeight: "bold" };
+  const labelStyle = { fontSize: "12px", color: "#fff", fontWeight: "600", minWidth: "130px" };
+  const rowStyle = { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" };
+  const sectionTitle = { fontSize: "13px", fontWeight: "bold", color: "#FDD835", marginTop: "8px", marginBottom: "4px" };
+
+  const sbbVWCap = sbbPriceVW * 8;
+  const sbbP85Cap = sbbPriceP85 * 8;
+  const sbbMuralCap = sbbPriceMural * 8;
+  const sbbCuboCap = sbbPriceCubo * 8;
+
+  const galTiers = [
+    { label: "Premium", value: galMultPremium, set: setGalMultPremium, color: "#8B1A1A" },
+    { label: "Tier 1", value: galMultT1, set: setGalMultT1, color: "#C62828" },
+    { label: "Tier 2", value: galMultT2, set: setGalMultT2, color: "#E57373" },
+    { label: "Tier 3", value: galMultT3, set: setGalMultT3, color: "#FFCDD2" },
+  ];
+
+  return (
+    <div style={{ background: "linear-gradient(135deg, #3E1456 0%, #5C1E7A 100%)", borderRadius: "10px", marginBottom: "14px", overflow: "hidden" }}>
+      <div onClick={() => setOpen(!open)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 20px", cursor: "pointer", color: "#fff" }}>
+        <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+          {open ? "▼" : "▶"} Panel de Tarifas y Revenue Share
+          <span style={{ fontWeight: "normal", fontSize: "12px", marginLeft: "12px", opacity: 0.7 }}>
+            SBB: VW ${(sbbPriceVW/1000).toFixed(1)}K · P85 ${(sbbPriceP85/1000).toFixed(1)}K/pantalla (circuito) · Mural ${(sbbPriceMural/1000).toFixed(1)}K · Cubo ${(sbbPriceCubo/1000).toFixed(1)}K | Rev Share SBB {Math.round(sbbRevShare*100)}% · LIV {Math.round(galRevShare*100)}% | Gal: P×{galMultPremium.toFixed(2)} T1×{galMultT1.toFixed(2)} T2×{galMultT2.toFixed(2)} T3×{galMultT3.toFixed(2)}
+          </span>
+        </div>
+      </div>
+      {open && (
+        <div style={{ padding: "4px 20px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div style={sectionTitle}>Tarifas Suburbia (por slot/mes)</div>
+          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+            <div style={rowStyle}>
+              <span style={labelStyle}>Video Wall</span>
+              <span style={{ color: "#fff", fontSize: "12px" }}>$</span>
+              <input type="number" value={sbbPriceVW} onChange={e => setSbbPriceVW(Math.max(0, +e.target.value))} style={inputStyle} step={500} />
+              <span style={{ color: "#aaa", fontSize: "11px" }}>cap: ${(sbbVWCap/1000).toFixed(0)}K/mes</span>
+            </div>
+            <div style={rowStyle}>
+              <span style={labelStyle}>Pantallas 85"</span>
+              <span style={{ color: "#fff", fontSize: "12px" }}>$</span>
+              <input type="number" value={sbbPriceP85} onChange={e => setSbbPriceP85(Math.max(0, +e.target.value))} style={inputStyle} step={500} />
+              <span style={{ color: "#aaa", fontSize: "11px" }}>por pantalla · circuito = tarifa × núm. pantallas en tienda</span>
+            </div>
+            <div style={rowStyle}>
+              <span style={labelStyle}>Mural / Backlight</span>
+              <span style={{ color: "#fff", fontSize: "12px" }}>$</span>
+              <input type="number" value={sbbPriceMural} onChange={e => setSbbPriceMural(Math.max(0, +e.target.value))} style={inputStyle} step={500} />
+              <span style={{ color: "#aaa", fontSize: "11px" }}>cap: ${(sbbMuralCap/1000).toFixed(0)}K/mes</span>
+            </div>
+            <div style={rowStyle}>
+              <span style={labelStyle}>Cubo</span>
+              <span style={{ color: "#fff", fontSize: "12px" }}>$</span>
+              <input type="number" value={sbbPriceCubo} onChange={e => setSbbPriceCubo(Math.max(0, +e.target.value))} style={inputStyle} step={500} />
+              <span style={{ color: "#aaa", fontSize: "11px" }}>cap: ${(sbbCuboCap/1000).toFixed(0)}K/mes (12 tiendas)</span>
+            </div>
+          </div>
+
+          <div style={sectionTitle}>Multiplicadores Tarifas Galerías Liverpool (por tier)</div>
+          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+            {galTiers.map(t => (
+              <div key={t.label} style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: "280px" }}>
+                <span style={{ ...labelStyle, minWidth: "70px", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ width: "10px", height: "10px", borderRadius: "3px", backgroundColor: t.color, display: "inline-block" }}></span>
+                  {t.label}
+                </span>
+                <input type="range" min={50} max={200} value={Math.round(t.value * 100)} onChange={e => t.set(+e.target.value / 100)}
+                  style={{ width: "120px", accentColor: t.color, cursor: "pointer" }} />
+                <span style={{ color: "#FDD835", fontWeight: "bold", fontSize: "14px", minWidth: "46px" }}>×{t.value.toFixed(2)}</span>
+                <div style={{ display: "flex", gap: "4px" }}>
+                  {[0.75, 1.0, 1.25].map(v => (
+                    <button key={v} onClick={() => t.set(v)}
+                      style={{ padding: "3px 7px", borderRadius: "4px", border: Math.abs(t.value - v) < 0.01 ? "2px solid #FDD835" : "1px solid rgba(255,255,255,0.3)", backgroundColor: Math.abs(t.value - v) < 0.01 ? "rgba(253,216,53,0.2)" : "transparent", color: "#fff", cursor: "pointer", fontSize: "11px" }}>
+                      ×{v.toFixed(2)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={sectionTitle}>Revenue Share (% pago a cadena)</div>
+          <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={labelStyle}>Suburbia</span>
+              <input type="range" min={0} max={60} value={Math.round(sbbRevShare * 100)} onChange={e => setSbbRevShare(+e.target.value / 100)}
+                style={{ width: "160px", accentColor: "#E91E63", cursor: "pointer" }} />
+              <span style={{ color: "#E91E63", fontWeight: "bold", fontSize: "16px", minWidth: "42px" }}>{Math.round(sbbRevShare * 100)}%</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={labelStyle}>Liverpool / Galerías</span>
+              <input type="range" min={0} max={60} value={Math.round(galRevShare * 100)} onChange={e => setGalRevShare(+e.target.value / 100)}
+                style={{ width: "160px", accentColor: "#006847", cursor: "pointer" }} />
+              <span style={{ color: "#43A047", fontWeight: "bold", fontSize: "16px", minWidth: "42px" }}>{Math.round(galRevShare * 100)}%</span>
+            </div>
+          </div>
+
+          <div style={{ marginTop: "6px", padding: "8px 12px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "6px", fontSize: "11px", color: "#ccc" }}>
+            Ajusta las tarifas y revenue share para simular escenarios. Los cambios se reflejan en tiempo real en todas las pestañas y cálculos. · Pantallas 85" se venden en circuito: 1 slot = aparecer en todas las pantallas de la tienda.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OccupancySlider({ occ, setOcc }) {
+  const pct = Math.round(occ * 100);
+  const barColor = pct < 30 ? "#E53935" : pct < 50 ? "#FF9800" : pct < 70 ? "#FDD835" : "#43A047";
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "12px 20px", background: "linear-gradient(135deg, #5C1E7A 0%, #3E1456 100%)", borderRadius: "10px", marginBottom: "20px", color: "#fff", flexWrap: "wrap" }}>
+      <div style={{ fontWeight: "bold", fontSize: "14px", minWidth: "160px" }}>Ocupación: <span style={{ fontSize: "22px", color: barColor }}>{pct}%</span></div>
+      <input type="range" min={10} max={100} value={pct} onChange={e => setOcc(parseInt(e.target.value) / 100)}
+        style={{ flex: 1, minWidth: "200px", accentColor: barColor, height: "8px", cursor: "pointer" }} />
+      <div style={{ display: "flex", gap: "8px" }}>
+        {[25, 35, 45, 55, 65, 80].map(v => (
+          <button key={v} onClick={() => setOcc(v / 100)}
+            style={{ padding: "6px 12px", borderRadius: "6px", border: pct === v ? "2px solid #fff" : "1px solid rgba(255,255,255,0.3)", backgroundColor: pct === v ? "rgba(255,255,255,0.2)" : "transparent", color: "#fff", cursor: "pointer", fontSize: "13px", fontWeight: pct === v ? "bold" : "normal" }}>
+            {v}%
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function KPI({ label, value, color, sub }) {
+  return (
+    <div style={{ backgroundColor: "#fff", padding: "16px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(92,30,122,0.08)", borderLeft: `4px solid ${color || "#5C1E7A"}` }}>
+      <div style={{ fontSize: "12px", color: "#666", marginBottom: "6px", fontWeight: "600" }}>{label}</div>
+      <div style={{ fontSize: "22px", fontWeight: "bold", color: "#5C1E7A" }}>{value}</div>
+      {sub && <div style={{ fontSize: "11px", color: "#888", marginTop: "4px" }}>{sub}</div>}
+    </div>
+  );
+}
+
+// Logos reales (embebidos como data URI para portabilidad del artifact)
+const LOGO_CONNECTIA = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='44'%3E%3Crect width='140' height='44' rx='6' fill='#5C1E7A'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold' font-size='13'%3ECONNECTIA%3C/text%3E%3C/svg%3E";
+const LOGO_LIVERPOOL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='44'%3E%3Crect width='140' height='44' rx='6' fill='#1B3A5C'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold' font-size='13'%3ESUBURBIA%3C/text%3E%3C/svg%3E";
+const LOGO_SUBURBIA = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='44'%3E%3Crect width='140' height='44' rx='6' fill='#8B1A1A'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold' font-size='13'%3ELIVERPOOL%3C/text%3E%3C/svg%3E";
+
+function ConnectiaLogo({ h = 36 }) {
+  return <img src={LOGO_CONNECTIA} alt="Connectia" style={{ height: h, display: "block", objectFit: "contain" }} />;
+}
+function LiverpoolLogo({ h = 36 }) {
+  return <img src={LOGO_LIVERPOOL} alt="El Puerto de Liverpool" style={{ height: h, display: "block", objectFit: "contain" }} />;
+}
+function SuburbiaLogo({ h = 40 }) {
+  return <img src={LOGO_SUBURBIA} alt="Suburbia" style={{ height: h, display: "block", objectFit: "contain" }} />;
+}
+function BrandHeader({ variant }) {
+  // variant === "suburbia" => muestra solo Suburbia. Cualquier otro => Connectia + Liverpool juntos del mismo tamaño.
+  if (variant === "suburbia") {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <SuburbiaLogo h={44} />
+      </div>
+    );
+  }
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+      <ConnectiaLogo h={40} />
+      <div style={{ width: "1px", height: "36px", backgroundColor: "#D9C6E3" }}></div>
+      <LiverpoolLogo h={40} />
+    </div>
+  );
+}
+
+// ============================================================
+// MAIN APP
+// ============================================================
+
+function App() {
+  const [view, setView] = useState("resumen");
+  const [yearFilter, setYearFilter] = useState(0);
+  const [tierFilter, setTierFilter] = useState("");
+  const [search, setSearch] = useState("");
+  const [sortCol, setSortCol] = useState("name");
+  const [sortDir, setSortDir] = useState(1);
+  const [projectToggle, setProjectToggle] = useState("ambos");
+  const [occ, setOcc] = useState(0.45);
+  const [expandedGal, setExpandedGal] = useState(null);
+  const [expandedSub, setExpandedSub] = useState(null);
+
+  // ── Tarifas dinámicas ──
+  const [sbbPriceVW, setSbbPriceVW] = useState(15000);
+  const [sbbPriceP85, setSbbPriceP85] = useState(4500);
+  const [sbbPriceMural, setSbbPriceMural] = useState(4500);
+  const [sbbPriceCubo, setSbbPriceCubo] = useState(15000);
+  const [sbbRevShare, setSbbRevShare] = useState(0.35);
+  const [galRevShare, setGalRevShare] = useState(0.35);
+  const [galMultPremium, setGalMultPremium] = useState(1.0);
+  const [galMultT1, setGalMultT1] = useState(1.0);
+  const [galMultT2, setGalMultT2] = useState(1.0);
+  const [galMultT3, setGalMultT3] = useState(1.0);
+
+  const customPrices = useMemo(() => ({ "Video Wall": sbbPriceVW, 'Pantallas 85"': sbbPriceP85, "Mural / Backlight": sbbPriceMural }), [sbbPriceVW, sbbPriceP85, sbbPriceMural]);
+  const galTierMults = useMemo(() => ({ Premium: galMultPremium, "Tier 1": galMultT1, "Tier 2": galMultT2, "Tier 3": galMultT3 }), [galMultPremium, galMultT1, galMultT2, galMultT3]);
+
+  const monthlyData = useMemo(() => buildMonthlyData(occ, customPrices, sbbPriceCubo, sbbRevShare, galRevShare, galTierMults), [occ, customPrices, sbbPriceCubo, sbbRevShare, galRevShare, galTierMults]);
+  const annualData = useMemo(() => buildAnnualData(monthlyData), [monthlyData]);
+  const getTotal5Y = useCallback((key) => monthlyData.reduce((s, m) => s + (m[key] || 0), 0), [monthlyData]);
+
+  const suburbiaStores = useMemo(() => buildSuburbiaStoreRevenue(yearFilter, occ, customPrices, sbbPriceCubo), [yearFilter, occ, customPrices, sbbPriceCubo]);
+  const galeriasStores = useMemo(() => buildGaleriasStoreRevenue(yearFilter, occ, galTierMults), [yearFilter, occ, galTierMults]);
+
+  const filteredSuburbiaStores = useMemo(() => {
+    let filtered = suburbiaStores;
+    if (tierFilter) filtered = filtered.filter(s => s.tier === tierFilter);
+    if (search) filtered = filtered.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
+    return filtered.sort((a, b) => {
+      let aVal = a[sortCol], bVal = b[sortCol];
+      if (typeof aVal === "string") { aVal = aVal.toLowerCase(); bVal = (bVal || "").toLowerCase(); }
+      if (aVal < bVal) return -sortDir;
+      if (aVal > bVal) return sortDir;
+      return 0;
+    });
+  }, [suburbiaStores, tierFilter, search, sortCol, sortDir]);
+
+  const filteredGaleriasStores = useMemo(() => {
+    let filtered = galeriasStores;
+    if (tierFilter) filtered = filtered.filter(s => s.tier === tierFilter);
+    if (search) filtered = filtered.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
+    return filtered.sort((a, b) => {
+      let aVal, bVal;
+      if (sortCol.startsWith("sz_")) {
+        const sz = sortCol.slice(3);
+        aVal = (a.sizes[sz]?.int || 0) + (a.sizes[sz]?.ext || 0);
+        bVal = (b.sizes[sz]?.int || 0) + (b.sizes[sz]?.ext || 0);
+      } else {
+        aVal = a[sortCol]; bVal = b[sortCol];
+      }
+      if (typeof aVal === "string") { aVal = aVal.toLowerCase(); bVal = (bVal || "").toLowerCase(); }
+      if (aVal < bVal) return -sortDir;
+      if (aVal > bVal) return sortDir;
+      return 0;
+    });
+  }, [galeriasStores, tierFilter, search, sortCol, sortDir]);
+
+  const doSort = (col) => { if (sortCol === col) setSortDir(-sortDir); else { setSortCol(col); setSortDir(1); } };
+
+  // Paleta Connectia: morado profundo primario, lavanda secundario, acento magenta
+  const CX = { primary: "#5C1E7A", primaryDark: "#3E1456", accent: "#9B4AA5", lavender: "#F3EDF7", lavenderDeep: "#E5D4EF", textDark: "#2C0F3E" };
+  const S = {
+    container: { fontFamily: "'Segoe UI', Arial, sans-serif", backgroundColor: "#f7f3fa", padding: "20px", minHeight: "100vh" },
+    title: { fontSize: "26px", fontWeight: "bold", color: CX.primary, marginBottom: "6px" },
+    subtitle: { fontSize: "14px", color: "#666", marginBottom: "16px" },
+    tabs: { display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" },
+    tabBtn: (active) => ({ padding: "9px 14px", border: "none", borderRadius: "6px", cursor: "pointer", backgroundColor: active ? CX.primary : CX.lavender, color: active ? "#fff" : CX.primary, fontWeight: active ? "bold" : "600", fontSize: "13px", transition: "all 0.2s" }),
+    kpiGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px", marginBottom: "20px" },
+    table: { width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(92,30,122,0.08)", fontSize: "13px" },
+    th: { padding: "10px 12px", textAlign: "left", fontSize: "12px", fontWeight: "700", cursor: "pointer", userSelect: "none", backgroundColor: CX.lavender, color: CX.primary, borderBottom: `2px solid ${CX.lavenderDeep}`, whiteSpace: "nowrap" },
+    td: { padding: "8px 12px", borderBottom: "1px solid #efe6f5" },
+    badge: (color) => ({ display: "inline-block", padding: "3px 8px", borderRadius: "4px", backgroundColor: color, color: "#fff", fontSize: "11px", fontWeight: "bold" }),
+    chartBox: { backgroundColor: "#fff", padding: "20px", borderRadius: "12px", marginBottom: "20px", boxShadow: "0 2px 8px rgba(92,30,122,0.08)" },
+    filterRow: { display: "flex", gap: "10px", marginBottom: "14px", flexWrap: "wrap", alignItems: "center" },
+    input: { padding: "8px 12px", border: `1px solid ${CX.lavenderDeep}`, borderRadius: "6px", fontSize: "13px", backgroundColor: "#fff" },
+    select: { padding: "8px 12px", border: `1px solid ${CX.lavenderDeep}`, borderRadius: "6px", fontSize: "13px", backgroundColor: "#fff" },
+    expandRow: { backgroundColor: CX.lavender, borderLeft: `4px solid ${CX.primary}` },
+    expandBtn: { cursor: "pointer", color: CX.primary, fontWeight: "bold", fontSize: "16px", border: "none", background: "none", padding: "0 4px" },
+    header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", marginBottom: "10px", flexWrap: "wrap" },
+  };
+
+  const occLabel = `${Math.round(occ * 100)}%`;
+
+  // ===================== RESUMEN =====================
+  if (view === "resumen") {
+    const total5Y = getTotal5Y("suburbiaTotalGross") + getTotal5Y("galeriasNetworkRev");
+    const sub5Y = getTotal5Y("suburbiaTotalGross");
+    const gal5Y = getTotal5Y("galeriasNetworkRev");
+    const livPay5Y = getTotal5Y("suburbiaPagoFijo") + getTotal5Y("suburbiaPagoVar") + getTotal5Y("galeriasFixedToLiv") + getTotal5Y("galeriasVarToLiv");
+
+    const chartData = annualData.map(a => ({
+      yr: `Año ${a.yr + 1}`,
+      Suburbia: a.suburbiaTotalGross,
+      Galerías: a.galeriasNetworkRev,
+      "Pago Liv.": a.suburbiaPagoFijo + a.suburbiaPagoVar + a.galeriasFixedToLiv + a.galeriasVarToLiv,
+    }));
+
+    return (
+      <div style={S.container}>
+        <div style={S.header}><div style={S.title}>Licitación Suburbia + Galerías | Connectia</div><BrandHeader /></div>
+        <div style={S.subtitle}>Forecast comercial consolidado a 5 años · 196 ubicaciones · Ocupación ajustable en tiempo real</div>
+        <TabBar view={view} setView={setView} style={S} />
+        <TariffPanel sbbPriceVW={sbbPriceVW} setSbbPriceVW={setSbbPriceVW} sbbPriceP85={sbbPriceP85} setSbbPriceP85={setSbbPriceP85} sbbPriceMural={sbbPriceMural} setSbbPriceMural={setSbbPriceMural} sbbPriceCubo={sbbPriceCubo} setSbbPriceCubo={setSbbPriceCubo} sbbRevShare={sbbRevShare} setSbbRevShare={setSbbRevShare} galRevShare={galRevShare} setGalRevShare={setGalRevShare} galMultPremium={galMultPremium} setGalMultPremium={setGalMultPremium} galMultT1={galMultT1} setGalMultT1={setGalMultT1} galMultT2={galMultT2} setGalMultT2={setGalMultT2} galMultT3={galMultT3} setGalMultT3={setGalMultT3} />
+        <OccupancySlider occ={occ} setOcc={setOcc} />
+
+        <div style={S.kpiGrid}>
+          <KPI label="Ingreso Total Gross (5Y)" value={fmt(total5Y)} color="#5C1E7A" sub={`Occ: ${occLabel}`} />
+          <KPI label="Suburbia Gross (5Y)" value={fmt(sub5Y)} color="#E3006D" sub="170 tiendas" />
+          <KPI label="Galerías Network (5Y)" value={fmt(gal5Y)} color="#B85C7A" sub="26 centros" />
+          <KPI label="Pago a Liverpool (5Y)" value={fmt(livPay5Y)} color="#9B4AA5" sub={`${fmtPct(livPay5Y / total5Y)} del total`} />
+          <KPI label="Ingreso Mensual Prom." value={fmtK(total5Y / 60)} color="#7B3D9E" sub="promedio 60 meses" />
+        </div>
+
+        <div style={S.chartBox}>
+          <h3 style={{ margin: "0 0 16px", color: "#1B3A5C" }}>Revenue Anual por Proyecto</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <ComposedChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="yr" />
+              <YAxis tickFormatter={v => fmt(v)} />
+              <Tooltip formatter={v => fmt(v)} />
+              <Legend />
+              <Bar dataKey="Suburbia" fill="#2F5496" />
+              <Bar dataKey="Galerías" fill="#8B1A1A" />
+              <Line type="monotone" dataKey="Pago Liv." stroke="#E53935" strokeWidth={2} dot={{ r: 4 }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+          <div style={S.chartBox}>
+            <h3 style={{ margin: "0 0 12px", color: "#1B3A5C", fontSize: "15px" }}>Mix de Ingresos (5Y)</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={[{ name: "Suburbia", value: sub5Y }, { name: "Galerías", value: gal5Y }]} dataKey="value" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                  <Cell fill="#2F5496" />
+                  <Cell fill="#8B1A1A" />
+                </Pie>
+                <Tooltip formatter={v => fmt(v)} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={S.chartBox}>
+            <h3 style={{ margin: "0 0 12px", color: "#1B3A5C", fontSize: "15px" }}>Suburbia por Formato (5Y)</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={Object.entries(SUBURBIA_TIER_COLORS).map(([tier, color]) => {
+                  const total = monthlyData.reduce((s, m) => s + (m.suburbiaByTier[tier] || 0), 0);
+                  return { name: tier, value: total, fill: color };
+                })} dataKey="value" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                  {Object.values(SUBURBIA_TIER_COLORS).map((c, i) => <Cell key={i} fill={c} />)}
+                </Pie>
+                <Tooltip formatter={v => fmt(v)} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ===================== INDUSTRIAS =====================
+  if (view === "industrias") {
+    const yr = yearFilter;
+    const indMonths = monthlyData.filter(m => m.yr === yr);
+    const barData = annualData.map(a => {
+      const row = { yr: `Año ${a.yr + 1}` };
+      INDUSTRIES.forEach(ind => { row[ind.id] = a.indRevs[ind.id]; });
+      return row;
+    });
+
+    return (
+      <div style={S.container}>
+        <div style={S.header}><div style={S.title}>Inversión por Industria</div><BrandHeader /></div>
+        <div style={S.subtitle}>Forecast comercial segmentado por categoría de anunciante</div>
+        <TabBar view={view} setView={setView} style={S} />
+        <TariffPanel sbbPriceVW={sbbPriceVW} setSbbPriceVW={setSbbPriceVW} sbbPriceP85={sbbPriceP85} setSbbPriceP85={setSbbPriceP85} sbbPriceMural={sbbPriceMural} setSbbPriceMural={setSbbPriceMural} sbbPriceCubo={sbbPriceCubo} setSbbPriceCubo={setSbbPriceCubo} sbbRevShare={sbbRevShare} setSbbRevShare={setSbbRevShare} galRevShare={galRevShare} setGalRevShare={setGalRevShare} galMultPremium={galMultPremium} setGalMultPremium={setGalMultPremium} galMultT1={galMultT1} setGalMultT1={setGalMultT1} galMultT2={galMultT2} setGalMultT2={setGalMultT2} galMultT3={galMultT3} setGalMultT3={setGalMultT3} />
+        <OccupancySlider occ={occ} setOcc={setOcc} />
+
+        <div style={{ padding: "16px 20px", backgroundColor: "#F3EDF7", borderLeft: "4px solid #5C1E7A", borderRadius: "8px", marginBottom: "18px", fontSize: "13px", lineHeight: "1.7", color: "#2C0F3E" }}>
+          <div style={{ fontSize: "14px", fontWeight: "700", color: "#5C1E7A", marginBottom: "6px" }}>¿Por qué segmentamos por categorías?</div>
+          <div><strong>1. Protección de exclusividades Liverpool/Suburbia:</strong> el contrato marco exige excluir marcas competidoras directas (Zara, H&M, C&A, Shein) y cerveceras/licoreras. El split por categoría permite gobernar estas restricciones en tiempo real y evitar conflictos con las marcas propias de Liverpool.</div>
+          <div><strong>2. Pricing diferenciado por elasticidad:</strong> cada categoría tiene CPMs de referencia y ciclos de compra distintos (Telecom y Finanzas toleran tarifas premium; Moda y Alimentos son más sensibles). Separarlas habilita estrategias de yield por segmento.</div>
+          <div><strong>3. Mix balanceado y resiliencia:</strong> la meta es no concentrar más del 20-25% del inventario en una sola categoría. El forecast por industria mide esta diversificación y detecta vacíos de ocupación.</div>
+          <div><strong>4. Sinergia con el shopper de Suburbia/Liverpool:</strong> la audiencia mayoritaria es mujer NSE C+/B con gasto en moda, belleza, hogar y entretenimiento. Priorizamos las 8 categorías con mayor afinidad de consumo vs. el tráfico real de las tiendas.</div>
+          <div><strong>5. Comercialización por vertical (equipos dedicados):</strong> Connectia asigna KAMs especializados por categoría, lo que acelera el ciclo de venta y mejora la tasa de cierre vs. una venta genérica de DOOH.</div>
+        </div>
+
+        <div style={S.filterRow}>
+          <select style={S.select} value={yr} onChange={e => setYearFilter(parseInt(e.target.value))}>
+            {[0,1,2,3,4].map(y => <option key={y} value={y}>Año {y + 1}</option>)}
+          </select>
+        </div>
+
+        <div style={S.kpiGrid}>
+          {INDUSTRIES.map(ind => {
+            const indTotal = indMonths.reduce((s, m) => s + m.indRevs[ind.id], 0);
+            return (
+              <KPI key={ind.id} label={ind.name} value={fmtK(indTotal)} color={ind.color} sub={`${ind.brandsY[yr]} marcas · ${ind.brands.split(",").slice(0, 3).join(", ")}`} />
+            );
+          })}
+        </div>
+
+        <div style={S.chartBox}>
+          <h3 style={{ margin: "0 0 16px", color: "#1B3A5C" }}>Evolución por Industria (5 Años)</h3>
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={barData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="yr" />
+              <YAxis tickFormatter={v => fmtK(v)} />
+              <Tooltip formatter={v => fmtK(v)} />
+              <Legend wrapperStyle={{ fontSize: "11px" }} />
+              {INDUSTRIES.map(ind => <Bar key={ind.id} dataKey={ind.id} stackId="a" fill={ind.color} name={ind.name} />)}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    );
+  }
+
+  // ===================== TARIFARIO SUBURBIA =====================
+  if (view === "tarifSuburbia") {
+    const tierCounts = {};
+    const tierTotals = {};
+    ["Video Wall", 'Pantallas 85"', "Mural / Backlight"].forEach(t => {
+      const stores = suburbiaStores.filter(s => s.tier === t);
+      tierCounts[t] = stores.length;
+      tierTotals[t] = stores.reduce((s, st) => s + st.annualProjected, 0);
+    });
+    const totalAnnualAll = suburbiaStores.reduce((s, st) => s + st.annualProjected, 0);
+
+    return (
+      <div style={S.container}>
+        <div style={S.header}><div style={S.title}>Tarifario Suburbia · 170 tiendas</div><BrandHeader variant="suburbia" /></div>
+        <div style={S.subtitle}>Venta por <strong>circuito de tienda</strong> (todas las pantallas de la tienda se comercializan juntas en 8 slots · 1 slot = 1 cliente) · <strong>Video Wall y Cubo se venden por separado</strong> · Click en fila para ver detalle</div>
+        <TabBar view={view} setView={setView} style={S} />
+        <TariffPanel sbbPriceVW={sbbPriceVW} setSbbPriceVW={setSbbPriceVW} sbbPriceP85={sbbPriceP85} setSbbPriceP85={setSbbPriceP85} sbbPriceMural={sbbPriceMural} setSbbPriceMural={setSbbPriceMural} sbbPriceCubo={sbbPriceCubo} setSbbPriceCubo={setSbbPriceCubo} sbbRevShare={sbbRevShare} setSbbRevShare={setSbbRevShare} galRevShare={galRevShare} setGalRevShare={setGalRevShare} galMultPremium={galMultPremium} setGalMultPremium={setGalMultPremium} galMultT1={galMultT1} setGalMultT1={setGalMultT1} galMultT2={galMultT2} setGalMultT2={setGalMultT2} galMultT3={galMultT3} setGalMultT3={setGalMultT3} />
+        <OccupancySlider occ={occ} setOcc={setOcc} />
+
+        <div style={S.filterRow}>
+          <input type="text" placeholder="Buscar tienda..." value={search} onChange={e => setSearch(e.target.value)} style={S.input} />
+          <select value={tierFilter} onChange={e => setTierFilter(e.target.value)} style={S.select}>
+            <option value="">Todos los formatos</option>
+            <option value="Video Wall">Video Wall</option>
+            <option value='Pantallas 85"'>Pantallas 85"</option>
+            <option value="Mural / Backlight">Mural / Backlight</option>
+          </select>
+          <select style={S.select} value={yearFilter} onChange={e => setYearFilter(parseInt(e.target.value))}>
+            {[0,1,2,3,4].map(y => <option key={y} value={y}>Año {y + 1}</option>)}
+          </select>
+        </div>
+
+        {(() => { /* escalada anual para mostrar tarifas del año seleccionado */ return null; })()}
+        <div style={S.kpiGrid}>
+          {["Video Wall", 'Pantallas 85"', "Mural / Backlight"].map(t => {
+            const slots = SUBURBIA_SLOTS_PER_CIRCUIT[t];
+            let yrMult = 1; for (let y = 1; y <= yearFilter; y++) yrMult *= (1 + PRICE_INC[y]);
+            const baseSlotPrice = customPrices[t] * yrMult;
+            const isP85 = t === 'Pantallas 85"';
+            const isSeparate = t === "Video Wall";
+            const unitLabel = isSeparate ? "Espacio stand-alone" : isP85 ? "Circuito (tarifa × pantallas)" : "Circuito de tienda";
+            return (
+              <div key={t} style={{ backgroundColor: "#fff", padding: "16px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(92,30,122,0.08)", borderLeft: `4px solid ${SUBURBIA_TIER_COLORS[t]}` }}>
+                <div style={{ fontSize: "12px", color: "#666", fontWeight: "600" }}>{t}</div>
+                <div style={{ fontSize: "10px", color: isSeparate ? "#00B050" : "#5C1E7A", fontWeight: "600", marginTop: "2px" }}>{unitLabel}</div>
+                <div style={{ fontSize: "20px", fontWeight: "bold", color: "#5C1E7A", margin: "4px 0" }}>
+                  ${Math.round(baseSlotPrice).toLocaleString("es-MX")}<span style={{ fontSize: "12px", color: "#666" }}>{isP85 ? "/pantalla" : "/slot"}</span> <span style={{ fontSize: "9px", color: "#00B050", fontWeight: "700" }}>TARIFA FIJA</span>
+                </div>
+                {isP85 && <div style={{ fontSize: "11px", color: "#9B4AA5", fontWeight: "600" }}>Ejemplo: 3 pantallas → slot circuito = ${Math.round(baseSlotPrice * 3).toLocaleString("es-MX")} · 12 pantallas → ${Math.round(baseSlotPrice * 12).toLocaleString("es-MX")}</div>}
+                <div style={{ fontSize: "11px", color: "#888" }}>
+                  {isP85 ? `Inventario (3 pant. × 8 slots): $${Math.round(baseSlotPrice * 3 * 8).toLocaleString("es-MX")}/mes` : `Inventario total (8 slots): $${Math.round(baseSlotPrice * slots).toLocaleString("es-MX")}/mes`}
+                </div>
+                <div style={{ fontSize: "11px", color: "#5C1E7A", fontWeight: "600" }}>Slots vendidos ({occLabel}): {Math.round(slots * occ)} de {slots} → ${isP85 ? `${Math.round(Math.round(slots * occ) * baseSlotPrice * 3).toLocaleString("es-MX")}/mes (3 pant.)` : `${Math.round(Math.round(slots * occ) * baseSlotPrice).toLocaleString("es-MX")}/mes`}</div>
+                <div style={{ fontSize: "11px", color: "#888" }}>{tierCounts[t]} tiendas · Anual: {fmtK(tierTotals[t])}</div>
+                {yearFilter > 0 && <div style={{ fontSize: "10px", color: "#9B4AA5", marginTop: "2px" }}>Año {yearFilter + 1} · escalada x{yrMult.toFixed(3)}</div>}
+              </div>
+            );
+          })}
+          {(() => {
+            let yrMult = 1; for (let y = 1; y <= yearFilter; y++) yrMult *= (1 + PRICE_INC[y]);
+            const cuboSlotY = sbbPriceCubo * yrMult;
+            const cuboMonthly = cuboSlotY * SUBURBIA_CUBO_SLOTS;
+            const cuboSold = Math.round(SUBURBIA_CUBO_SLOTS * occ);
+            return (
+              <div style={{ backgroundColor: "#fff", padding: "16px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(92,30,122,0.08)", borderLeft: `4px solid ${SUBURBIA_TIER_COLORS["Cubo"]}` }}>
+                <div style={{ fontSize: "12px", color: "#666", fontWeight: "600" }}>Cubo (adicional)</div>
+                <div style={{ fontSize: "10px", color: "#00B050", fontWeight: "600", marginTop: "2px" }}>Espacio stand-alone</div>
+                <div style={{ fontSize: "20px", fontWeight: "bold", color: "#5C1E7A", margin: "4px 0" }}>
+                  ${Math.round(cuboSlotY).toLocaleString("es-MX")}<span style={{ fontSize: "12px", color: "#666" }}>/slot</span> <span style={{ fontSize: "9px", color: "#00B050", fontWeight: "700" }}>TARIFA FIJA</span>
+                </div>
+                <div style={{ fontSize: "11px", color: "#888" }}>Inventario total (8 slots): ${Math.round(cuboMonthly).toLocaleString("es-MX")}/mes</div>
+                <div style={{ fontSize: "11px", color: "#5C1E7A", fontWeight: "600" }}>Slots vendidos ({occLabel}): {cuboSold} de {SUBURBIA_CUBO_SLOTS} → ${Math.round(cuboSold * cuboSlotY).toLocaleString("es-MX")}/mes</div>
+                <div style={{ fontSize: "11px", color: "#888" }}>{SUBURBIA_CUBO_CECOS.size} tiendas con Cubo</div>
+                {yearFilter > 0 && <div style={{ fontSize: "10px", color: "#9B4AA5", marginTop: "2px" }}>Año {yearFilter + 1} · escalada x{yrMult.toFixed(3)}</div>}
+              </div>
+            );
+          })()}
+          <div style={{ backgroundColor: "#5C1E7A", padding: "16px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(92,30,122,0.15)", borderLeft: "4px solid #9B4AA5", color: "#fff" }}>
+            <div style={{ fontSize: "14px", fontWeight: "bold" }}>Total Red Suburbia · Año {yearFilter + 1}</div>
+            <div style={{ fontSize: "24px", fontWeight: "bold", margin: "6px 0" }}>{fmtK(totalAnnualAll)}</div>
+            <div style={{ fontSize: "11px", opacity: 0.8 }}>{filteredSuburbiaStores.length} tiendas · Ocupación {occLabel}</div>
+            <div style={{ fontSize: "11px", opacity: 0.7, marginTop: "4px" }}>Potencial 100%: {fmtK(suburbiaStores.reduce((s, st) => s + st.annualPotential, 0))}</div>
+          </div>
+        </div>
+
+        <div style={{ overflowX: "auto" }}>
+          <table style={S.table}>
+            <thead>
+              <tr>
+                <th style={S.th}></th>
+                <th style={S.th} onClick={() => doSort("ceco")}>CeCo {sortCol === "ceco" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("name")}>Sucursal {sortCol === "name" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("tier")}>Formato {sortCol === "tier" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("monitors")}>Monitores {sortCol === "monitors" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("hasCubo")}>Cubo {sortCol === "hasCubo" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("tierMonthly")}>Tarifa Formato/Mes {sortCol === "tierMonthly" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("monthlyPotential")}>Tarifa Total/Mes (100%) {sortCol === "monthlyPotential" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("monthlyProjected")}>Proyectado/Mes ({occLabel}) {sortCol === "monthlyProjected" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("annualProjected")}>Proyectado Anual {sortCol === "annualProjected" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSuburbiaStores.map((st, i) => {
+                const isExpanded = expandedSub === i;
+                return [
+                  <tr key={`row-${i}`} style={{ backgroundColor: i % 2 === 0 ? "#f9f9f9" : "#fff", cursor: "pointer" }} onClick={() => setExpandedSub(isExpanded ? null : i)}>
+                    <td style={S.td}><span style={S.expandBtn}>{isExpanded ? "−" : "+"}</span></td>
+                    <td style={S.td}>{st.ceco}</td>
+                    <td style={{ ...S.td, fontWeight: "600" }}>{st.name}</td>
+                    <td style={S.td}><span style={S.badge(SUBURBIA_TIER_COLORS[st.tier])}>{st.tier}</span></td>
+                    <td style={S.td}>{st.monitors || "—"}</td>
+                    <td style={S.td}>{st.hasCubo ? <span style={S.badge(SUBURBIA_TIER_COLORS["Cubo"])}>+Cubo</span> : "—"}</td>
+                    <td style={S.td}>{fmtFull(st.tierMonthly)}</td>
+                    <td style={S.td}>{fmtFull(st.monthlyPotential)}</td>
+                    <td style={{ ...S.td, fontWeight: "600", color: "#1B3A5C" }}>{fmtFull(st.monthlyProjected)}</td>
+                    <td style={{ ...S.td, fontWeight: "bold", color: "#1B3A5C" }}>{fmtFull(st.annualProjected)}</td>
+                  </tr>,
+                  isExpanded && (
+                    <tr key={`detail-${i}`}>
+                      <td colSpan={10} style={{ ...S.td, ...S.expandRow, padding: "16px 24px" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px" }}>
+                          <div><strong>Tipo:</strong> {st.tier}</div>
+                          <div><strong>Formato físico:</strong> {st.format}</div>
+                          <div><strong>Monitores:</strong> {st.monitors || "N/A"}</div>
+                          <div><strong>Estructura de venta:</strong> {st.tier === "Video Wall" ? "Video Wall stand-alone" : st.tier === 'Pantallas 85"' ? `Circuito de ${st.screenCount} pantallas` : "Circuito único de tienda"} · 8 slots (1 slot = 1 cliente)</div>
+                          <div><strong>Precio:</strong> {st.tier === 'Pantallas 85"' ? `${fmtFull(st.slotPrice)}/pantalla × ${st.screenCount} pantallas = ${fmtFull(st.circuitSlotPrice)}/slot circuito` : `${fmtFull(st.slotPrice)}/slot`}</div>
+                          <div><strong>Capacidad {st.tier === "Video Wall" ? "Video Wall" : "Circuito"} (8 slots):</strong> {fmtFull(st.tierMonthly)}/mes</div>
+                          {st.hasCubo && <div style={{ color: SUBURBIA_TIER_COLORS["Cubo"], fontWeight: "600" }}><strong>+ Cubo stand-alone (8 slots):</strong> {fmtFull(sbbPriceCubo * SUBURBIA_CUBO_SLOTS)}/mes</div>}
+                          <div><strong>Capacidad Total 100%:</strong> {fmtFull(st.monthlyPotential)}/mes</div>
+                          <div><strong>Proyectado {occLabel}:</strong> {fmtFull(st.monthlyProjected)}/mes</div>
+                          <div><strong>Revenue Anual:</strong> {fmtFull(st.annualProjected)}</div>
+                          {yearFilter > 0 && <div><strong>Escalada precio:</strong> x{st.priceMult.toFixed(3)} (+5% anual)</div>}
+                          <div><strong>Comparativa mercado (Diafi · Proxymo · Global):</strong> VW $120K-$290K/slot | P85 $52K-$150K | MB $36K-$80K | Cubo $100K-$180K/slot</div>
+                        </div>
+                        <div style={{ marginTop: "12px" }}>
+                          <strong>Desglose por slot (la tarifa es FIJA; la ocupación determina cuántos slots se venden):</strong>
+                          {(() => {
+                            const slotsSoldMain = Math.round(st.slots * occ);
+                            const slotsSoldCubo = st.hasCubo ? Math.round(SUBURBIA_CUBO_SLOTS * occ) : 0;
+                            const tarifaMain = st.circuitSlotPrice * st.priceMult;
+                            const tarifaCubo = sbbPriceCubo * st.priceMult;
+                            const ingresoMain = slotsSoldMain * tarifaMain;
+                            const ingresoCubo = slotsSoldCubo * tarifaCubo;
+                            return (
+                              <table style={{ ...S.table, marginTop: "8px", fontSize: "12px" }}>
+                                <thead><tr>{["Concepto", "Tarifa fija/slot", `Estado (${occLabel})`, "Ingreso mensual"].map(h => <th key={h} style={{ ...S.th, fontSize: "11px" }}>{h}</th>)}</tr></thead>
+                                <tbody>
+                                  {Array.from({ length: st.slots }, (_, si) => {
+                                    const vendido = si < slotsSoldMain;
+                                    return (
+                                      <tr key={si} style={{ backgroundColor: si % 2 === 0 ? "#f5f8fc" : "#fff" }}>
+                                        <td style={S.td}>{st.tier} · Slot {si + 1}{st.screenCount > 1 ? ` (${st.screenCount} pantallas)` : ""}</td>
+                                        <td style={S.td}>{fmtFull(tarifaMain)}</td>
+                                        <td style={{ ...S.td, color: vendido ? "#00B050" : "#999", fontWeight: vendido ? "600" : "normal" }}>{vendido ? "Vendido" : "Disponible"}</td>
+                                        <td style={S.td}>{vendido ? fmtFull(tarifaMain) : "—"}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                  {st.hasCubo && Array.from({ length: SUBURBIA_CUBO_SLOTS }, (_, si) => {
+                                    const vendido = si < slotsSoldCubo;
+                                    return (
+                                      <tr key={`cubo-${si}`} style={{ backgroundColor: "#e3f2fd" }}>
+                                        <td style={S.td}><strong>Cubo · Slot {si + 1}</strong></td>
+                                        <td style={S.td}>{fmtFull(tarifaCubo)}</td>
+                                        <td style={{ ...S.td, color: vendido ? "#00B050" : "#999", fontWeight: vendido ? "600" : "normal" }}>{vendido ? "Vendido" : "Disponible"}</td>
+                                        <td style={S.td}>{vendido ? fmtFull(tarifaCubo) : "—"}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                  <tr style={{ fontWeight: "bold", backgroundColor: "#e8eef5" }}>
+                                    <td style={S.td}>Total</td>
+                                    <td style={S.td}>Inventario: {fmtFull(st.monthlyPotential * st.priceMult)}</td>
+                                    <td style={S.td}>{slotsSoldMain}/{st.slots}{st.hasCubo ? ` + ${slotsSoldCubo}/${SUBURBIA_CUBO_SLOTS} cubo` : ""}</td>
+                                    <td style={S.td}>{fmtFull(ingresoMain + ingresoCubo)}</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            );
+                          })()}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                ];
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div style={{ marginTop: "16px", padding: "14px", backgroundColor: "#1B3A5C", borderRadius: "8px", color: "#fff", display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+          <span><strong>Total Red ({filteredSuburbiaStores.length} tiendas) · Año {yearFilter + 1} · {occLabel}:</strong></span>
+          <span style={{ fontSize: "18px", fontWeight: "bold" }}>{fmt(filteredSuburbiaStores.reduce((s, st) => s + st.annualProjected, 0))} / año</span>
+        </div>
+      </div>
+    );
+  }
+
+  // ===================== TARIFARIO GALERÍAS =====================
+  if (view === "tarifGalerias") {
+    const totalAnnualGal = galeriasStores.reduce((s, st) => s + st.annualProjected, 0);
+    const totalScreens = galeriasStores.reduce((s, st) => s + st.screens, 0);
+
+    return (
+      <div style={S.container}>
+        <div style={S.header}><div style={S.title}>Tarifario Galerías Liverpool · 26 centros · {totalScreens} pantallas</div><BrandHeader /></div>
+        <div style={S.subtitle}>Tarifa por slot × tamaño × tier · 8 slots por pantalla (1 slot = 1 cliente) · Exterior +25%</div>
+        <TabBar view={view} setView={setView} style={S} />
+        <TariffPanel sbbPriceVW={sbbPriceVW} setSbbPriceVW={setSbbPriceVW} sbbPriceP85={sbbPriceP85} setSbbPriceP85={setSbbPriceP85} sbbPriceMural={sbbPriceMural} setSbbPriceMural={setSbbPriceMural} sbbPriceCubo={sbbPriceCubo} setSbbPriceCubo={setSbbPriceCubo} sbbRevShare={sbbRevShare} setSbbRevShare={setSbbRevShare} galRevShare={galRevShare} setGalRevShare={setGalRevShare} galMultPremium={galMultPremium} setGalMultPremium={setGalMultPremium} galMultT1={galMultT1} setGalMultT1={setGalMultT1} galMultT2={galMultT2} setGalMultT2={setGalMultT2} galMultT3={galMultT3} setGalMultT3={setGalMultT3} />
+        <OccupancySlider occ={occ} setOcc={setOcc} />
+
+        <div style={S.filterRow}>
+          <input type="text" placeholder="Buscar galería..." value={search} onChange={e => setSearch(e.target.value)} style={S.input} />
+          <select value={tierFilter} onChange={e => setTierFilter(e.target.value)} style={S.select}>
+            <option value="">Todos los Tiers</option>
+            <option value="Premium">Premium</option>
+            <option value="Tier 1">Tier 1</option>
+            <option value="Tier 2">Tier 2</option>
+            <option value="Tier 3">Tier 3</option>
+          </select>
+          <select style={S.select} value={yearFilter} onChange={e => setYearFilter(parseInt(e.target.value))}>
+            {[0,1,2,3,4].map(y => <option key={y} value={y}>Año {y + 1}</option>)}
+          </select>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px", marginBottom: "16px" }}>
+          {Object.entries(GAL_TIER_MULT).map(([tier, mult]) => {
+            const stores = galeriasStores.filter(s => s.tier === tier);
+            const tierTotal = stores.reduce((s, st) => s + st.annualProjected, 0);
+            let yrMult = 1; for (let y = 1; y <= yearFilter; y++) yrMult *= (1 + PRICE_INC[y]);
+            const cMult = galTierMults[tier] || 1;
+            return (
+              <div key={tier} style={{ backgroundColor: "#fff", padding: "16px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(92,30,122,0.08)", borderLeft: `4px solid ${GAL_TIER_COLORS[tier]}` }}>
+                <div style={{ fontSize: "14px", fontWeight: "bold", color: "#5C1E7A" }}>{tier} (base x{mult}){cMult !== 1 ? <span style={{ color: "#C62828", marginLeft: "6px" }}>ajuste ×{cMult.toFixed(2)}</span> : ""}</div>
+                <div style={{ fontSize: "11px", color: "#888", marginTop: "6px" }}>
+                  {SIZE_ORDER.map(sz => `${SIZE_LABELS[sz]}: $${Math.round(GAL_BASE_TARIFFS[sz] * mult * cMult * yrMult / 1000).toLocaleString()}K/slot`).join(" · ")}
+                </div>
+                <div style={{ fontSize: "10px", color: "#aaa", marginTop: "2px" }}>8 slots/pantalla · Exterior +25%{yearFilter > 0 ? ` · Año ${yearFilter + 1} (x${yrMult.toFixed(3)})` : ""}</div>
+                <div style={{ fontSize: "11px", color: "#888", marginTop: "4px" }}>{stores.length} centros · {stores.reduce((s, st) => s + st.screens, 0)} pantallas</div>
+                <div style={{ fontSize: "15px", fontWeight: "bold", color: "#5C1E7A", marginTop: "6px" }}>Anual: {fmtK(tierTotal)}</div>
+              </div>
+            );
+          })}
+          <div style={{ backgroundColor: "#5C1E7A", padding: "16px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(92,30,122,0.15)", borderLeft: "4px solid #9B4AA5", color: "#fff" }}>
+            <div style={{ fontSize: "14px", fontWeight: "bold" }}>Total Red Galerías Liverpool · Año {yearFilter + 1}</div>
+            <div style={{ fontSize: "24px", fontWeight: "bold", margin: "6px 0" }}>{fmtK(totalAnnualGal)}</div>
+            <div style={{ fontSize: "11px", opacity: 0.8 }}>{galeriasStores.length} centros · {totalScreens} pantallas · Ocupación {occLabel}</div>
+            <div style={{ fontSize: "11px", opacity: 0.7, marginTop: "4px" }}>Potencial 100%: {fmtK(galeriasStores.reduce((s, st) => s + st.annualPotential, 0))}</div>
+          </div>
+        </div>
+
+        <div style={{ padding: "10px 16px", backgroundColor: "#f0f4f8", borderRadius: "6px", marginBottom: "16px", fontSize: "12px", color: "#555" }}>
+          <strong>Tarifa Premium por slot (techo de mercado):</strong> XXL $350K · XL $250K · Grande $180K · Mediana $120K · Pequeña $70K &nbsp;|&nbsp; Tiers inferiores escalan hacia abajo: T1 x0.88 · T2 x0.80 · T3 x0.68 del precio Premium &nbsp;|&nbsp; <strong>8 slots por pantalla (1 slot = 1 cliente)</strong> · Exterior +25% &nbsp;|&nbsp; <strong>Duración:</strong> XXL/XL/Grande 20-30 seg · Mediana/Pequeña 15 seg &nbsp;|&nbsp; <strong>Comparativa de mercado (Diafi · Proxymo · Global):</strong> CC Premium CDMX $140K-$290K · CC Tier 1 GDL/MTY $110K-$220K · CC Tier 2-3 $75K-$165K
+        </div>
+
+        <div style={{ overflowX: "auto" }}>
+          <table style={S.table}>
+            <thead>
+              <tr>
+                <th style={S.th}></th>
+                <th style={S.th} onClick={() => doSort("name")}>Centro {sortCol === "name" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("region")}>Región {sortCol === "region" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("tier")}>Tier {sortCol === "tier" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("screens")}># Pantallas {sortCol === "screens" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("sz_xxl")}>XXL {sortCol === "sz_xxl" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("sz_xl")}>XL {sortCol === "sz_xl" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("sz_grande")}>Grande {sortCol === "sz_grande" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("sz_mediana")}>Mediana {sortCol === "sz_mediana" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("sz_pequena")}>Pequeña {sortCol === "sz_pequena" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("extCount")}>Exterior {sortCol === "extCount" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("monthlyPotential")}>Potencial/Mes {sortCol === "monthlyPotential" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("monthlyProjected")}>Proy./Mes ({occLabel}) {sortCol === "monthlyProjected" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+                <th style={S.th} onClick={() => doSort("annualProjected")}>Proy. Anual {sortCol === "annualProjected" ? (sortDir === 1 ? "▲" : "▼") : ""}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredGaleriasStores.map((st, i) => {
+                const isExp = expandedGal === i;
+                return [
+                  <tr key={`g-${i}`} style={{ backgroundColor: i % 2 === 0 ? "#f9f9f9" : "#fff", cursor: "pointer" }} onClick={() => setExpandedGal(isExp ? null : i)}>
+                    <td style={S.td}><span style={S.expandBtn}>{isExp ? "−" : "+"}</span></td>
+                    <td style={{ ...S.td, fontWeight: "600" }}>{st.name}</td>
+                    <td style={S.td}>{st.region}</td>
+                    <td style={S.td}><span style={S.badge(GAL_TIER_COLORS[st.tier])}>{st.tier}</span></td>
+                    <td style={{ ...S.td, textAlign: "center" }}>{st.screens}</td>
+                    {SIZE_ORDER.map(sz => {
+                      const c = (st.sizes[sz]?.int || 0) + (st.sizes[sz]?.ext || 0);
+                      return <td key={sz} style={{ ...S.td, textAlign: "center" }}>{c > 0 ? c : "—"}</td>;
+                    })}
+                    <td style={{ ...S.td, textAlign: "center", color: st.extCount > 0 ? "#8B1A1A" : "#999", fontWeight: st.extCount > 0 ? "600" : "normal" }}>{st.extCount > 0 ? st.extCount : "—"}</td>
+                    <td style={S.td}>{fmtFull(st.monthlyPotential)}</td>
+                    <td style={{ ...S.td, fontWeight: "600", color: "#1B3A5C" }}>{fmtFull(st.monthlyProjected)}</td>
+                    <td style={{ ...S.td, fontWeight: "bold", color: "#1B3A5C" }}>{fmtFull(st.annualProjected)}</td>
+                  </tr>,
+                  isExp && (
+                    <tr key={`gd-${i}`}>
+                      <td colSpan={14} style={{ ...S.td, ...S.expandRow, padding: "16px 24px" }}>
+                        <h4 style={{ margin: "0 0 6px", color: "#1B3A5C" }}>{st.name} — Detalle por Pantalla (8 slots/pantalla · 1 slot = 1 cliente)</h4>
+                        <div style={{ fontSize: "11px", color: "#5C1E7A", marginBottom: "8px" }}><strong>Modelo:</strong> la tarifa por slot es FIJA. La ocupación ({occLabel}) determina cuántos de los slots disponibles se venden.</div>
+                        <table style={{ ...S.table, fontSize: "12px" }}>
+                          <thead>
+                            <tr>
+                              <th style={{ ...S.th, fontSize: "11px" }}>#</th>
+                              <th style={{ ...S.th, fontSize: "11px" }}>Tamaño</th>
+                              <th style={{ ...S.th, fontSize: "11px" }}>Ubicación</th>
+                              <th style={{ ...S.th, fontSize: "11px" }}>Duración</th>
+                              <th style={{ ...S.th, fontSize: "11px" }}>Base × Tier ({st.tier} x{st.tierMult})</th>
+                              <th style={{ ...S.th, fontSize: "11px" }}>$/Slot (fijo)</th>
+                              <th style={{ ...S.th, fontSize: "11px" }}>Slots</th>
+                              <th style={{ ...S.th, fontSize: "11px" }}>Vendidos ({occLabel})</th>
+                              <th style={{ ...S.th, fontSize: "11px" }}>Inventario 100%</th>
+                              <th style={{ ...S.th, fontSize: "11px" }}>Ingreso mensual</th>
+                              <th style={{ ...S.th, fontSize: "11px" }}>Ingreso anual</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(() => {
+                              let rowIdx = 0;
+                              return st.screenDetails.flatMap((d, di) => {
+                                const slotPriceY = d.slotPrice * st.priceMult;
+                                const slotsPerScreen = GAL_SLOTS_PER_SCREEN;
+                                const slotsSoldPerScreen = Math.round(slotsPerScreen * occ);
+                                const ingresoMesPerScreen = slotsSoldPerScreen * slotPriceY;
+                                const inv100PerScreen = slotsPerScreen * slotPriceY;
+                                const sizeBadgeColor = d.size === "xxl" ? "#4A148C" : d.size === "xl" ? "#1565C0" : d.size === "grande" ? "#2E7D32" : d.size === "mediana" ? "#EF6C00" : "#78909C";
+                                return Array.from({ length: d.count }, (_, k) => {
+                                  const ri = rowIdx++;
+                                  return (
+                                    <tr key={`${di}-${k}`} style={{ backgroundColor: ri % 2 === 0 ? "#f5f8fc" : "#fff" }}>
+                                      <td style={{ ...S.td, textAlign: "center", color: "#999", fontSize: "11px" }}>{ri + 1}</td>
+                                      <td style={S.td}><span style={S.badge(sizeBadgeColor)}>{SIZE_LABELS[d.size]}</span></td>
+                                      <td style={S.td}><span style={S.badge(d.location === "ext" ? "#8B1A1A" : "#607D8B")}>{d.location === "ext" ? "Exterior +25%" : "Interior"}</span></td>
+                                      <td style={{ ...S.td, fontSize: "11px", color: "#666" }}>{SPOT_DURATIONS[d.size]}</td>
+                                      <td style={{ ...S.td, fontSize: "11px", color: "#666" }}>{fmtFull(GAL_BASE_TARIFFS[d.size])} × {st.tierMult}{d.location === "ext" ? " × 1.25" : ""}</td>
+                                      <td style={S.td}>{fmtFull(slotPriceY)}</td>
+                                      <td style={{ ...S.td, textAlign: "center" }}>{slotsPerScreen}</td>
+                                      <td style={{ ...S.td, textAlign: "center", color: "#00B050", fontWeight: "600" }}>{slotsSoldPerScreen}</td>
+                                      <td style={S.td}>{fmtFull(inv100PerScreen)}</td>
+                                      <td style={{ ...S.td, fontWeight: "600" }}>{fmtFull(ingresoMesPerScreen)}</td>
+                                      <td style={{ ...S.td, fontWeight: "600" }}>{fmtFull(ingresoMesPerScreen * 12)}</td>
+                                    </tr>
+                                  );
+                                });
+                              });
+                            })()}
+                            {(() => {
+                              const totalSlotsAll = st.screenDetails.reduce((s, d) => s + d.count * GAL_SLOTS_PER_SCREEN, 0);
+                              const slotsSoldAll = st.screenDetails.reduce((s, d) => s + Math.round(d.count * GAL_SLOTS_PER_SCREEN * occ), 0);
+                              return (
+                                <tr style={{ fontWeight: "bold", backgroundColor: "#e8eef5" }}>
+                                  <td style={S.td}></td>
+                                  <td style={S.td}>Total ({st.screens} pantallas)</td>
+                                  <td style={S.td}></td>
+                                  <td style={S.td}></td>
+                                  <td style={S.td}></td>
+                                  <td style={S.td}></td>
+                                  <td style={{ ...S.td, textAlign: "center" }}>{totalSlotsAll}</td>
+                                  <td style={{ ...S.td, textAlign: "center", color: "#00B050" }}>{slotsSoldAll}</td>
+                                  <td style={S.td}>{fmtFull(st.monthlyPotential * st.priceMult)}</td>
+                                  <td style={S.td}>{fmtFull(st.monthlyProjected)}</td>
+                                  <td style={S.td}>{fmtFull(st.annualProjected)}</td>
+                                </tr>
+                              );
+                            })()}
+                          </tbody>
+                        </table>
+                        {yearFilter > 0 && <div style={{ marginTop: "8px", fontSize: "12px", color: "#666" }}>Escalada de precio Año {yearFilter + 1}: x{st.priceMult.toFixed(3)}</div>}
+                      </td>
+                    </tr>
+                  )
+                ];
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div style={{ marginTop: "16px", padding: "14px", backgroundColor: "#1B3A5C", borderRadius: "8px", color: "#fff", display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+          <span><strong>Total Red Galerías ({filteredGaleriasStores.length} centros · {filteredGaleriasStores.reduce((s, st) => s + st.screens, 0)} pantallas) · Año {yearFilter + 1} · {occLabel}:</strong></span>
+          <span style={{ fontSize: "18px", fontWeight: "bold" }}>{fmt(filteredGaleriasStores.reduce((s, st) => s + st.annualProjected, 0))} / año</span>
+        </div>
+      </div>
+    );
+  }
+
+  // ===================== PROYECCIÓN POR PLAZA =====================
+  if (view === "plazas") {
+    const plazaData = [];
+    if (projectToggle !== "galerias") {
+      suburbiaStores.forEach(st => plazaData.push({ name: st.name, project: "Suburbia", tier: st.tier, monthly: st.monthlyProjected, annual: st.annualProjected }));
+    }
+    if (projectToggle !== "suburbia") {
+      galeriasStores.forEach(st => plazaData.push({ name: st.name, project: "Galerías", tier: st.tier, monthly: st.monthlyProjected, annual: st.annualProjected, screens: st.screens }));
+    }
+    plazaData.sort((a, b) => b.annual - a.annual);
+    const top25 = plazaData.slice(0, 25);
+
+    return (
+      <div style={S.container}>
+        <div style={S.header}><div style={S.title}>Proyección por Plaza</div><BrandHeader /></div>
+        <TabBar view={view} setView={setView} style={S} />
+        <TariffPanel sbbPriceVW={sbbPriceVW} setSbbPriceVW={setSbbPriceVW} sbbPriceP85={sbbPriceP85} setSbbPriceP85={setSbbPriceP85} sbbPriceMural={sbbPriceMural} setSbbPriceMural={setSbbPriceMural} sbbPriceCubo={sbbPriceCubo} setSbbPriceCubo={setSbbPriceCubo} sbbRevShare={sbbRevShare} setSbbRevShare={setSbbRevShare} galRevShare={galRevShare} setGalRevShare={setGalRevShare} galMultPremium={galMultPremium} setGalMultPremium={setGalMultPremium} galMultT1={galMultT1} setGalMultT1={setGalMultT1} galMultT2={galMultT2} setGalMultT2={setGalMultT2} galMultT3={galMultT3} setGalMultT3={setGalMultT3} />
+        <OccupancySlider occ={occ} setOcc={setOcc} />
+
+        <div style={S.filterRow}>
+          <select value={projectToggle} onChange={e => setProjectToggle(e.target.value)} style={S.select}>
+            <option value="ambos">Ambos Proyectos</option>
+            <option value="suburbia">Solo Suburbia</option>
+            <option value="galerias">Solo Galerías</option>
+          </select>
+          <select style={S.select} value={yearFilter} onChange={e => setYearFilter(parseInt(e.target.value))}>
+            {[0,1,2,3,4].map(y => <option key={y} value={y}>Año {y + 1}</option>)}
+          </select>
+          <div style={{ marginLeft: "auto", fontSize: "14px", fontWeight: "bold", color: "#1B3A5C" }}>Total: {fmt(plazaData.reduce((s, p) => s + p.annual, 0))} / año</div>
+        </div>
+
+        <div style={S.chartBox}>
+          <h3 style={{ margin: "0 0 16px", color: "#1B3A5C" }}>Top 25 Plazas · Revenue Anual Proyectado ({occLabel})</h3>
+          <ResponsiveContainer width="100%" height={500}>
+            <BarChart data={top25} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" tickFormatter={v => fmtK(v)} />
+              <YAxis dataKey="name" type="category" width={160} tick={{ fontSize: 11 }} />
+              <Tooltip formatter={v => fmtFull(v)} labelFormatter={l => l} />
+              <Bar dataKey="annual" radius={[0, 6, 6, 0]}>
+                {top25.map((p, idx) => <Cell key={idx} fill={p.project === "Suburbia" ? "#2F5496" : "#8B1A1A"} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={{ overflowX: "auto", maxHeight: "500px", overflowY: "auto" }}>
+          <table style={S.table}>
+            <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
+              <tr>
+                <th style={S.th}>#</th>
+                <th style={S.th}>Plaza</th>
+                <th style={S.th}>Proyecto</th>
+                <th style={S.th}>Tier</th>
+                <th style={S.th}>Mensual ({occLabel})</th>
+                <th style={S.th}>Anual ({occLabel})</th>
+              </tr>
+            </thead>
+            <tbody>
+              {plazaData.map((p, i) => (
+                <tr key={i} style={{ backgroundColor: i % 2 === 0 ? "#f9f9f9" : "#fff" }}>
+                  <td style={S.td}>{i + 1}</td>
+                  <td style={{ ...S.td, fontWeight: "600" }}>{p.name}</td>
+                  <td style={S.td}><span style={S.badge(p.project === "Suburbia" ? "#2F5496" : "#8B1A1A")}>{p.project}</span></td>
+                  <td style={S.td}>{p.tier}</td>
+                  <td style={S.td}>{fmtFull(p.monthly)}</td>
+                  <td style={{ ...S.td, fontWeight: "bold", color: "#1B3A5C" }}>{fmtFull(p.annual)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  // ===================== INGRESOS MENSUALES =====================
+  if (view === "mensual") {
+    return (
+      <div style={S.container}>
+        <div style={S.header}><div style={S.title}>Ingresos Mensuales (60 meses)</div><BrandHeader /></div>
+        <TabBar view={view} setView={setView} style={S} />
+        <TariffPanel sbbPriceVW={sbbPriceVW} setSbbPriceVW={setSbbPriceVW} sbbPriceP85={sbbPriceP85} setSbbPriceP85={setSbbPriceP85} sbbPriceMural={sbbPriceMural} setSbbPriceMural={setSbbPriceMural} sbbPriceCubo={sbbPriceCubo} setSbbPriceCubo={setSbbPriceCubo} sbbRevShare={sbbRevShare} setSbbRevShare={setSbbRevShare} galRevShare={galRevShare} setGalRevShare={setGalRevShare} galMultPremium={galMultPremium} setGalMultPremium={setGalMultPremium} galMultT1={galMultT1} setGalMultT1={setGalMultT1} galMultT2={galMultT2} setGalMultT2={setGalMultT2} galMultT3={galMultT3} setGalMultT3={setGalMultT3} />
+        <OccupancySlider occ={occ} setOcc={setOcc} />
+
+        <div style={S.kpiGrid}>
+          <KPI label="Total Gross 5Y" value={fmt(getTotal5Y("totalGross"))} color="#1B3A5C" />
+          <KPI label="Promedio Mensual" value={fmtK(getTotal5Y("totalGross") / 60)} color="#FF9800" />
+          <KPI label="Mes Pico (Dic)" value={fmtK(Math.max(...monthlyData.map(m => m.totalGross)))} color="#43A047" />
+          <KPI label="Mes Valle (Ene)" value={fmtK(Math.min(...monthlyData.map(m => m.totalGross)))} color="#E53935" />
+        </div>
+
+        <div style={S.chartBox}>
+          <h3 style={{ margin: "0 0 16px", color: "#1B3A5C" }}>Ingreso Mensual Consolidado</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="label" tick={{ fontSize: 9 }} interval={2} />
+              <YAxis tickFormatter={v => fmtK(v)} />
+              <Tooltip formatter={v => fmtK(v)} />
+              <Legend />
+              <Area type="monotone" dataKey="suburbiaTotalGross" stackId="1" fill="#2F5496" stroke="#2F5496" name="Suburbia" />
+              <Area type="monotone" dataKey="galeriasNetworkRev" stackId="1" fill="#8B1A1A" stroke="#8B1A1A" name="Galerías" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={S.chartBox}>
+          <h3 style={{ margin: "0 0 16px", color: "#1B3A5C" }}>Suburbia por Formato</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <AreaChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="label" tick={{ fontSize: 9 }} interval={2} />
+              <YAxis tickFormatter={v => fmtK(v)} />
+              <Tooltip formatter={v => fmtK(v)} />
+              <Legend />
+              {Object.entries(SUBURBIA_TIER_COLORS).map(([tier, color]) => (
+                <Area key={tier} type="monotone" dataKey={d => d.suburbiaByTier[tier]} stackId="1" fill={color} stroke={color} name={tier} />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={{ overflowX: "auto", maxHeight: "400px", overflowY: "auto" }}>
+          <table style={S.table}>
+            <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
+              <tr>
+                <th style={S.th}>Mes</th>
+                <th style={S.th}>Suburbia Gross</th>
+                <th style={S.th}>Galerías Network</th>
+                <th style={S.th}>Total Gross</th>
+                <th style={S.th}>Estacionalidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              {monthlyData.map((m, i) => (
+                <tr key={i} style={{ backgroundColor: m.mo === 3 ? "#fff3e0" : i % 2 === 0 ? "#f9f9f9" : "#fff" }}>
+                  <td style={S.td}>{m.label}</td>
+                  <td style={S.td}>{fmtK(m.suburbiaTotalGross)}</td>
+                  <td style={S.td}>{fmtK(m.galeriasNetworkRev)}</td>
+                  <td style={{ ...S.td, fontWeight: "bold" }}>{fmtK(m.totalGross)}</td>
+                  <td style={S.td}>{(SEASON[m.mo] * 100).toFixed(0)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  // ===================== PAGO A LIVERPOOL =====================
+  if (view === "pago") {
+    const subPagoTotal = getTotal5Y("suburbiaPagoFijo") + getTotal5Y("suburbiaPagoVar");
+    const galPagoTotal = getTotal5Y("galeriasFixedToLiv") + getTotal5Y("galeriasVarToLiv");
+    const totalPago = subPagoTotal + galPagoTotal;
+    const totalGross = getTotal5Y("totalGross");
+
+    return (
+      <div style={S.container}>
+        <div style={S.header}><div style={S.title}>Pago a Liverpool</div><BrandHeader /></div>
+        <TabBar view={view} setView={setView} style={S} />
+        <TariffPanel sbbPriceVW={sbbPriceVW} setSbbPriceVW={setSbbPriceVW} sbbPriceP85={sbbPriceP85} setSbbPriceP85={setSbbPriceP85} sbbPriceMural={sbbPriceMural} setSbbPriceMural={setSbbPriceMural} sbbPriceCubo={sbbPriceCubo} setSbbPriceCubo={setSbbPriceCubo} sbbRevShare={sbbRevShare} setSbbRevShare={setSbbRevShare} galRevShare={galRevShare} setGalRevShare={setGalRevShare} galMultPremium={galMultPremium} setGalMultPremium={setGalMultPremium} galMultT1={galMultT1} setGalMultT1={setGalMultT1} galMultT2={galMultT2} setGalMultT2={setGalMultT2} galMultT3={galMultT3} setGalMultT3={setGalMultT3} />
+        <OccupancySlider occ={occ} setOcc={setOcc} />
+
+        <div style={S.kpiGrid}>
+          <KPI label="Total Pago 5Y" value={fmt(totalPago)} color="#E53935" sub={`${fmtPct(totalPago / totalGross)} del Gross`} />
+          <KPI label="Suburbia (35% Rev Share)" value={fmt(subPagoTotal)} color="#E3006D" sub="100% variable" />
+          <KPI label="Galerías (35% Rev Share)" value={fmt(galPagoTotal)} color="#B85C7A" sub="100% variable" />
+        </div>
+
+        <div style={S.chartBox}>
+          <h3 style={{ margin: "0 0 16px", color: "#1B3A5C" }}>Pago Mensual a Liverpool</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="label" tick={{ fontSize: 9 }} interval={2} />
+              <YAxis tickFormatter={v => fmtK(v)} />
+              <Tooltip formatter={v => fmtK(v)} />
+              <Legend />
+              <Area type="monotone" dataKey="suburbiaPagoVar" stackId="1" fill="#FF6B6B" name="Suburbia Var (35%)" />
+              <Area type="monotone" dataKey="galeriasVarToLiv" stackId="1" fill="#4CAF50" name="Galerías Var (35%)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={S.chartBox}>
+          <h3 style={{ margin: "0 0 16px", color: "#1B3A5C" }}>Comparativo Anual: Gross vs Pago a Liverpool</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <ComposedChart data={annualData.map(a => ({
+              yr: `Año ${a.yr + 1}`,
+              Gross: a.suburbiaTotalGross + a.galeriasNetworkRev,
+              Pago: a.suburbiaPagoFijo + a.suburbiaPagoVar + a.galeriasFixedToLiv + a.galeriasVarToLiv,
+              Margen: (a.suburbiaTotalGross + a.galeriasNetworkRev) - (a.suburbiaPagoFijo + a.suburbiaPagoVar + a.galeriasFixedToLiv + a.galeriasVarToLiv),
+            }))}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="yr" />
+              <YAxis tickFormatter={v => fmt(v)} />
+              <Tooltip formatter={v => fmt(v)} />
+              <Legend />
+              <Bar dataKey="Gross" fill="#1B3A5C" />
+              <Bar dataKey="Pago" fill="#E53935" />
+              <Line type="monotone" dataKey="Margen" stroke="#43A047" strokeWidth={3} dot={{ r: 5 }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={{ overflowX: "auto" }}>
+          <table style={S.table}>
+            <thead>
+              <tr>
+                <th style={S.th}>Mes</th>
+                <th style={S.th}>Suburbia Var (35%)</th>
+                <th style={S.th}>Galerías Var (35%)</th>
+                <th style={S.th}>Total Pago</th>
+                <th style={S.th}>Gross</th>
+                <th style={S.th}>% Pago</th>
+              </tr>
+            </thead>
+            <tbody>
+              {monthlyData.map((m, i) => {
+                const pago = m.suburbiaPagoFijo + m.suburbiaPagoVar + m.galeriasFixedToLiv + m.galeriasVarToLiv;
+                return (
+                  <tr key={i} style={{ backgroundColor: i % 2 === 0 ? "#f9f9f9" : "#fff" }}>
+                    <td style={S.td}>{m.label}</td>
+                    <td style={S.td}>{fmtK(m.suburbiaPagoVar)}</td>
+                    <td style={S.td}>{fmtK(m.galeriasVarToLiv)}</td>
+                    <td style={{ ...S.td, fontWeight: "bold", color: "#E53935" }}>{fmtK(pago)}</td>
+                    <td style={S.td}>{fmtK(m.totalGross)}</td>
+                    <td style={S.td}>{fmtPct(pago / m.totalGross)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  // ===================== POLÍTICA COMERCIAL =====================
+  if (view === "politica") {
+    return (
+      <div style={S.container}>
+        <div style={S.header}><div style={S.title}>Política Comercial</div><BrandHeader /></div>
+        <TabBar view={view} setView={setView} style={S} />
+
+        <div style={{ backgroundColor: "#fff", padding: "24px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+          <h3 style={{ color: "#1B3A5C", marginTop: 0 }}>Categorías Permitidas (8 Industrias)</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "12px", marginTop: "16px" }}>
+            {INDUSTRIES.map(ind => (
+              <div key={ind.id} style={{ padding: "12px", borderLeft: `4px solid ${ind.color}`, backgroundColor: "#f9f9f9", borderRadius: "6px" }}>
+                <strong>{ind.name}</strong>
+                <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>Marcas: {ind.brands}</div>
+                {ind.excluded && <div style={{ fontSize: "11px", color: "#c00", marginTop: "2px" }}>Excluidas: {ind.excluded}</div>}
+              </div>
+            ))}
+          </div>
+
+          <h3 style={{ color: "#1B3A5C", marginTop: "32px" }}>Escalada de Precios</h3>
+          <table style={{ ...S.table, marginTop: "12px", maxWidth: "400px" }}>
+            <thead><tr><th style={S.th}>Año</th><th style={S.th}>Incremento</th><th style={S.th}>Acumulado</th></tr></thead>
+            <tbody>
+              {PRICE_INC.map((inc, i) => {
+                let acc = 1; for (let y = 1; y <= i; y++) acc *= (1 + PRICE_INC[y]);
+                return (
+                  <tr key={i} style={{ backgroundColor: i % 2 === 0 ? "#f9f9f9" : "#fff" }}>
+                    <td style={S.td}>Año {i + 1}</td>
+                    <td style={S.td}>{i === 0 ? "Base" : `+${inc * 100}%`}</td>
+                    <td style={S.td}>x{acc.toFixed(3)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          <h3 style={{ color: "#1B3A5C", marginTop: "32px" }}>Parámetros del Modelo</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginTop: "16px" }}>
+            <div style={{ padding: "16px", backgroundColor: "#f0f4f8", borderRadius: "8px" }}>
+              <h4 style={{ margin: "0 0 12px", color: "#2F5496" }}>Suburbia (170 tiendas)</h4>
+              <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
+                <div><strong>Regla comercial:</strong> venta por <em>circuito de tienda</em> (todas las pantallas de la tienda se comercializan juntas). <strong>Video Wall</strong> y <strong>Cubo</strong> son los únicos formatos que se venden por separado.</div>
+                <div><strong>Estructura:</strong> 8 slots por espacio (1 slot = 1 cliente)</div>
+                <div><strong>Video Wall (stand-alone):</strong> {fmtFull(sbbPriceVW)}/slot · 8 slots · capacidad {fmtFull(sbbPriceVW * 8)}/mes</div>
+                <div><strong>Cubo (stand-alone):</strong> {fmtFull(sbbPriceCubo)}/slot · 8 slots · capacidad {fmtFull(sbbPriceCubo * 8)}/mes (12 tiendas)</div>
+                <div><strong>Circuito Pantallas 85":</strong> {fmtFull(sbbPriceP85)}/slot · 8 slots · capacidad {fmtFull(sbbPriceP85 * 8)}/mes</div>
+                <div><strong>Circuito Mural/Backlight:</strong> {fmtFull(sbbPriceMural)}/slot · 8 slots · capacidad {fmtFull(sbbPriceMural * 8)}/mes</div>
+                <div style={{ marginTop: "8px" }}><strong>Revenue Share:</strong> 35% variable (sin componente fijo)</div>
+                <div>Incremento anual de tarifas: +5%</div>
+                <div>Ingreso existente: $8M/año base</div>
+              </div>
+            </div>
+            <div style={{ padding: "16px", backgroundColor: "#fdf0f0", borderRadius: "8px" }}>
+              <h4 style={{ margin: "0 0 12px", color: "#8B1A1A" }}>Galerías Liverpool (26 centros · 77 pantallas · 13 exteriores)</h4>
+              <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
+                <div><strong>Estructura:</strong> 8 slots por pantalla (cada slot = 1 cliente)</div>
+                <div><strong>Tarifa Premium por slot:</strong> XXL $350K · XL $250K · Grande $180K · Mediana $120K · Pequeña $70K</div>
+                <div><strong>Multiplicador tier:</strong> Premium x1.25 · T1 x1.10 · T2 x1.00 · T3 x0.85 (sobre base)</div>
+                <div style={{ fontSize: "12px", color: "#666" }}>Tarifa efectiva por tier (slot): T1 ≈ $308K XXL · T2 ≈ $280K XXL · T3 ≈ $238K XXL, y así proporcionalmente para los demás tamaños.</div>
+                <div><strong>Uplift Exterior:</strong> +25% sobre tarifa efectiva (13 pantallas exteriores)</div>
+                <div><strong>Duración de spots:</strong> XXL/XL/Grande 20-30 seg · Mediana/Pequeña 15 seg</div>
+                <div style={{ marginTop: "8px" }}><strong>Revenue Share:</strong> 35% variable (sin componente fijo)</div>
+                <div>Incremento anual de tarifas: +5%</div>
+                <div style={{ fontSize: "11px", color: "#888", marginTop: "4px" }}>Ejemplo XXL Premium: $350K/slot × 8 slots = $2.8M/mes de capacidad (sin uplift exterior)</div>
+              </div>
+            </div>
+          </div>
+
+          <h3 style={{ color: "#1B3A5C", marginTop: "32px" }}>Estacionalidad (Factor Mensual)</h3>
+          <div style={{ display: "flex", gap: "8px", marginTop: "12px", flexWrap: "wrap" }}>
+            {MONTH_NAMES.map((m, i) => (
+              <div key={m} style={{ padding: "8px 12px", borderRadius: "6px", backgroundColor: SEASON[i] >= 1.1 ? "#c8e6c9" : SEASON[i] <= 0.80 ? "#ffcdd2" : "#f5f5f5", textAlign: "center", minWidth: "55px" }}>
+                <div style={{ fontSize: "12px", fontWeight: "bold" }}>{m}</div>
+                <div style={{ fontSize: "14px", color: "#1B3A5C" }}>{(SEASON[i] * 100).toFixed(0)}%</div>
+              </div>
+            ))}
+          </div>
+
+          <h3 style={{ color: "#5C1E7A", marginTop: "32px" }}>Comparativa de Precios — Mercado DOOH CC</h3>
+          <div style={{ fontSize: "13px", lineHeight: "1.8", marginTop: "12px" }}>
+            <div><strong>Fuentes comparables:</strong> Diafi · Proxymo · Global (tarifarios públicos y negociados en Centros Comerciales Tier Premium/1/2/3)</div>
+            <div style={{ marginTop: "8px" }}><strong>Rangos de mercado (tarifa/slot mensual):</strong></div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "10px", marginTop: "6px" }}>
+              <div style={{ padding: "10px", backgroundColor: "#F3EDF7", borderRadius: "6px", borderLeft: "3px solid #5C1E7A" }}>
+                <div style={{ fontWeight: "700", color: "#5C1E7A" }}>Diafi</div>
+                <div style={{ fontSize: "12px" }}>CC Premium CDMX: $140K-$280K · Tier 1: $110K-$210K · Tier 2-3: $75K-$150K</div>
+              </div>
+              <div style={{ padding: "10px", backgroundColor: "#F3EDF7", borderRadius: "6px", borderLeft: "3px solid #5C1E7A" }}>
+                <div style={{ fontWeight: "700", color: "#5C1E7A" }}>Proxymo</div>
+                <div style={{ fontSize: "12px" }}>CC Premium: $130K-$290K · Tier 1: $100K-$220K · Tier 2-3: $80K-$160K</div>
+              </div>
+              <div style={{ padding: "10px", backgroundColor: "#F3EDF7", borderRadius: "6px", borderLeft: "3px solid #5C1E7A" }}>
+                <div style={{ fontWeight: "700", color: "#5C1E7A" }}>Global</div>
+                <div style={{ fontSize: "12px" }}>CC Premium: $150K-$300K · Tier 1: $115K-$220K · Tier 2-3: $70K-$165K</div>
+              </div>
+            </div>
+            <div style={{ marginTop: "12px" }}><strong>Posición Connectia vs. mercado:</strong></div>
+            <div>Video Wall Suburbia ({fmtK(sbbPriceVW)}/slot · {fmtK(sbbPriceVW * 8)} capacidad): Tarifa de entrada vs rango premium de mercado (Diafi/Proxymo/Global $120K-$290K)</div>
+            <div>Cubo Suburbia ({fmtK(sbbPriceCubo)}/slot · {fmtK(sbbPriceCubo * 8)} capacidad): Formato diferenciado en 12 tiendas ancla</div>
+            <div>Pantallas 85" ({fmtK(sbbPriceP85)}/slot · {fmtK(sbbPriceP85 * 8)} circuito de tienda): Tarifa de entrada para circuito completo de tienda</div>
+            <div>Mural/Backlight ({fmtK(sbbPriceMural)}/slot · {fmtK(sbbPriceMural * 8)} circuito de tienda): Alineado con formatos estáticos regionales</div>
+            <div>Galerías Premium (XXL $350K/slot · XL $250K/slot): Techo de mercado, consistente con Diafi/Proxymo/Global en CC Premium CDMX</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+setTimeout(() => { const l = document.getElementById("loader"); if (l) l.classList.add("hide"); setTimeout(() => l.remove(), 400); }, 300);
+</script>
+</body>
+</html>
