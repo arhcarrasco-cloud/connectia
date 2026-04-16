@@ -3252,9 +3252,9 @@ function analyzeOverlay(overlay,type){
     var _cPedMonthly=Math.round(_cTotalTrips*_cFP.pedShare*_cFP.throughMult*30);
     var _cVehDaily=Math.round(_cVehMonthly/30);
     var _cPedDaily=Math.round(_cPedMonthly/30);
-    var _cOccupancy=1.6+(_cDens>5000?0.3:0);
-    var _cOTS=Math.max(1,Math.round((_cFP.tripsPerP*_cFP.vehShare*30)/Math.max(0.001,(_cVehMonthly>0?_cVehMonthly/(estPop*_cFP.tripsPerP*_cFP.vehShare*30)*_cFP.tripsPerP:0.05))));
-    _cOTS=Math.max(2,Math.min(12,Math.round(_cFP.tripsPerP*1.8)));
+    var _cOccupancy=1.44; // Ocupacion vehicular ZMVM (INEGI EOD 2017) — calibrado Dat's Why
+    var _cMotor=_calcMotorRate(_cDens);
+    var _cOTS=(_cFP.tripsPerP*_cFP.vehShare*30)/_cMotor;
     var _cImpVeh=_cVehMonthly;
     var _cUniVeh=Math.round(_cImpVeh/_cOTS);
     var _cImpPer=Math.round(_cImpVeh*_cOccupancy);
