@@ -7539,7 +7539,16 @@ function toggleGlobalFilterPanel(btnOrForce){
 
   var dd=document.createElement('div');
   dd.id='gflt-dropdown';
-  dd.style.cssText='position:fixed;top:'+(rect.bottom+4)+'px;left:'+Math.max(4,rect.left-80)+'px;width:380px;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(109,40,217,.18);border-radius:10px;box-shadow:0 8px 30px rgba(109,40,217,.15);z-index:10010;font-size:11px;overflow:hidden';
+  var ddLeft=Math.max(4,rect.left);
+  var ddW=340;
+  // Keep dropdown within viewport
+  if(ddLeft+ddW>window.innerWidth-8)ddLeft=window.innerWidth-ddW-8;
+  dd.style.cssText='position:fixed;top:'+(rect.bottom+2)+'px;left:'+ddLeft+'px;width:'+ddW+'px;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(109,40,217,.22);border-radius:0 10px 10px 10px;box-shadow:0 8px 30px rgba(109,40,217,.18);z-index:10010;font-size:11px;overflow:hidden';
+  // Visual connector tab to button
+  var tab=document.createElement('div');
+  tab.style.cssText='position:absolute;top:-6px;left:'+(rect.left-ddLeft+rect.width/2-6)+'px;width:12px;height:6px;overflow:hidden';
+  tab.innerHTML='<div style="width:12px;height:12px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);transform:rotate(45deg);margin-top:3px;border:1px solid rgba(109,40,217,.22);border-right:0;border-bottom:0"></div>';
+  dd.appendChild(tab);
 
   var h='';
   // Header
@@ -7607,10 +7616,10 @@ function toggleGlobalFilterPanel(btnOrForce){
   set('gflt-daytype',_reportFilters.dayType);
   set('gflt-timeofday',_reportFilters.timeOfDay);
 
-  // Install chip UI for NSE and Age
+  // Install chip UI for NSE and Age (always — even without data, chips show but without %)
   try{
-    if(typeof _installChipUI==='function')_installChipUI();
-    if(typeof _renderFilterChips==='function')_renderFilterChips();
+    if(typeof window._installChipUI==='function')window._installChipUI();
+    if(typeof window._renderFilterChips==='function')window._renderFilterChips();
     if(currentData&&typeof _populateReportFilterOptions==='function')_populateReportFilterOptions();
   }catch(e){console.error('filter dropdown init',e);}
 
@@ -17276,6 +17285,7 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
     });
   }
   window._renderFilterChips=_renderChipsAll;
+  window._installChipUI=_installChipUI;
 
   function _installChipUI(){
     [['gflt-nse','gflt-nse-chips'],['gflt-age','gflt-age-chips'],['flt-nse','flt-nse-chips'],['flt-age','flt-age-chips']].forEach(function(pair){
