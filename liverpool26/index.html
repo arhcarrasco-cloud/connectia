@@ -552,7 +552,7 @@ function App() {
 
         <div style={S.kpiGrid}>
           <KPI label="Ingreso Total Gross (5Y)" value={fmt(total5Y)} color="#5C1E7A" sub={`Occ: ${occLabel}`} />
-          <KPI label="Suburbia Gross (5Y)" value={fmt(sub5Y)} color="#E3006D" sub="170 tiendas" />
+          <KPI label="Suburbia Gross (5Y)" value={fmt(sub5Y)} color="#E3006D" sub="175 tiendas" />
           <KPI label="Galerías Network (5Y)" value={fmt(gal5Y)} color="#B85C7A" sub="26 centros" />
           <KPI label="Pago a Liverpool (5Y)" value={fmt(livPay5Y)} color="#9B4AA5" sub={`${fmtPct(livPay5Y / total5Y)} del total`} />
           <KPI label="Ingreso Mensual Prom." value={fmtK(total5Y / 60)} color="#7B3D9E" sub="promedio 60 meses" />
@@ -678,7 +678,7 @@ function App() {
 
     return (
       <div style={S.container}>
-        <div style={S.header}><div style={S.title}>Tarifario Suburbia · 170 tiendas</div><BrandHeader variant="suburbia" /></div>
+        <div style={S.header}><div style={S.title}>Tarifario Suburbia · 175 tiendas</div><BrandHeader variant="suburbia" /></div>
         <div style={S.subtitle}>Venta por <strong>circuito de tienda</strong> (todas las pantallas de la tienda se comercializan juntas en 8 slots · 1 slot = 1 cliente) · <strong>Video Wall y Cubo se venden por separado</strong> · Click en fila para ver detalle</div>
         <TabBar view={view} setView={setView} style={S} />
         <TariffPanel sbbPriceVW={sbbPriceVW} setSbbPriceVW={setSbbPriceVW} sbbPriceP85={sbbPriceP85} setSbbPriceP85={setSbbPriceP85} sbbPriceMural={sbbPriceMural} setSbbPriceMural={setSbbPriceMural} sbbPriceCubo={sbbPriceCubo} setSbbPriceCubo={setSbbPriceCubo} sbbRevShare={sbbRevShare} setSbbRevShare={setSbbRevShare} galRevShare={galRevShare} setGalRevShare={setGalRevShare} galMultPremium={galMultPremium} setGalMultPremium={setGalMultPremium} galMultT1={galMultT1} setGalMultT1={setGalMultT1} galMultT2={galMultT2} setGalMultT2={setGalMultT2} galMultT3={galMultT3} setGalMultT3={setGalMultT3} />
@@ -1327,7 +1327,7 @@ function App() {
           <h3 style={{ color: "#1B3A5C", marginTop: "32px" }}>Parámetros del Modelo</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginTop: "16px" }}>
             <div style={{ padding: "16px", backgroundColor: "#f0f4f8", borderRadius: "8px" }}>
-              <h4 style={{ margin: "0 0 12px", color: "#2F5496" }}>Suburbia (170 tiendas)</h4>
+              <h4 style={{ margin: "0 0 12px", color: "#2F5496" }}>Suburbia (175 tiendas)</h4>
               <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
                 <div><strong>Regla comercial:</strong> venta por <em>circuito de tienda</em> (todas las pantallas de la tienda se comercializan juntas). <strong>Video Wall</strong> y <strong>Cubo</strong> son los únicos formatos que se venden por separado.</div>
                 <div><strong>Estructura:</strong> 8 slots por espacio (1 slot = 1 cliente)</div>
