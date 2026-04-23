@@ -2631,9 +2631,104 @@ function _msStoreImportFields(sel,row){
       }catch(e){}
     }
   }
+  // NEW: Apply group-by-column color override (after formato match)
+  if(window._msGroupByCol&&row){
+    var gv=row[window._msGroupByCol];
+    if(gv==null||gv===''){/* skip empty */}
+    else{
+      var gk=String(gv).trim();
+      if(!window._msGroupByMap[gk]){
+        var gi=window._msGroupByOrder.length;
+        var palette=(typeof SELECTION_COLORS!=='undefined'?SELECTION_COLORS:['#2563eb','#16a34a','#d97706','#dc2626','#0891b2','#be185d','#4d7c0f','#7c3aed','#0d9488','#1d1d1f']);
+        window._msGroupByMap[gk]={color:palette[gi%palette.length],idx:gi};
+        window._msGroupByOrder.push(gk);
+      }
+      var gInfo=window._msGroupByMap[gk];
+      sel.color=gInfo.color;d._groupByValue=gk;d._groupByCol=window._msGroupByCol;
+      try{
+        if(sel.overlay&&sel.overlay.setIcon){
+          sel.overlay.setIcon({path:'M 0,-29 C -7.7,-29 -14,-22.7 -14,-15 C -14,-5.3 0,4 0,4 C 0,4 14,-5.3 14,-15 C 14,-22.7 7.7,-29 0,-29 Z',scale:1.1,fillColor:gInfo.color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2,anchor:new google.maps.Point(0,-15),labelOrigin:new google.maps.Point(0,-15)});
+        }
+      }catch(eGb){}
+    }
+  }
+}
+function _msShowGroupByDialog(rows,cb){
+  // Detect candidate columns (exclude pure-numeric lat/lng)
+  if(!rows||rows.length===0){cb(null);return;}
+  var sample=rows[0];
+  var allKeys=Object.keys(sample);
+  var coordKeys={};
+  allKeys.forEach(function(k){
+    var kl=k.toLowerCase().trim();
+    if(kl==='lat'||kl==='latitude'||kl==='latitud'||kl==='y'||kl==='lng'||kl==='lon'||kl==='long'||kl==='longitude'||kl==='longitud'||kl==='x')coordKeys[k]=1;
+  });
+  var candidateKeys=allKeys.filter(function(k){
+    if(coordKeys[k])return false;
+    // Skip keys where every row is numeric AND looks like a coordinate range
+    var allNum=true,numLike=0,total=0;
+    for(var i=0;i<Math.min(rows.length,20);i++){var v=rows[i][k];if(v===''||v==null)continue;total++;if(!isNaN(parseFloat(v)))numLike++;else allNum=false;}
+    return true; // accept all non-coord columns
+  });
+  if(candidateKeys.length===0){cb(null);return;}
+  // Compute unique-value previews per column
+  var previews={};
+  candidateKeys.forEach(function(k){
+    var uniq={};rows.forEach(function(r){var v=String(r[k]||'').trim();if(v)uniq[v]=(uniq[v]||0)+1;});
+    previews[k]={count:Object.keys(uniq).length,sample:Object.keys(uniq).slice(0,3)};
+  });
+  var existing=document.getElementById('ms-groupby-dialog');if(existing)existing.remove();
+  var dlg=document.createElement('div');dlg.id='ms-groupby-dialog';
+  dlg.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1001;display:flex;align-items:center;justify-content:center';
+  var h='<div style="background:#fff;border-radius:16px;width:440px;max-width:92vw;max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)">';
+  h+='<div style="padding:14px 18px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+  h+='<span style="font-weight:700;font-size:14px">Agrupar pines al importar</span>';
+  h+='<button id="ms-gb-close" style="border:none;background:rgba(255,255,255,.2);color:#fff;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:14px">×</button>';
+  h+='</div>';
+  h+='<div style="font-size:11px;opacity:.85;margin-top:3px">Elige una columna para asignar color distinto por grupo (opcional)</div>';
+  h+='</div>';
+  h+='<div style="padding:14px 18px;max-height:55vh;overflow:auto">';
+  h+='<label style="display:flex;align-items:center;gap:10px;padding:9px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;margin-bottom:6px;background:#f8fafc"><input type="radio" name="ms-gb" value="" checked><span style="font-size:12px;color:#334155;font-weight:600">No agrupar</span><span style="font-size:10px;color:#94a3b8;margin-left:auto">colores secuenciales</span></label>';
+  candidateKeys.forEach(function(k){
+    var info=previews[k];
+    h+='<label style="display:flex;align-items:center;gap:10px;padding:9px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;margin-bottom:6px">';
+    h+='<input type="radio" name="ms-gb" value="'+k.replace(/"/g,'&quot;')+'">';
+    h+='<div style="flex:1;min-width:0">';
+    h+='<div style="font-size:12px;color:#1d1d1f;font-weight:600">'+k+'</div>';
+    h+='<div style="font-size:10px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+info.count+' grupos · '+info.sample.join(', ')+(info.count>3?'...':'')+'</div>';
+    h+='</div></label>';
+  });
+  h+='</div>';
+  h+='<div style="padding:12px 18px;border-top:1px solid #f1f5f9;display:flex;gap:8px;justify-content:flex-end">';
+  h+='<button id="ms-gb-cancel" style="padding:8px 14px;border:1px solid #e2e8f0;background:#fff;color:#64748b;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">Cancelar</button>';
+  h+='<button id="ms-gb-ok" style="padding:8px 18px;background:#6D28D9;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">Importar</button>';
+  h+='</div></div>';
+  dlg.innerHTML=h;document.body.appendChild(dlg);
+  function close(){dlg.remove();}
+  document.getElementById('ms-gb-close').onclick=function(){close();cb(null);};
+  document.getElementById('ms-gb-cancel').onclick=function(){close();cb(null);};
+  document.getElementById('ms-gb-ok').onclick=function(){
+    var sel=dlg.querySelector('input[name="ms-gb"]:checked');
+    var val=sel?sel.value:'';close();cb(val||null);
+  };
+  dlg.onclick=function(e){if(e.target===dlg){close();cb(null);}};
 }
 function _msProcessImportRows(rows){
   if(!rows||rows.length===0){setStatus('No se encontraron datos');return;}
+  // NEW: show group-by dialog once (on first entry), then re-enter with _msGroupByCol set
+  if(!window.__msGbAsked&&rows.length>1){
+    window.__msGbAsked=true;
+    _msShowGroupByDialog(rows,function(col){
+      window._msGroupByCol=col||null;
+      window._msGroupByMap={};
+      window._msGroupByOrder=[];
+      window.__msGbStartIdx=(typeof multiSelections!=='undefined')?multiSelections.length:0;
+      _msProcessImportRows(rows);
+      window.__msGbAsked=false;
+    });
+    return;
+  }
   // Find lat/lng columns (flexible naming)
   var latKey=null,lngKey=null,nameKey=null;
   var sample=rows[0];
@@ -2691,6 +2786,26 @@ function _msProcessImportRows(rows){
           setStatus('Geocodificando: '+done+'/'+total+' ('+success+' exitosos)');
           if(done>=total){
             if(success>0){map.fitBounds(bounds);if(success===1)map.setZoom(15);}
+            // NEW: groupby pinGroups build for geocoded pins
+            if(window._msGroupByCol&&window._msGroupByOrder&&window._msGroupByOrder.length>1){
+              try{
+                var startIdxG=(typeof window.__msGbStartIdx==='number')?window.__msGbStartIdx:0;
+                var gB={};
+                for(var giG=startIdxG;giG<multiSelections.length;giG++){
+                  var ssG=multiSelections[giG];if(!ssG||!ssG.data)continue;
+                  var gvG=ssG.data._groupByValue;if(gvG==null||gvG==='')continue;
+                  if(!gB[gvG])gB[gvG]=[];gB[gvG].push(giG);
+                }
+                window._msGroupByOrder.forEach(function(gk){
+                  var idxs=gB[gk]||[];if(idxs.length===0)return;
+                  if(typeof _pgGroupCounter!=='undefined')_pgGroupCounter++;
+                  var gid=(typeof _pgGroupCounter!=='undefined'?_pgGroupCounter:Date.now()+Math.random());
+                  var info=window._msGroupByMap[gk]||{};
+                  pinGroups.push({id:gid,title:window._msGroupByCol+': '+gk,items:idxs.map(function(i){return{selIdx:i,visible:true};}),collapsed:false,visible:true,color:info.color||null});
+                });
+              }catch(eGbG){console.warn('groupby geo build',eGbG);}
+            }
+            window._msGroupByCol=null;window._msGroupByMap={};window._msGroupByOrder=[];window.__msGbStartIdx=undefined;
             showMultiSelectPanel();
             setStatus(success+' ubicaciones geocodificadas de '+total+' registros.');
           }
@@ -2725,10 +2840,35 @@ function _msProcessImportRows(rows){
   if(count>0){
     map.fitBounds(bounds);
     if(count===1)map.setZoom(15);
+    // NEW: Auto-build pinGroups from group-by-column context
+    if(window._msGroupByCol&&window._msGroupByOrder&&window._msGroupByOrder.length>1){
+      try{
+        var startIdx=(typeof window.__msGbStartIdx==='number')?window.__msGbStartIdx:0;
+        var grpBuckets={};
+        for(var gi=startIdx;gi<multiSelections.length;gi++){
+          var ss=multiSelections[gi];if(!ss||!ss.data)continue;
+          var gv=ss.data._groupByValue;if(gv==null||gv==='')continue;
+          if(!grpBuckets[gv])grpBuckets[gv]=[];
+          grpBuckets[gv].push(gi);
+        }
+        window._msGroupByOrder.forEach(function(gk){
+          var idxs=grpBuckets[gk]||[];if(idxs.length===0)return;
+          if(typeof _pgGroupCounter!=='undefined')_pgGroupCounter++;
+          var gid=(typeof _pgGroupCounter!=='undefined'?_pgGroupCounter:Date.now()+Math.random());
+          var info=window._msGroupByMap[gk]||{};
+          pinGroups.push({id:gid,title:window._msGroupByCol+': '+gk,items:idxs.map(function(i){return{selIdx:i,visible:true};}),collapsed:false,visible:true,color:info.color||null});
+        });
+        setStatus(count+' pines importados en '+window._msGroupByOrder.length+' grupos por "'+window._msGroupByCol+'"');
+      }catch(eGb2){console.warn('groupby build',eGb2);setStatus(count+' pines importados al mapa.');}
+    }else{
+      setStatus(count+' pines importados al mapa.');
+    }
+    // Clear group-by context
+    window._msGroupByCol=null;window._msGroupByMap={};window._msGroupByOrder=[];window.__msGbStartIdx=undefined;
     showMultiSelectPanel();
-    setStatus(count+' pines importados al mapa.');
   }else{
     setStatus('No se encontraron coordenadas válidas en el archivo.');
+    window._msGroupByCol=null;window._msGroupByMap={};window._msGroupByOrder=[];
   }
 }
 function _msAddImportedPin(lat,lng,name){
@@ -12080,6 +12220,42 @@ function captureMapState(){
       };
     });
   }
+  // Capture pins (multiSelections) — added 2026-04-22 for share-with-pins
+  try{
+    if(typeof multiSelections!=='undefined'&&multiSelections.length>0){
+      state.pins=[];
+      multiSelections.forEach(function(s){
+        if(!s||!s.overlay)return;
+        var p={c:s.color||'#1d1d1f'};
+        if(s._icon)p.ic=s._icon;
+        if(s._customImg)p.im=s._customImg;
+        var ov=s.overlay;
+        if(ov.getPosition&&ov.getPosition()){var pos=ov.getPosition();p.t='m';p.lat=+pos.lat().toFixed(6);p.lng=+pos.lng().toFixed(6);p.ti=ov.getTitle?(ov.getTitle()||''):'';}
+        else if(ov.getRadius&&ov.getCenter){var cc=ov.getCenter();if(cc){p.t='c';p.lat=+cc.lat().toFixed(6);p.lng=+cc.lng().toFixed(6);p.r=ov.getRadius();}}
+        else if(ov.getBounds&&!ov.getPath){var b=ov.getBounds();if(b){var ne=b.getNorthEast(),sw=b.getSouthWest();p.t='r';p.ne={lat:+ne.lat().toFixed(6),lng:+ne.lng().toFixed(6)};p.sw={lat:+sw.lat().toFixed(6),lng:+sw.lng().toFixed(6)};}}
+        else if(ov.getPath){var path=ov.getPath();if(path){p.t='p';p.pts=[];path.forEach(function(ll){p.pts.push({lat:+ll.lat().toFixed(6),lng:+ll.lng().toFixed(6)});});}}
+        if(s.data){
+          var d=s.data;
+          if(d._proveedor)p.pv=d._proveedor;
+          if(d._tipo)p.tp=d._tipo;
+          if(d._formato)p.ft=d._formato;
+          if(d._direccion)p.ad=d._direccion;
+          if(d._idSitio)p.sid=d._idSitio;
+          if(d._extraFields)p.ef=d._extraFields;
+          if(d._oohType)p.ooh=d._oohType;
+        }
+        state.pins.push(p);
+      });
+    }
+  }catch(ePins){console.warn('share pin capture',ePins);}
+  // Capture groups
+  try{
+    if(typeof pinGroups!=='undefined'&&pinGroups.length>0){
+      state.grps=pinGroups.map(function(g){
+        return {id:g.id,t:g.title||'',c:g.color||null,v:g.visible!==false,col:g.collapsed===true,it:(g.items||[]).map(function(it){return it.selIdx;})};
+      });
+    }
+  }catch(eGrps){console.warn('share group capture',eGrps);}
   return state;
 }
 
@@ -12318,6 +12494,65 @@ function loadSharedState(){
     },2000);
   }
 
+  // Restore pins from shared state — added 2026-04-22
+  if(state.pins&&state.pins.length>0){
+    setTimeout(function(){
+      try{
+        if(typeof multiSelectMode!=='undefined')multiSelectMode=true;
+        if(typeof multiMarkerMode!=='undefined')multiMarkerMode=true;
+        var bounds=new google.maps.LatLngBounds();
+        var idxMap={};
+        state.pins.forEach(function(p,i){
+          var ov=null;var selColor=p.c||'#1d1d1f';
+          if(p.t==='m'&&p.lat!=null&&p.lng!=null){
+            var pos=new google.maps.LatLng(p.lat,p.lng);
+            ov=new google.maps.Marker({position:pos,map:map,title:p.ti||('Pin '+(i+1)),label:{text:String(multiSelections.length+1),color:'#fff',fontSize:'10px',fontWeight:'bold'},icon:{path:'M 0,-29 C -7.7,-29 -14,-22.7 -14,-15 C -14,-5.3 0,4 0,4 C 0,4 14,-5.3 14,-15 C 14,-22.7 7.7,-29 0,-29 Z',scale:1.1,fillColor:selColor,fillOpacity:1,strokeColor:'#fff',strokeWeight:2,anchor:new google.maps.Point(0,-15),labelOrigin:new google.maps.Point(0,-15)}});
+            bounds.extend(pos);
+          }else if(p.t==='c'&&p.lat!=null&&p.lng!=null){
+            ov=new google.maps.Circle({center:{lat:p.lat,lng:p.lng},radius:p.r||500,map:map,fillColor:selColor,fillOpacity:.15,strokeColor:selColor,strokeWeight:2,strokeOpacity:.8,editable:false,clickable:true,zIndex:100});
+            bounds.extend(new google.maps.LatLng(p.lat,p.lng));
+          }else if(p.t==='r'&&p.ne&&p.sw){
+            var rb=new google.maps.LatLngBounds(new google.maps.LatLng(p.sw.lat,p.sw.lng),new google.maps.LatLng(p.ne.lat,p.ne.lng));
+            ov=new google.maps.Rectangle({bounds:rb,map:map,fillColor:selColor,fillOpacity:.15,strokeColor:selColor,strokeWeight:2,strokeOpacity:.8,editable:false,zIndex:100});
+            bounds.union(rb);
+          }else if(p.t==='p'&&p.pts&&p.pts.length>0){
+            var paths=p.pts.map(function(pt){return{lat:pt.lat,lng:pt.lng}});
+            ov=new google.maps.Polygon({paths:paths,map:map,fillColor:selColor,fillOpacity:.15,strokeColor:selColor,strokeWeight:2,strokeOpacity:.8,editable:false,zIndex:100});
+            paths.forEach(function(pt){bounds.extend(new google.maps.LatLng(pt.lat,pt.lng));});
+          }
+          if(!ov)return;
+          var sel={overlay:ov,type:p.t==='m'?google.maps.drawing.OverlayType.MARKER:(p.t==='c'?google.maps.drawing.OverlayType.CIRCLE:(p.t==='r'?google.maps.drawing.OverlayType.RECTANGLE:google.maps.drawing.OverlayType.POLYGON)),data:{},color:selColor};
+          if(p.ic)sel._icon=p.ic;
+          if(p.im)sel._customImg=p.im;
+          if(p.pv)sel.data._proveedor=p.pv;
+          if(p.tp)sel.data._tipo=p.tp;
+          if(p.ft)sel.data._formato=p.ft;
+          if(p.ad)sel.data._direccion=p.ad;
+          if(p.sid)sel.data._idSitio=p.sid;
+          if(p.ef)sel.data._extraFields=p.ef;
+          if(p.ooh)sel.data._oohType=p.ooh;
+          multiSelections.push(sel);
+          var newIdx=multiSelections.length-1;
+          idxMap[i]=newIdx;
+          try{analyzeMultiSelection(newIdx);}catch(ea){}
+        });
+        // Restore groups using the index remap
+        if(state.grps&&state.grps.length>0&&typeof pinGroups!=='undefined'){
+          state.grps.forEach(function(g){
+            var items=(g.it||[]).map(function(oldIdx){var ni=idxMap[oldIdx];return ni!=null?{selIdx:ni,visible:true}:null;}).filter(function(x){return x;});
+            if(items.length===0)return;
+            pinGroups.push({id:g.id||Date.now()+Math.random(),title:g.t||'Grupo',items:items,collapsed:g.col===true,visible:g.v!==false,color:g.c||null});
+            if(typeof _pgGroupCounter!=='undefined')_pgGroupCounter=Math.max(_pgGroupCounter,pinGroups.length);
+          });
+        }
+        if(state.pins.length>0){
+          try{map.fitBounds(bounds);if(state.pins.length===1)map.setZoom(15);}catch(eF){}
+          try{if(typeof showMultiSelectPanel==='function')showMultiSelectPanel();}catch(eP){}
+        }
+        setStatus('Se cargaron '+state.pins.length+' pin(es) compartido(s)'+(state.grps&&state.grps.length?' en '+state.grps.length+' grupo(s)':''));
+      }catch(eAll){console.warn('restore pins',eAll);}
+    },2400);
+  }
   // Set view-only mode if shared for view
   if(state.mode==='view'){
     setTimeout(function(){
