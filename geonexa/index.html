@@ -219,8 +219,8 @@ select:focus{border-color:#0071e3}
     <input type="text" id="geo-selector-input" placeholder="Buscador de areas" autocomplete="off">
     <div id="geo-suggestions"></div>
   </div>
-  <div id="ai-search-box">
-    <input type="text" id="ai-search-input" placeholder="ConnectIA Search" autocomplete="off">
+  <div id="ai-search-box" title="ConnectIA · Buscador inteligente Powered by Claude AI. Pregunta lo que quieras en lenguaje natural.">
+    <input type="text" id="ai-search-input" placeholder="✨ ConnectIA · pregunta lo que quieras (rutas, marcas, zonas NSE…)" autocomplete="off">
   </div>
   <div id="coords">lat: --, lng: --</div>
   <div id="map-brightness-ctrl" style="display:flex;align-items:center;gap:4px;margin-left:8px;white-space:nowrap" title="Brillo del mapa base">
@@ -4238,7 +4238,12 @@ function setupUI(){
   var aiIn=document.getElementById('ai-search-input');
   if(aiIn){
     aiIn.addEventListener('keypress',function(e){
-      if(e.key==='Enter'&&aiIn.value.trim()){aiMapSearch(aiIn.value.trim());aiIn.value='';}
+      if(e.key==='Enter'&&aiIn.value.trim()){
+        // Use smart search (Claude AI) with auto-fallback to legacy aiMapSearch
+        if(typeof connectiaSmartSearch==='function')connectiaSmartSearch(aiIn.value.trim());
+        else aiMapSearch(aiIn.value.trim());
+        aiIn.value='';
+      }
     });
   }
 
@@ -11234,6 +11239,707 @@ function showAIRoutesReport(query,detected,routeResults,searchKeyword){
   setStatus('IA Rutas: '+routeResults.length+' ruta(s) generadas cerca de "'+searchKeyword+'" · Poblacion total: '+fmt(totalPopAll));
 }
 
+// ==========================================================================
+// ============ CONNECTIA SMART SEARCH — POWERED BY CLAUDE AI ===============
+// ==========================================================================
+// Buscador libre en lenguaje natural. Primero consulta a Claude via API,
+// si falla usa parser local inteligente y si tampoco detecta, delega al
+// motor clasico aiMapSearch. No modifica funciones existentes.
+// ==========================================================================
+var CS_API_URL='https://connectia-api-production.up.railway.app/api/claude';
+var csLastIntent=null;
+var CS_STATES={
+  guanajuato:{s:19.55,n:21.85,w:-102.10,e:-99.65,name:'Guanajuato'},
+  yucatan:{s:19.50,n:21.60,w:-90.40,e:-87.55,name:'Yucatan'},
+  jalisco:{s:18.90,n:22.75,w:-105.70,e:-101.50,name:'Jalisco'},
+  'nuevo leon':{s:23.20,n:27.80,w:-101.20,e:-98.40,name:'Nuevo Leon'},
+  sonora:{s:26.30,n:32.50,w:-115.10,e:-108.40,name:'Sonora'},
+  chihuahua:{s:25.60,n:31.80,w:-109.10,e:-103.30,name:'Chihuahua'},
+  veracruz:{s:17.10,n:22.50,w:-98.70,e:-93.60,name:'Veracruz'},
+  puebla:{s:17.90,n:20.80,w:-99.10,e:-96.70,name:'Puebla'},
+  'quintana roo':{s:18.20,n:21.60,w:-89.30,e:-86.70,name:'Quintana Roo'},
+  tamaulipas:{s:22.20,n:27.70,w:-100.10,e:-97.10,name:'Tamaulipas'},
+  coahuila:{s:24.50,n:29.90,w:-103.90,e:-99.80,name:'Coahuila'},
+  durango:{s:22.30,n:26.80,w:-107.20,e:-102.50,name:'Durango'},
+  zacatecas:{s:21.00,n:25.10,w:-104.30,e:-100.70,name:'Zacatecas'},
+  sinaloa:{s:22.50,n:27.05,w:-109.50,e:-105.40,name:'Sinaloa'},
+  oaxaca:{s:15.65,n:18.65,w:-98.55,e:-93.85,name:'Oaxaca'},
+  michoacan:{s:17.90,n:20.40,w:-103.75,e:-100.05,name:'Michoacan'},
+  guerrero:{s:16.30,n:18.95,w:-102.20,e:-98.00,name:'Guerrero'},
+  morelos:{s:18.30,n:19.15,w:-99.52,e:-98.55,name:'Morelos'},
+  hidalgo:{s:19.65,n:21.40,w:-99.90,e:-97.95,name:'Hidalgo'},
+  tlaxcala:{s:19.05,n:19.75,w:-98.72,e:-97.60,name:'Tlaxcala'},
+  queretaro:{s:20.02,n:21.70,w:-100.60,e:-99.03,name:'Queretaro'},
+  'san luis potosi':{s:21.15,n:24.50,w:-102.30,e:-98.35,name:'San Luis Potosi'},
+  aguascalientes:{s:21.60,n:22.45,w:-102.90,e:-101.85,name:'Aguascalientes'},
+  colima:{s:18.70,n:19.55,w:-104.70,e:-103.50,name:'Colima'},
+  nayarit:{s:20.60,n:23.10,w:-105.77,e:-103.70,name:'Nayarit'},
+  tabasco:{s:17.20,n:18.70,w:-94.20,e:-91.00,name:'Tabasco'},
+  chiapas:{s:14.50,n:17.98,w:-94.15,e:-90.36,name:'Chiapas'},
+  campeche:{s:17.80,n:20.90,w:-92.50,e:-89.10,name:'Campeche'},
+  'baja california':{s:27.95,n:32.72,w:-117.13,e:-112.75,name:'Baja California'},
+  'baja california sur':{s:22.85,n:28.00,w:-115.20,e:-109.40,name:'Baja California Sur'}
+};
+
+function connectiaSmartSearch(query){
+  if(!query||!query.trim())return;
+  var q=query.trim();
+  _csShowLoader('Analizando con Claude AI…');
+  _csCallClaude(q,function(intent){
+    if(intent&&intent.intent&&intent.intent!=='default'){
+      _csHideLoader();
+      _csExecute(intent,q);
+      return;
+    }
+    // Fallback: local smart parser
+    var localIntent=_csParseLocal(q);
+    if(localIntent&&localIntent.intent&&localIntent.intent!=='default'){
+      _csHideLoader();
+      _csExecute(localIntent,q);
+      return;
+    }
+    // Final fallback: legacy engine
+    _csHideLoader();
+    aiMapSearch(q);
+  });
+}
+
+function _csShowLoader(msg){
+  var el=document.getElementById('cs-loader');
+  if(!el){
+    el=document.createElement('div');
+    el.id='cs-loader';
+    el.style.cssText='position:fixed;top:56px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;padding:7px 16px;border-radius:16px;font-size:11px;z-index:9999;box-shadow:0 4px 16px rgba(109,40,217,.35);font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;align-items:center;gap:8px;font-weight:500;letter-spacing:-.1px';
+    el.innerHTML='<div class="cs-spinner" style="width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:csSpin 0.7s linear infinite"></div><span id="cs-loader-msg"></span>';
+    if(!document.getElementById('cs-spin-style')){
+      var style=document.createElement('style');
+      style.id='cs-spin-style';
+      style.textContent='@keyframes csSpin{to{transform:rotate(360deg)}}';
+      document.head.appendChild(style);
+    }
+    document.body.appendChild(el);
+  }
+  document.getElementById('cs-loader-msg').textContent=msg||'Procesando…';
+  el.style.display='flex';
+}
+
+function _csHideLoader(){
+  var el=document.getElementById('cs-loader');
+  if(el)el.style.display='none';
+}
+
+function _csCallClaude(query,cb){
+  var settled=false;
+  var timer=setTimeout(function(){if(!settled){settled=true;cb(null);}},12000);
+  try{
+    fetch(CS_API_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:query,context:'connectia_map_v2'})
+    })
+    .then(function(r){return r.json().catch(function(){return null})})
+    .then(function(d){
+      if(settled)return;
+      settled=true;clearTimeout(timer);
+      if(!d){cb(null);return;}
+      var intent=null;
+      if(d.intent)intent=d;
+      else if(d.commands&&d.commands.length>0){
+        for(var i=0;i<d.commands.length;i++){
+          var c=d.commands[i];
+          if(c.intent){intent=c;break;}
+          var mapped=_csCommandToIntent(c);
+          if(mapped){intent=mapped;break;}
+        }
+      }
+      if(!intent&&d.response){
+        var m=String(d.response).match(/\{[\s\S]*?"intent"[\s\S]*?\}/);
+        if(m){try{intent=JSON.parse(m[0])}catch(e){}}
+      }
+      cb(intent);
+    })
+    .catch(function(){if(!settled){settled=true;clearTimeout(timer);cb(null);}});
+  }catch(e){
+    if(!settled){settled=true;clearTimeout(timer);cb(null);}
+  }
+}
+
+function _csCommandToIntent(c){
+  if(!c)return null;
+  var act=(c.action||c.type||'').toLowerCase();
+  if(act==='route'||act==='circular_route'||act==='vallas')return {intent:'ruta_ancla',params:c.params||c};
+  if(act==='mark_nse'||act==='nse_zones'||act==='select_nse')return {intent:'zonas_nse_all',params:c.params||c};
+  if(act==='cross_brand'||act==='search_near'||act==='proximity')return {intent:'cruz_marcas',params:c.params||c};
+  return null;
+}
+
+// ============ LOCAL SMART PARSER (fallback) ============
+function _csParseLocal(query){
+  var raw=query;
+  var q=query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+  // --- Intent: Cross-brand (Brand A near Brand B) ---
+  if(/cerca\s+de\s+/.test(q)){
+    var parts=q.split(/cerca\s+de\s+/);
+    var before=parts[0]||'';
+    var after=parts.slice(1).join(' cerca de ')||'';
+    var brandA=_csFindBrandInText(before);
+    var brandB=_csFindBrandInText(after);
+    if(brandA&&brandB&&brandA.toLowerCase()!==brandB.toLowerCase()){
+      var lugar=_csExtractLugar(q);
+      var radioM=500;
+      var radMatch=q.match(/(\d+(?:\.\d+)?)\s*(mts|metros|km|kilometros|m\b)/);
+      if(radMatch){
+        var v=parseFloat(radMatch[1]);
+        radioM=/km|kilometros/.test(radMatch[2])?v*1000:v;
+      }
+      return {intent:'cruz_marcas',params:{marcaA:brandA,marcaB:brandB,radio_m:radioM,lugar:lugar}};
+    }
+  }
+
+  // --- Intent: Mark all NSE zones ---
+  var nseAllTriggers=/(todas?\s+las?\s+zonas?|todas?\s+las?\s+areas?|marca[r]?\s+todas?|identifica[r]?\s+todas?|ubica[r]?\s+todas?|selecciona[r]?\s+todas?)/i;
+  var nseNoCross=!/cerca\s+de/.test(q);
+  var nseNoRoute=!/(ruta|recorrido|trazo|vallas|publicit)/.test(q);
+  if(nseAllTriggers.test(raw)&&nseNoCross&&nseNoRoute){
+    var nm=raw.match(/\b(ab\+?|c\+|c|d\+|d|e)\b/i);
+    if(nm){
+      var nseRaw=nm[1].toUpperCase();
+      var nseList=[nseRaw];
+      // If multiple NSE codes appear ("AB C+ C"), grab them all
+      var multi=raw.match(/\b(ab\+?|c\+|c|d\+|d|e)\b/gi);
+      if(multi&&multi.length>1){
+        nseList=[];var seen={};
+        multi.forEach(function(x){var u=x.toUpperCase();if(!seen[u]){nseList.push(u);seen[u]=1;}});
+      }
+      var lugar2=_csExtractLugar(q);
+      return {intent:'zonas_nse_all',params:{nse:nseList,lugar:lugar2}};
+    }
+  }
+
+  // --- Intent: Anchor route (vallas / OOH / apertura) ---
+  var isVallas=/vallas?\s+movil|vallas?\s+publicit|\booh\b|publicidad\s+exterior|ruta\s+(?:de\s+)?vallas|ruta\s+publicit|recorrido\s+de\s+vallas/.test(q);
+  var isApertura=/apertura\s+de/.test(q)&&/(ruta|recorrido|trazo|considera|contempla|rango)/.test(q);
+  if(isVallas||isApertura){
+    var marca=_csExtractAperturaTarget(raw)||_csFindBrandInText(raw)||'tienda';
+    var ciudad=_csExtractLugar(q);
+    var radKm=2;
+    var rm=q.match(/(\d+(?:\.\d+)?)\s*(km|kilometros)/);
+    if(rm)radKm=parseFloat(rm[1]);
+    else{
+      var rango=q.match(/rango\s+(?:de\s+)?(\d+(?:\.\d+)?)/);
+      if(rango)radKm=parseFloat(rango[1]);
+    }
+    var nseListR=[];
+    if(/\bab\+?\b/i.test(raw))nseListR.push('AB');
+    if(/\bc\+/i.test(raw))nseListR.push('C+');
+    if(/(^|[^+])\bc\b(?!\+)/i.test(raw)&&nseListR.indexOf('C')<0)nseListR.push('C');
+    if(/\bd\+/i.test(raw))nseListR.push('D+');
+    if(/(^|[^+])\bd\b(?!\+)/i.test(raw)&&nseListR.indexOf('D')<0)nseListR.push('D');
+    if(nseListR.length===0&&/(nivel\s+alto|premium|lujo)/.test(q))nseListR=['AB','C+'];
+    var modo=/caminando|walking|peaton|peatonal/.test(q)?'WALKING':'DRIVING';
+    return {intent:'ruta_ancla',params:{marca:marca,lugar:ciudad,radio_km:radKm,nse:nseListR,modo:modo}};
+  }
+
+  return null;
+}
+
+function _csFindBrandInText(text){
+  if(!text)return null;
+  var lower=text.toLowerCase();
+  var brandKeys=Object.keys(BRAND_LOGOS);
+  // Sort longer brand names first to prefer "bodega aurrera" over "bodega"
+  brandKeys.sort(function(a,b){return b.length-a.length});
+  for(var i=0;i<brandKeys.length;i++){
+    if(lower.indexOf(brandKeys[i])!==-1){
+      // Try expand with a suffix word (Selecto, Express, Super, etc.)
+      var esc=brandKeys[i].replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      var reExt=new RegExp('('+esc+'(?:\\s+(?:selecto|express|super|mini|plus|premium))?)','i');
+      var m=text.match(reExt);
+      if(m)return m[1].trim();
+      return brandKeys[i];
+    }
+  }
+  return null;
+}
+
+function _csExtractAperturaTarget(raw){
+  var m=raw.match(/apertura\s+de\s+(?:un\s+|una\s+|el\s+|la\s+)?([A-ZÀ-Ú][a-zA-ZÀ-ú0-9\s&]+?)(?:\s*[.,]|\s+en\s|\s+con\s|\s+para\s|\s+contemplando|\s*$)/);
+  if(m){
+    var cand=m[1].trim();
+    // If the candidate contains a known brand, prefer the expanded version
+    var brand=_csFindBrandInText(cand);
+    if(brand){
+      // Return the longer of the two (include suffix like "Selecto")
+      var extRe=new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:\\s+(?:Selecto|Express|Super|Mini|Plus|Premium))?','i');
+      var mm=cand.match(extRe);
+      return mm?mm[0].trim():brand;
+    }
+    return cand;
+  }
+  return null;
+}
+
+function _csExtractLugar(q){
+  var cityKeys=Object.keys(CITY_BOUNDS);
+  cityKeys.sort(function(a,b){return b.length-a.length});
+  for(var i=0;i<cityKeys.length;i++){
+    if(q.indexOf(cityKeys[i])!==-1)return {type:'city',key:cityKeys[i],ref:CITY_BOUNDS[cityKeys[i]]};
+  }
+  var aliases={'ciudad de mexico':'cdmx','mexico city':'cdmx','mty':'monterrey','gdl':'guadalajara','qro':'queretaro','slp':'san luis potosi','ags':'aguascalientes','cun':'cancun','pue':'puebla','tij':'tijuana'};
+  for(var al in aliases){if(q.indexOf(al)!==-1&&CITY_BOUNDS[aliases[al]])return {type:'city',key:aliases[al],ref:CITY_BOUNDS[aliases[al]]};}
+  var stKeys=Object.keys(CS_STATES);
+  stKeys.sort(function(a,b){return b.length-a.length});
+  for(var s=0;s<stKeys.length;s++){
+    if(q.indexOf(stKeys[s])!==-1)return {type:'state',key:stKeys[s],ref:CS_STATES[stKeys[s]]};
+  }
+  return null;
+}
+
+// ============ EXECUTORS ============
+function _csExecute(intent,rawQuery){
+  csLastIntent=intent;
+  switch(intent.intent){
+    case 'ruta_ancla': _csExecRutaAncla(intent.params||{},rawQuery); break;
+    case 'cruz_marcas': _csExecCruzMarcas(intent.params||{},rawQuery); break;
+    case 'zonas_nse_all': _csExecZonasNSEAll(intent.params||{},rawQuery); break;
+    default: aiMapSearch(rawQuery);
+  }
+}
+
+// ---- Intent 1: Route around an anchor brand (vallas móviles) ----
+function _csExecRutaAncla(p,rawQuery){
+  clearAIResults();
+  allRoutes.forEach(function(r){if(r.renderer)r.renderer.setMap(null);if(r.markers)r.markers.forEach(function(m){m.setMap(null)});});
+  allRoutes=[];
+
+  var marca=p.marca||p.brand||'tienda';
+  var radKm=parseFloat(p.radio_km||p.radius_km||2);
+  var modo=(p.modo||p.mode||'DRIVING').toUpperCase();
+  var nseFilter=p.nse||[];
+
+  setStatus('ConnectIA: Localizando '+marca+'…');
+  _csShowLoader('Buscando '+marca+'…');
+
+  var lugar=p.lugar;
+  var searchLoc,radius=15000;
+  if(lugar&&lugar.ref){
+    var ref=lugar.ref;
+    map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(ref.s,ref.w),new google.maps.LatLng(ref.n,ref.e)));
+    searchLoc=new google.maps.LatLng((ref.s+ref.n)/2,(ref.w+ref.e)/2);
+  }else{
+    var b=map.getBounds();
+    searchLoc=b?b.getCenter():new google.maps.LatLng(19.43,-99.13);
+  }
+
+  var queryText=marca+(lugar&&lugar.ref?' '+lugar.ref.name:'');
+  placesService.textSearch({query:queryText,location:searchLoc,radius:radius},function(results,status){
+    if(status!==google.maps.places.PlacesServiceStatus.OK||!results||results.length===0){
+      _csHideLoader();
+      setStatus('ConnectIA: No se encontró "'+marca+'" en '+(lugar&&lugar.ref?lugar.ref.name:'el área')+' — ejecutando búsqueda clásica');
+      aiMapSearch(rawQuery);
+      return;
+    }
+    // Pick the best anchor (NSE match + ratings)
+    var best=results[0];
+    if(nseFilter.length){
+      var scored=results.slice(0,12).map(function(r){
+        var lat=r.geometry.location.lat(),lng=r.geometry.location.lng();
+        var sc=getStateForCoords(lat,lng)||'09';
+        var en=ENIGH[sc]||ENIGH['09'];
+        var nseData=calcNSEForArea(en.ing,lat,lng);
+        var dom='C',mx=0;if(nseData)nseData.forEach(function(n){if(n.p>mx){mx=n.p;dom=n.n;}});
+        var match=nseFilter.indexOf(dom)>=0;
+        return {r:r,nseMatch:match,dom:dom,ratings:r.user_ratings_total||0};
+      });
+      scored.sort(function(a,b){return (b.nseMatch?1:0)-(a.nseMatch?1:0)||b.ratings-a.ratings;});
+      best=scored[0].r;
+    }
+    var loc={lat:best.geometry.location.lat(),lng:best.geometry.location.lng(),name:best.name+(lugar&&lugar.ref?' ('+lugar.ref.name+')':''),vicinity:best.vicinity||''};
+    _csHideLoader();
+    setStatus('ConnectIA: Generando ruta de '+radKm+' km en '+loc.name+'…');
+
+    generateCircularRoute(loc,radKm,modo,0,function(routeData){
+      if(!routeData){setStatus('ConnectIA: No se pudo generar la ruta');return;}
+      if(nseFilter.length)_csDrawNSEZonesAroundRoute(loc,radKm,nseFilter);
+      _csAddAnchorPins(results.slice(0,6),best,marca);
+      _csShowRutaAnclaReport(rawQuery,{marca:marca,radio_km:radKm,modo:modo,nse:nseFilter},routeData,loc,results.slice(0,6));
+    });
+  });
+}
+
+function _csDrawNSEZonesAroundRoute(refLoc,radiusKm,nseList){
+  var nseColors={'AB':'#15803d','C+':'#22c55e','C':'#eab308','D+':'#f59e0b','D':'#ea580c','E':'#991b1b'};
+  var steps=14;
+  var deg=radiusKm/111.32;
+  var cosLat=Math.cos(refLoc.lat*Math.PI/180);
+  for(var i=0;i<steps;i++){
+    for(var j=0;j<steps;j++){
+      var lat=refLoc.lat-deg+(2*deg)*(i+0.5)/steps;
+      var lng=refLoc.lng-deg/cosLat+(2*deg/cosLat)*(j+0.5)/steps;
+      var dx=(lat-refLoc.lat)*111.32;
+      var dy=(lng-refLoc.lng)*111.32*cosLat;
+      if(Math.sqrt(dx*dx+dy*dy)>radiusKm)continue;
+      var sc=getStateForCoords(lat,lng)||'09';
+      var en=ENIGH[sc]||ENIGH['09'];
+      var nseData=calcNSEForArea(en.ing,lat,lng);
+      var dom='C',mx=0;if(nseData)nseData.forEach(function(n){if(n.p>mx){mx=n.p;dom=n.n;}});
+      if(nseList.indexOf(dom)<0)continue;
+      var cellLat=(2*deg)/steps,cellLng=(2*deg/cosLat)/steps;
+      var rect=new google.maps.Rectangle({
+        bounds:new google.maps.LatLngBounds(
+          new google.maps.LatLng(lat-cellLat*0.45,lng-cellLng*0.45),
+          new google.maps.LatLng(lat+cellLat*0.45,lng+cellLng*0.45)
+        ),
+        map:map,fillColor:nseColors[dom]||'#6D28D9',fillOpacity:0.25,
+        strokeColor:nseColors[dom]||'#6D28D9',strokeWeight:1,strokeOpacity:0.5,
+        clickable:false,zIndex:40
+      });
+      aiOverlays.push(rect);
+    }
+  }
+}
+
+function _csAddAnchorPins(candidates,best,brandName){
+  var brandLogo=getBrandLogoUrl(brandName);
+  candidates.forEach(function(p){
+    var isBest=(p.place_id===best.place_id);
+    var lat=p.geometry.location.lat(),lng=p.geometry.location.lng();
+    var m=new google.maps.Marker({
+      position:{lat:lat,lng:lng},map:map,title:p.name,
+      zIndex:isBest?400:250,
+      icon:_pinIcon(isBest?'#DC2626':'#6D28D9'),
+      label:isBest?{text:'★',color:'#fff',fontSize:'14px',fontWeight:'bold'}:null
+    });
+    if(brandLogo){try{trySetBrandLogo(m,brandLogo,isBest?'#DC2626':'#6D28D9');}catch(e){}}
+    var iwC='<div style="font-family:sans-serif;max-width:240px">';
+    iwC+='<div style="font-weight:700;color:#1e293b;font-size:13px">'+escapeHtml(p.name)+'</div>';
+    if(p.vicinity)iwC+='<div style="font-size:11px;color:#64748b">'+escapeHtml(p.vicinity)+'</div>';
+    if(p.rating)iwC+='<div style="color:#f59e0b;font-size:11px">★ '+p.rating+(p.user_ratings_total?' ('+p.user_ratings_total+')':'')+'</div>';
+    if(isBest)iwC+='<div style="margin-top:6px;background:#DC2626;color:#fff;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600;display:inline-block">ANCLA DE LA RUTA</div>';
+    iwC+='</div>';
+    var iw=new google.maps.InfoWindow({content:iwC});
+    m.addListener('click',function(){iw.open(map,m)});
+    aiMarkers.push(m);
+  });
+}
+
+function _csShowRutaAnclaReport(query,p,routeData,refLoc,candidates){
+  var panel=document.getElementById('ai-results-panel');
+  if(panel)panel.remove();
+  panel=document.createElement('div');
+  panel.id='ai-results-panel';
+  panel.style.cssText='position:fixed;top:66px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:380px;max-height:75vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  h+='<div style="font-weight:700;color:#1d1d1f;font-size:15px">🚙 Ruta de vallas móviles</div>';
+  h+='<button onclick="clearAIResults();allRoutes.forEach(function(r){if(r.renderer)r.renderer.setMap(null);if(r.markers)r.markers.forEach(function(m){m.setMap(null)})});allRoutes=[];" style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8;padding:0 4px">✕</button></div>';
+  h+='<div style="background:linear-gradient(135deg,#faf5ff,#f3e8ff);border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#4a1e6e;line-height:1.4;font-style:italic">"'+escapeHtml(query)+'"</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">';
+  h+='<div style="background:#fef2f2;border-radius:8px;padding:8px"><div style="font-size:9px;color:#991b1b;font-weight:700;letter-spacing:.5px">ANCLA</div><div style="font-size:12px;color:#1d1d1f;font-weight:700">'+escapeHtml(refLoc.name)+'</div></div>';
+  h+='<div style="background:#f0fdf4;border-radius:8px;padding:8px"><div style="font-size:9px;color:#166534;font-weight:700;letter-spacing:.5px">RUTA</div><div style="font-size:12px;color:#1d1d1f;font-weight:700">'+(p.radio_km||2)+' km · '+(p.modo==='WALKING'?'Peatonal':'Vehicular')+'</div></div>';
+  h+='</div>';
+  if(p.nse&&p.nse.length){
+    h+='<div style="background:#fef9c3;border-radius:8px;padding:8px;margin-bottom:10px"><div style="font-size:10px;color:#854d0e;font-weight:700;margin-bottom:4px;letter-spacing:.3px">NSE OBJETIVO</div>';
+    p.nse.forEach(function(n){h+='<span style="background:#f59e0b;color:#fff;padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;margin-right:4px">'+escapeHtml(n)+'</span>';});
+    h+='<div style="font-size:10px;color:#854d0e;margin-top:6px;line-height:1.4">Las zonas sombreadas en el mapa corresponden a estos niveles socioeconómicos dentro del rango de '+(p.radio_km||2)+' km.</div>';
+    h+='</div>';
+  }
+  if(candidates&&candidates.length>1){
+    h+='<div style="font-weight:700;color:#334155;font-size:12px;margin-bottom:6px">Otras ubicaciones '+escapeHtml(p.marca||'')+' cercanas</div>';
+    candidates.forEach(function(c,idx){
+      if(c.place_id===refLoc.place_id)return;
+      h+='<div style="padding:6px 8px;background:#f8fafc;border-radius:6px;margin-bottom:4px;font-size:11px"><strong>'+escapeHtml(c.name)+'</strong>';
+      if(c.vicinity)h+='<div style="font-size:10px;color:#64748b">'+escapeHtml(c.vicinity)+'</div>';
+      h+='</div>';
+    });
+  }
+  h+='<div style="text-align:center;margin-top:10px;padding-top:8px;border-top:1px solid #f1f5f9;font-size:9px;color:#94a3b8">✨ Powered by ConnectIA · Claude AI</div>';
+  panel.innerHTML=h;
+  document.body.appendChild(panel);
+  setStatus('ConnectIA: Ruta generada · '+refLoc.name);
+}
+
+// ---- Intent 2: Cross-brand proximity (Brand A near Brand B) ----
+function _csExecCruzMarcas(p,rawQuery){
+  clearAIResults();
+  var marcaA=p.marcaA||p.brand_a||'',marcaB=p.marcaB||p.brand_b||'';
+  var radioM=parseInt(p.radio_m||p.radius_m||500);
+  setStatus('ConnectIA: Buscando '+marcaA+' cerca de '+marcaB+'…');
+  _csShowLoader('Buscando '+marcaA+'…');
+
+  var lugar=p.lugar;
+  var searchCenter,radius=30000;
+  if(lugar&&lugar.ref){
+    var ref=lugar.ref;
+    map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(ref.s,ref.w),new google.maps.LatLng(ref.n,ref.e)));
+    searchCenter={lat:(ref.s+ref.n)/2,lng:(ref.w+ref.e)/2};
+    if(lugar.type==='state')radius=50000;
+  }else{
+    var b=map.getBounds();
+    searchCenter=b?{lat:b.getCenter().lat(),lng:b.getCenter().lng()}:{lat:19.43,lng:-99.13};
+  }
+
+  // Grid sampling for wide coverage (especially states)
+  var samples=[];
+  if(lugar&&lugar.ref){
+    var ref2=lugar.ref;
+    var rowN=lugar.type==='state'?4:3,colN=lugar.type==='state'?4:3;
+    for(var i=0;i<rowN;i++){
+      for(var j=0;j<colN;j++){
+        samples.push(new google.maps.LatLng(
+          ref2.s+(ref2.n-ref2.s)*(i+0.5)/rowN,
+          ref2.w+(ref2.e-ref2.w)*(j+0.5)/colN
+        ));
+      }
+    }
+  }else{
+    samples.push(new google.maps.LatLng(searchCenter.lat,searchCenter.lng));
+  }
+
+  var aLocs=[],pendingA=samples.length;
+  samples.forEach(function(s){
+    placesService.textSearch({query:marcaA+(lugar&&lugar.ref?' '+lugar.ref.name:''),location:s,radius:radius},function(res,st){
+      if(st===google.maps.places.PlacesServiceStatus.OK&&res){
+        res.forEach(function(r){
+          if(!r.geometry||!r.geometry.location)return;
+          // Filter: ensure name actually contains brandA (Places can return loosely related)
+          if(r.name.toLowerCase().indexOf(marcaA.toLowerCase().split(' ')[0])<0)return;
+          if(aLocs.find(function(x){return x.place_id===r.place_id}))return;
+          aLocs.push({place_id:r.place_id,name:r.name,lat:r.geometry.location.lat(),lng:r.geometry.location.lng(),vicinity:r.vicinity||'',rating:r.rating,user_ratings_total:r.user_ratings_total});
+        });
+      }
+      pendingA--;
+      if(pendingA<=0)step2();
+    });
+  });
+
+  function step2(){
+    if(aLocs.length===0){
+      _csHideLoader();
+      setStatus('ConnectIA: No se encontraron ubicaciones de '+marcaA);
+      _csShowCrossReport(rawQuery,{marcaA:marcaA,marcaB:marcaB,radio_m:radioM},[],0);
+      return;
+    }
+    _csShowLoader('Verificando proximidad a '+marcaB+'… ('+aLocs.length+' '+marcaA+')');
+    var matched=[],pendingB=aLocs.length;
+    aLocs.forEach(function(a){
+      placesService.nearbySearch({location:new google.maps.LatLng(a.lat,a.lng),radius:radioM,keyword:marcaB},function(res,st){
+        if(st===google.maps.places.PlacesServiceStatus.OK&&res&&res.length>0){
+          var filtered=res.filter(function(r){
+            if(!r.geometry||!r.geometry.location)return false;
+            return r.name.toLowerCase().indexOf(marcaB.toLowerCase().split(' ')[0])>=0;
+          });
+          if(filtered.length>0){
+            a.near=filtered.map(function(r){return {name:r.name,lat:r.geometry.location.lat(),lng:r.geometry.location.lng(),vicinity:r.vicinity||'',place_id:r.place_id}});
+            matched.push(a);
+          }
+        }
+        pendingB--;
+        if(pendingB<=0)step3(matched);
+      });
+    });
+  }
+
+  function step3(matched){
+    _csHideLoader();
+    if(matched.length===0){
+      setStatus('ConnectIA: Ningún '+marcaA+' está dentro de '+radioM+' m de un '+marcaB);
+      _csShowCrossReport(rawQuery,{marcaA:marcaA,marcaB:marcaB,radio_m:radioM},[],aLocs.length);
+      return;
+    }
+    var bounds=new google.maps.LatLngBounds();
+    var logoA=getBrandLogoUrl(marcaA);
+    var logoB=getBrandLogoUrl(marcaB);
+    matched.forEach(function(a){
+      var mA=new google.maps.Marker({
+        position:{lat:a.lat,lng:a.lng},map:map,title:a.name,zIndex:400,
+        icon:_pinIcon('#6D28D9')
+      });
+      if(logoA){try{trySetBrandLogo(mA,logoA,'#6D28D9');}catch(e){}}
+      var iwAC='<div style="font-family:sans-serif;max-width:260px"><div style="font-weight:700;font-size:13px;color:#6D28D9">'+escapeHtml(a.name)+'</div>';
+      if(a.vicinity)iwAC+='<div style="font-size:11px;color:#64748b">'+escapeHtml(a.vicinity)+'</div>';
+      iwAC+='<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e5e7eb;font-size:11px;color:#1e293b"><strong>✓ '+a.near.length+' '+escapeHtml(marcaB)+' a ≤'+radioM+' m</strong>';
+      a.near.slice(0,3).forEach(function(n){iwAC+='<div style="font-size:10px;color:#64748b;margin-top:2px">• '+escapeHtml(n.name)+'</div>';});
+      iwAC+='</div></div>';
+      var iwA=new google.maps.InfoWindow({content:iwAC});
+      mA.addListener('click',function(){iwA.open(map,mA)});
+      aiMarkers.push(mA);
+      bounds.extend(new google.maps.LatLng(a.lat,a.lng));
+      // Proximity ring
+      var cir=new google.maps.Circle({
+        center:{lat:a.lat,lng:a.lng},radius:radioM,map:map,
+        fillColor:'#6D28D9',fillOpacity:0.08,strokeColor:'#6D28D9',strokeWeight:1.5,strokeOpacity:0.55,clickable:false,zIndex:30
+      });
+      aiOverlays.push(cir);
+      // Brand B pins
+      a.near.forEach(function(n){
+        var mB=new google.maps.Marker({
+          position:{lat:n.lat,lng:n.lng},map:map,title:n.name,zIndex:300,
+          icon:_pinIcon('#16A34A')
+        });
+        if(logoB){try{trySetBrandLogo(mB,logoB,'#16A34A');}catch(e){}}
+        var iwBC='<div style="font-family:sans-serif;max-width:220px"><div style="font-weight:700;font-size:13px;color:#16A34A">'+escapeHtml(n.name)+'</div>';
+        if(n.vicinity)iwBC+='<div style="font-size:11px;color:#64748b">'+escapeHtml(n.vicinity)+'</div>';
+        iwBC+='<div style="font-size:10px;color:#64748b;margin-top:3px">Cerca de: '+escapeHtml(a.name)+'</div></div>';
+        var iwB=new google.maps.InfoWindow({content:iwBC});
+        mB.addListener('click',function(){iwB.open(map,mB)});
+        aiMarkers.push(mB);
+        bounds.extend(new google.maps.LatLng(n.lat,n.lng));
+      });
+    });
+    if(!bounds.isEmpty()){map.fitBounds(bounds);if(map.getZoom()>15)map.setZoom(15);}
+    setStatus('ConnectIA: '+matched.length+' '+marcaA+' cerca de '+marcaB+' (radio '+radioM+' m)');
+    _csShowCrossReport(rawQuery,{marcaA:marcaA,marcaB:marcaB,radio_m:radioM},matched,aLocs.length);
+  }
+}
+
+function _csShowCrossReport(query,p,matched,totalA){
+  var panel=document.getElementById('ai-results-panel');
+  if(panel)panel.remove();
+  panel=document.createElement('div');
+  panel.id='ai-results-panel';
+  panel.style.cssText='position:fixed;top:66px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:380px;max-height:75vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  h+='<div style="font-weight:700;color:#1d1d1f;font-size:15px">📍 Cruce de marcas</div>';
+  h+='<button onclick="clearAIResults()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8;padding:0 4px">✕</button></div>';
+  h+='<div style="background:linear-gradient(135deg,#faf5ff,#f3e8ff);border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#4a1e6e;line-height:1.4;font-style:italic">"'+escapeHtml(query)+'"</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">';
+  h+='<div style="background:#faf5ff;border-radius:8px;padding:8px;text-align:center"><div style="font-size:22px;font-weight:800;color:#6D28D9">'+matched.length+'</div><div style="font-size:10px;color:#4a1e6e">'+escapeHtml(p.marcaA)+'</div></div>';
+  var bTotal=matched.reduce(function(s,a){return s+(a.near?a.near.length:0)},0);
+  h+='<div style="background:#f0fdf4;border-radius:8px;padding:8px;text-align:center"><div style="font-size:22px;font-weight:800;color:#16a34a">'+bTotal+'</div><div style="font-size:10px;color:#166534">'+escapeHtml(p.marcaB)+'</div></div>';
+  h+='<div style="background:#f5f5f7;border-radius:8px;padding:8px;text-align:center"><div style="font-size:22px;font-weight:800;color:#1d1d1f">'+(p.radio_m||500)+' m</div><div style="font-size:10px;color:#424245">radio</div></div>';
+  h+='</div>';
+  if(totalA>matched.length){
+    h+='<div style="background:#fef9c3;border-radius:6px;padding:8px;margin-bottom:10px;font-size:11px;color:#854d0e"><strong>'+(totalA-matched.length)+'</strong> ubicaciones de '+escapeHtml(p.marcaA)+' <em>NO</em> tienen un '+escapeHtml(p.marcaB)+' a ≤'+(p.radio_m||500)+' m.</div>';
+  }
+  if(matched.length>0){
+    h+='<div style="font-weight:700;color:#334155;font-size:12px;margin-bottom:6px">Ubicaciones que sí cruzan</div>';
+    matched.forEach(function(a){
+      h+='<div style="padding:8px;background:#f8fafc;border-radius:6px;margin-bottom:6px;border-left:4px solid #6D28D9">';
+      h+='<div style="font-weight:700;font-size:12px;color:#6D28D9">'+escapeHtml(a.name)+'</div>';
+      if(a.vicinity)h+='<div style="font-size:10px;color:#64748b">'+escapeHtml(a.vicinity)+'</div>';
+      h+='<div style="margin-top:4px;font-size:11px;color:#16a34a"><strong>'+a.near.length+' '+escapeHtml(p.marcaB)+'</strong> a ≤'+(p.radio_m||500)+' m</div>';
+      a.near.slice(0,3).forEach(function(n){h+='<div style="font-size:10px;color:#475569;padding-left:8px">• '+escapeHtml(n.name)+'</div>';});
+      h+='</div>';
+    });
+  }
+  h+='<div style="text-align:center;margin-top:10px;padding-top:8px;border-top:1px solid #f1f5f9;font-size:9px;color:#94a3b8">✨ Powered by ConnectIA · Claude AI · Google Places</div>';
+  panel.innerHTML=h;
+  document.body.appendChild(panel);
+}
+
+// ---- Intent 3: Mark ALL NSE zones matching filter ----
+function _csExecZonasNSEAll(p,rawQuery){
+  clearAIResults();
+  var nseList=p.nse||['AB'];
+  if(typeof nseList==='string')nseList=[nseList];
+  nseList=nseList.map(function(x){return String(x).toUpperCase()});
+  var lugar=p.lugar;
+  var ref=null;
+  if(lugar&&lugar.ref)ref=lugar.ref;
+  else{
+    var d=_csDefaultCity();
+    if(d)ref=d;
+    else{
+      var b=map.getBounds();
+      if(b)ref={s:b.getSouthWest().lat(),n:b.getNorthEast().lat(),w:b.getSouthWest().lng(),e:b.getNorthEast().lng(),name:'Área visible'};
+      else ref=CITY_BOUNDS.cdmx;
+    }
+  }
+
+  map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(ref.s,ref.w),new google.maps.LatLng(ref.n,ref.e)));
+  setStatus('ConnectIA: Marcando zonas NSE '+nseList.join(', ')+' en '+ref.name+'…');
+  _csShowLoader('Analizando zonas NSE…');
+
+  var N=(ref.n-ref.s)>2?22:30; // coarser grid for large states
+  var nseColors={'AB':'#15803d','C+':'#22c55e','C':'#eab308','D+':'#f59e0b','D':'#ea580c','E':'#991b1b'};
+  var latStep=(ref.n-ref.s)/N;
+  var lngStep=(ref.e-ref.w)/N;
+  var matched=0;
+  var nseCounts={};
+  for(var r=0;r<N;r++){
+    for(var c=0;c<N;c++){
+      var lat=ref.s+latStep*(r+0.5);
+      var lng=ref.w+lngStep*(c+0.5);
+      var sc=getStateForCoords(lat,lng)||'09';
+      var en=ENIGH[sc]||ENIGH['09'];
+      var nseData=calcNSEForArea(en.ing,lat,lng);
+      var dom='C',mx=0;if(nseData)nseData.forEach(function(n){if(n.p>mx){mx=n.p;dom=n.n;}});
+      if(nseList.indexOf(dom)<0)continue;
+      matched++;
+      nseCounts[dom]=(nseCounts[dom]||0)+1;
+      var rect=new google.maps.Rectangle({
+        bounds:new google.maps.LatLngBounds(
+          new google.maps.LatLng(lat-latStep*0.48,lng-lngStep*0.48),
+          new google.maps.LatLng(lat+latStep*0.48,lng+lngStep*0.48)
+        ),
+        map:map,fillColor:nseColors[dom]||'#6D28D9',fillOpacity:0.35,
+        strokeColor:nseColors[dom]||'#6D28D9',strokeWeight:1.2,strokeOpacity:0.7,
+        clickable:true,zIndex:50
+      });
+      aiOverlays.push(rect);
+      (function(lat2,lng2,domZ,rectZ){
+        rectZ.addListener('click',function(){
+          var sc2=getStateForCoords(lat2,lng2)||'09';
+          var en2=ENIGH[sc2]||ENIGH['09'];
+          var ce2=CENSUS[sc2]||CENSUS['09'];
+          var iw=new google.maps.InfoWindow({
+            position:new google.maps.LatLng(lat2,lng2),
+            content:'<div style="font-family:sans-serif;padding:4px;min-width:180px"><strong style="color:'+(nseColors[domZ]||'#6D28D9')+'">NSE '+domZ+'</strong>'
+              +'<div style="font-size:11px;margin-top:4px">Ingreso p/c: $'+fmt(Math.round(en2.ingPC||en2.ing))+'/mes</div>'
+              +'<div style="font-size:11px">Gasto p/c: $'+fmt(Math.round(en2.gasPC||en2.gas))+'/mes</div>'
+              +'<div style="font-size:11px">Internet: '+ce2.inet+'%</div>'
+              +'<div style="font-size:10px;color:#888;margin-top:3px">'+lat2.toFixed(4)+', '+lng2.toFixed(4)+'</div></div>'
+          });
+          iw.open(map);
+        });
+      })(lat,lng,dom,rect);
+    }
+  }
+  _csHideLoader();
+  setStatus('ConnectIA: '+matched+' zonas NSE '+nseList.join(', ')+' marcadas en '+ref.name);
+
+  // Report panel
+  var panel=document.getElementById('ai-results-panel');
+  if(panel)panel.remove();
+  panel=document.createElement('div');
+  panel.id='ai-results-panel';
+  panel.style.cssText='position:fixed;top:66px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:340px;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  h+='<div style="font-weight:700;color:#1d1d1f;font-size:15px">🗺️ Zonas NSE '+nseList.join(' · ')+'</div>';
+  h+='<button onclick="clearAIResults()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8">✕</button></div>';
+  h+='<div style="background:linear-gradient(135deg,#faf5ff,#f3e8ff);border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#4a1e6e;font-style:italic">"'+escapeHtml(rawQuery)+'"</div>';
+  h+='<div style="background:#f0fdf4;border-radius:8px;padding:12px;text-align:center;margin-bottom:10px"><div style="font-size:30px;font-weight:800;color:#16a34a">'+matched+'</div><div style="font-size:11px;color:#166534">celdas identificadas · '+escapeHtml(ref.name||'')+'</div></div>';
+  var nseKeys=Object.keys(nseCounts);
+  if(nseKeys.length){
+    h+='<div style="margin-bottom:10px">';
+    nseKeys.forEach(function(k){
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:#f8fafc;border-radius:6px;margin-bottom:3px;font-size:11px">';
+      h+='<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+(nseColors[k]||'#6D28D9')+';margin-right:6px;vertical-align:middle"></span>NSE '+escapeHtml(k)+'</span>';
+      h+='<strong>'+nseCounts[k]+' celdas</strong></div>';
+    });
+    h+='</div>';
+  }
+  h+='<div style="font-size:10px;color:#64748b;line-height:1.5;background:#f5f5f7;padding:8px;border-radius:6px">Cada celda ≈ '+((latStep*111).toFixed(1))+' km × '+((lngStep*111*Math.cos(ref.s*Math.PI/180)).toFixed(1))+' km. Clic en cualquier celda para ver ingresos estimados.</div>';
+  h+='<div style="text-align:center;margin-top:10px;padding-top:8px;border-top:1px solid #f1f5f9;font-size:9px;color:#94a3b8">✨ Powered by ConnectIA · Claude AI · INEGI ENIGH 2024</div>';
+  panel.innerHTML=h;
+  document.body.appendChild(panel);
+}
+
+function _csDefaultCity(){
+  if(!map||!map.getBounds)return null;
+  var b=map.getBounds();
+  if(!b)return null;
+  var c=b.getCenter();var lat=c.lat(),lng=c.lng();
+  var keys=Object.keys(CITY_BOUNDS);
+  for(var i=0;i<keys.length;i++){
+    var r=CITY_BOUNDS[keys[i]];
+    if(lat>=r.s&&lat<=r.n&&lng>=r.w&&lng<=r.e)return r;
+  }
+  return null;
+}
+// ===== END CONNECTIA SMART SEARCH =====
+
 // ===== MULTI-SELECTION MODE (unified for all tools) =====
 var multiSelectMode=false;
 var multiSelections=[]; // [{overlay, type, data, color}]
@@ -12462,7 +13168,11 @@ function loadSharedState(){
   if(state.q){
     setTimeout(function(){
       var aiIn=document.getElementById('ai-search-input');
-      if(aiIn){aiIn.value=state.q;aiMapSearch(state.q);}
+      if(aiIn){
+        aiIn.value=state.q;
+        if(typeof connectiaSmartSearch==='function')connectiaSmartSearch(state.q);
+        else aiMapSearch(state.q);
+      }
     },1500);
   }
 
