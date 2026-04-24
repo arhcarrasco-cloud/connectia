@@ -18406,6 +18406,239 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
 
 
 <!-- ============================================================ -->
+<!-- CONNECTIA SMART IMPORT — coordenadas unidas + wizard         -->
+<!-- Wraps _msProcessImportRows to detect "lat,lng" en una sola    -->
+<!-- celda. Si la confianza es alta, importa solo. Si hay duda,    -->
+<!-- abre un wizard preguntando al usuario qué columna usar.       -->
+<!-- ============================================================ -->
+<script id="connectia-smart-import">
+(function(){
+  'use strict';
+  // Patrones para coordenadas unidas en un mismo string
+  var COORD_PATTERNS = [
+    /^\s*(-?\d{1,3}(?:\.\d+)?)\s*[,;|\t]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/,
+    /^\s*(-?\d{1,3}(?:\.\d+)?)\s+(-?\d{1,3}(?:\.\d+)?)\s*$/
+  ];
+  // DMS: 19°25'57"N 99°07'59.6"W
+  var DMS_PATTERN = /(\d+)[°º]\s*(\d+)['′]\s*(\d+(?:\.\d+)?)["″]?\s*([NS])[\s,]+(\d+)[°º]\s*(\d+)['′]\s*(\d+(?:\.\d+)?)["″]?\s*([EW])/i;
+
+  function parseDMS(d,m,s,h){
+    var dec = parseFloat(d) + parseFloat(m)/60 + parseFloat(s)/3600;
+    if(/[SW]/i.test(h)) dec = -dec;
+    return dec;
+  }
+  function tryParseCoord(str){
+    if(typeof str !== 'string') str = String(str==null?'':str);
+    str = str.trim().replace(/^\(+|\)+$/g,''); // strip wrapping parens
+    if(!str) return null;
+    var dms = str.match(DMS_PATTERN);
+    if(dms){
+      return {a:parseDMS(dms[1],dms[2],dms[3],dms[4]), b:parseDMS(dms[5],dms[6],dms[7],dms[8])};
+    }
+    for(var i=0;i<COORD_PATTERNS.length;i++){
+      var m = str.match(COORD_PATTERNS[i]);
+      if(m){
+        var a = parseFloat(m[1]), b = parseFloat(m[2]);
+        if(!isNaN(a) && !isNaN(b)) return {a:a, b:b};
+      }
+    }
+    return null;
+  }
+  // Determinar orden lat/lng usando rangos de México como prior
+  function classifyPair(a,b){
+    var aMxLat = a>=14 && a<=33, bMxLat = b>=14 && b<=33;
+    var aMxLng = a>=-118 && a<=-86, bMxLng = b>=-118 && b<=-86;
+    if(aMxLat && bMxLng) return {lat:a,lng:b,order:'lat,lng',confidence:'high'};
+    if(aMxLng && bMxLat) return {lat:b,lng:a,order:'lng,lat',confidence:'high'};
+    var aValLat = a>=-90 && a<=90, bValLat = b>=-90 && b<=90;
+    var aValLng = a>=-180 && a<=180, bValLng = b>=-180 && b<=180;
+    // Si uno está fuera del rango lat pero dentro de lng → ese es lng
+    if(aValLat && bValLng && !bValLat) return {lat:a,lng:b,order:'lat,lng',confidence:'medium'};
+    if(aValLng && bValLat && !aValLat) return {lat:b,lng:a,order:'lng,lat',confidence:'medium'};
+    if(aValLat && bValLng) return {lat:a,lng:b,order:'lat,lng',confidence:'low'};
+    return null;
+  }
+
+  function scanForJoinedCoords(rows){
+    if(!rows || !rows.length) return [];
+    var keys = Object.keys(rows[0]);
+    var sampleSize = Math.min(rows.length, 25);
+    var candidates = [];
+    keys.forEach(function(k){
+      var matches=0, samples=[], orders={'lat,lng':0,'lng,lat':0}, confs={high:0,medium:0,low:0};
+      for(var i=0;i<sampleSize;i++){
+        var p = tryParseCoord(rows[i][k]);
+        if(p){
+          matches++;
+          var c = classifyPair(p.a, p.b);
+          if(c){
+            orders[c.order]++; confs[c.confidence]++;
+            if(samples.length<3) samples.push({raw:rows[i][k], parsed:c});
+          }
+        }
+      }
+      if(matches >= Math.max(2, Math.ceil(sampleSize*0.4))){
+        var winOrder = orders['lat,lng']>=orders['lng,lat'] ? 'lat,lng' : 'lng,lat';
+        var winConf = confs.high>0 ? 'high' : (confs.medium>0 ? 'medium' : 'low');
+        candidates.push({col:k, matches:matches, total:sampleSize, order:winOrder, confidence:winConf, samples:samples});
+      }
+    });
+    // Sort: highest confidence + most matches first
+    var rank = {high:3, medium:2, low:1};
+    candidates.sort(function(x,y){
+      var dr = rank[y.confidence]-rank[x.confidence];
+      if(dr !== 0) return dr;
+      return y.matches - x.matches;
+    });
+    return candidates;
+  }
+
+  function applyNormalization(rows, colName, order){
+    var ok=0;
+    rows.forEach(function(row){
+      var p = tryParseCoord(row[colName]);
+      if(p){
+        if(order === 'lat,lng'){ row.lat = p.a; row.lng = p.b; }
+        else { row.lat = p.b; row.lng = p.a; }
+        ok++;
+      }
+    });
+    return ok;
+  }
+
+  function escHtml(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function showImportWizard(rows, candidates, originalCallback){
+    var existing = document.getElementById('smart-import-wizard');
+    if(existing) existing.remove();
+    var headerKeys = Object.keys(rows[0]||{});
+    var preview = rows.slice(0,4);
+    var modal = document.createElement('div');
+    modal.id = 'smart-import-wizard';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);font-family:-apple-system,BlinkMacSystemFont,sans-serif';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#fff;border-radius:14px;max-width:680px;width:92%;max-height:85vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.4)';
+    var html = '<div style="padding:14px 20px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;border-radius:14px 14px 0 0;display:flex;justify-content:space-between;align-items:center">'
+            + '<div><div style="font-weight:700;font-size:15px">📥 Importar ubicaciones</div>'
+            + '<div style="font-size:11px;opacity:.85;margin-top:2px">Detecté las coordenadas en una sola columna. Confirma cómo leerlas.</div></div>'
+            + '<button id="siw-close" style="background:rgba(255,255,255,.18);border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px">×</button></div>';
+    html += '<div style="padding:16px 20px">';
+    html += '<div style="font-size:11px;color:#6D28D9;font-weight:700;text-transform:uppercase;margin-bottom:6px">Vista previa</div>';
+    html += '<div style="overflow-x:auto;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:14px"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr>';
+    headerKeys.forEach(function(k){ html += '<th style="padding:6px 10px;background:#f3e8ff;text-align:left;color:#6D28D9;font-weight:700;border-bottom:1px solid #e5e7eb;white-space:nowrap">'+escHtml(k)+'</th>'; });
+    html += '</tr></thead><tbody>';
+    preview.forEach(function(r){
+      html += '<tr>';
+      headerKeys.forEach(function(k){ html += '<td style="padding:5px 10px;border-bottom:1px solid #f3f4f6;color:#374151;white-space:nowrap">'+escHtml(r[k])+'</td>'; });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '<div style="font-size:11px;color:#6D28D9;font-weight:700;text-transform:uppercase;margin-bottom:6px">¿Cómo lee las coordenadas?</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
+    candidates.forEach(function(c, i){
+      var checked = i===0 ? 'checked' : '';
+      var sample = (c.samples[0]) ? escHtml(c.samples[0].raw)+'  →  lat: '+c.samples[0].parsed.lat.toFixed(4)+',  lng: '+c.samples[0].parsed.lng.toFixed(4) : '';
+      var border = i===0 ? '#6D28D9' : '#e5e7eb';
+      var bg = i===0 ? '#faf5ff' : '#fff';
+      html += '<label style="display:flex;align-items:flex-start;gap:8px;padding:10px;border:1px solid '+border+';border-radius:8px;cursor:pointer;background:'+bg+'">'
+           + '<input type="radio" name="siw-opt" value="'+i+'" '+checked+' style="margin-top:2px;accent-color:#6D28D9">'
+           + '<div style="flex:1">'
+           + '<div style="font-weight:600;color:#1d1d1f;font-size:12px">Columna "<b>'+escHtml(c.col)+'</b>" en orden <b>'+c.order+'</b></div>'
+           + '<div style="font-size:10px;color:#64748b;margin-top:2px">'+c.matches+' de '+c.total+' filas válidas · confianza '+c.confidence+'</div>'
+           + '<div style="font-size:10px;color:#94a3b8;margin-top:3px;font-family:monospace">'+sample+'</div>'
+           + '</div></label>';
+    });
+    if(candidates.length>0){
+      var c0 = candidates[0];
+      var revOrder = c0.order==='lat,lng' ? 'lng,lat' : 'lat,lng';
+      html += '<label style="display:flex;align-items:flex-start;gap:8px;padding:10px;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer">'
+           + '<input type="radio" name="siw-opt" value="rev0" style="margin-top:2px;accent-color:#6D28D9">'
+           + '<div style="flex:1">'
+           + '<div style="font-weight:600;color:#1d1d1f;font-size:12px">Misma columna pero invertida (<b>'+revOrder+'</b>)</div>'
+           + '<div style="font-size:10px;color:#64748b;margin-top:2px">Úsalo si las coordenadas vienen en orden longitud, latitud</div>'
+           + '</div></label>';
+    }
+    html += '</div>';
+    html += '<div style="display:flex;gap:8px;justify-content:flex-end">'
+         + '<button id="siw-cancel" style="padding:8px 16px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;color:#64748b">Cancelar</button>'
+         + '<button id="siw-confirm" style="padding:8px 18px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#fff">Importar ubicaciones</button>'
+         + '</div></div>';
+    box.innerHTML = html;
+    modal.appendChild(box);
+    document.body.appendChild(modal);
+    function close(){ modal.remove(); }
+    document.getElementById('siw-close').onclick = close;
+    document.getElementById('siw-cancel').onclick = close;
+    modal.onclick = function(e){ if(e.target === modal) close(); };
+    document.getElementById('siw-confirm').onclick = function(){
+      var sel = modal.querySelector('input[name="siw-opt"]:checked');
+      if(!sel) return;
+      var v = sel.value, chosen, finalOrder;
+      if(v === 'rev0'){
+        chosen = candidates[0];
+        finalOrder = chosen.order==='lat,lng' ? 'lng,lat' : 'lat,lng';
+      } else {
+        chosen = candidates[parseInt(v,10)];
+        finalOrder = chosen.order;
+      }
+      var ok = applyNormalization(rows, chosen.col, finalOrder);
+      if(typeof setStatus === 'function') setStatus('IA: '+ok+' coordenadas normalizadas desde "'+chosen.col+'" — importando...');
+      close();
+      originalCallback(rows);
+    };
+  }
+
+  function install(){
+    if(window.__connectiaSmartImportInstalled) return;
+    if(typeof window._msProcessImportRows !== 'function') return;
+    window.__connectiaSmartImportInstalled = true;
+    var _orig = window._msProcessImportRows;
+
+    window._msProcessImportRows = function(rows){
+      try{
+        if(!rows || !rows.length) return _orig.call(this, rows);
+        var sample = rows[0];
+        var keys = Object.keys(sample);
+        // Si ya hay columnas lat/lng nombradas y son numéricas válidas, no interferimos
+        var hasNamedLat = keys.some(function(k){ var kl=k.toLowerCase().trim(); return kl==='lat'||kl==='latitude'||kl==='latitud'; });
+        var hasNamedLng = keys.some(function(k){ var kl=k.toLowerCase().trim(); return kl==='lng'||kl==='lon'||kl==='long'||kl==='longitude'||kl==='longitud'; });
+        if(hasNamedLat && hasNamedLng) return _orig.call(this, rows);
+
+        var candidates = scanForJoinedCoords(rows);
+        if(!candidates.length) return _orig.call(this, rows);
+
+        // Auto-importa si confianza alta y mayoría de filas cuadran
+        if(candidates.length === 1 && candidates[0].confidence === 'high' && candidates[0].matches >= candidates[0].total * 0.8){
+          var ok = applyNormalization(rows, candidates[0].col, candidates[0].order);
+          if(typeof setStatus === 'function') setStatus('IA: detecté coordenadas en columna "'+candidates[0].col+'" — importando '+ok+' ubicaciones...');
+          return _orig.call(this, rows);
+        }
+        // Si hay duda, preguntar
+        showImportWizard(rows, candidates, function(normalized){
+          _orig.call(window, normalized);
+        });
+      }catch(e){
+        console.warn('Smart import error:', e);
+        try{ _orig.call(this, rows); }catch(_){}
+      }
+    };
+    window.__smartImport = {scanForJoinedCoords:scanForJoinedCoords, tryParseCoord:tryParseCoord, classifyPair:classifyPair, showImportWizard:showImportWizard};
+  }
+
+  var _iv = setInterval(function(){
+    if(typeof window._msProcessImportRows === 'function'){
+      clearInterval(_iv);
+      install();
+    }
+  }, 250);
+})();
+</script>
+
+<!-- ============================================================ -->
 <!-- DEVICE DETECTION + RESPONSIVE ADAPTATION                     -->
 <!-- Desktop (>1024px):  sin cambios, todo igual que antes        -->
 <!-- Tablet  (<=1024px): anchos reducidos, paneles compactos      -->
