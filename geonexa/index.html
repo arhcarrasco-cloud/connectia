@@ -18406,6 +18406,214 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
 
 
 <!-- ============================================================ -->
+<!-- CONNECTIA PIN ICON FIX + BULK IMAGE UPLOAD                   -->
+<!-- 1) _pgApplyIcon: reemplaza el pin landmark por uno con el     -->
+<!--    emoji integrado (SVG horneado), no encima como label.      -->
+<!-- 2) _pgBulkCustomize: añade botón "Importar imagen" para       -->
+<!--    aplicar una imagen personalizada a todo el grupo.          -->
+<!-- ============================================================ -->
+<script id="connectia-pin-icon-fix">
+(function(){
+  'use strict';
+
+  function _escXml(s){
+    return String(s==null?'':s).replace(/[<>&'"]/g, function(c){
+      return {'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&#39;','"':'&quot;'}[c];
+    });
+  }
+
+  // SVG pin con el emoji DENTRO de la cabeza (reemplaza el landmark, no encima)
+  function _emojiPinIcon(emoji, color){
+    if(typeof google === 'undefined' || !google.maps) return null;
+    var safe = _escXml(emoji);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 52" width="40" height="52">'
+            + '<defs><filter id="sh" x="-50%" y="-50%" width="200%" height="200%">'
+            + '<feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-opacity=".35"/></filter></defs>'
+            + '<path d="M20 2 C9.5 2 2 9.5 2 20 C2 32 20 50 20 50 C20 50 38 32 38 20 C38 9.5 30.5 2 20 2 Z" '
+            + 'fill="'+color+'" stroke="#fff" stroke-width="1.5" filter="url(#sh)"/>'
+            + '<circle cx="20" cy="20" r="13" fill="#fff" opacity=".95"/>'
+            + '<text x="20" y="20" font-size="17" text-anchor="middle" dominant-baseline="central" '
+            + 'font-family="-apple-system,Segoe UI Emoji,Apple Color Emoji,sans-serif">'+safe+'</text>'
+            + '</svg>';
+    var url = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+    return {
+      url: url,
+      scaledSize: new google.maps.Size(40,52),
+      anchor: new google.maps.Point(20,50)
+    };
+  }
+  window.__emojiPinIcon = _emojiPinIcon;
+
+  function install(){
+    if(window.__connectiaPinFixInstalled) return;
+    if(typeof window._pgApplyIcon !== 'function') return;
+    if(typeof window.multiSelections === 'undefined') return;
+    window.__connectiaPinFixInstalled = true;
+
+    var origApplyIcon  = window._pgApplyIcon;
+    var origApplyColor = window._pgApplyColor;
+
+    // 1) Override _pgApplyIcon — emoji REPLACES landmark
+    window._pgApplyIcon = function(pi, icon){
+      try{
+        var sel = multiSelections[pi];
+        if(!sel) return origApplyIcon.apply(this, arguments);
+        sel._icon = icon;
+        sel._customImg = null;
+        var ov = sel.overlay;
+        if(ov && typeof ov.setIcon === 'function'){
+          var pinColor = sel.color || '#ea4335';
+          // Quitar label previo (que antes flotaba sobre el landmark)
+          try{ ov.setLabel(null); }catch(e){}
+          // Quitar logo overlay si lo había
+          if(ov._logoOverlay){ try{ ov._logoOverlay.setMap(null); ov._logoOverlay=null; }catch(e){} }
+          // Reemplazar el pin con uno SVG que tiene el emoji dentro de la cabeza
+          var ic = _emojiPinIcon(icon, pinColor);
+          if(ic){ try{ ov.setIcon(ic); }catch(e){} }
+          else { return origApplyIcon.apply(this, arguments); }
+        }
+        if(typeof showMultiSelectPanel === 'function') showMultiSelectPanel();
+        var dlg = document.getElementById('pin-group-manager');
+        if(dlg && typeof _renderGroupManager === 'function') _renderGroupManager(dlg);
+      }catch(e){
+        return origApplyIcon.apply(this, arguments);
+      }
+    };
+
+    // 2) Override _pgApplyColor — preserva emoji o imagen al cambiar color
+    if(typeof origApplyColor === 'function'){
+      window._pgApplyColor = function(pi, color){
+        try{
+          var sel = multiSelections[pi];
+          if(!sel) return origApplyColor.apply(this, arguments);
+          sel.color = color;
+          var ov = sel.overlay;
+          if(ov && typeof ov.setIcon === 'function'){
+            try{ ov.setLabel(null); }catch(e){}
+            if(ov._logoOverlay){ try{ ov._logoOverlay.setMap(null); ov._logoOverlay=null; }catch(e){} }
+            if(sel._customImg){
+              try{ ov.setIcon({url:sel._customImg, scaledSize:new google.maps.Size(36,36), anchor:new google.maps.Point(18,18)}); }catch(e){}
+            } else if(sel._icon){
+              var ic = _emojiPinIcon(sel._icon, color);
+              if(ic) try{ ov.setIcon(ic); }catch(e){}
+            } else if(typeof _pinIcon === 'function'){
+              try{ ov.setIcon(_pinIcon(color)); }catch(e){}
+            }
+          }
+          if(typeof ov.setOptions === 'function'){
+            try{ ov.setOptions({fillColor:color, strokeColor:color}); }catch(e){}
+          }
+          var dlg = document.getElementById('pin-group-manager');
+          if(dlg && typeof _renderGroupManager === 'function') _renderGroupManager(dlg);
+        }catch(e){
+          return origApplyColor.apply(this, arguments);
+        }
+      };
+    }
+
+    // 3) Inject "Importar imagen" en _pgBulkCustomize
+    var origBulk = window._pgBulkCustomize;
+    if(typeof origBulk === 'function'){
+      window._pgBulkCustomize = function(gid){
+        origBulk.apply(this, arguments);
+        setTimeout(function(){
+          var pop = document.getElementById('pg-bulk-customize');
+          if(!pop || pop.querySelector('#pg-bulk-img-input')) return;
+          var preview = pop.querySelector('#pg-bulk-preview');
+          var section = document.createElement('div');
+          section.innerHTML = ''
+            + '<div style="font-size:10px;font-weight:600;color:#1d1d1f;margin:8px 0 4px">Imagen personalizada (para todos)</div>'
+            + '<div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap">'
+            + '<button id="pg-bulk-img-btn" type="button" style="padding:6px 12px;background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;border:none;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer">📷 Importar imagen</button>'
+            + '<input type="file" id="pg-bulk-img-input" accept="image/*" style="display:none">'
+            + '<img id="pg-bulk-img-prev" style="display:none;width:28px;height:28px;border-radius:5px;object-fit:cover;border:2px solid #6D28D9">'
+            + '<button id="pg-bulk-img-clear" type="button" style="display:none;border:none;background:#fee2e2;color:#dc2626;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:8px;font-weight:600">✕</button>'
+            + '<span id="pg-bulk-img-name" style="font-size:10px;color:#64748b;flex:1;min-width:100px"></span>'
+            + '</div>';
+          if(preview && preview.parentNode){ preview.parentNode.insertBefore(section, preview); }
+          else { (pop.querySelector('div[style*="padding:12px"]')||pop).appendChild(section); }
+          var btn   = document.getElementById('pg-bulk-img-btn');
+          var input = document.getElementById('pg-bulk-img-input');
+          var prev  = document.getElementById('pg-bulk-img-prev');
+          var clr   = document.getElementById('pg-bulk-img-clear');
+          var nm    = document.getElementById('pg-bulk-img-name');
+          if(btn) btn.onclick = function(){ input && input.click(); };
+          if(input) input.onchange = function(){
+            if(!input.files || !input.files[0]) return;
+            var f = input.files[0];
+            if(f.size > 4*1024*1024){
+              if(nm) nm.textContent = '⚠️ Imagen muy grande (>4MB)';
+              return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(e){
+              window.__pgBulkImgData = e.target.result;
+              if(prev){ prev.src = e.target.result; prev.style.display = ''; }
+              if(clr) clr.style.display = '';
+              if(nm)  nm.textContent = '✓ '+f.name;
+            };
+            reader.onerror = function(){ if(nm) nm.textContent = '⚠️ Error al leer la imagen'; };
+            reader.readAsDataURL(f);
+          };
+          if(clr) clr.onclick = function(){
+            window.__pgBulkImgData = null;
+            if(prev){ prev.src=''; prev.style.display='none'; }
+            if(clr) clr.style.display='none';
+            if(nm)  nm.textContent='';
+            if(input) input.value='';
+          };
+          // Also restore preview if already had data from previous open
+          if(window.__pgBulkImgData && prev){
+            prev.src = window.__pgBulkImgData; prev.style.display = '';
+            if(clr) clr.style.display = '';
+            if(nm)  nm.textContent = '✓ imagen lista';
+          }
+        }, 60);
+      };
+    }
+
+    // 4) Wrap _pgApplyBulk to apply the custom image to every pin in the group
+    var origApplyBulk = window._pgApplyBulk;
+    if(typeof origApplyBulk === 'function'){
+      window._pgApplyBulk = function(gid){
+        var imgData = window.__pgBulkImgData;
+        origApplyBulk.apply(this, arguments);
+        if(!imgData) return;
+        try{
+          var grp = (typeof pinGroups !== 'undefined') ? pinGroups.find(function(g){ return g.id === gid; }) : null;
+          if(!grp) return;
+          grp.items.forEach(function(it){
+            var sel = multiSelections[it.selIdx];
+            if(!sel) return;
+            sel._customImg = imgData;
+            sel._icon = '';
+            var ov = sel.overlay;
+            if(ov && typeof ov.setIcon === 'function'){
+              try{ ov.setIcon({url:imgData, scaledSize:new google.maps.Size(36,36), anchor:new google.maps.Point(18,18)}); }catch(e){}
+              try{ ov.setLabel(null); }catch(e){}
+              if(ov._logoOverlay){ try{ ov._logoOverlay.setMap(null); ov._logoOverlay=null; }catch(e){} }
+            }
+          });
+          if(typeof showMultiSelectPanel === 'function') showMultiSelectPanel();
+        }catch(e){ console.warn('Bulk image apply error:', e); }
+        // Clear so it's not reused on next bulk dialog
+        window.__pgBulkImgData = null;
+      };
+    }
+  }
+
+  var _iv = setInterval(function(){
+    if(typeof window._pgApplyIcon === 'function' &&
+       typeof window.multiSelections !== 'undefined' &&
+       typeof google !== 'undefined' && google.maps){
+      clearInterval(_iv);
+      install();
+    }
+  }, 250);
+})();
+</script>
+
+<!-- ============================================================ -->
 <!-- CONNECTIA SMART IMPORT — coordenadas unidas + wizard         -->
 <!-- Wraps _msProcessImportRows to detect "lat,lng" en una sola    -->
 <!-- celda. Si la confianza es alta, importa solo. Si hay duda,    -->
