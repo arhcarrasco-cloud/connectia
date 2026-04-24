@@ -18402,5 +18402,143 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
 })();
 </script>
 
+
+<!-- ============================================================ -->
+<!-- PANEL EFFICIENCY MANAGER                                     -->
+<!-- Tiles right-anchored panels side-by-side when 2+ are visible -->
+<!-- Preserves original widths/positions when only one is visible -->
+<!-- Non-invasive: observes style/class changes only              -->
+<!-- ============================================================ -->
+<script id="pem-manager">
+(function(){
+  'use strict';
+  var PANELS = [
+    {id:'auto-report',         compactWidth:360, minWidth:320, priority:1},
+    {id:'afl-panel',           compactWidth:340, minWidth:300, priority:2},
+    {id:'report-panel',        compactWidth:360, minWidth:320, priority:3},
+    {id:'global-filter-panel', compactWidth:320, minWidth:280, priority:4}
+  ];
+  var GAP = 6;
+  var _arranging = false;
+  var _origState = {};
+
+  function saveOriginal(el){
+    if(_origState[el.id]) return;
+    _origState[el.id] = {
+      width: el.style.width || '',
+      right: el.style.right || '',
+      maxWidth: el.style.maxWidth || ''
+    };
+  }
+  function restoreOriginal(el){
+    var o = _origState[el.id];
+    if(!o) return;
+    el.style.width    = o.width;
+    el.style.right    = o.right;
+    el.style.maxWidth = o.maxWidth;
+  }
+  function isVisible(el){
+    if(!el) return false;
+    var cs = window.getComputedStyle(el);
+    if(cs.display === 'none') return false;
+    if(cs.visibility === 'hidden') return false;
+    if(el.style.transform && el.style.transform.indexOf('translateX(100%)') !== -1) return false;
+    return true;
+  }
+  function getVisiblePanels(){
+    var list = [];
+    PANELS.forEach(function(def){
+      var el = document.getElementById(def.id);
+      if(el && isVisible(el)) list.push({el:el, def:def});
+    });
+    list.sort(function(a,b){return a.def.priority - b.def.priority;});
+    return list;
+  }
+  function arrange(){
+    if(_arranging) return;
+    _arranging = true;
+    try{
+      var visible = getVisiblePanels();
+      if(visible.length <= 1){
+        PANELS.forEach(function(def){
+          var el = document.getElementById(def.id);
+          if(el) restoreOriginal(el);
+        });
+        syncAutoReportToggle();
+        return;
+      }
+      var vw = window.innerWidth;
+      var availableTotal = Math.max(vw - 40, 600);
+      var widths = visible.map(function(v){return v.def.compactWidth;});
+      var sumWidth = widths.reduce(function(a,b){return a+b;},0) + GAP*(visible.length-1);
+      if(sumWidth > availableTotal){
+        var scale = (availableTotal - GAP*(visible.length-1)) / (sumWidth - GAP*(visible.length-1));
+        widths = visible.map(function(v){
+          return Math.max(v.def.minWidth, Math.floor(v.def.compactWidth * scale));
+        });
+      }
+      var offset = 0;
+      visible.forEach(function(v, idx){
+        var w = widths[idx];
+        saveOriginal(v.el);
+        v.el.style.width    = w + 'px';
+        v.el.style.maxWidth = w + 'px';
+        v.el.style.right    = offset + 'px';
+        offset += w + GAP;
+      });
+      syncAutoReportToggle();
+    } finally {
+      setTimeout(function(){_arranging = false;}, 10);
+    }
+  }
+  function syncAutoReportToggle(){
+    var ar = document.getElementById('auto-report');
+    var tog = document.getElementById('ar-toggle');
+    if(!ar || !tog) return;
+    if(isVisible(ar)){
+      tog.style.right = (ar.offsetWidth + (parseInt(ar.style.right,10)||0)) + 'px';
+    }
+  }
+  function observePanels(){
+    PANELS.forEach(function(def){
+      var el = document.getElementById(def.id);
+      if(!el || el._pemObserved) return;
+      el._pemObserved = true;
+      var mo = new MutationObserver(function(muts){
+        if(_arranging) return;
+        var relevant = muts.some(function(m){
+          if(m.type !== 'attributes') return false;
+          return m.attributeName === 'style' || m.attributeName === 'class';
+        });
+        if(relevant) arrange();
+      });
+      mo.observe(el, {attributes:true, attributeFilter:['style','class']});
+    });
+    window.addEventListener('resize', function(){
+      clearTimeout(window._pemResizeT);
+      window._pemResizeT = setTimeout(arrange, 120);
+    });
+  }
+  function init(){
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var arExists = !!document.getElementById('auto-report');
+      if(arExists || tries > 60){
+        clearInterval(iv);
+        observePanels();
+        arrange();
+      }
+    }, 400);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  window.__pemArrange = arrange;
+})();
+</script>
+
 </body>
 </html>
