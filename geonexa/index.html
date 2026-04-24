@@ -18406,6 +18406,349 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
 
 
 <!-- ============================================================ -->
+<!-- CONNECTIA URL SYNC — actualiza la URL con cada movimiento     -->
+<!-- Extiende captureMapState/loadSharedState (no los modifica) y  -->
+<!-- mantiene window.location.hash sincronizado con el estado.     -->
+<!-- Botón flotante "Copiar enlace" siempre disponible.            -->
+<!-- ============================================================ -->
+<script id="connectia-url-sync">
+(function(){
+  'use strict';
+  // Capturar el hash inicial ANTES de que loadSharedState lo limpie
+  var _initialHash = (function(){
+    try{
+      var h = window.location.hash || '';
+      if(h.indexOf('#share=') === 0) return h.substring(7);
+    }catch(e){}
+    return '';
+  })();
+
+  var DEBOUNCE_MS = 500;
+  var _debounceT = null;
+  var _lastUrl = '';
+  var _suspended = false;  // true durante restauración para no sobreescribir
+
+  function _serializeOverlay(ov){
+    try{
+      if(!ov) return null;
+      // Marker
+      if(typeof ov.getPosition === 'function' && !ov.getRadius && !ov.getBounds && !ov.getPath){
+        var p = ov.getPosition();
+        return {t:'m', a:+p.lat().toFixed(6), o:+p.lng().toFixed(6)};
+      }
+      // Circle
+      if(typeof ov.getRadius === 'function' && typeof ov.getCenter === 'function'){
+        var c = ov.getCenter();
+        return {t:'c', a:+c.lat().toFixed(6), o:+c.lng().toFixed(6), r:Math.round(ov.getRadius())};
+      }
+      // Rectangle
+      if(typeof ov.getBounds === 'function' && typeof ov.getCenter !== 'function'){
+        var b = ov.getBounds();
+        var ne = b.getNorthEast(), sw = b.getSouthWest();
+        return {t:'r', n:+ne.lat().toFixed(6), e:+ne.lng().toFixed(6), s:+sw.lat().toFixed(6), w:+sw.lng().toFixed(6)};
+      }
+      // Polygon
+      if(typeof ov.getPath === 'function' || typeof ov.getPaths === 'function'){
+        var arr = (ov.getPaths ? ov.getPaths().getAt(0) : ov.getPath()).getArray();
+        if(arr.length > 80) arr = arr.filter(function(_,i){ return i % Math.ceil(arr.length/80) === 0; });
+        return {t:'p', pts: arr.map(function(pt){ return [+pt.lat().toFixed(5), +pt.lng().toFixed(5)]; })};
+      }
+    }catch(e){}
+    return null;
+  }
+
+  function _serializePin(sel){
+    try{
+      if(!sel || !sel.overlay) return null;
+      var ov = sel.overlay, pos = null;
+      if(typeof ov.getPosition === 'function') pos = ov.getPosition();
+      else if(typeof ov.getCenter === 'function') pos = ov.getCenter();
+      if(!pos) return null;
+      var name = '';
+      if(sel.data && sel.data._name) name = sel.data._name;
+      else if(sel.data && sel.data._direccion) name = sel.data._direccion;
+      return {
+        a: +pos.lat().toFixed(6),
+        o: +pos.lng().toFixed(6),
+        n: name ? String(name).substring(0,40) : '',
+        c: sel.color || '',
+        i: sel._icon || ''
+        // _customImg deliberadamente OMITIDO (data URL pesa demasiado en URL)
+      };
+    }catch(e){ return null; }
+  }
+
+  function _captureFullState(){
+    var s = (typeof captureMapState === 'function') ? captureMapState() : {};
+    // Selección dibujada actual
+    try{
+      if(typeof currentOverlay !== 'undefined' && currentOverlay && currentOverlay.getMap && currentOverlay.getMap()){
+        var ser = _serializeOverlay(currentOverlay);
+        if(ser) s.sel = ser;
+      }
+    }catch(e){}
+    // Pines de multi-selección
+    try{
+      if(typeof multiSelections !== 'undefined' && multiSelections && multiSelections.length){
+        var pins = [];
+        for(var i=0;i<multiSelections.length && pins.length<60;i++){
+          var p = _serializePin(multiSelections[i]);
+          if(p) pins.push(p);
+        }
+        if(pins.length) s.pins = pins;
+      }
+    }catch(e){}
+    // Capas activas
+    var lyr = {};
+    try{ if(typeof nseOverlayActive !== 'undefined' && nseOverlayActive) lyr.nse = 1; }catch(e){}
+    try{ if(typeof densityLayerActive !== 'undefined' && densityLayerActive) lyr.den = 1; }catch(e){}
+    try{ if(typeof _popHeatActive !== 'undefined' && _popHeatActive) lyr.pop = 1; }catch(e){}
+    try{ if(typeof _trafHeatActive !== 'undefined' && _trafHeatActive) lyr.tra = 1; }catch(e){}
+    try{ if(typeof _routeHeatmapActive !== 'undefined' && _routeHeatmapActive) lyr.rh = 1; }catch(e){}
+    if(Object.keys(lyr).length) s.lyr = lyr;
+    // Niveles NSE checkeados
+    try{
+      var panel = document.getElementById('nse-panel');
+      if(panel){
+        var checked = [];
+        panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+          if(cb.checked && cb.dataset && cb.dataset.nse) checked.push(cb.dataset.nse);
+        });
+        if(checked.length) s.nlv = checked;
+      }
+    }catch(e){}
+    return s;
+  }
+
+  function _writeUrl(){
+    if(_suspended) return;
+    try{
+      var s = _captureFullState();
+      if(typeof stateToHash !== 'function') return;
+      var hash = stateToHash(s);
+      if(!hash) return;
+      // Aviso suave si la URL crece demasiado
+      if(hash.length > 6000){
+        try{ delete s.pins; hash = stateToHash(s); }catch(e){}
+      }
+      var newPath = window.location.pathname + window.location.search + '#share=' + hash;
+      if(newPath === _lastUrl) return;
+      _lastUrl = newPath;
+      if(window.history && window.history.replaceState){
+        window.history.replaceState(null, '', newPath);
+      }
+    }catch(e){}
+  }
+
+  function _scheduleUpdate(){
+    clearTimeout(_debounceT);
+    _debounceT = setTimeout(_writeUrl, DEBOUNCE_MS);
+  }
+
+  function _wrap(fnName, after){
+    var orig = window[fnName];
+    if(typeof orig !== 'function') return;
+    window[fnName] = function(){
+      var r = orig.apply(this, arguments);
+      try{ (after || _scheduleUpdate)(); }catch(e){}
+      return r;
+    };
+  }
+
+  // -------- Restore additional state from saved hash (after loadSharedState ran) --------
+  function _restoreExtras(){
+    if(!_initialHash) return;
+    var state = null;
+    try{ state = (typeof hashToState === 'function') ? hashToState(_initialHash) : null; }catch(e){}
+    if(!state) return;
+
+    _suspended = true;
+
+    // Restaurar selección dibujada
+    try{
+      if(state.sel && typeof google !== 'undefined' && google.maps){
+        setTimeout(function(){
+          var t = state.sel.t;
+          var ov = null;
+          if(t === 'c'){
+            ov = new google.maps.Circle({
+              center:{lat:state.sel.a,lng:state.sel.o}, radius:state.sel.r,
+              map:map, fillColor:'#1d1d1f', fillOpacity:.15, strokeColor:'#1d1d1f', strokeWeight:2, strokeOpacity:.8,
+              editable:true, clickable:false, zIndex:100
+            });
+            if(typeof analyzeOverlay === 'function') analyzeOverlay(ov, google.maps.drawing.OverlayType.CIRCLE);
+          } else if(t === 'r'){
+            ov = new google.maps.Rectangle({
+              bounds:{north:state.sel.n,south:state.sel.s,east:state.sel.e,west:state.sel.w},
+              map:map, fillColor:'#1d1d1f', fillOpacity:.15, strokeColor:'#1d1d1f', strokeWeight:2, strokeOpacity:.8,
+              editable:true, clickable:false, zIndex:100
+            });
+            if(typeof analyzeOverlay === 'function') analyzeOverlay(ov, google.maps.drawing.OverlayType.RECTANGLE);
+          } else if(t === 'p' && state.sel.pts && state.sel.pts.length>=3){
+            var path = state.sel.pts.map(function(pt){ return {lat:pt[0],lng:pt[1]}; });
+            ov = new google.maps.Polygon({
+              paths:path, map:map, fillColor:'#1d1d1f', fillOpacity:.15, strokeColor:'#1d1d1f', strokeWeight:2, strokeOpacity:.8,
+              editable:true, clickable:false, zIndex:100
+            });
+            if(typeof analyzeOverlay === 'function') analyzeOverlay(ov, google.maps.drawing.OverlayType.POLYGON);
+          }
+          if(ov && typeof currentOverlay !== 'undefined'){
+            if(currentOverlay && currentOverlay.setMap) try{ currentOverlay.setMap(null); }catch(e){}
+            window.currentOverlay = ov;
+          }
+        }, 1500);
+      }
+    }catch(e){ console.warn('Restore selection error', e); }
+
+    // Restaurar pines de multi-selección
+    try{
+      if(state.pins && state.pins.length && typeof _msAddImportedPin === 'function'){
+        setTimeout(function(){
+          state.pins.forEach(function(p){
+            try{
+              _msAddImportedPin(p.a, p.o, p.n || ('Pin '+(multiSelections.length+1)));
+              var idx = multiSelections.length - 1;
+              var sel = multiSelections[idx];
+              if(sel){
+                if(p.c) sel.color = p.c;
+                if(p.i){
+                  sel._icon = p.i;
+                  if(typeof window.__emojiPinIcon === 'function' && sel.overlay && typeof sel.overlay.setIcon === 'function'){
+                    var ic = window.__emojiPinIcon(p.i, p.c || '#ea4335');
+                    if(ic){ try{ sel.overlay.setIcon(ic); }catch(e){} }
+                  }
+                }
+              }
+            }catch(e){}
+          });
+          if(typeof showMultiSelectPanel === 'function') showMultiSelectPanel();
+        }, 1800);
+      }
+    }catch(e){ console.warn('Restore pins error', e); }
+
+    // Restaurar capas activas
+    try{
+      if(state.lyr){
+        setTimeout(function(){
+          if(state.lyr.nse && typeof toggleNSEOverlay === 'function' && (typeof nseOverlayActive === 'undefined' || !nseOverlayActive)) toggleNSEOverlay();
+          if(state.lyr.den && typeof toggleDensityLayer === 'function' && (typeof densityLayerActive === 'undefined' || !densityLayerActive)) toggleDensityLayer();
+          if(state.lyr.pop && typeof togglePopHeatmapLayer === 'function' && (typeof _popHeatActive === 'undefined' || !_popHeatActive)) togglePopHeatmapLayer();
+          if(state.lyr.tra && typeof toggleTrafficHeatLayer === 'function' && (typeof _trafHeatActive === 'undefined' || !_trafHeatActive)) toggleTrafficHeatLayer();
+          if(state.lyr.rh  && typeof toggleRouteHeatmap   === 'function' && (typeof _routeHeatmapActive === 'undefined' || !_routeHeatmapActive)) toggleRouteHeatmap();
+        }, 1200);
+      }
+    }catch(e){}
+
+    // Restaurar checkboxes NSE
+    try{
+      if(state.nlv && state.nlv.length){
+        setTimeout(function(){
+          var panel = document.getElementById('nse-panel');
+          if(!panel) return;
+          var want = {}; state.nlv.forEach(function(l){ want[l] = true; });
+          panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+            cb.checked = !!want[cb.dataset.nse];
+          });
+          if(typeof applyNSEToMap === 'function') applyNSEToMap();
+        }, 2000);
+      }
+    }catch(e){}
+
+    // Liberar el flag tras un margen para que la sincronización vuelva a actuar
+    setTimeout(function(){ _suspended = false; _writeUrl(); }, 4000);
+  }
+
+  // -------- Botón flotante "Copiar enlace" --------
+  function _addCopyBadge(){
+    if(document.getElementById('copy-link-badge')) return;
+    var btn = document.createElement('div');
+    btn.id = 'copy-link-badge';
+    btn.title = 'Copiar URL del estado actual del mapa';
+    btn.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9500;background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;padding:10px 16px;border-radius:24px;font:600 12px -apple-system,BlinkMacSystemFont,sans-serif;box-shadow:0 6px 20px rgba(109,40,217,.35);cursor:pointer;display:flex;align-items:center;gap:6px;transition:transform .15s,background .15s;user-select:none';
+    btn.innerHTML = '🔗 <span>Copiar enlace</span>';
+    btn.addEventListener('mouseenter', function(){ btn.style.transform = 'scale(1.05)'; });
+    btn.addEventListener('mouseleave', function(){ btn.style.transform = 'scale(1)'; });
+    btn.addEventListener('click', function(){
+      _writeUrl(); // forzar URL al día
+      var url = window.location.href;
+      function done(){
+        btn.innerHTML = '✓ <span>Enlace copiado</span>';
+        btn.style.background = '#16a34a';
+        setTimeout(function(){
+          btn.innerHTML = '🔗 <span>Copiar enlace</span>';
+          btn.style.background = 'linear-gradient(135deg,#6D28D9,#8B3A9F)';
+        }, 2200);
+      }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(done, function(){ _fallbackCopy(url, done); });
+      } else { _fallbackCopy(url, done); }
+    });
+    document.body.appendChild(btn);
+  }
+  function _fallbackCopy(text, cb){
+    try{
+      var t = document.createElement('textarea');
+      t.value = text; t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select();
+      document.execCommand('copy'); t.remove();
+      cb && cb();
+    }catch(e){ cb && cb(); }
+  }
+
+  function install(){
+    if(window.__connectiaUrlSyncInstalled) return;
+    if(typeof map === 'undefined' || !map) return;
+    if(typeof captureMapState !== 'function' || typeof stateToHash !== 'function') return;
+    window.__connectiaUrlSyncInstalled = true;
+
+    // Listeners de mapa
+    try{
+      map.addListener('idle', _scheduleUpdate);
+      map.addListener('maptypeid_changed', _scheduleUpdate);
+    }catch(e){}
+
+    // Drawing manager: cada vez que se completa un dibujo
+    try{
+      if(typeof drawingManager !== 'undefined' && drawingManager){
+        google.maps.event.addListener(drawingManager, 'overlaycomplete', function(){
+          setTimeout(_scheduleUpdate, 200);
+        });
+      }
+    }catch(e){}
+
+    // Wrap toggles de capas
+    ['toggleNSEOverlay','toggleDensityLayer','togglePopHeatmapLayer','toggleTrafficHeatLayer','toggleRouteHeatmap','toggleNSELayer','applyNSEToMap','clearNSEOverlays'].forEach(function(fn){ _wrap(fn); });
+    // Wrap edición de pines
+    ['_msAddImportedPin','_pgApplyIcon','_pgApplyColor','_pgApplyCustomImage','_pgRemoveCustomImage','_pgApplyType','_pgApplyBulk','removeMultiSelection','clearMultiSelections','finalizeMultiSelect'].forEach(function(fn){ _wrap(fn); });
+    // Wrap rutas / IA
+    ['aiMapSearch','aiRouteSearch','generateCircularRoute','clearAIResults'].forEach(function(fn){
+      var orig = window[fn];
+      if(typeof orig !== 'function') return;
+      window[fn] = function(){
+        var r = orig.apply(this, arguments);
+        // Esperar a que la operación asíncrona pinte resultados
+        setTimeout(_scheduleUpdate, 1500);
+        return r;
+      };
+    });
+
+    _addCopyBadge();
+    _restoreExtras();
+    setTimeout(_writeUrl, 800); // primer write inicial
+  }
+
+  var _iv = setInterval(function(){
+    if(typeof map !== 'undefined' && map &&
+       typeof captureMapState === 'function' &&
+       typeof stateToHash === 'function'){
+      clearInterval(_iv);
+      install();
+    }
+  }, 300);
+})();
+</script>
+
+<!-- ============================================================ -->
 <!-- CONNECTIA PIN ICON FIX + BULK IMAGE UPLOAD                   -->
 <!-- 1) _pgApplyIcon: reemplaza el pin landmark por uno con el     -->
 <!--    emoji integrado (SVG horneado), no encima como label.      -->
