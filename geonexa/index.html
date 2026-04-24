@@ -18506,22 +18506,66 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
     document.body.appendChild(el);
   }
 
+  function _polyCentroid(poly){
+    try{
+      if(typeof poly.getPath === 'function'){
+        var p = poly.getPath().getArray();
+        if(p && p.length){
+          var lat=0,lng=0;
+          p.forEach(function(pt){ lat += pt.lat(); lng += pt.lng(); });
+          return new google.maps.LatLng(lat/p.length, lng/p.length);
+        }
+      }
+    }catch(e){}
+    return null;
+  }
+  var TIER_BY_NSE = {
+    'AB':TIER.green,'A':TIER.green,'B':TIER.green,
+    'Cplus':TIER.yellow,'C+':TIER.yellow,'C':TIER.yellow,
+    'Dplus':TIER.red,'D+':TIER.red,'D':TIER.red,'E':TIER.red
+  };
+  function _smartClassify(ad, centroid){
+    if(ad && ad.name && typeof lookupColoniaNSE === 'function'){
+      try{ var col = lookupColoniaNSE(ad.name); if(col) return col; }catch(e){}
+    }
+    var pob = ad && ad.pob ? +ad.pob : 0;
+    var viv = ad && ad.viv ? +ad.viv : 0;
+    if(pob > 0 && viv > 0){
+      var occ = pob / Math.max(viv,1);
+      if(occ >= 5.5) return 'E';
+      if(occ >= 5.0) return 'D';
+      if(occ >= 4.3) return 'D+';
+    }
+    if(centroid && typeof getNSEForCell === 'function' && typeof getStateForCoords === 'function'){
+      try{
+        var sc = getStateForCoords(centroid.lat(), centroid.lng()) || '09';
+        var r = getNSEForCell(sc, centroid.lat(), centroid.lng());
+        if(r && r.name){ return r.name.split(/\s|-/)[0]; }
+      }catch(e){}
+    }
+    return 'C';
+  }
   function recolorToTier(onlyLevels){
     if(typeof nseOverlays === 'undefined' || !nseOverlays.length) return 0;
     var count=0;
     var wantSet={}; (onlyLevels||[]).forEach(function(l){wantSet[l]=true;});
     nseOverlays.forEach(function(poly){
       try{
-        var opts = (typeof poly.get === 'function') ? {fillColor: poly.get('fillColor'), strokeColor: poly.get('strokeColor')} : {};
-        var orig = (opts.fillColor||'').toLowerCase();
-        var tier = COLOR_TO_TIER[orig];
-        var nseLabel = NSE_LEGACY_NAME[orig] || null;
-        if(!tier) return;
-        var inScope = !onlyLevels || !onlyLevels.length || (nseLabel && wantSet[nseLabel]);
-        var fo = inScope ? 0.35 : 0.04;
-        var so = inScope ? 0.65 : 0.12;
-        if(typeof poly.setOptions === 'function'){
-          poly.setOptions({fillColor:tier, strokeColor:tier, fillOpacity:fo, strokeOpacity:so});
+        if(typeof poly.setOptions !== 'function') return;
+        var ad = (typeof poly.get === 'function') ? poly.get('_agebData') : null;
+        var centroid = _polyCentroid(poly);
+        var nseLabel = _smartClassify(ad || {}, centroid);
+        var tier = TIER_BY_NSE[nseLabel] || TIER_BY_NSE[nseLabel.replace('+','plus')];
+        if(!tier){ tier = TIER.yellow; nseLabel = 'C'; }
+        var inScope = !onlyLevels || !onlyLevels.length || !!wantSet[nseLabel];
+        var fo = inScope ? 0.42 : 0.04;
+        var so = inScope ? 0.70 : 0.12;
+        poly.setOptions({fillColor:tier, strokeColor:tier, fillOpacity:fo, strokeOpacity:so});
+        if(ad){
+          var fullNm = (typeof _nseFullName === 'function') ? _nseFullName(nseLabel) : nseLabel;
+          ad.nse = {name: nseLabel + (fullNm && fullNm !== nseLabel ? ' - ' + fullNm : ''), color: tier};
+          ad._reclassified = true;
+          if(typeof poly.set === 'function') poly.set('_agebData', ad);
         }
         count++;
       }catch(e){}
