@@ -18441,6 +18441,201 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
 })();
 </script>
 
+<!-- ============================================================ -->
+<!-- CONNECTIA SMART AI — multi-intent + real NSE + tier colors   -->
+<!-- Non-invasive: wraps aiMapSearch, no existing fn is modified. -->
+<!-- Handles: "zonas AB de cdmx" / "starbucks en zonas AB" /      -->
+<!--          "ruta 7km en zonas AB con starbucks" (todo junto)   -->
+<!-- Color tiers: AB verde · C+/C amarillo · D+/D/E rojo          -->
+<!-- ============================================================ -->
+<script id="connectia-smart-ai">
+(function(){
+  'use strict';
+  var TIER = { green:'#15803d', yellow:'#eab308', red:'#dc2626' };
+  var COLOR_TO_TIER = {
+    '#15803d':TIER.green,'#22c55e':TIER.yellow,'#84cc16':TIER.yellow,
+    '#eab308':TIER.red,'#f97316':TIER.red,'#dc2626':TIER.red,'#991b1b':TIER.red
+  };
+  var NSE_LEGACY_NAME = {
+    '#15803d':'AB','#22c55e':'C+','#84cc16':'C',
+    '#eab308':'D+','#f97316':'D','#dc2626':'E','#991b1b':'E'
+  };
+  var CHECKBOX_ID = {'AB':'AB','C+':'Cplus','C':'C','D+':'Dplus','D':'D','E':'E'};
+
+  function detectNSELevels(q){
+    var lc = (q||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    var hasContext = /(zona|zonas|area|areas|barrio|colonia|colonias|nivel|niveles|nse|ageb|segmento|poblacion|clase|estrato|alcaldia|municipio)/.test(lc)
+                  || /(marca|muestra|muéstrame|muestrame|identifica|selecciona|resalta|dame|ensename|enseñame|visualiza|pinta|colorea|señala|senala|ver)/.test(lc);
+    var wants = [];
+    if(/\bc\s*\+/.test(lc) || /\bc\s*plus\b/.test(lc) || /\bc\s*mas\b/.test(lc)) wants.push('C+');
+    if(/\bd\s*\+/.test(lc) || /\bd\s*plus\b/.test(lc) || /\bd\s*mas\b/.test(lc)) wants.push('D+');
+    if(/\bab\b/.test(lc)) wants.push('AB');
+    if(hasContext){
+      if(/\bc\b/.test(lc) && wants.indexOf('C+')===-1) wants.push('C');
+      if(/\bd\b/.test(lc) && wants.indexOf('D+')===-1) wants.push('D');
+      if(/\be\b/.test(lc)) wants.push('E');
+    }
+    if(!wants.length){
+      if(/\b(alto|premium|lujo|rico)/.test(lc)) wants.push('AB');
+      if(/\bmedio\b/.test(lc)) wants.push('C+','C');
+      if(/\b(bajo|popular|pobre)/.test(lc)) wants.push('D+','D','E');
+    }
+    var seen={}; return wants.filter(function(x){return seen[x]?false:(seen[x]=true);});
+  }
+
+  function ensureTierLegend(activeLevels){
+    var id='smart-nse-legend';
+    var old=document.getElementById(id); if(old) old.remove();
+    if(!activeLevels || !activeLevels.length) return;
+    var el=document.createElement('div');
+    el.id=id;
+    el.style.cssText='position:fixed;bottom:16px;left:16px;z-index:92;background:rgba(255,255,255,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.08);border-radius:10px;padding:8px 12px;font:600 11px/1.3 -apple-system,BlinkMacSystemFont,sans-serif;color:#1d1d1f;box-shadow:0 6px 22px rgba(0,0,0,.12)';
+    var tiers=[
+      {lvls:['AB'], color:TIER.green,  label:'AB · Alto'},
+      {lvls:['C+','C'], color:TIER.yellow, label:'C+ / C · Medio'},
+      {lvls:['D+','D','E'], color:TIER.red, label:'D+ / D / E · Bajo'}
+    ];
+    var h='<div style="font-size:10px;color:#6D28D9;font-weight:800;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px">Zonas NSE</div>';
+    tiers.forEach(function(t){
+      var active = t.lvls.some(function(l){return activeLevels.indexOf(l)!==-1;});
+      var op = active ? 1 : 0.28;
+      h += '<div style="display:flex;align-items:center;gap:6px;padding:2px 0;opacity:'+op+'"><span style="width:12px;height:12px;border-radius:3px;background:'+t.color+'"></span><span>'+t.label+'</span></div>';
+    });
+    h += '<div style="font-size:8px;color:#94a3b8;margin-top:4px">Fuente: INEGI AGEB</div>';
+    el.innerHTML=h;
+    document.body.appendChild(el);
+  }
+
+  function recolorToTier(onlyLevels){
+    if(typeof nseOverlays === 'undefined' || !nseOverlays.length) return 0;
+    var count=0;
+    var wantSet={}; (onlyLevels||[]).forEach(function(l){wantSet[l]=true;});
+    nseOverlays.forEach(function(poly){
+      try{
+        var opts = (typeof poly.get === 'function') ? {fillColor: poly.get('fillColor'), strokeColor: poly.get('strokeColor')} : {};
+        var orig = (opts.fillColor||'').toLowerCase();
+        var tier = COLOR_TO_TIER[orig];
+        var nseLabel = NSE_LEGACY_NAME[orig] || null;
+        if(!tier) return;
+        var inScope = !onlyLevels || !onlyLevels.length || (nseLabel && wantSet[nseLabel]);
+        var fo = inScope ? 0.35 : 0.04;
+        var so = inScope ? 0.65 : 0.12;
+        if(typeof poly.setOptions === 'function'){
+          poly.setOptions({fillColor:tier, strokeColor:tier, fillOpacity:fo, strokeOpacity:so});
+        }
+        count++;
+      }catch(e){}
+    });
+    return count;
+  }
+
+  function gridFallback(levels, detected){
+    try{
+      var origDetected = {
+        isNSEMark:true, nseTarget:levels[0]||'AB',
+        city: detected.city, cities: detected.cities
+      };
+      if(typeof _aiMarkNSEZones === 'function'){ _aiMarkNSEZones(origDetected); }
+    }catch(e){}
+  }
+
+  function paintTierZones(levels, detected, done){
+    if(detected && detected.city && typeof map !== 'undefined' && map){
+      try{
+        var b = new google.maps.LatLngBounds(
+          new google.maps.LatLng(detected.city.s, detected.city.w),
+          new google.maps.LatLng(detected.city.n, detected.city.e)
+        );
+        map.fitBounds(b);
+      }catch(e){}
+    }
+    var wasActive = (typeof nseOverlayActive !== 'undefined') && nseOverlayActive;
+    if(!wasActive && typeof toggleNSEOverlay === 'function'){ toggleNSEOverlay(); }
+    var waitPanel=0;
+    var ivPanel=setInterval(function(){
+      waitPanel++;
+      var panelEl=document.getElementById('nse-panel');
+      if(panelEl || waitPanel>40){
+        clearInterval(ivPanel);
+        if(panelEl){
+          var wantSet={}; levels.forEach(function(l){wantSet[CHECKBOX_ID[l]||l]=true;});
+          var cbs = panelEl.querySelectorAll('input[type=checkbox]');
+          cbs.forEach(function(cb){ cb.checked = !!wantSet[cb.dataset.nse]; });
+          if(typeof applyNSEToMap === 'function'){ applyNSEToMap(); }
+        }
+        var waitPoly=0;
+        var ivPoly=setInterval(function(){
+          waitPoly++;
+          var hasPolys = (typeof nseOverlays !== 'undefined') && nseOverlays.length>0;
+          if(hasPolys){
+            clearInterval(ivPoly);
+            recolorToTier(levels);
+            ensureTierLegend(levels);
+            if(typeof setStatus === 'function') setStatus('IA: '+nseOverlays.length+' zonas NSE dibujadas ('+levels.join(', ')+')');
+            if(done) done(true);
+          } else if(waitPoly > 24){
+            clearInterval(ivPoly);
+            if(typeof setStatus === 'function') setStatus('IA: Usando método alternativo para zonas NSE...');
+            gridFallback(levels, detected||{});
+            ensureTierLegend(levels);
+            if(done) done(false);
+          }
+        }, 500);
+      }
+    }, 150);
+  }
+
+  function runPlacesOnTop(query, detected){
+    if(detected.cities && detected.cities.length>1 && typeof _aiMultiCityBusinessSearch === 'function'){
+      _aiMultiCityBusinessSearch(query, detected);
+      return;
+    }
+    var cityRef = detected.city;
+    if(!cityRef && typeof map !== 'undefined' && map){
+      var b = map.getBounds();
+      if(b){ cityRef = {name:'Area visible', s:b.getSouthWest().lat(), n:b.getNorthEast().lat(), w:b.getSouthWest().lng(), e:b.getNorthEast().lng()}; }
+    }
+    if(!cityRef){ if(typeof setStatus === 'function') setStatus('IA: Navega a un área primero'); return; }
+    if(typeof _aiSearchInCity === 'function' && typeof aiProcessResults === 'function'){
+      _aiSearchInCity(query, detected, cityRef, function(allPlaces){
+        aiProcessResults(query, detected, allPlaces, cityRef);
+      });
+    }
+  }
+
+  function install(){
+    if(window.__connectiaSmartInstalled) return;
+    window.__connectiaSmartInstalled=true;
+    var _orig = window.aiMapSearch;
+    window.aiMapSearch = function(query){
+      try{
+        var detected = aiParseQuery(query) || {};
+        var nseLevels = detectNSELevels(query);
+        var hasPlaces = (detected.searchTerms && detected.searchTerms.length>0) || (detected.brands && detected.brands.length>0);
+        var hasRoute  = !!detected.isRoute;
+        var hasNSE    = nseLevels.length > 0;
+        if(!hasNSE){ return _orig.call(this, query); }
+        if(hasNSE && !hasPlaces && !hasRoute){ paintTierZones(nseLevels, detected); return; }
+        paintTierZones(nseLevels, detected, function(){
+          if(hasRoute && typeof aiRouteSearch === 'function'){
+            aiRouteSearch(query, detected);
+          } else if(hasPlaces){
+            runPlacesOnTop(query, detected);
+            if(hasRoute){ setTimeout(function(){ if(typeof aiRouteSearch === 'function') aiRouteSearch(query, detected); }, 1800); }
+          }
+        });
+      }catch(e){ try{ _orig.call(this, query); }catch(_){} }
+    };
+    window.__smartNSE = {detectNSELevels:detectNSELevels, paintTierZones:paintTierZones, recolorToTier:recolorToTier};
+  }
+  var _iv = setInterval(function(){
+    if(typeof window.aiMapSearch === 'function' && typeof aiParseQuery === 'function' && typeof map !== 'undefined' && map){
+      clearInterval(_iv); install();
+    }
+  }, 250);
+})();
+</script>
+
 <style id="device-responsive-css">
 @media (max-width:1024px){
   #global-filter-panel{ width:300px !important; }
