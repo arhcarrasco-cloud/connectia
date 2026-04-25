@@ -20520,6 +20520,378 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
   }
 })();
 </script>
+<style id="connectia-fixes-round2-css">
+/* Hide ALL share/copiar-enlace UI globally */
+#btn-share,
+#share-dialog,
+#share-dialog *{ display:none !important; }
+/* Active state on mobile chips when their panel is open */
+.is-mobile-view .mob-chip.active{
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
+  color:#fff !important; border-color:transparent !important;
+  box-shadow:0 2px 10px rgba(109,40,217,.35) !important;
+}
+/* Connectia logo styling in the mobile menu button */
+.is-mobile-view #mob-menu-btn.is-logo{
+  width:auto !important; min-width:auto !important; padding:0 8px 0 4px !important;
+  background:transparent !important;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif !important;
+  font-size:16px !important; font-weight:700 !important; letter-spacing:-.4px !important;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
+  -webkit-background-clip:text !important; background-clip:text !important;
+  -webkit-text-fill-color:transparent !important; color:transparent !important;
+}
+/* Mobile left drawer (toolbar) — slide-out menu with cloned tools */
+.is-mobile-view #mob-tool-fab{
+  position:fixed; left:10px; top:50%; transform:translateY(-50%);
+  width:46px; height:46px; border-radius:50%; border:none;
+  background:#fff; color:#6D28D9; font-size:22px; cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.08);
+  z-index:9050; display:flex; align-items:center; justify-content:center;
+  font-family:inherit;
+}
+.is-mobile-view #mob-tool-fab:active{ background:#f1f3f4; transform:translateY(-50%) scale(.96); }
+.is-mobile-view #mob-tool-drawer{
+  position:fixed; left:-280px; top:0; bottom:0; width:260px;
+  background:#fff; z-index:9550;
+  box-shadow:6px 0 24px rgba(0,0,0,.18);
+  transition:left .28s cubic-bezier(.4,0,.2,1);
+  padding:calc(12px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px));
+  overflow-y:auto;
+  display:flex; flex-direction:column; gap:6px;
+}
+.is-mobile-view #mob-tool-drawer.open{ left:0; }
+.is-mobile-view #mob-tool-drawer-title{
+  font-weight:700; font-size:13px; color:#1d1d1f;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  margin-bottom:8px; letter-spacing:.3px;
+}
+.is-mobile-view #mob-tool-drawer .drawer-tool{
+  display:flex !important; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:10px;
+  background:#f8fafc; border:1px solid rgba(0,0,0,.04);
+  font-size:13px; color:#1d1d1f; cursor:pointer;
+  font-family:inherit; text-align:left; min-height:44px;
+  white-space:nowrap; overflow:hidden;
+}
+.is-mobile-view #mob-tool-drawer .drawer-tool:active{ background:#eef2ff; }
+.is-mobile-view #mob-tool-drawer .drawer-tool > *:first-child{ font-size:18px; flex-shrink:0; width:24px; text-align:center; }
+.is-mobile-view #mob-tool-drawer .drawer-tool .tb-lbl{
+  display:inline !important; font-size:13px !important; color:#1d1d1f !important;
+  position:static !important; opacity:1 !important; transform:none !important;
+  background:transparent !important; padding:0 !important;
+}
+/* Radius label visible in mobile (default position next to btn-circle which is hidden) */
+.is-mobile-view #live-radius-label{
+  position:fixed !important;
+  top:calc(env(safe-area-inset-top, 0px) + 80px) !important;
+  left:50% !important; right:auto !important;
+  transform:translateX(-50%) !important;
+  z-index:9700 !important;
+}
+</style>
+
+<script id="connectia-fixes-round2-js">
+(function(){
+  /* ========================================================
+     1) FILTERS ACTUALLY MOVE NUMBERS:
+        wrap window._arRenderBody (auto-report) and ensure
+        applyReportFilters refreshes the auto-report panel.
+     ======================================================== */
+  function makeFilterAwareWrapper(orig){
+    return function(){
+      if(typeof window._computeFilterEnvelope !== 'function' || !window.currentData){
+        return orig.apply(this, arguments);
+      }
+      var env;
+      try{ env = window._computeFilterEnvelope(); }catch(e){ env = null; }
+      if(!env || !env.anyDemo){
+        return orig.apply(this, arguments);
+      }
+      var d = window.currentData;
+      var orig_estPop = d.estPop, orig_estHog = d.estHog, orig_nse = d.nse;
+      try{
+        d.estPop = env.filteredPop;
+        d.estHog = env.filteredHog;
+        var rf = window._reportFilters || {};
+        if(rf.nse && rf.nse !== 'all' && Array.isArray(orig_nse)){
+          var sel = orig_nse.filter(function(n){return n && n.n === rf.nse;});
+          if(sel.length){
+            var copy = {};
+            for(var k in sel[0]){ if(Object.prototype.hasOwnProperty.call(sel[0],k)) copy[k]=sel[0][k]; }
+            copy.p = 100;
+            d.nse = [copy];
+          }
+        }
+        return orig.apply(this, arguments);
+      } finally {
+        d.estPop = orig_estPop;
+        d.estHog = orig_estHog;
+        d.nse = orig_nse;
+      }
+    };
+  }
+
+  function attachFilterToAutoReport(){
+    var wrapped = 0;
+    ['_arRenderBody','refreshAutoReport'].forEach(function(name){
+      var fn = window[name];
+      if(typeof fn === 'function' && !fn._filterAwareR2){
+        var w = makeFilterAwareWrapper(fn);
+        w._filterAwareR2 = true;
+        w._origFn = fn;
+        window[name] = w;
+        wrapped++;
+      }
+    });
+
+    // Hook applyReportFilters: tras aplicar filtros, refresca auto-report
+    var orig = window.applyReportFilters;
+    if(typeof orig === 'function' && !orig._refreshHooked){
+      window.applyReportFilters = function(){
+        var r = orig.apply(this, arguments);
+        try{
+          if(typeof window.refreshAutoReport === 'function'){
+            window.refreshAutoReport();
+          }
+        }catch(_){}
+        return r;
+      };
+      window.applyReportFilters._refreshHooked = true;
+    }
+
+    return wrapped;
+  }
+
+  /* ========================================================
+     2) CERRAR PANEL QUEDA CERRADO + STAY WHERE LEFT
+        - Hookear showMobilityPanel para respetar userClosed flag
+        - Quitar auto-snap a half cuando observer detecta visible
+        - Quitar auto-collapse cuando se toca el mapa
+     ======================================================== */
+  function attachStayPut(){
+    // Hookear close button para marcar el flag
+    document.addEventListener('click', function(e){
+      var btn = e.target.closest && e.target.closest('.pcb-close');
+      if(btn){
+        var host = btn.closest('.panel-chrome-host');
+        if(host){
+          host._userClosedAt = Date.now();
+        }
+      }
+    }, true);
+
+    // Hookear showMobilityPanel para no reabrir si user cerró hace <60s
+    var origShow = window.showMobilityPanel;
+    if(typeof origShow === 'function' && !origShow._userClosedHook){
+      window.showMobilityPanel = function(){
+        var afl = document.getElementById('afl-panel');
+        if(afl && afl._userClosedAt && (Date.now() - afl._userClosedAt < 60000)){
+          // Usuario cerró recientemente — no reabrir
+          return;
+        }
+        return origShow.apply(this, arguments);
+      };
+      window.showMobilityPanel._userClosedHook = true;
+    }
+
+    // Hookear refreshAutoReport para respetar userClosed en auto-report
+    var origRefresh = window.refreshAutoReport;
+    if(typeof origRefresh === 'function' && !origRefresh._userClosedHook){
+      var refRef = origRefresh;
+      window.refreshAutoReport = function(){
+        var ar = document.getElementById('auto-report');
+        if(ar && ar._userClosedAt && (Date.now() - ar._userClosedAt < 60000)){
+          return;
+        }
+        return refRef.apply(this, arguments);
+      };
+      window.refreshAutoReport._userClosedHook = true;
+      window.refreshAutoReport._filterAwareR2 = origRefresh._filterAwareR2;
+    }
+
+    // Cuando user toca chip, limpiar el flag para permitir reapertura
+    document.querySelectorAll('.is-mobile-view .mob-chip, .mob-chip').forEach(function(c){
+      c.addEventListener('click', function(){
+        var act = c.dataset.act;
+        var idMap = {ai:'ai-suggestions', filtros:'global-filter-panel', capas:'reports-layer-panel', buscar:'places-menu', rpt:'report-panel', afl:'afl-panel', nse:'nse-layers-menu'};
+        var pid = idMap[act];
+        if(pid){
+          var p = document.getElementById(pid);
+          if(p){ p._userClosedAt = 0; }
+        }
+      });
+    });
+  }
+
+  /* ========================================================
+     3) ACTIVE STATE en chips mobile cuando panel está abierto
+     ======================================================== */
+  function attachChipActive(){
+    var chipPanelMap = {
+      ai:'ai-suggestions',
+      geo:null,
+      filtros:'global-filter-panel',
+      capas:'reports-layer-panel',
+      buscar:'places-menu',
+      rpt:'report-panel',
+      afl:'afl-panel',
+      nse:'nse-layers-menu'
+    };
+    var chips = document.querySelectorAll('.mob-chip');
+    if(!chips.length) return false;
+
+    function refresh(){
+      chips.forEach(function(c){
+        var act = c.dataset.act;
+        var pid = chipPanelMap[act];
+        if(!pid){ return; }
+        var p = document.getElementById(pid);
+        var visible = p && getComputedStyle(p).display !== 'none';
+        c.classList.toggle('active', !!visible);
+      });
+    }
+
+    // Observador en cada panel
+    Object.keys(chipPanelMap).forEach(function(k){
+      var pid = chipPanelMap[k]; if(!pid) return;
+      var el = document.getElementById(pid); if(!el || el._chipActiveObs) return;
+      el._chipActiveObs = true;
+      var obs = new MutationObserver(refresh);
+      obs.observe(el, {attributes:true, attributeFilter:['style','class']});
+    });
+    refresh();
+    return true;
+  }
+
+  /* ========================================================
+     4) Connectia logo en el botón ☰ del search pill
+     ======================================================== */
+  function attachLogoInPill(){
+    var btn = document.getElementById('mob-menu-btn');
+    if(!btn || btn._isLogo) return;
+    btn.textContent = 'connectia';
+    btn.classList.add('is-logo');
+    btn._isLogo = true;
+  }
+
+  /* ========================================================
+     5) Mobile LEFT TOOLBAR DRAWER — FAB + slide-out con tools
+     ======================================================== */
+  function buildToolDrawer(){
+    if(!document.body.classList.contains('is-mobile-view')) return;
+    if(document.getElementById('mob-tool-drawer')) return;
+
+    var fab = document.createElement('button');
+    fab.id = 'mob-tool-fab';
+    fab.type = 'button';
+    fab.setAttribute('aria-label','Herramientas');
+    fab.innerHTML = '🛠️';
+
+    var drawer = document.createElement('div');
+    drawer.id = 'mob-tool-drawer';
+    drawer.innerHTML =
+      '<div id="mob-tool-drawer-title">🛠️ Herramientas</div>';
+
+    var toolbar = document.getElementById('toolbar');
+    if(toolbar){
+      var btns = toolbar.querySelectorAll('button.tb');
+      btns.forEach(function(b){
+        var label = '';
+        var lbl = b.querySelector('.tb-lbl');
+        if(lbl) label = lbl.textContent.trim();
+        var icon = (b.firstChild && b.firstChild.nodeType === 3) ? b.firstChild.textContent.trim() : '';
+        if(!label) label = b.getAttribute('data-tip') || b.getAttribute('title') || '';
+        // Skip share button explicitly
+        if(b.id === 'btn-share') return;
+        var item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'drawer-tool';
+        item.innerHTML = '<span>'+(icon||'·')+'</span><span class="tb-lbl">'+label+'</span>';
+        item.addEventListener('click', function(e){
+          e.preventDefault(); e.stopPropagation();
+          try{ b.click(); }catch(_){}
+          drawer.classList.remove('open');
+        });
+        drawer.appendChild(item);
+      });
+    }
+
+    fab.addEventListener('click', function(){
+      drawer.classList.toggle('open');
+    });
+    document.body.appendChild(fab);
+    document.body.appendChild(drawer);
+
+    // Tap fuera del drawer cierra
+    document.addEventListener('pointerdown', function(ev){
+      if(!drawer.classList.contains('open')) return;
+      if(ev.target.closest('#mob-tool-drawer') || ev.target.closest('#mob-tool-fab')) return;
+      drawer.classList.remove('open');
+    }, true);
+  }
+
+  /* ========================================================
+     6) Reposicionar el label de radio del círculo en mobile
+        (en desktop sigue al lado de #btn-circle)
+     ======================================================== */
+  function patchRadiusLabelPosition(){
+    var orig = window._positionRadiusLabel;
+    if(typeof orig !== 'function' || orig._mobileFix) return;
+    window._positionRadiusLabel = function(){
+      var lbl = (typeof window._getRadiusLabel === 'function') ? window._getRadiusLabel() : document.getElementById('live-radius-label');
+      if(!lbl) return;
+      if(document.body.classList.contains('is-mobile-view')){
+        // CSS ya posiciona top/left/transform — solo asegurar que está en el body y visible
+        lbl.style.position = 'fixed';
+        lbl.style.top = '';     // dejar que el CSS gane
+        lbl.style.left = '';
+        return;
+      }
+      return orig.apply(this, arguments);
+    };
+    window._positionRadiusLabel._mobileFix = true;
+  }
+
+  /* ========================================================
+     7) Stub para showShareDialog — botón ya oculto, pero por
+        si alguien lo dispara desde código
+     ======================================================== */
+  function stubShareDialog(){
+    var orig = window.showShareDialog;
+    if(typeof orig !== 'function' || orig._stubbed) return;
+    window.showShareDialog = function(){
+      console.log('[connectia] showShareDialog deshabilitado por preferencia del usuario');
+      // No-op: no abrir el diálogo
+    };
+    window.showShareDialog._stubbed = true;
+    window.showShareDialog._origFn = orig;
+  }
+
+  /* ========================================================
+     INIT
+     ======================================================== */
+  function start(){
+    attachFilterToAutoReport();
+    attachStayPut();
+    attachChipActive();
+    attachLogoInPill();
+    buildToolDrawer();
+    patchRadiusLabelPosition();
+    stubShareDialog();
+  }
+  function startRetry(){
+    start();
+    [300, 800, 2000, 5000].forEach(function(d){ setTimeout(start, d); });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', startRetry);
+  } else {
+    startRetry();
+  }
+})();
+</script>
 
 </body>
 </html>
