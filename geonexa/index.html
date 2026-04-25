@@ -20524,7 +20524,9 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
 /* Hide ALL share/copiar-enlace UI globally */
 #btn-share,
 #share-dialog,
-#share-dialog *{ display:none !important; }
+#share-dialog *,
+#copy-link-badge,
+#copy-link-badge *{ display:none !important; visibility:hidden !important; }
 /* Active state on mobile chips when their panel is open */
 .is-mobile-view .mob-chip.active{
   background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
@@ -20869,6 +20871,32 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
     window.showShareDialog._origFn = orig;
   }
 
+  /* Eliminar el badge flotante "🔗 Copiar enlace" (#copy-link-badge) y
+     prevenir que se vuelva a crear. */
+  function killCopyLinkBadge(){
+    var el = document.getElementById('copy-link-badge');
+    if(el) el.remove();
+  }
+  function watchCopyLinkBadge(){
+    if(window._copyLinkObs) return;
+    var obs = new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        m.addedNodes && m.addedNodes.forEach(function(n){
+          if(n && n.nodeType === 1){
+            if(n.id === 'copy-link-badge'){
+              n.remove();
+            } else if(n.querySelector){
+              var inner = n.querySelector('#copy-link-badge');
+              if(inner) inner.remove();
+            }
+          }
+        });
+      });
+    });
+    obs.observe(document.body, {childList:true, subtree:false});
+    window._copyLinkObs = obs;
+  }
+
   /* ========================================================
      INIT
      ======================================================== */
@@ -20880,6 +20908,8 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
     buildToolDrawer();
     patchRadiusLabelPosition();
     stubShareDialog();
+    killCopyLinkBadge();
+    watchCopyLinkBadge();
   }
   function startRetry(){
     start();
