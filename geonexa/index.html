@@ -19751,8 +19751,8 @@ body.is-mobile-view #map{ top:0 !important; left:0 !important; right:0 !importan
 .panel-chrome-bar .pcb-min:hover{ background:rgba(0,0,0,.06); color:#1d1d1f; }
 .panel-chrome-bar .pcb-close:hover{ background:rgba(220,38,38,.12); color:#dc2626; }
 
-/* Forzar overflow visible para que sticky funcione bien */
-.panel-chrome-host{ overflow:auto; }
+/* Garantizar que la chrome bar nunca se squash dentro del flex column del panel */
+.panel-chrome-bar{ flex-shrink:0 !important; }
 
 /* === Minimizado (desktop): solo barra parqueada abajo-derecha === */
 .panel-chrome-host.minimized{
@@ -19777,7 +19777,11 @@ body.is-mobile-view #map{ top:0 !important; left:0 !important; right:0 !importan
 .panel-chrome-host.minimized.stack-2{ right:552px !important; }
 .panel-chrome-host.minimized.stack-3{ right:822px !important; }
 
-/* === Bottom-sheet (mobile + iPad) === */
+/* === Bottom-sheet (mobile + iPad) ===
+   Importante: NO sobrescribir el display/flex del panel. Cada panel tiene
+   su propio layout interno (title / scroll / footer). Solo lo posicionamos
+   como hoja inferior y manejamos el snap; la barra chrome va como primer
+   hijo flex-shrink:0 sin tocar al resto. */
 body.is-mobile-view .panel-chrome-host{
   position:fixed !important;
   left:0 !important; right:0 !important;
@@ -19790,13 +19794,7 @@ body.is-mobile-view .panel-chrome-host{
   box-shadow:0 -8px 30px rgba(0,0,0,.24) !important;
   transform:translateY(calc(90vh - 64px));
   transition:transform .3s cubic-bezier(.4,0,.2,1);
-  overflow:hidden !important;
   padding:0 !important;
-  display:flex !important; flex-direction:column;
-}
-body.is-mobile-view .panel-chrome-host > *:not(.panel-chrome-bar){
-  flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
-  padding:10px 14px 24px;
 }
 body.is-mobile-view .panel-chrome-host.snap-peek{ transform:translateY(calc(90vh - 64px)) !important; }
 body.is-mobile-view .panel-chrome-host.snap-half{ transform:translateY(45vh) !important; }
@@ -20399,11 +20397,49 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
     return wrapped;
   }
 
+  // === Auto-apply on change: cada cambio en un select de filtros dispara applyReportFilters() ===
+  function attachAutoApply(){
+    var ids = [
+      'gflt-nse','gflt-gender','gflt-age','gflt-mobility','gflt-daytype','gflt-timeofday',
+      'flt-nse','flt-gender','flt-age'
+    ];
+    var attached = 0;
+    ids.forEach(function(id){
+      var el = document.getElementById(id);
+      if(el && !el._filterAutoApply){
+        el._filterAutoApply = true;
+        el.addEventListener('change', function(){
+          if(typeof window.applyReportFilters === 'function'){
+            try{
+              window.applyReportFilters();
+              console.log('[connectia] auto-apply tras cambio en ' + id + ' →', window._reportFilters);
+            }catch(e){ console.warn('[connectia] applyReportFilters error', e); }
+          }
+        });
+        attached++;
+      }
+    });
+    return attached;
+  }
+
   function start(){
     attachAll();
+    attachAutoApply();
     // Reintentar por si alguna función se define más tarde
-    setTimeout(attachAll, 500);
-    setTimeout(attachAll, 2000);
+    setTimeout(function(){ attachAll(); attachAutoApply(); }, 500);
+    setTimeout(function(){ attachAll(); attachAutoApply(); }, 2000);
+    setTimeout(function(){ attachAll(); attachAutoApply(); }, 5000);
+    // También cuando se abra el panel de filtros, reintentar el binding
+    var origToggle = window.toggleGlobalFilterPanel;
+    if(typeof origToggle === 'function' && !origToggle._autoApplyHooked){
+      window.toggleGlobalFilterPanel = function(){
+        var r = origToggle.apply(this, arguments);
+        setTimeout(attachAutoApply, 50);
+        setTimeout(attachAutoApply, 300);
+        return r;
+      };
+      window.toggleGlobalFilterPanel._autoApplyHooked = true;
+    }
   }
 
   if(document.readyState === 'loading'){
