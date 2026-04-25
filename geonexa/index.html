@@ -20544,15 +20544,32 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
   -webkit-text-fill-color:transparent !important; color:transparent !important;
 }
 /* Mobile left drawer (toolbar) — slide-out menu with cloned tools */
-.is-mobile-view #mob-tool-fab{
-  position:fixed; left:10px; top:50%; transform:translateY(-50%);
-  width:46px; height:46px; border-radius:50%; border:none;
-  background:#fff; color:#6D28D9; font-size:22px; cursor:pointer;
-  box-shadow:0 4px 16px rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.08);
-  z-index:9050; display:flex; align-items:center; justify-content:center;
-  font-family:inherit;
+/* FAB anterior queda totalmente oculto; ahora se abre desde un ☰ en la pill */
+.is-mobile-view #mob-tool-fab{ display:none !important; }
+.is-mobile-view #mob-hamburger-btn{
+  width:36px; height:36px; min-width:36px; border-radius:8px;
+  border:none; background:transparent; cursor:pointer; padding:0;
+  display:flex; align-items:center; justify-content:center;
+  color:#1d1d1f; font-family:inherit;
+  margin-right:2px; flex-shrink:0;
 }
-.is-mobile-view #mob-tool-fab:active{ background:#f1f3f4; transform:translateY(-50%) scale(.96); }
+.is-mobile-view #mob-hamburger-btn:active{ background:#f1f3f4; }
+.is-mobile-view #mob-hamburger-btn .ham-ico{
+  width:20px; height:14px; position:relative; display:block;
+}
+.is-mobile-view #mob-hamburger-btn .ham-ico::before,
+.is-mobile-view #mob-hamburger-btn .ham-ico::after,
+.is-mobile-view #mob-hamburger-btn .ham-ico .ham-mid{
+  content:''; position:absolute; left:0; right:0; height:2px;
+  background:#1d1d1f; border-radius:2px;
+  transition:transform .2s ease, opacity .2s ease;
+}
+.is-mobile-view #mob-hamburger-btn .ham-ico::before{ top:0; }
+.is-mobile-view #mob-hamburger-btn .ham-ico .ham-mid{ top:50%; transform:translateY(-50%); }
+.is-mobile-view #mob-hamburger-btn .ham-ico::after{ bottom:0; }
+.is-mobile-view #mob-hamburger-btn.open .ham-ico::before{ transform:translateY(6px) rotate(45deg); }
+.is-mobile-view #mob-hamburger-btn.open .ham-ico::after{ transform:translateY(-6px) rotate(-45deg); }
+.is-mobile-view #mob-hamburger-btn.open .ham-ico .ham-mid{ opacity:0; }
 .is-mobile-view #mob-tool-drawer{
   position:fixed; left:-280px; top:0; bottom:0; width:260px;
   background:#fff; z-index:9550;
@@ -20783,55 +20800,80 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
      ======================================================== */
   function buildToolDrawer(){
     if(!document.body.classList.contains('is-mobile-view')) return;
-    if(document.getElementById('mob-tool-drawer')) return;
 
-    var fab = document.createElement('button');
-    fab.id = 'mob-tool-fab';
-    fab.type = 'button';
-    fab.setAttribute('aria-label','Herramientas');
-    fab.innerHTML = '🛠️';
+    // 1) Construir el drawer (idempotente)
+    var drawer = document.getElementById('mob-tool-drawer');
+    if(!drawer){
+      drawer = document.createElement('div');
+      drawer.id = 'mob-tool-drawer';
+      drawer.innerHTML = '<div id="mob-tool-drawer-title">🛠️ Herramientas</div>';
 
-    var drawer = document.createElement('div');
-    drawer.id = 'mob-tool-drawer';
-    drawer.innerHTML =
-      '<div id="mob-tool-drawer-title">🛠️ Herramientas</div>';
-
-    var toolbar = document.getElementById('toolbar');
-    if(toolbar){
-      var btns = toolbar.querySelectorAll('button.tb');
-      btns.forEach(function(b){
-        var label = '';
-        var lbl = b.querySelector('.tb-lbl');
-        if(lbl) label = lbl.textContent.trim();
-        var icon = (b.firstChild && b.firstChild.nodeType === 3) ? b.firstChild.textContent.trim() : '';
-        if(!label) label = b.getAttribute('data-tip') || b.getAttribute('title') || '';
-        // Skip share button explicitly
-        if(b.id === 'btn-share') return;
-        var item = document.createElement('button');
-        item.type = 'button';
-        item.className = 'drawer-tool';
-        item.innerHTML = '<span>'+(icon||'·')+'</span><span class="tb-lbl">'+label+'</span>';
-        item.addEventListener('click', function(e){
-          e.preventDefault(); e.stopPropagation();
-          try{ b.click(); }catch(_){}
-          drawer.classList.remove('open');
+      var toolbar = document.getElementById('toolbar');
+      if(toolbar){
+        var btns = toolbar.querySelectorAll('button.tb');
+        btns.forEach(function(b){
+          if(b.id === 'btn-share') return; // skip Compartir
+          var label = '';
+          var lbl = b.querySelector('.tb-lbl');
+          if(lbl) label = lbl.textContent.trim();
+          var icon = (b.firstChild && b.firstChild.nodeType === 3) ? b.firstChild.textContent.trim() : '';
+          if(!label) label = b.getAttribute('data-tip') || b.getAttribute('title') || '';
+          var item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'drawer-tool';
+          item.innerHTML = '<span>'+(icon||'·')+'</span><span class="tb-lbl">'+label+'</span>';
+          item.addEventListener('click', function(e){
+            e.preventDefault(); e.stopPropagation();
+            try{ b.click(); }catch(_){}
+            drawer.classList.remove('open');
+            var ham = document.getElementById('mob-hamburger-btn');
+            if(ham) ham.classList.remove('open');
+          });
+          drawer.appendChild(item);
         });
-        drawer.appendChild(item);
-      });
+      }
+      document.body.appendChild(drawer);
+
+      // Tap fuera del drawer cierra
+      document.addEventListener('pointerdown', function(ev){
+        if(!drawer.classList.contains('open')) return;
+        if(ev.target.closest('#mob-tool-drawer') || ev.target.closest('#mob-hamburger-btn')) return;
+        drawer.classList.remove('open');
+        var ham = document.getElementById('mob-hamburger-btn');
+        if(ham) ham.classList.remove('open');
+      }, true);
     }
 
-    fab.addEventListener('click', function(){
-      drawer.classList.toggle('open');
-    });
-    document.body.appendChild(fab);
-    document.body.appendChild(drawer);
+    // 2) Eliminar el FAB anterior si existe
+    var oldFab = document.getElementById('mob-tool-fab');
+    if(oldFab) oldFab.remove();
 
-    // Tap fuera del drawer cierra
-    document.addEventListener('pointerdown', function(ev){
-      if(!drawer.classList.contains('open')) return;
-      if(ev.target.closest('#mob-tool-drawer') || ev.target.closest('#mob-tool-fab')) return;
-      drawer.classList.remove('open');
-    }, true);
+    // 3) Insertar el botón ☰ dentro de la pill al lado del logo connectia
+    var pill = document.getElementById('mob-search-pill');
+    var existingHam = document.getElementById('mob-hamburger-btn');
+    if(pill && !existingHam){
+      var ham = document.createElement('button');
+      ham.id = 'mob-hamburger-btn';
+      ham.type = 'button';
+      ham.setAttribute('aria-label','Herramientas');
+      ham.innerHTML = '<span class="ham-ico"><span class="ham-mid"></span></span>';
+      // Insertar JUSTO DESPUÉS del logo (mob-menu-btn) y antes del search slot
+      var logo = document.getElementById('mob-menu-btn');
+      if(logo){
+        if(logo.nextSibling){
+          pill.insertBefore(ham, logo.nextSibling);
+        } else {
+          pill.appendChild(ham);
+        }
+      } else {
+        pill.insertBefore(ham, pill.firstChild);
+      }
+      ham.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        var isOpen = drawer.classList.toggle('open');
+        ham.classList.toggle('open', isOpen);
+      });
+    }
   }
 
   /* ========================================================
@@ -20879,6 +20921,7 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
   }
   function watchCopyLinkBadge(){
     if(window._copyLinkObs) return;
+    // MutationObserver en body para borrar el badge si lo crean
     var obs = new MutationObserver(function(muts){
       muts.forEach(function(m){
         m.addedNodes && m.addedNodes.forEach(function(n){
