@@ -19522,6 +19522,10 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
     max-height:82vh !important;
   }
 }
+/* === Hide "Compartir" (🔗) button — solicitado por el usuario === */
+#btn-share{ display:none !important; }
+.is-mobile-view .mob-tool[data-tip="Compartir"]{ display:none !important; }
+
 /* ============================================================
    MOBILE VIEW (Google Maps style) — additive, only iPhone/Android
    Toda regla está scoped a body.is-mobile-view; desktop intacto.
