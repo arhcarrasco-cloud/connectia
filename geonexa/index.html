@@ -20317,5 +20317,102 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
   }
 })();
 </script>
+<script id="connectia-filter-applies-to-reports">
+/* ============================================================
+   FIX: que los reportes respeten _reportFilters
+   ============================================================
+   Bug: generateQuickview / generateResumen / generateNSEReport /
+   generateDemografia / generateGasto / generateFlujo / generateDeepView
+   leen currentData.estPop / .estHog / .nse directamente y nunca consultan
+   _computeFilterEnvelope(). El banner morado sí muestra la pob. filtrada,
+   pero el cuerpo del reporte sigue mostrando el total sin segmentar.
+
+   Solución (aditiva, sin tocar las funciones originales):
+   envolver cada generador con un wrapper que:
+     1) Llama a _computeFilterEnvelope()
+     2) Si hay filtro demográfico activo, sobrescribe TEMPORALMENTE
+        currentData.estPop, .estHog y .nse con los valores filtrados
+     3) Llama a la función original (que ahora lee los valores filtrados)
+     4) Restaura los valores originales en el finally (siempre)
+============================================================ */
+(function(){
+  var TARGETS = [
+    'generateQuickview','generateDeepView',
+    'generateResumen','generateNSEReport','generateDemografia',
+    'generateComercios','generateDENUE','generateGasto','generateFlujo',
+    'exportReportPDF','exportReportPPTX','exportReport'
+  ];
+
+  function makeWrapper(orig){
+    return function(){
+      // Si no hay envelope o no hay datos, comportamiento idéntico
+      if(typeof window._computeFilterEnvelope !== 'function' || !window.currentData){
+        return orig.apply(this, arguments);
+      }
+      var env;
+      try{ env = window._computeFilterEnvelope(); }catch(e){ env = null; }
+      if(!env || !env.anyDemo){
+        return orig.apply(this, arguments);
+      }
+      var d = window.currentData;
+      var orig_estPop = d.estPop;
+      var orig_estHog = d.estHog;
+      var orig_nse    = d.nse;
+      try{
+        // Población y hogares filtrados
+        d.estPop = env.filteredPop;
+        d.estHog = env.filteredHog;
+        // Si hay filtro NSE específico, dejar en d.nse SOLO ese segmento al 100%
+        var rf = window._reportFilters || {};
+        if(rf.nse && rf.nse !== 'all' && Array.isArray(orig_nse)){
+          var sel = orig_nse.filter(function(n){ return n && n.n === rf.nse; });
+          if(sel.length){
+            // clonar para no mutar el objeto original aunque lo restauremos
+            var copy = {};
+            for(var k in sel[0]){ if(Object.prototype.hasOwnProperty.call(sel[0],k)) copy[k]=sel[0][k]; }
+            copy.p = 100;
+            d.nse = [copy];
+          }
+        }
+        return orig.apply(this, arguments);
+      } finally {
+        d.estPop = orig_estPop;
+        d.estHog = orig_estHog;
+        d.nse    = orig_nse;
+      }
+    };
+  }
+
+  function attachAll(){
+    var wrapped = 0;
+    TARGETS.forEach(function(name){
+      var fn = window[name];
+      if(typeof fn === 'function' && !fn._filterAware){
+        var wrap = makeWrapper(fn);
+        wrap._filterAware = true;
+        wrap._origFn = fn;
+        window[name] = wrap;
+        wrapped++;
+      }
+    });
+    if(wrapped) console.log('[connectia] filter-aware wrappers attached: ' + wrapped + '/' + TARGETS.length);
+    return wrapped;
+  }
+
+  function start(){
+    attachAll();
+    // Reintentar por si alguna función se define más tarde
+    setTimeout(attachAll, 500);
+    setTimeout(attachAll, 2000);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+</script>
+
 </body>
 </html>
