@@ -19489,6 +19489,9 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
 </script>
 
 <style id="device-responsive-css">
+/* ============================================================ */
+/* TABLET (≤1024px) — paneles más angostos, sin reposicionar    */
+/* ============================================================ */
 @media (max-width:1024px){
   #global-filter-panel{ width:300px !important; }
   #report-panel{ width:340px !important; }
@@ -19496,7 +19499,12 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
   #auto-report{ width:340px !important; }
   #reports-layer-panel{ width:300px !important; }
 }
+
+/* ============================================================ */
+/* MOBILE (≤768px) — paneles como bottom-sheet / pantalla       */
+/* ============================================================ */
 @media (max-width:768px){
+  /* Paneles a la derecha → bottom sheet */
   #global-filter-panel,
   #report-panel,
   #auto-report{
@@ -19512,7 +19520,10 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
     transform:none !important;
   }
   #auto-report{ height:78vh !important; }
+  /* Flechita del auto-report: ocultar en mobile (el panel ya es bottom-sheet) */
   #ar-toggle{ display:none !important; }
+
+  /* Panel de capas a la izquierda → bottom sheet */
   #reports-layer-panel{
     width:100% !important;
     max-width:100% !important;
@@ -19523,11 +19534,19 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
     max-height:75vh !important;
     border-radius:16px 16px 0 0 !important;
   }
+
+  /* Densidad tipográfica ligeramente mayor para conservar legibilidad */
   #report-content{ padding:10px 12px !important; }
+
+  /* Dropdowns/menús programáticos anchos fijos (places/heatmap) */
   .pm-panel, .places-filter-menu, #heatmap-dropdown{
     max-width:92vw !important;
   }
 }
+
+/* ============================================================ */
+/* MOBILE muy estrecho (≤480px) — altura menor para el mapa    */
+/* ============================================================ */
 @media (max-width:480px){
   #global-filter-panel,
   #report-panel,
@@ -19537,6 +19556,10 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
     max-height:70vh !important;
   }
 }
+
+/* ============================================================ */
+/* LANDSCAPE móvil — bottom-sheets más bajos para no tapar mapa */
+/* ============================================================ */
 @media (max-width:900px) and (orientation:landscape) and (max-height:500px){
   #global-filter-panel,
   #report-panel,
@@ -19546,6 +19569,7 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
     max-height:82vh !important;
   }
 }
+
 /* === Hide "Compartir" (🔗) button — solicitado por el usuario === */
 #btn-share{ display:none !important; }
 .is-mobile-view .mob-tool[data-tip="Compartir"]{ display:none !important; }
@@ -19562,14 +19586,15 @@ body.is-mobile-view #map{ top:0 !important; left:0 !important; right:0 !importan
 /* Top floating search */
 .is-mobile-view #mob-top{
   position:fixed; top:env(safe-area-inset-top, 0px); left:0; right:0;
-  padding:10px 12px 0 12px; z-index:9000; pointer-events:none;
+  padding:10px 12px 0 0; z-index:9000; pointer-events:none;
 }
 .is-mobile-view #mob-top > *{ pointer-events:auto; }
 .is-mobile-view #mob-search-pill{
   display:flex; align-items:center; gap:6px;
-  background:#fff; border-radius:28px;
+  background:#fff;
+  border-radius:0 28px 28px 0;
   box-shadow:0 4px 16px rgba(0,0,0,.14), 0 1px 4px rgba(0,0,0,.08);
-  padding:6px 8px 6px 6px; min-height:52px;
+  padding:6px 8px 6px 4px; min-height:52px;
 }
 .is-mobile-view #mob-menu-btn,
 .is-mobile-view #mob-clear-btn{
@@ -19734,6 +19759,7 @@ body.is-mobile-view #map{ top:0 !important; left:0 !important; right:0 !importan
   bottom:calc(72px + env(safe-area-inset-bottom,0px)) !important;
   left:12px !important;
 }
+
 /* ============================================================
    PANEL CHROME — drag/minimize/close (desktop)
                 + bottom-sheet snap (mobile/iPad)
@@ -20571,13 +20597,22 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
 /* FAB anterior queda totalmente oculto; ahora se abre desde un ☰ en la pill */
 .is-mobile-view #mob-tool-fab{ display:none !important; }
 .is-mobile-view #mob-hamburger-btn{
-  width:36px; height:36px; min-width:36px; border-radius:8px;
+  width:44px; height:40px; min-width:44px;
+  border-radius:0 10px 10px 0;
   border:none; background:transparent; cursor:pointer; padding:0;
   display:flex; align-items:center; justify-content:center;
   color:#1d1d1f; font-family:inherit;
-  margin-right:2px; flex-shrink:0;
+  margin-left:0; flex-shrink:0;
 }
 .is-mobile-view #mob-hamburger-btn:active{ background:#f1f3f4; }
+/* Backdrop oscuro detrás del drawer — feel tipo app nativa */
+.is-mobile-view #mob-tool-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.42);
+  z-index:9540; opacity:0; pointer-events:none;
+  transition:opacity .25s ease;
+  -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px);
+}
+.is-mobile-view #mob-tool-backdrop.show{ opacity:1; pointer-events:auto; }
 .is-mobile-view #mob-hamburger-btn .ham-ico{
   width:20px; height:14px; position:relative; display:block;
 }
@@ -20858,21 +20893,62 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
       }
       document.body.appendChild(drawer);
 
-      // Tap fuera del drawer cierra
-      document.addEventListener('pointerdown', function(ev){
-        if(!drawer.classList.contains('open')) return;
-        if(ev.target.closest('#mob-tool-drawer') || ev.target.closest('#mob-hamburger-btn')) return;
-        drawer.classList.remove('open');
-        var ham = document.getElementById('mob-hamburger-btn');
-        if(ham) ham.classList.remove('open');
-      }, true);
+      // Tap fuera cierra (handler global, idempotente)
+      if(!window._drawerOutsideTap){
+        window._drawerOutsideTap = true;
+        document.addEventListener('pointerdown', function(ev){
+          var d = document.getElementById('mob-tool-drawer');
+          if(!d || !d.classList.contains('open')) return;
+          if(ev.target.closest('#mob-tool-drawer') || ev.target.closest('#mob-hamburger-btn')) return;
+          d.classList.remove('open');
+          var bd = document.getElementById('mob-tool-backdrop');
+          if(bd) bd.classList.remove('show');
+          var ham = document.getElementById('mob-hamburger-btn');
+          if(ham) ham.classList.remove('open');
+        }, true);
+      }
     }
 
     // 2) Eliminar el FAB anterior si existe
     var oldFab = document.getElementById('mob-tool-fab');
     if(oldFab) oldFab.remove();
 
-    // 3) Insertar el botón ☰ dentro de la pill al lado del logo connectia
+    // 3) Backdrop tipo app — overlay oscuro detrás del drawer
+    var backdrop = document.getElementById('mob-tool-backdrop');
+    if(!backdrop){
+      backdrop = document.createElement('div');
+      backdrop.id = 'mob-tool-backdrop';
+      document.body.appendChild(backdrop);
+    }
+
+    function closeDrawer(){
+      drawer.classList.remove('open');
+      backdrop.classList.remove('show');
+      var ham = document.getElementById('mob-hamburger-btn');
+      if(ham) ham.classList.remove('open');
+    }
+    function openDrawer(){
+      drawer.classList.add('open');
+      backdrop.classList.add('show');
+      var ham = document.getElementById('mob-hamburger-btn');
+      if(ham) ham.classList.add('open');
+    }
+
+    // Tap en backdrop cierra
+    if(!backdrop._wired){
+      backdrop.addEventListener('click', closeDrawer);
+      backdrop._wired = true;
+    }
+
+    // Que los items del drawer también cierren via las funciones nuevas
+    drawer.querySelectorAll('.drawer-tool').forEach(function(it){
+      if(it._closeWired) return;
+      it._closeWired = true;
+      it.addEventListener('click', function(){ closeDrawer(); });
+    });
+
+    // 4) Insertar el botón ☰ dentro de la pill — PRIMER hijo, ANTES del logo,
+    //    pegado al borde izquierdo de la pantalla
     var pill = document.getElementById('mob-search-pill');
     var existingHam = document.getElementById('mob-hamburger-btn');
     if(pill && !existingHam){
@@ -20881,22 +20957,17 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
       ham.type = 'button';
       ham.setAttribute('aria-label','Herramientas');
       ham.innerHTML = '<span class="ham-ico"><span class="ham-mid"></span></span>';
-      // Insertar JUSTO DESPUÉS del logo (mob-menu-btn) y antes del search slot
-      var logo = document.getElementById('mob-menu-btn');
-      if(logo){
-        if(logo.nextSibling){
-          pill.insertBefore(ham, logo.nextSibling);
-        } else {
-          pill.appendChild(ham);
-        }
-      } else {
-        pill.insertBefore(ham, pill.firstChild);
-      }
+      // PRIMER hijo del pill (antes del logo)
+      pill.insertBefore(ham, pill.firstChild);
       ham.addEventListener('click', function(e){
         e.preventDefault(); e.stopPropagation();
-        var isOpen = drawer.classList.toggle('open');
-        ham.classList.toggle('open', isOpen);
+        if(drawer.classList.contains('open')) closeDrawer(); else openDrawer();
       });
+    } else if(existingHam && pill && existingHam.parentNode === pill){
+      // Si ya existe pero está en posición incorrecta, moverlo al inicio
+      if(pill.firstChild !== existingHam){
+        pill.insertBefore(existingHam, pill.firstChild);
+      }
     }
   }
 
