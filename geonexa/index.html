@@ -19710,14 +19710,161 @@ body.is-mobile-view #map{ top:0 !important; left:0 !important; right:0 !importan
   bottom:calc(72px + env(safe-area-inset-bottom,0px)) !important;
   left:12px !important;
 }
+/* ============================================================
+   PANEL CHROME — drag/minimize/close (desktop)
+                + bottom-sheet snap (mobile/iPad)
+   Aditivo. Cada panel registrado recibe class .panel-chrome-host
+   y se le antepone .panel-chrome-bar como header.
+   ============================================================ */
+
+/* Header común */
+.panel-chrome-bar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; gap:6px;
+  height:34px; padding:0 6px;
+  background:linear-gradient(135deg, rgba(109,40,217,.10), rgba(139,58,159,.04));
+  border-bottom:1px solid rgba(0,0,0,.06);
+  border-top-left-radius:inherit; border-top-right-radius:inherit;
+  user-select:none; -webkit-user-select:none;
+  cursor:grab; touch-action:none;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',sans-serif;
+}
+.panel-chrome-bar.dragging{ cursor:grabbing; }
+.panel-chrome-bar .pcb-grip{
+  width:22px; height:5px; border-radius:3px;
+  background:linear-gradient(90deg, rgba(0,0,0,.18), rgba(0,0,0,.28));
+  margin:0 4px; flex-shrink:0;
+}
+.panel-chrome-bar .pcb-title{
+  flex:1; font-size:12px; font-weight:600; color:#1d1d1f;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  letter-spacing:.2px; min-width:0;
+}
+.panel-chrome-bar .pcb-min,
+.panel-chrome-bar .pcb-close{
+  width:26px; height:26px; min-width:26px; border:none; background:transparent;
+  border-radius:6px; cursor:pointer; font-size:14px; color:#5f6368;
+  display:flex; align-items:center; justify-content:center;
+  font-family:inherit; padding:0; flex-shrink:0;
+  line-height:1;
+}
+.panel-chrome-bar .pcb-min:hover{ background:rgba(0,0,0,.06); color:#1d1d1f; }
+.panel-chrome-bar .pcb-close:hover{ background:rgba(220,38,38,.12); color:#dc2626; }
+
+/* Forzar overflow visible para que sticky funcione bien */
+.panel-chrome-host{ overflow:auto; }
+
+/* === Minimizado (desktop): solo barra parqueada abajo-derecha === */
+.panel-chrome-host.minimized{
+  height:34px !important; min-height:0 !important; max-height:34px !important;
+  width:260px !important; max-width:260px !important; min-width:0 !important;
+  overflow:hidden !important;
+  bottom:12px !important; right:12px !important; left:auto !important; top:auto !important;
+  z-index:10000 !important;
+  box-shadow:0 4px 16px rgba(0,0,0,.18) !important;
+  transform:none !important;
+  transition:all .2s ease;
+  border-radius:10px !important;
+  padding:0 !important;
+}
+.panel-chrome-host.minimized > *:not(.panel-chrome-bar){ display:none !important; }
+.panel-chrome-host.minimized .panel-chrome-bar{
+  border-radius:10px;
+  border-bottom:none;
+}
+/* Apilar minimizados horizontalmente al lado */
+.panel-chrome-host.minimized.stack-1{ right:282px !important; }
+.panel-chrome-host.minimized.stack-2{ right:552px !important; }
+.panel-chrome-host.minimized.stack-3{ right:822px !important; }
+
+/* === Bottom-sheet (mobile + iPad) === */
+body.is-mobile-view .panel-chrome-host{
+  position:fixed !important;
+  left:0 !important; right:0 !important;
+  width:100% !important; max-width:none !important; min-width:0 !important;
+  bottom:0 !important; top:auto !important;
+  margin:0 !important;
+  border-radius:20px 20px 0 0 !important;
+  height:90vh !important; max-height:90vh !important;
+  z-index:9300 !important;
+  box-shadow:0 -8px 30px rgba(0,0,0,.24) !important;
+  transform:translateY(calc(90vh - 64px));
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  overflow:hidden !important;
+  padding:0 !important;
+  display:flex !important; flex-direction:column;
+}
+body.is-mobile-view .panel-chrome-host > *:not(.panel-chrome-bar){
+  flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:10px 14px 24px;
+}
+body.is-mobile-view .panel-chrome-host.snap-peek{ transform:translateY(calc(90vh - 64px)) !important; }
+body.is-mobile-view .panel-chrome-host.snap-half{ transform:translateY(45vh) !important; }
+body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !important; }
+body.is-mobile-view .panel-chrome-host.dragging{ transition:none !important; }
+
+/* En mobile la barra se vuelve handle grande, sin minimize */
+body.is-mobile-view .panel-chrome-bar{
+  position:relative; top:auto;
+  height:56px; padding:14px 12px 8px;
+  background:#fff; border-bottom:1px solid rgba(0,0,0,.06);
+  border-radius:20px 20px 0 0;
+  flex-shrink:0;
+}
+body.is-mobile-view .panel-chrome-bar .pcb-grip{
+  position:absolute; top:6px; left:50%; transform:translateX(-50%);
+  width:42px; height:5px;
+  background:#cbd5e1;
+}
+body.is-mobile-view .panel-chrome-bar .pcb-title{
+  margin-top:6px; font-size:14px;
+}
+body.is-mobile-view .panel-chrome-bar .pcb-min{ display:none; }
+body.is-mobile-view .panel-chrome-bar .pcb-close{
+  margin-top:6px; width:32px; height:32px; font-size:16px;
+}
+
+/* Cuando hay un sheet abierto en half/full, ocultar el bottom nav */
+body.is-mobile-view #mob-nav{ transition:transform .25s cubic-bezier(.4,0,.2,1); }
+body.is-mobile-view.sheet-active #mob-nav{ transform:translateY(110%); }
+
+/* Override las reglas previas que anclaban paneles arriba del nav — ahora son chrome-hosts y van bottom:0 */
+body.is-mobile-view #afl-panel.panel-chrome-host,
+body.is-mobile-view #global-filter-panel.panel-chrome-host,
+body.is-mobile-view #report-panel.panel-chrome-host,
+body.is-mobile-view #auto-report.panel-chrome-host,
+body.is-mobile-view #reports-layer-panel.panel-chrome-host,
+body.is-mobile-view #places-menu.panel-chrome-host,
+body.is-mobile-view #nse-layers-menu.panel-chrome-host{
+  bottom:0 !important;
+}
+
+/* nse-legend es chiquito, mejor mantenerlo flotante en mobile */
+body.is-mobile-view #nse-legend.panel-chrome-host{
+  position:fixed !important; bottom:calc(64px + env(safe-area-inset-bottom,0px)) !important;
+  left:12px !important; right:12px !important; width:auto !important;
+  height:auto !important; max-height:50vh !important;
+  transform:none !important; border-radius:14px !important;
+}
+body.is-mobile-view #nse-legend.panel-chrome-host.snap-peek,
+body.is-mobile-view #nse-legend.panel-chrome-host.snap-half,
+body.is-mobile-view #nse-legend.panel-chrome-host.snap-full{ transform:none !important; }
+
+/* Selectividad alta para vencer reglas con !important previas — refuerzo */
+body.is-mobile-view .panel-chrome-host.snap-peek{ transform:translateY(calc(90vh - 64px)) !important; }
+body.is-mobile-view .panel-chrome-host.snap-half{ transform:translateY(45vh) !important; }
+body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !important; }
 </style>
 <script id="connectia-mobile-init">
 (function(){
   var ua = navigator.userAgent.toLowerCase();
+  var hasTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   var isIPhone = /iphone|ipod/.test(ua);
   var isAndroidMobile = /android/.test(ua) && /mobile/.test(ua);
-  var isSmallTouch = (window.innerWidth <= 768) && (('ontouchstart' in window) || navigator.maxTouchPoints > 0);
-  var isMobile = isIPhone || isAndroidMobile || isSmallTouch;
+  var isIPadOS = /ipad/.test(ua) || (/macintosh/.test(ua) && hasTouch);
+  var isAndroidTablet = /android/.test(ua) && !/mobile/.test(ua);
+  var isSmallTouch = (window.innerWidth <= 768) && hasTouch;
+  var isMobile = isIPhone || isAndroidMobile || isIPadOS || isAndroidTablet || isSmallTouch;
   // Allow forcing mobile via ?mobile=1 for testing
   if(/[?&]mobile=1/.test(location.search)) isMobile = true;
   if(/[?&]mobile=0/.test(location.search)) isMobile = false;
@@ -19918,5 +20065,257 @@ body.is-mobile-view #map{ top:0 !important; left:0 !important; right:0 !importan
 </script>
 
 
+
+<script id="connectia-panel-chrome">
+(function(){
+  // Panels registrados (id -> título de la titlebar)
+  var PANELS = [
+    ['afl-panel',           '🚶 Afluencia indoor'],
+    ['auto-report',         '📊 Reporte automático'],
+    ['report-panel',        '📋 Reporte del área'],
+    ['global-filter-panel', '🎛️ Filtros globales'],
+    ['reports-layer-panel', '🗺️ Gestión de capas'],
+    ['places-menu',         '🔍 Categorías y comercios'],
+    ['nse-layers-menu',     '🏘️ Capas NSE'],
+    ['nse-legend',          '🏘️ Leyenda NSE'],
+    ['mobility-panel',      '🚦 Movilidad'],
+    ['ai-suggestions',      '✨ ConnectIA · sugerencias'],
+  ];
+
+  function isSheetMode(){ return document.body.classList.contains('is-mobile-view'); }
+
+  function syncSheetActive(){
+    if(!isSheetMode()){
+      document.body.classList.remove('sheet-active');
+      return;
+    }
+    var any = PANELS.some(function(p){
+      var el = document.getElementById(p[0]);
+      if(!el || el.id === 'nse-legend') return false; // legend no cuenta
+      if(getComputedStyle(el).display === 'none') return false;
+      return el.classList.contains('snap-half') || el.classList.contains('snap-full');
+    });
+    document.body.classList.toggle('sheet-active', any);
+  }
+
+  function setSnap(el, snap){
+    el.style.transform = '';
+    el.classList.remove('snap-peek','snap-half','snap-full');
+    el.classList.add('snap-' + snap);
+    syncSheetActive();
+  }
+
+  function getCurrentTranslateY(el){
+    var st = el.style.transform || '';
+    var m = st.match(/translateY\(([0-9.\-]+)px\)/);
+    if(m) return parseFloat(m[1]);
+    var h = window.innerHeight;
+    if(el.classList.contains('snap-full')) return 0;
+    if(el.classList.contains('snap-half')) return h * 0.45;
+    return h * 0.90 - 64; // peek
+  }
+
+  function restackMinimized(){
+    var mins = Array.prototype.slice.call(document.querySelectorAll('.panel-chrome-host.minimized'));
+    mins.forEach(function(el, i){
+      el.classList.remove('stack-1','stack-2','stack-3');
+      if(i>0 && i<=3) el.classList.add('stack-' + i);
+    });
+  }
+
+  function attachChrome(id, title){
+    var el = document.getElementById(id);
+    if(!el || el.dataset.chromeAttached) return;
+    el.dataset.chromeAttached = '1';
+    el.classList.add('panel-chrome-host');
+
+    // Construir titlebar
+    var bar = document.createElement('div');
+    bar.className = 'panel-chrome-bar';
+    bar.innerHTML =
+      '<div class="pcb-grip"></div>' +
+      '<div class="pcb-title">' + title + '</div>' +
+      '<button class="pcb-min"   type="button" aria-label="Minimizar" title="Minimizar">_</button>' +
+      '<button class="pcb-close" type="button" aria-label="Cerrar"    title="Cerrar">✕</button>';
+    if(el.firstChild) el.insertBefore(bar, el.firstChild);
+    else el.appendChild(bar);
+
+    el.classList.add('snap-peek');
+
+    var btnClose = bar.querySelector('.pcb-close');
+    var btnMin   = bar.querySelector('.pcb-min');
+
+    btnClose.addEventListener('click', function(e){
+      e.stopPropagation();
+      el.style.display = 'none';
+      el.classList.remove('minimized','stack-1','stack-2','stack-3');
+      el.classList.remove('snap-half','snap-full');
+      el.classList.add('snap-peek');
+      restackMinimized();
+      syncSheetActive();
+    });
+
+    btnMin.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(isSheetMode()){
+        // En mobile, "minimizar" = ir a peek
+        setSnap(el, 'peek');
+      } else {
+        el.classList.toggle('minimized');
+        if(!el.classList.contains('minimized')){
+          el.classList.remove('stack-1','stack-2','stack-3');
+        }
+        restackMinimized();
+      }
+    });
+
+    // Drag (desktop window OR mobile sheet)
+    var drag = null;
+    var didMove = false;
+    var downTime = 0;
+
+    function pointerDown(ev){
+      if(ev.target.closest('button')) return;
+      ev.preventDefault();
+      didMove = false;
+      downTime = Date.now();
+      var sheet = isSheetMode();
+      var rect = el.getBoundingClientRect();
+      drag = {
+        x: ev.clientX, y: ev.clientY,
+        l: rect.left, t: rect.top,
+        sheet: sheet,
+        baseY: sheet ? getCurrentTranslateY(el) : 0,
+      };
+      try{ bar.setPointerCapture(ev.pointerId); }catch(_){}
+      bar.classList.add('dragging');
+      el.classList.add('dragging');
+    }
+    function pointerMove(ev){
+      if(!drag) return;
+      var dx = ev.clientX - drag.x;
+      var dy = ev.clientY - drag.y;
+      if(Math.abs(dx) > 4 || Math.abs(dy) > 4) didMove = true;
+      if(drag.sheet){
+        var newY = drag.baseY + dy;
+        var maxY = window.innerHeight * 0.90 - 64;
+        if(newY < 0) newY = 0;
+        if(newY > maxY + 80) newY = maxY + 80; // permite "pull" extra hacia abajo
+        el.style.transform = 'translateY(' + newY + 'px)';
+      } else {
+        if(el.classList.contains('minimized')) return; // no mover si está minimizado
+        var nl = drag.l + dx;
+        var nt = drag.t + dy;
+        nl = Math.max(0, Math.min(window.innerWidth - 80, nl));
+        nt = Math.max(0, Math.min(window.innerHeight - 40, nt));
+        el.style.position = 'fixed';
+        el.style.left = nl + 'px';
+        el.style.top  = nt + 'px';
+        el.style.right  = 'auto';
+        el.style.bottom = 'auto';
+        el.style.margin = '0';
+      }
+    }
+    function pointerUp(ev){
+      if(!drag) return;
+      bar.classList.remove('dragging');
+      el.classList.remove('dragging');
+      try{ bar.releasePointerCapture(ev.pointerId); }catch(_){}
+      var wasSheet = drag.sheet;
+      drag = null;
+
+      if(wasSheet){
+        if(!didMove && (Date.now() - downTime) < 300){
+          // Tap: ciclar peek -> half -> full -> peek
+          var cur = el.classList.contains('snap-peek') ? 'half' :
+                    el.classList.contains('snap-half') ? 'full' : 'peek';
+          setSnap(el, cur);
+        } else {
+          // Snap a más cercano
+          var curY = parseFloat((el.style.transform.match(/translateY\(([0-9.\-]+)/)||[0,0])[1]) || 0;
+          var h = window.innerHeight;
+          var peekY = h * 0.90 - 64;
+          var halfY = h * 0.45;
+          var fullY = 0;
+          // Si arrastró muy abajo más allá de peek, cierra
+          if(curY > peekY + 40){
+            el.style.display = 'none';
+            el.style.transform = '';
+            el.classList.remove('snap-half','snap-full');
+            el.classList.add('snap-peek');
+            syncSheetActive();
+            return;
+          }
+          var dists = [
+            [Math.abs(curY - peekY), 'peek'],
+            [Math.abs(curY - halfY), 'half'],
+            [Math.abs(curY - fullY), 'full'],
+          ].sort(function(a,b){return a[0]-b[0];});
+          setSnap(el, dists[0][1]);
+        }
+      }
+    }
+    bar.addEventListener('pointerdown', pointerDown);
+    bar.addEventListener('pointermove', pointerMove);
+    bar.addEventListener('pointerup', pointerUp);
+    bar.addEventListener('pointercancel', pointerUp);
+
+    // Observador: cuando el panel se vuelve visible, snap inicial = half (mobile)
+    var wasHidden = (getComputedStyle(el).display === 'none');
+    el._wasHidden = wasHidden;
+    var obs = new MutationObserver(function(){
+      var disp = getComputedStyle(el).display;
+      if(disp === 'none'){
+        el._wasHidden = true;
+      } else if(el._wasHidden){
+        el._wasHidden = false;
+        if(isSheetMode() && el.id !== 'nse-legend'){
+          // Arranca en half para que sea visible pero no cubra todo
+          setTimeout(function(){ setSnap(el, 'half'); }, 20);
+        } else if(!isSheetMode() && el.classList.contains('minimized')){
+          // Si se reabre estando minimizado, des-minimizar
+          el.classList.remove('minimized','stack-1','stack-2','stack-3');
+          restackMinimized();
+        }
+      }
+      syncSheetActive();
+    });
+    obs.observe(el, {attributes:true, attributeFilter:['style','class']});
+  }
+
+  function initAll(){
+    PANELS.forEach(function(p){ attachChrome(p[0], p[1]); });
+
+    // Reintentar para paneles que se crean dinámicamente
+    setTimeout(function(){ PANELS.forEach(function(p){ attachChrome(p[0], p[1]); }); }, 500);
+    setTimeout(function(){ PANELS.forEach(function(p){ attachChrome(p[0], p[1]); }); }, 2000);
+
+    // En mobile: tap fuera de cualquier sheet abierto cierra al estado peek
+    document.addEventListener('pointerdown', function(ev){
+      if(!isSheetMode()) return;
+      var inPanel = ev.target.closest('.panel-chrome-host');
+      var inOverlay = ev.target.closest('#mob-top, #mob-nav, #mob-sheet, #mob-input-sheet, #mob-backdrop');
+      if(inPanel || inOverlay) return;
+      // tap en mapa: colapsar sheets a peek
+      PANELS.forEach(function(p){
+        var el = document.getElementById(p[0]);
+        if(!el || el.id==='nse-legend') return;
+        if(getComputedStyle(el).display === 'none') return;
+        if(el.classList.contains('snap-half') || el.classList.contains('snap-full')){
+          setSnap(el, 'peek');
+        }
+      });
+    }, true);
+
+    console.log('[connectia] panel chrome activo (' + PANELS.length + ' paneles registrados)');
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initAll);
+  } else {
+    initAll();
+  }
+})();
+</script>
 </body>
 </html>
