@@ -19522,7 +19522,397 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
     max-height:82vh !important;
   }
 }
+/* ============================================================
+   MOBILE VIEW (Google Maps style) — additive, only iPhone/Android
+   Toda regla está scoped a body.is-mobile-view; desktop intacto.
+   ============================================================ */
+body.is-mobile-view{ overflow:hidden; -webkit-text-size-adjust:100%; }
+body.is-mobile-view #topbar{ display:none !important; }
+body.is-mobile-view #toolbar{ display:none !important; }
+body.is-mobile-view #map{ top:0 !important; left:0 !important; right:0 !important; bottom:0 !important; }
+
+/* Top floating search */
+.is-mobile-view #mob-top{
+  position:fixed; top:env(safe-area-inset-top, 0px); left:0; right:0;
+  padding:10px 12px 0 12px; z-index:9000; pointer-events:none;
+}
+.is-mobile-view #mob-top > *{ pointer-events:auto; }
+.is-mobile-view #mob-search-pill{
+  display:flex; align-items:center; gap:6px;
+  background:#fff; border-radius:28px;
+  box-shadow:0 4px 16px rgba(0,0,0,.14), 0 1px 4px rgba(0,0,0,.08);
+  padding:6px 8px 6px 6px; min-height:52px;
+}
+.is-mobile-view #mob-menu-btn,
+.is-mobile-view #mob-clear-btn{
+  width:40px; height:40px; min-width:40px; border-radius:50%;
+  border:none; background:transparent; font-size:20px;
+  display:flex; align-items:center; justify-content:center;
+  color:#5f6368; cursor:pointer; padding:0;
+}
+.is-mobile-view #mob-menu-btn{ font-size:22px; color:#1d1d1f; }
+.is-mobile-view #mob-menu-btn:active,
+.is-mobile-view #mob-clear-btn:active{ background:#f1f3f4; }
+.is-mobile-view #mob-search-slot{ flex:1; min-width:0; display:flex; align-items:center; }
+.is-mobile-view #mob-search-slot #search-box{
+  flex:1 !important; max-width:none !important; width:100% !important;
+}
+.is-mobile-view #mob-search-slot #search-input{
+  border:none !important; outline:none !important; background:transparent !important;
+  width:100% !important; font-size:16px !important; color:#1d1d1f !important;
+  padding:6px 0 !important; height:auto !important; box-shadow:none !important;
+}
+.is-mobile-view #mob-search-slot #search-input:focus{
+  box-shadow:none !important; background:transparent !important; border:none !important;
+}
+/* Suggestions dropdown floating below pill */
+.is-mobile-view #mob-search-slot #suggestions{
+  position:fixed !important;
+  top:calc(env(safe-area-inset-top, 0px) + 70px) !important;
+  left:12px !important; right:12px !important;
+  width:auto !important; max-height:55vh !important;
+  border-radius:18px !important; border:1px solid rgba(0,0,0,.06) !important;
+  box-shadow:0 8px 28px rgba(0,0,0,.18) !important; z-index:9100 !important;
+}
+
+/* Chip row (acciones rápidas) */
+.is-mobile-view #mob-chips{
+  display:flex; gap:6px; overflow-x:auto;
+  padding:10px 4px 4px; scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.is-mobile-view #mob-chips::-webkit-scrollbar{ display:none; }
+.is-mobile-view .mob-chip{
+  flex-shrink:0; background:#fff; border:1px solid rgba(0,0,0,.08);
+  padding:8px 14px; border-radius:20px; font-size:13px; font-weight:500;
+  color:#1d1d1f; cursor:pointer; white-space:nowrap;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+.is-mobile-view .mob-chip:active{ background:#f1f3f4; transform:scale(.97); }
+
+/* Bottom nav */
+.is-mobile-view #mob-nav{
+  position:fixed; bottom:0; left:0; right:0; z-index:9000;
+  background:#fff; border-top:1px solid rgba(0,0,0,.06);
+  display:flex; justify-content:space-around; align-items:stretch;
+  padding:6px 4px calc(4px + env(safe-area-inset-bottom, 0px)) 4px;
+  box-shadow:0 -2px 12px rgba(0,0,0,.08);
+}
+.is-mobile-view .mob-nav-btn{
+  flex:1; background:transparent; border:none; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; padding:6px 0; color:#5f6368; min-height:48px;
+  font-family:inherit;
+}
+.is-mobile-view .mob-nav-btn .mn-ico{ font-size:22px; line-height:1; }
+.is-mobile-view .mob-nav-btn .mn-lbl{ font-size:10px; font-weight:500; }
+.is-mobile-view .mob-nav-btn:active .mn-ico,
+.is-mobile-view .mob-nav-btn:active .mn-lbl{ color:#6D28D9; }
+
+/* Tools sheet (Más) */
+.is-mobile-view #mob-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:9400;
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.is-mobile-view #mob-backdrop.show{ opacity:1; pointer-events:auto; }
+.is-mobile-view #mob-sheet{
+  position:fixed; bottom:-100%; left:0; right:0; z-index:9500;
+  background:#fff; border-radius:20px 20px 0 0;
+  box-shadow:0 -8px 30px rgba(0,0,0,.22);
+  padding:10px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  max-height:78vh; overflow-y:auto;
+  transition:bottom .28s cubic-bezier(.4,0,.2,1);
+}
+.is-mobile-view #mob-sheet.open{ bottom:0; }
+.is-mobile-view #mob-sheet-handle{
+  width:40px; height:4px; background:#cbd5e1; border-radius:2px;
+  margin:4px auto 12px;
+}
+.is-mobile-view #mob-sheet-title{
+  font-weight:600; font-size:15px; color:#1d1d1f; margin-bottom:12px;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.is-mobile-view #mob-sheet-grid{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
+}
+.is-mobile-view .mob-tool{
+  background:#f8fafc; border:1px solid rgba(0,0,0,.04);
+  border-radius:14px; padding:12px 4px; cursor:pointer;
+  display:flex !important; flex-direction:column; align-items:center; justify-content:center;
+  gap:6px; font-size:11px; color:#1d1d1f; min-height:78px;
+  text-align:center; line-height:1.15;
+  font-family:inherit; box-shadow:none;
+}
+.is-mobile-view .mob-tool > *:first-child{ font-size:22px; line-height:1; }
+.is-mobile-view .mob-tool .tb-lbl{
+  display:inline !important; font-size:10px; color:#5f6368;
+  position:static !important; opacity:1 !important; transform:none !important;
+  background:transparent !important; padding:0 !important; pointer-events:none;
+}
+.is-mobile-view .mob-tool:active{ background:#eef2ff; transform:scale(.97); }
+
+/* Input sheet (AI / Geo) — slides from top */
+.is-mobile-view #mob-input-sheet{
+  position:fixed; top:-220px; left:0; right:0; z-index:9600;
+  background:#fff;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 10px 12px;
+  box-shadow:0 4px 20px rgba(0,0,0,.18);
+  transition:top .25s cubic-bezier(.4,0,.2,1);
+}
+.is-mobile-view #mob-input-sheet.open{ top:0; }
+.is-mobile-view #mob-input-sheet .mis-row{
+  display:flex; align-items:center; gap:8px;
+}
+.is-mobile-view #mob-input-sheet .mis-back{
+  width:40px; height:40px; min-width:40px; border:none; background:transparent;
+  font-size:22px; cursor:pointer; color:#5f6368; border-radius:50%;
+}
+.is-mobile-view #mob-input-sheet .mis-back:active{ background:#f1f3f4; }
+.is-mobile-view #mob-input-sheet .mis-input-wrap{
+  flex:1; background:#f1f3f4; border-radius:24px; padding:10px 16px;
+  display:flex; align-items:center; min-height:44px;
+}
+.is-mobile-view #mob-input-sheet #mis-slot{ flex:1; display:flex; align-items:center; }
+.is-mobile-view #mob-input-sheet #mis-slot > *{
+  width:100% !important; max-width:none !important; flex:1 !important;
+}
+.is-mobile-view #mob-input-sheet #mis-slot input{
+  border:none !important; outline:none !important; background:transparent !important;
+  font-size:16px !important; width:100% !important; padding:0 !important;
+  color:#1d1d1f !important; box-shadow:none !important;
+}
+.is-mobile-view #mob-input-sheet #mis-slot input::placeholder{ color:#80868b; }
+.is-mobile-view #mob-input-sheet #mis-slot #geo-suggestions{
+  position:fixed !important; left:12px !important; right:12px !important;
+  top:calc(env(safe-area-inset-top,0px) + 70px) !important;
+  background:#fff !important; border-radius:14px !important;
+  box-shadow:0 8px 28px rgba(0,0,0,.18) !important; max-height:50vh !important;
+  z-index:9700 !important;
+}
+
+/* Re-anclar bottom-sheets existentes para no quedar bajo el bottom nav */
+.is-mobile-view #afl-panel,
+.is-mobile-view #global-filter-panel,
+.is-mobile-view #report-panel,
+.is-mobile-view #auto-report,
+.is-mobile-view #reports-layer-panel,
+.is-mobile-view #places-menu,
+.is-mobile-view #nse-layers-menu{
+  bottom:calc(64px + env(safe-area-inset-bottom,0px)) !important;
+  z-index:9100 !important;
+}
+.is-mobile-view #nse-legend{
+  bottom:calc(72px + env(safe-area-inset-bottom,0px)) !important;
+  left:12px !important;
+}
 </style>
+<script id="connectia-mobile-init">
+(function(){
+  var ua = navigator.userAgent.toLowerCase();
+  var isIPhone = /iphone|ipod/.test(ua);
+  var isAndroidMobile = /android/.test(ua) && /mobile/.test(ua);
+  var isSmallTouch = (window.innerWidth <= 768) && (('ontouchstart' in window) || navigator.maxTouchPoints > 0);
+  var isMobile = isIPhone || isAndroidMobile || isSmallTouch;
+  // Allow forcing mobile via ?mobile=1 for testing
+  if(/[?&]mobile=1/.test(location.search)) isMobile = true;
+  if(/[?&]mobile=0/.test(location.search)) isMobile = false;
+  if(!isMobile) return;
+
+  function init(){
+    if(document.body.classList.contains('is-mobile-view')) return;
+    document.body.classList.add('is-mobile-view');
+
+    // ==== Top: pill + chips ====
+    var top = document.createElement('div');
+    top.id = 'mob-top';
+    top.innerHTML =
+      '<div id="mob-search-pill">' +
+        '<button id="mob-menu-btn" aria-label="Menú" type="button">☰</button>' +
+        '<div id="mob-search-slot"></div>' +
+        '<button id="mob-clear-btn" aria-label="Limpiar" type="button" style="display:none">✕</button>' +
+      '</div>' +
+      '<div id="mob-chips">' +
+        '<button class="mob-chip" data-act="ai" type="button">✨ ConnectIA</button>' +
+        '<button class="mob-chip" data-act="geo" type="button">🌐 Áreas</button>' +
+        '<button class="mob-chip" data-act="filtros" type="button">🎛️ Filtros</button>' +
+        '<button class="mob-chip" data-act="capas" type="button">🗺️ Capas</button>' +
+        '<button class="mob-chip" data-act="buscar" type="button">🔍 Negocios</button>' +
+        '<button class="mob-chip" data-act="rpt" type="button">📊 Reporte</button>' +
+        '<button class="mob-chip" data-act="afl" type="button">🚶 Afluencia</button>' +
+        '<button class="mob-chip" data-act="nse" type="button">🏘️ NSE</button>' +
+      '</div>';
+    document.body.appendChild(top);
+
+    // Mover el #search-box COMPLETO (input + suggestions) al pill — preserva listeners y closest('#search-box')
+    var searchBox = document.getElementById('search-box');
+    var slot = top.querySelector('#mob-search-slot');
+    if(searchBox && slot){
+      searchBox._origParent = searchBox.parentNode;
+      slot.appendChild(searchBox);
+      var searchInput = document.getElementById('search-input');
+      if(searchInput){
+        searchInput.setAttribute('placeholder', 'Buscar en Connectia');
+      }
+    }
+
+    // Clear button
+    var clearBtn = top.querySelector('#mob-clear-btn');
+    var sIn = document.getElementById('search-input');
+    if(sIn){
+      var updateClear = function(){ clearBtn.style.display = sIn.value ? 'flex' : 'none'; };
+      sIn.addEventListener('input', updateClear);
+      updateClear();
+      clearBtn.addEventListener('click', function(){
+        sIn.value = '';
+        sIn.dispatchEvent(new Event('input', {bubbles:true}));
+        updateClear();
+      });
+    }
+
+    // ==== Bottom nav ====
+    var nav = document.createElement('div');
+    nav.id = 'mob-nav';
+    nav.innerHTML =
+      '<button class="mob-nav-btn" data-act="map" type="button"><span class="mn-ico">🗺️</span><span class="mn-lbl">Mapa</span></button>' +
+      '<button class="mob-nav-btn" data-act="search" type="button"><span class="mn-ico">🔍</span><span class="mn-lbl">Buscar</span></button>' +
+      '<button class="mob-nav-btn" data-act="report" type="button"><span class="mn-ico">📊</span><span class="mn-lbl">Reporte</span></button>' +
+      '<button class="mob-nav-btn" data-act="tools" type="button"><span class="mn-ico">⋯</span><span class="mn-lbl">Más</span></button>';
+    document.body.appendChild(nav);
+
+    // ==== Tools sheet (Más) ====
+    var backdrop = document.createElement('div');
+    backdrop.id = 'mob-backdrop';
+    document.body.appendChild(backdrop);
+    var sheet = document.createElement('div');
+    sheet.id = 'mob-sheet';
+    sheet.innerHTML =
+      '<div id="mob-sheet-handle"></div>' +
+      '<div id="mob-sheet-title">Herramientas</div>' +
+      '<div id="mob-sheet-grid"></div>';
+    document.body.appendChild(sheet);
+    function closeSheet(){ sheet.classList.remove('open'); backdrop.classList.remove('show'); }
+    function openSheet(){ sheet.classList.add('open'); backdrop.classList.add('show'); }
+    backdrop.addEventListener('click', closeSheet);
+
+    // Clonar botones de la toolbar (.tb) hacia el grid del sheet, forwarding clicks al original
+    var grid = sheet.querySelector('#mob-sheet-grid');
+    var toolbar = document.getElementById('toolbar');
+    if(toolbar && grid){
+      var btns = toolbar.querySelectorAll('button.tb');
+      btns.forEach(function(b){
+        var clone = b.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.removeAttribute('onclick');
+        clone.classList.remove('tb');
+        clone.classList.add('mob-tool');
+        clone.addEventListener('click', function(e){
+          e.preventDefault(); e.stopPropagation();
+          try{ b.click(); }catch(_){}
+          closeSheet();
+        });
+        grid.appendChild(clone);
+      });
+    }
+
+    // ==== Input sheet (para AI/Geo) ====
+    var inputSheet = document.createElement('div');
+    inputSheet.id = 'mob-input-sheet';
+    inputSheet.innerHTML =
+      '<div class="mis-row">' +
+        '<button class="mis-back" type="button" aria-label="Atrás">←</button>' +
+        '<div class="mis-input-wrap"><div id="mis-slot"></div></div>' +
+      '</div>';
+    document.body.appendChild(inputSheet);
+    var misSlot = inputSheet.querySelector('#mis-slot');
+    var misBack = inputSheet.querySelector('.mis-back');
+    var misCurrent = null;
+    function closeInputSheet(){
+      inputSheet.classList.remove('open');
+      if(misCurrent && misCurrent._origParent){
+        misCurrent._origParent.appendChild(misCurrent);
+      }
+      misCurrent = null;
+    }
+    misBack.addEventListener('click', closeInputSheet);
+    function openInputSheet(boxId, placeholder){
+      var box = document.getElementById(boxId);
+      if(!box) return;
+      // Si ya hay otro abierto, cerrar primero
+      if(misCurrent) closeInputSheet();
+      misCurrent = box;
+      box._origParent = box._origParent || box.parentNode;
+      misSlot.innerHTML = '';
+      misSlot.appendChild(box);
+      var inp = box.querySelector('input');
+      if(inp){
+        if(placeholder) inp.setAttribute('placeholder', placeholder);
+      }
+      inputSheet.classList.add('open');
+      setTimeout(function(){ try{ if(inp) inp.focus(); }catch(_){} }, 280);
+    }
+
+    // ==== Wire chips ====
+    top.querySelectorAll('.mob-chip').forEach(function(c){
+      c.addEventListener('click', function(){
+        var act = c.dataset.act;
+        if(act==='ai') openInputSheet('ai-search-box', '✨ Pregunta a ConnectIA');
+        else if(act==='geo') openInputSheet('geo-selector-box', '🌐 Buscar áreas, municipios…');
+        else if(act==='filtros'){ if(window.toggleGlobalFilterPanel) window.toggleGlobalFilterPanel(); }
+        else if(act==='capas'){ if(window.toggleLayerManager) window.toggleLayerManager(); }
+        else if(act==='buscar'){ if(window.togglePlacesMenu) window.togglePlacesMenu(); }
+        else if(act==='rpt'){ if(window.toggleReportPanel) window.toggleReportPanel(); }
+        else if(act==='afl'){ if(window.toggleAfluencia) window.toggleAfluencia(); }
+        else if(act==='nse'){ if(window.toggleNSEOverlay) window.toggleNSEOverlay(); }
+      });
+    });
+
+    // ==== Wire bottom nav ====
+    nav.querySelectorAll('.mob-nav-btn').forEach(function(b){
+      b.addEventListener('click', function(){
+        var act = b.dataset.act;
+        if(act==='map'){
+          ['afl-panel','global-filter-panel','report-panel','auto-report','reports-layer-panel','places-menu','nse-layers-menu'].forEach(function(id){
+            var el = document.getElementById(id);
+            if(el && getComputedStyle(el).display !== 'none') el.style.display = 'none';
+          });
+          closeSheet(); closeInputSheet();
+        } else if(act==='search'){
+          var s = document.getElementById('search-input');
+          if(s){ try{ s.focus(); }catch(_){} }
+        } else if(act==='report'){
+          if(window.toggleReportPanel) window.toggleReportPanel();
+        } else if(act==='tools'){
+          if(sheet.classList.contains('open')) closeSheet(); else openSheet();
+        }
+      });
+    });
+
+    // Menu (logo) → main menu
+    var menuBtn = top.querySelector('#mob-menu-btn');
+    menuBtn.addEventListener('click', function(){
+      if(window._showMainMenu) window._showMainMenu();
+    });
+
+    // Tap en mapa cierra el sheet "Más"
+    var mapEl = document.getElementById('map');
+    if(mapEl){
+      mapEl.addEventListener('touchstart', function(){
+        if(sheet.classList.contains('open')) closeSheet();
+      }, {passive:true});
+    }
+
+    console.log('[connectia] mobile view activo (Google Maps style)');
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
 
 </body>
 </html>
