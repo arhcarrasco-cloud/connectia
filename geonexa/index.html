@@ -20315,6 +20315,77 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
   }
 })();
 </script>
+<style id="connectia-brightness-fix-css">
+/* === BRIGHTNESS FIX ===
+   El brillo del slider debe afectar SOLO los tiles del mapa base de Google,
+   no los pines, polígonos, polylineas, rutas, círculos ni selecciones.
+   Los tiles de Google se sirven desde URLs reconocibles; markers (favicons
+   de marca) vienen de www.google.com/s2/favicons que NO matchea estos patterns. */
+#map .gm-style img[src*="googleapis.com"],
+#map .gm-style img[src*="gstatic.com"],
+#map .gm-style img[src*="ggpht.com"],
+#map .gm-style img[src*="googleusercontent.com"],
+#map .gm-style img[src*="khms"],
+#map .gm-style img[src*="kh.google"],
+#map .gm-style img[src*="/vt/"],
+#map .gm-style img[src*="/vt?"]{
+  filter:brightness(var(--map-base-brightness, 1)) !important;
+  -webkit-filter:brightness(var(--map-base-brightness, 1)) !important;
+  transition:filter .2s ease, -webkit-filter .2s ease;
+}
+</style>
+<script id="connectia-brightness-fix-js">
+/* Reemplaza _setMapBrightness para usar el CSS variable en vez de un overlay
+   oscuro que tapaba todo. Aditivo: la función original queda guardada en
+   window._setMapBrightness._origFn por si se quiere volver al comportamiento previo. */
+(function(){
+  function init(){
+    if(window._setMapBrightness && window._setMapBrightness._brightnessFix) return;
+    var origFn = window._setMapBrightness;
+
+    window._setMapBrightness = function(val){
+      // Limpieza: quitar el overlay oscuro creado por la implementación previa
+      var oldOverlay = document.getElementById('_map-dim-overlay');
+      if(oldOverlay) oldOverlay.remove();
+
+      var pct = parseInt(val);
+      if(isNaN(pct)) pct = 100;
+      pct = Math.max(20, Math.min(100, pct));
+      var brightness = pct / 100;
+
+      // Aplicar via CSS variable — el filter solo se aplica a los tiles
+      document.documentElement.style.setProperty('--map-base-brightness', brightness);
+
+      try{
+        if(typeof setStatus === 'function'){
+          setStatus(pct >= 100
+            ? 'Brillo del mapa base: 100%'
+            : 'Brillo del mapa base: ' + pct + '% (pines, trazos y rutas no se atenúan)');
+        }
+      }catch(_){}
+    };
+    window._setMapBrightness._brightnessFix = true;
+    window._setMapBrightness._origFn = origFn;
+
+    // Reaplicar el valor actual del slider para que el cambio surta efecto inmediato
+    var slider = document.getElementById('map-brightness');
+    if(slider){
+      window._setMapBrightness(slider.value || 100);
+    }
+
+    console.log('[connectia] brightness fix activo: filter CSS solo en tiles de Google');
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  setTimeout(init, 500);
+  setTimeout(init, 2000);
+})();
+</script>
+
 <script id="connectia-filter-applies-to-reports">
 /* ============================================================
    FIX: que los reportes respeten _reportFilters
