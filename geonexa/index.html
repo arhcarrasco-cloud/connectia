@@ -19586,15 +19586,15 @@ body.is-mobile-view #map{ top:0 !important; left:0 !important; right:0 !importan
 /* Top floating search */
 .is-mobile-view #mob-top{
   position:fixed; top:env(safe-area-inset-top, 0px); left:0; right:0;
-  padding:10px 12px 0 0; z-index:9000; pointer-events:none;
+  padding:10px 12px 0 56px; z-index:9000; pointer-events:none;
 }
 .is-mobile-view #mob-top > *{ pointer-events:auto; }
 .is-mobile-view #mob-search-pill{
   display:flex; align-items:center; gap:6px;
   background:#fff;
-  border-radius:0 28px 28px 0;
+  border-radius:28px;
   box-shadow:0 4px 16px rgba(0,0,0,.14), 0 1px 4px rgba(0,0,0,.08);
-  padding:6px 8px 6px 4px; min-height:52px;
+  padding:6px 8px 6px 6px; min-height:52px;
 }
 .is-mobile-view #mob-menu-btn,
 .is-mobile-view #mob-clear-btn{
@@ -20596,15 +20596,23 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
 /* Mobile left drawer (toolbar) — slide-out menu with cloned tools */
 /* FAB anterior queda totalmente oculto; ahora se abre desde un ☰ en la pill */
 .is-mobile-view #mob-tool-fab{ display:none !important; }
+/* Hamburger ☰ — botón FLOTANTE INDEPENDIENTE pegado al borde izquierdo,
+   FUERA de la pill, a la izquierda del logo connectia.
+   z-index POR ENCIMA del backdrop para que siempre se pueda tocar. */
 .is-mobile-view #mob-hamburger-btn{
-  width:44px; height:40px; min-width:44px;
-  border-radius:0 10px 10px 0;
-  border:none; background:transparent; cursor:pointer; padding:0;
+  position:fixed !important;
+  left:0 !important;
+  top:calc(env(safe-area-inset-top, 0px) + 14px) !important;
+  width:44px; height:44px; min-width:44px;
+  border-radius:0 12px 12px 0;
+  border:none; background:#fff; cursor:pointer; padding:0;
   display:flex; align-items:center; justify-content:center;
   color:#1d1d1f; font-family:inherit;
-  margin-left:0; flex-shrink:0;
+  flex-shrink:0;
+  box-shadow:0 4px 14px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.06);
+  z-index:9560;  /* arriba del backdrop (9540) y del drawer (9550) */
 }
-.is-mobile-view #mob-hamburger-btn:active{ background:#f1f3f4; }
+.is-mobile-view #mob-hamburger-btn:active{ background:#f1f3f4; transform:scale(.96); }
 /* Backdrop oscuro detrás del drawer — feel tipo app nativa */
 .is-mobile-view #mob-tool-backdrop{
   position:fixed; inset:0; background:rgba(0,0,0,.42);
@@ -20947,27 +20955,27 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
       it.addEventListener('click', function(){ closeDrawer(); });
     });
 
-    // 4) Insertar el botón ☰ dentro de la pill — PRIMER hijo, ANTES del logo,
-    //    pegado al borde izquierdo de la pantalla
+    // 4) Cleanup: si hay un ham antiguo DENTRO de la pill, sacarlo
     var pill = document.getElementById('mob-search-pill');
     var existingHam = document.getElementById('mob-hamburger-btn');
-    if(pill && !existingHam){
+    if(existingHam && pill && existingHam.parentNode === pill){
+      existingHam.remove();
+      existingHam = null;
+    }
+
+    // 5) Crear (o re-crear) el ☰ como botón FLOTANTE en el body,
+    //    a la izquierda del logo connectia, por encima del backdrop
+    if(!existingHam){
       var ham = document.createElement('button');
       ham.id = 'mob-hamburger-btn';
       ham.type = 'button';
       ham.setAttribute('aria-label','Herramientas');
       ham.innerHTML = '<span class="ham-ico"><span class="ham-mid"></span></span>';
-      // PRIMER hijo del pill (antes del logo)
-      pill.insertBefore(ham, pill.firstChild);
+      document.body.appendChild(ham);
       ham.addEventListener('click', function(e){
         e.preventDefault(); e.stopPropagation();
         if(drawer.classList.contains('open')) closeDrawer(); else openDrawer();
       });
-    } else if(existingHam && pill && existingHam.parentNode === pill){
-      // Si ya existe pero está en posición incorrecta, moverlo al inicio
-      if(pill.firstChild !== existingHam){
-        pill.insertBefore(existingHam, pill.firstChild);
-      }
     }
   }
 
