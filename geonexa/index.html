@@ -19586,24 +19586,24 @@ body.is-mobile-view #map{ top:0 !important; left:0 !important; right:0 !importan
 /* Top floating search */
 .is-mobile-view #mob-top{
   position:fixed; top:env(safe-area-inset-top, 0px); left:0; right:0;
-  padding:10px 12px 0 56px; z-index:9000; pointer-events:none;
+  padding:7px 10px 0 48px; z-index:9000; pointer-events:none;
 }
 .is-mobile-view #mob-top > *{ pointer-events:auto; }
 .is-mobile-view #mob-search-pill{
-  display:flex; align-items:center; gap:6px;
+  display:flex; align-items:center; gap:4px;
   background:#fff;
-  border-radius:28px;
-  box-shadow:0 4px 16px rgba(0,0,0,.14), 0 1px 4px rgba(0,0,0,.08);
-  padding:6px 8px 6px 6px; min-height:52px;
+  border-radius:24px;
+  box-shadow:0 3px 12px rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.06);
+  padding:4px 6px 4px 4px; min-height:44px;
 }
 .is-mobile-view #mob-menu-btn,
 .is-mobile-view #mob-clear-btn{
-  width:40px; height:40px; min-width:40px; border-radius:50%;
-  border:none; background:transparent; font-size:20px;
+  width:34px; height:34px; min-width:34px; border-radius:50%;
+  border:none; background:transparent; font-size:16px;
   display:flex; align-items:center; justify-content:center;
   color:#5f6368; cursor:pointer; padding:0;
 }
-.is-mobile-view #mob-menu-btn{ font-size:22px; color:#1d1d1f; }
+.is-mobile-view #mob-menu-btn{ font-size:14px; color:#1d1d1f; }
 .is-mobile-view #mob-menu-btn:active,
 .is-mobile-view #mob-clear-btn:active{ background:#f1f3f4; }
 .is-mobile-view #mob-search-slot{ flex:1; min-width:0; display:flex; align-items:center; }
@@ -19628,37 +19628,38 @@ body.is-mobile-view #map{ top:0 !important; left:0 !important; right:0 !importan
   box-shadow:0 8px 28px rgba(0,0,0,.18) !important; z-index:9100 !important;
 }
 
-/* Chip row (acciones rápidas) */
+/* Chip row (acciones rápidas) — compacto estilo Google Maps */
 .is-mobile-view #mob-chips{
-  display:flex; gap:6px; overflow-x:auto;
-  padding:10px 4px 4px; scrollbar-width:none;
+  display:flex; gap:4px; overflow-x:auto;
+  padding:6px 4px 4px; scrollbar-width:none;
   -webkit-overflow-scrolling:touch;
 }
 .is-mobile-view #mob-chips::-webkit-scrollbar{ display:none; }
 .is-mobile-view .mob-chip{
   flex-shrink:0; background:#fff; border:1px solid rgba(0,0,0,.08);
-  padding:8px 14px; border-radius:20px; font-size:13px; font-weight:500;
+  padding:5px 11px; border-radius:16px; font-size:11px; font-weight:500;
   color:#1d1d1f; cursor:pointer; white-space:nowrap;
-  box-shadow:0 2px 6px rgba(0,0,0,.08);
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
+  min-height:30px; display:inline-flex; align-items:center;
 }
 .is-mobile-view .mob-chip:active{ background:#f1f3f4; transform:scale(.97); }
 
-/* Bottom nav */
+/* Bottom nav — compacto estilo Google Maps mobile */
 .is-mobile-view #mob-nav{
   position:fixed; bottom:0; left:0; right:0; z-index:9000;
   background:#fff; border-top:1px solid rgba(0,0,0,.06);
   display:flex; justify-content:space-around; align-items:stretch;
-  padding:6px 4px calc(4px + env(safe-area-inset-bottom, 0px)) 4px;
-  box-shadow:0 -2px 12px rgba(0,0,0,.08);
+  padding:3px 4px calc(3px + env(safe-area-inset-bottom, 0px)) 4px;
+  box-shadow:0 -2px 10px rgba(0,0,0,.06);
 }
 .is-mobile-view .mob-nav-btn{
   flex:1; background:transparent; border:none; cursor:pointer;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:2px; padding:6px 0; color:#5f6368; min-height:48px;
+  gap:1px; padding:4px 0; color:#5f6368; min-height:40px;
   font-family:inherit;
 }
-.is-mobile-view .mob-nav-btn .mn-ico{ font-size:22px; line-height:1; }
-.is-mobile-view .mob-nav-btn .mn-lbl{ font-size:10px; font-weight:500; }
+.is-mobile-view .mob-nav-btn .mn-ico{ font-size:18px; line-height:1; }
+.is-mobile-view .mob-nav-btn .mn-lbl{ font-size:9px; font-weight:500; }
 .is-mobile-view .mob-nav-btn:active .mn-ico,
 .is-mobile-view .mob-nav-btn:active .mn-lbl{ color:#6D28D9; }
 
@@ -20279,14 +20280,16 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
                     el.classList.contains('snap-half') ? 'full' : 'peek';
           setSnap(el, cur);
         } else {
-          // Snap a más cercano
+          // Snap respetando DIRECCIÓN del drag (swipe down = bajar al siguiente snap)
           var curY = parseFloat((el.style.transform.match(/translateY\(([0-9.\-]+)/)||[0,0])[1]) || 0;
           var h = window.innerHeight;
           var peekY = h * 0.90 - 64;
           var halfY = h * 0.45;
           var fullY = 0;
-          // Si arrastró muy abajo más allá de peek, cierra
-          if(curY > peekY + 40){
+          var startY = drag.baseY;
+          var dy = curY - startY;     // > 0 = swipe down
+          // Si arrastró muy abajo más allá del peek, cierra
+          if(curY > peekY + 50){
             el.style.display = 'none';
             el.style.transform = '';
             el.classList.remove('snap-half','snap-full');
@@ -20294,12 +20297,22 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
             syncSheetActive();
             return;
           }
-          var dists = [
-            [Math.abs(curY - peekY), 'peek'],
-            [Math.abs(curY - halfY), 'half'],
-            [Math.abs(curY - fullY), 'full'],
-          ].sort(function(a,b){return a[0]-b[0];});
-          setSnap(el, dists[0][1]);
+          // Snap actual (de dónde venía)
+          var current = (Math.abs(startY - fullY) < Math.abs(startY - halfY))
+            ? 'full'
+            : (Math.abs(startY - halfY) < Math.abs(startY - peekY) ? 'half' : 'peek');
+          var THRESHOLD = 25; // px mínimo para cambiar de snap
+          var next = current;
+          if(Math.abs(dy) < THRESHOLD){
+            next = current; // movimiento minimal → quedarse
+          } else if(dy > 0){
+            // SWIPE DOWN → bajar al siguiente snap
+            next = current === 'full' ? 'half' : 'peek';
+          } else {
+            // SWIPE UP → subir al siguiente snap
+            next = current === 'peek' ? 'half' : 'full';
+          }
+          setSnap(el, next);
         }
       }
     }
@@ -20602,14 +20615,14 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
 .is-mobile-view #mob-hamburger-btn{
   position:fixed !important;
   left:0 !important;
-  top:calc(env(safe-area-inset-top, 0px) + 14px) !important;
-  width:44px; height:44px; min-width:44px;
-  border-radius:0 12px 12px 0;
+  top:calc(env(safe-area-inset-top, 0px) + 10px) !important;
+  width:38px; height:38px; min-width:38px;
+  border-radius:0 10px 10px 0;
   border:none; background:#fff; cursor:pointer; padding:0;
   display:flex; align-items:center; justify-content:center;
   color:#1d1d1f; font-family:inherit;
   flex-shrink:0;
-  box-shadow:0 4px 14px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.06);
+  box-shadow:0 3px 12px rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.05);
   z-index:9560;  /* arriba del backdrop (9540) y del drawer (9550) */
 }
 .is-mobile-view #mob-hamburger-btn:active{ background:#f1f3f4; transform:scale(.96); }
@@ -20654,17 +20667,17 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
   margin-bottom:8px; letter-spacing:.3px;
 }
 .is-mobile-view #mob-tool-drawer .drawer-tool{
-  display:flex !important; align-items:center; gap:10px;
-  padding:10px 12px; border-radius:10px;
+  display:flex !important; align-items:center; gap:8px;
+  padding:7px 10px; border-radius:8px;
   background:#f8fafc; border:1px solid rgba(0,0,0,.04);
-  font-size:13px; color:#1d1d1f; cursor:pointer;
-  font-family:inherit; text-align:left; min-height:44px;
+  font-size:12px; color:#1d1d1f; cursor:pointer;
+  font-family:inherit; text-align:left; min-height:36px;
   white-space:nowrap; overflow:hidden;
 }
 .is-mobile-view #mob-tool-drawer .drawer-tool:active{ background:#eef2ff; }
-.is-mobile-view #mob-tool-drawer .drawer-tool > *:first-child{ font-size:18px; flex-shrink:0; width:24px; text-align:center; }
+.is-mobile-view #mob-tool-drawer .drawer-tool > *:first-child{ font-size:15px; flex-shrink:0; width:20px; text-align:center; }
 .is-mobile-view #mob-tool-drawer .drawer-tool .tb-lbl{
-  display:inline !important; font-size:13px !important; color:#1d1d1f !important;
+  display:inline !important; font-size:12px !important; color:#1d1d1f !important;
   position:static !important; opacity:1 !important; transform:none !important;
   background:transparent !important; padding:0 !important;
 }
