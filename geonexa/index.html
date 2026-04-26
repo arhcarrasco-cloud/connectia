@@ -21711,6 +21711,251 @@ header.brand .ci-icon{
 })();
 </script>
 
+<style id="connectia-round5-css">
+/* ROUND 5 — drawer con secciones (estilo desktop toolbar groups) */
+.is-mobile-view #mob-tool-drawer .drawer-section{
+  font-size:9px !important; font-weight:700 !important;
+  color:#6D28D9 !important; text-transform:uppercase !important;
+  letter-spacing:.5px !important;
+  padding:8px 10px 4px !important;
+  margin-top:6px !important;
+  border-bottom:1px solid #f1f3f4 !important;
+}
+.is-mobile-view #mob-tool-drawer .drawer-section:first-of-type{ margin-top:0 !important; }
+</style>
+<script id="connectia-round5-js">
+/* ============================================================
+   ROUND 5 — fixes solicitados
+   1) NSE bug: wrap getNSEForCell con LOW_ZONES/PREMIUM_ZONES
+   2) Circle km label en TOUCH (mobile) durante drawing
+   3) Icono polygon = pentagon + tooltip "Selección libre"
+   4) Drawer con secciones (Select / Map / Tool / Analysis / Heat)
+   5) Reemplazo defensivo de iconos en toolbar buttons
+============================================================ */
+(function(){
+
+  /* ===== 1) NSE classifier zone-aware ===== */
+  function patchNSEClassifier(){
+    var orig = window.getNSEForCell;
+    if(typeof orig !== 'function' || orig._zoneAware) return;
+    window.getNSEForCell = function(stateCode, lat, lng){
+      var nse = orig.apply(this, arguments);
+      if(typeof lat !== 'number' || typeof lng !== 'number') return nse;
+      // Convertir el resultado NSE a score numérico para ajustar
+      var rank = ['E','D','D+','C','C+','AB'];
+      var idx = rank.indexOf(nse);
+      if(idx < 0) return nse;
+      var adjust = 0;
+      // LOW_ZONES → bajar 1-2 niveles
+      if(window.LOW_ZONES){
+        for(var i=0; i<window.LOW_ZONES.length; i++){
+          var z = window.LOW_ZONES[i];
+          var d = Math.sqrt(Math.pow(lat-z.lat,2)+Math.pow(lng-z.lng,2));
+          if(d < z.r * 2){
+            adjust = -2;  // bajar 2 niveles
+            break;
+          }
+        }
+      }
+      // PREMIUM_ZONES → subir 1-2 niveles
+      if(adjust === 0 && window.PREMIUM_ZONES){
+        for(var j=0; j<window.PREMIUM_ZONES.length; j++){
+          var pz = window.PREMIUM_ZONES[j];
+          var pd = Math.sqrt(Math.pow(lat-pz.lat,2)+Math.pow(lng-pz.lng,2));
+          if(pd < pz.r * 2){
+            adjust = +2;
+            break;
+          }
+        }
+      }
+      var newIdx = Math.max(0, Math.min(rank.length-1, idx + adjust));
+      return rank[newIdx];
+    };
+    window.getNSEForCell._zoneAware = true;
+    window.getNSEForCell._origFn = orig;
+    console.log('[connectia round5] getNSEForCell ahora respeta LOW_ZONES/PREMIUM_ZONES');
+  }
+
+  /* ===== 2) Touch tracking para circle drawing ===== */
+  function patchCircleTouchTracking(){
+    if(window._circleTouchPatched) return;
+    if(typeof window.map === 'undefined' || !window.map) return;
+    if(typeof window.drawingManager === 'undefined' || !window.drawingManager) return;
+    if(typeof window._pixelToLatLng !== 'function') return;
+    if(typeof window._updateRadiusDisplay !== 'function') return;
+    if(typeof google === 'undefined' || !google.maps || !google.maps.geometry) return;
+    var mapDiv = window.map.getDiv();
+    if(!mapDiv) return;
+    window._circleTouchPatched = true;
+
+    function isCircleMode(){
+      try{ return window.drawingManager.getDrawingMode() === google.maps.drawing.OverlayType.CIRCLE; }
+      catch(_){ return false; }
+    }
+
+    mapDiv.addEventListener('touchstart', function(e){
+      if(!isCircleMode()) return;
+      if(e.touches.length !== 1) return;
+      var t = e.touches[0];
+      var ll = window._pixelToLatLng(t.clientX, t.clientY);
+      if(ll) window._circleLiveCenter = ll;
+    }, {passive:true});
+
+    mapDiv.addEventListener('touchmove', function(e){
+      if(!window._circleLiveCenter) return;
+      if(!isCircleMode()) return;
+      if(e.touches.length !== 1) return;
+      var t = e.touches[0];
+      var cur = window._pixelToLatLng(t.clientX, t.clientY);
+      if(!cur) return;
+      var dist = google.maps.geometry.spherical.computeDistanceBetween(window._circleLiveCenter, cur);
+      window._updateRadiusDisplay(dist);
+    }, {passive:true});
+
+    mapDiv.addEventListener('touchend', function(){
+      window._circleLiveCenter = null;
+    }, {passive:true});
+
+    console.log('[connectia round5] circle live tracking ahora soporta touch');
+  }
+
+  /* ===== 3) Polygon icon = pentagon + tooltip "Selección libre" ===== */
+  function patchPolygonButton(){
+    var btn = document.getElementById('btn-polygon');
+    if(!btn || btn._polygonFixed) return;
+    btn._polygonFixed = true;
+    btn.setAttribute('data-tip', 'Selección libre');
+    btn.setAttribute('title', 'Selección libre (polígono)');
+    var lbl = btn.querySelector('.tb-lbl');
+    if(lbl) lbl.textContent = 'Libre';
+  }
+
+  /* ===== 4) Drawer con SECCIONES (group titles desktop) ===== */
+  function rebuildDrawerWithSections(){
+    var drawer = document.getElementById('mob-tool-drawer');
+    if(!drawer) return;
+    if(drawer._hasSections) return;
+    var toolbar = document.getElementById('toolbar');
+    if(!toolbar) return;
+
+    // Limpiar contenido actual del drawer (excepto title)
+    var title = drawer.querySelector('#mob-tool-drawer-title');
+    var oldGrid = drawer.querySelector('.drawer-grid');
+    if(oldGrid) oldGrid.remove();
+    drawer.querySelectorAll('.drawer-tool, .drawer-section').forEach(function(n){ n.remove(); });
+
+    // Walk children del toolbar EN ORDEN
+    var children = Array.prototype.slice.call(toolbar.children);
+    children.forEach(function(child){
+      if(child.classList && child.classList.contains('tb-group-title')){
+        var sec = document.createElement('div');
+        sec.className = 'drawer-section';
+        sec.textContent = child.textContent.trim();
+        drawer.appendChild(sec);
+      } else if(child.tagName === 'BUTTON' && child.classList.contains('tb')){
+        if(child.id === 'btn-share') return; // skip
+        var label = '';
+        var lbl = child.querySelector('.tb-lbl');
+        if(lbl) label = lbl.textContent.trim();
+        // Obtener el primer hijo que sea texto (el icon emoji)
+        var iconText = '';
+        for(var i=0; i<child.childNodes.length; i++){
+          var n = child.childNodes[i];
+          if(n.nodeType === 3){ iconText = n.nodeValue.trim(); break; }
+          if(n.nodeType === 1 && n.classList && n.classList.contains('ci-icon')){
+            // Ya fue reemplazado por round4 — usar el material icon
+            iconText = '<span class="ci-icon">' + n.textContent + '</span>';
+            break;
+          }
+        }
+        if(!label) label = child.getAttribute('data-tip') || '';
+        if(!label && child.id === 'btn-polygon') label = 'Libre';
+        var item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'drawer-tool';
+        item.innerHTML = '<span>'+(iconText||'·')+'</span><span class="tb-lbl">'+label+'</span>';
+        item.addEventListener('click', function(e){
+          e.preventDefault(); e.stopPropagation();
+          try{ child.click(); }catch(_){}
+          // cerrar drawer
+          drawer.classList.remove('open');
+          var bd = document.getElementById('mob-tool-backdrop');
+          if(bd) bd.classList.remove('show');
+          var ham = document.getElementById('mob-hamburger-btn');
+          if(ham) ham.classList.remove('open');
+        });
+        drawer.appendChild(item);
+      }
+      // .sep ignorados (las secciones ya estructuran)
+    });
+
+    drawer._hasSections = true;
+    console.log('[connectia round5] drawer reconstruido con secciones');
+  }
+
+  /* ===== 5) Forzar reemplazo de iconos en toolbar (.tb buttons) ===== */
+  // Mapping específico por ID de botón (más confiable que el text walker)
+  var TB_ICON_MAP = {
+    'btn-marker': 'place',
+    'btn-circle': 'radio_button_unchecked',
+    'btn-rect': 'crop_landscape',
+    'btn-polygon': 'pentagon',
+    'btn-route': 'route',
+    'btn-import': 'attach_file',
+    'btn-satellite': 'satellite_alt',
+    'btn-traffic': 'directions_car',
+    'btn-clean-map': 'local_offer',
+    'btn-layers': 'folder',
+    'btn-measure': 'straighten',
+    'btn-categories': 'search',
+    'btn-mobility': 'traffic',
+    'btn-undo': 'undo',
+    'btn-clear': 'delete',
+    'btn-share': 'link'
+    // btn-report, btn-afluencia, btn-nse-map, btn-pop-heat, btn-traffic-heat
+    // ya son texto (RPT, AFL, NSE, POB, VEH) — no tocar
+  };
+
+  function forceToolbarIcons(){
+    Object.keys(TB_ICON_MAP).forEach(function(id){
+      var btn = document.getElementById(id);
+      if(!btn || btn._iconForced) return;
+      btn._iconForced = true;
+      var iconName = TB_ICON_MAP[id];
+      // Reemplazar TODOS los nodos de texto + cualquier ci-icon previo,
+      // dejar solo: <span class="ci-icon">iconName</span> + <span class="tb-lbl">...</span>
+      var lbl = btn.querySelector('.tb-lbl');
+      var lblText = lbl ? lbl.outerHTML : '';
+      btn.innerHTML = '<span class="ci-icon">' + iconName + '</span>' + lblText;
+    });
+  }
+
+  /* ===== INIT ===== */
+  function start(){
+    patchNSEClassifier();
+    patchCircleTouchTracking();
+    patchPolygonButton();
+    forceToolbarIcons();
+    rebuildDrawerWithSections();
+
+    // Patch ICON_MAP global de round4 para que ⬟ vaya a pentagon (re-runs)
+    if(window.ICON_MAP){
+      window.ICON_MAP['⬟'] = 'pentagon';
+    }
+  }
+  function startRetry(){
+    start();
+    [400, 1200, 3000, 6000, 12000].forEach(function(d){ setTimeout(start, d); });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', startRetry);
+  } else {
+    startRetry();
+  }
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
