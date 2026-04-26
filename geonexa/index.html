@@ -21081,6 +21081,325 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
   }
 })();
 </script>
+<style id="connectia-round3-css">
+/* ============================================================
+   ROUND 3 — UX mobile compacto + reportes resumidos
+============================================================ */
+
+/* === Drawer de herramientas: grid icon-tiles, más delgado === */
+.is-mobile-view #mob-tool-drawer{
+  width:200px !important;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 8px calc(14px + env(safe-area-inset-bottom,0px)) !important;
+}
+.is-mobile-view #mob-tool-drawer-title{
+  font-size:11px !important; margin-bottom:8px !important;
+  text-align:center; padding:0 4px;
+}
+.is-mobile-view #mob-tool-drawer .drawer-grid{
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:4px;
+}
+.is-mobile-view #mob-tool-drawer .drawer-tool{
+  display:flex !important; flex-direction:column !important; align-items:center !important;
+  justify-content:center !important; gap:3px !important;
+  padding:8px 2px !important; min-height:54px !important;
+  font-size:9px !important; line-height:1.1 !important; text-align:center !important;
+  border-radius:8px !important;
+}
+.is-mobile-view #mob-tool-drawer .drawer-tool > *:first-child{
+  font-size:18px !important; width:auto !important; line-height:1 !important;
+}
+.is-mobile-view #mob-tool-drawer .drawer-tool .tb-lbl{
+  font-size:9px !important; line-height:1.1 !important;
+  white-space:normal !important; overflow:visible !important;
+}
+
+/* === Reportes mobile compactos: todo más pequeño dentro de paneles === */
+.is-mobile-view #auto-report,
+.is-mobile-view #report-panel,
+.is-mobile-view #afl-panel{
+  font-size:11px !important;
+}
+.is-mobile-view #auto-report div,
+.is-mobile-view #auto-report span,
+.is-mobile-view #report-panel div,
+.is-mobile-view #report-panel span{
+  font-size:inherit;
+}
+/* Reducir titulares grandes */
+.is-mobile-view #auto-report [style*="font-size:14px"],
+.is-mobile-view #auto-report [style*="font-size: 14px"],
+.is-mobile-view #report-panel [style*="font-size:14px"]{
+  font-size:12px !important;
+}
+.is-mobile-view #auto-report [style*="font-size:13px"],
+.is-mobile-view #report-panel [style*="font-size:13px"]{
+  font-size:11px !important;
+}
+/* Reducir paddings excesivos de las secciones del reporte */
+.is-mobile-view #auto-report [style*="padding:10px"],
+.is-mobile-view #report-panel [style*="padding:10px"]{
+  padding:6px !important;
+}
+.is-mobile-view #auto-report [style*="padding:12px"],
+.is-mobile-view #report-panel [style*="padding:12px"]{
+  padding:7px !important;
+}
+.is-mobile-view #auto-report [style*="margin-bottom:10px"],
+.is-mobile-view #report-panel [style*="margin-bottom:10px"]{
+  margin-bottom:5px !important;
+}
+.is-mobile-view #auto-report [style*="margin-bottom:12px"],
+.is-mobile-view #report-panel [style*="margin-bottom:12px"]{
+  margin-bottom:6px !important;
+}
+/* Charts/gráficos: bajar altura de las barras */
+.is-mobile-view #auto-report [style*="height:160px"],
+.is-mobile-view #auto-report [style*="height:140px"]{
+  height:100px !important;
+}
+.is-mobile-view #auto-report [style*="width:160px"],
+.is-mobile-view #auto-report [style*="width:140px"]{
+  width:100px !important; height:100px !important;
+}
+
+/* === Drag zone visible — handle más prominente === */
+.is-mobile-view .panel-chrome-bar{
+  height:40px !important; padding:10px 8px 6px !important;
+}
+.is-mobile-view .panel-chrome-bar .pcb-grip{
+  width:48px !important; height:5px !important;
+  background:#cbd5e1 !important;
+  top:5px !important;
+}
+.is-mobile-view .panel-chrome-bar .pcb-title{
+  font-size:11px !important; margin-top:3px !important;
+}
+
+/* Toast notifications — usado para hints como NSE zoom */
+#connectia-toast{
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(80px);
+  background:rgba(29,29,31,.95); color:#fff;
+  padding:10px 16px; border-radius:24px;
+  font-size:12px; font-weight:500;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+  z-index:11000; opacity:0; pointer-events:none;
+  transition:opacity .3s ease, transform .3s ease;
+  max-width:88vw; text-align:center; line-height:1.35;
+}
+#connectia-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+</style>
+
+<script id="connectia-round3-js">
+/* ============================================================
+   ROUND 3 — JavaScript
+   1) Generic close-respect (cualquier panel-chrome-host)
+   2) Swipe area extendido a panel completo (top 80px) además del bar
+   3) Drawer items en grid (mover los hijos a un grid-wrapper)
+   4) Toast utility + hint cuando se activa NSE con zoom <15
+============================================================ */
+(function(){
+
+  // ---- Toast utility ----
+  var _toastEl = null, _toastTimer = null;
+  function showToast(msg, ms){
+    ms = ms || 4000;
+    if(!_toastEl){
+      _toastEl = document.createElement('div');
+      _toastEl.id = 'connectia-toast';
+      document.body.appendChild(_toastEl);
+    }
+    _toastEl.textContent = msg;
+    _toastEl.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function(){
+      _toastEl.classList.remove('show');
+    }, ms);
+  }
+  window.connectiaToast = showToast;
+
+  // ---- 1) Close respect: si algo reabre un panel < 60s tras cerrarlo, re-cerrar
+  function reinforceClose(){
+    var ids = ['afl-panel','auto-report','report-panel','global-filter-panel',
+               'reports-layer-panel','places-menu','nse-layers-menu','mobility-panel'];
+    ids.forEach(function(id){
+      var el = document.getElementById(id);
+      if(!el || el._closeReinforced) return;
+      el._closeReinforced = true;
+      var obs = new MutationObserver(function(){
+        if(!el._userClosedAt) return;
+        if(Date.now() - el._userClosedAt > 60000) return;
+        var disp = getComputedStyle(el).display;
+        if(disp !== 'none'){
+          // Algo lo reabrió contra la voluntad del usuario — cerrar otra vez
+          el.style.display = 'none';
+        }
+      });
+      obs.observe(el, {attributes:true, attributeFilter:['style']});
+    });
+  }
+
+  // ---- 2) Drag desde top 80px del panel (no solo barra) ----
+  function attachExpandedDrag(){
+    var hosts = document.querySelectorAll('.panel-chrome-host');
+    hosts.forEach(function(host){
+      if(host._expandedDrag) return;
+      host._expandedDrag = true;
+      var startY=0, startTransY=0, dragging=false, captured=false;
+
+      function getCurrentY(){
+        var st = host.style.transform || '';
+        var m = st.match(/translateY\(([0-9.\-]+)px\)/);
+        if(m) return parseFloat(m[1]);
+        var h = window.innerHeight;
+        if(host.classList.contains('snap-full')) return 0;
+        if(host.classList.contains('snap-half')) return h * 0.45;
+        return h * 0.90 - 64;
+      }
+
+      host.addEventListener('touchstart', function(ev){
+        if(!document.body.classList.contains('is-mobile-view')) return;
+        var t = ev.target;
+        // Skip si es un botón/input/link interactivo
+        if(t.closest('button, input, select, textarea, a')) return;
+        // Skip si target está dentro de un elemento scrollable que tiene scroll
+        var scrollable = t.closest('[style*="overflow"]');
+        if(scrollable && scrollable !== host && scrollable.scrollTop > 0) return;
+        // Solo activar drag desde los primeros 80px del panel (zona top)
+        var rect = host.getBoundingClientRect();
+        var touchY = ev.touches[0].clientY;
+        if(touchY - rect.top > 80) return;
+        startY = touchY;
+        startTransY = getCurrentY();
+        dragging = true;
+        captured = false;
+        host.classList.add('dragging');
+      }, {passive:true});
+
+      host.addEventListener('touchmove', function(ev){
+        if(!dragging) return;
+        var dy = ev.touches[0].clientY - startY;
+        if(Math.abs(dy) < 6) return;
+        captured = true;
+        // Prevent default ONLY si capturamos el drag (para no interferir con scroll del contenido)
+        try{ ev.preventDefault(); }catch(_){}
+        var newY = startTransY + dy;
+        var maxY = window.innerHeight * 0.90 - 64;
+        if(newY < 0) newY = 0;
+        if(newY > maxY + 80) newY = maxY + 80;
+        host.style.transform = 'translateY(' + newY + 'px)';
+      }, {passive:false});
+
+      host.addEventListener('touchend', function(ev){
+        if(!dragging) return;
+        dragging = false;
+        host.classList.remove('dragging');
+        if(!captured) return;
+        var endY = getCurrentY();
+        var dy = endY - startTransY;
+        var h = window.innerHeight;
+        var peekY = h * 0.90 - 64;
+        var halfY = h * 0.45;
+        // Cerrar si arrastró muy abajo del peek
+        if(endY > peekY + 50){
+          host.style.display = 'none';
+          host.style.transform = '';
+          host.classList.remove('snap-half','snap-full');
+          host.classList.add('snap-peek');
+          host._userClosedAt = Date.now();
+          return;
+        }
+        var current = (Math.abs(startTransY - 0) < Math.abs(startTransY - halfY))
+          ? 'full' : (Math.abs(startTransY - halfY) < Math.abs(startTransY - peekY) ? 'half' : 'peek');
+        var THRESHOLD = 25;
+        var next = current;
+        if(Math.abs(dy) < THRESHOLD){
+          next = current;
+        } else if(dy > 0){
+          next = current === 'full' ? 'half' : 'peek';
+        } else {
+          next = current === 'peek' ? 'half' : 'full';
+        }
+        host.style.transform = '';
+        host.classList.remove('snap-peek','snap-half','snap-full');
+        host.classList.add('snap-' + next);
+      });
+    });
+  }
+
+  // ---- 3) Drawer items en grid (envolver los .drawer-tool en .drawer-grid) ----
+  function gridifyDrawer(){
+    var drawer = document.getElementById('mob-tool-drawer');
+    if(!drawer || drawer._gridified) return;
+    var tools = drawer.querySelectorAll('.drawer-tool');
+    if(!tools.length) return;
+    drawer._gridified = true;
+    var grid = document.createElement('div');
+    grid.className = 'drawer-grid';
+    tools.forEach(function(t){ grid.appendChild(t); });
+    drawer.appendChild(grid);
+  }
+
+  // ---- 4) NSE manzana hint ----
+  function attachNSEHint(){
+    var orig = window.toggleNSEOverlay;
+    if(typeof orig !== 'function' || orig._zoomHint) return;
+    window.toggleNSEOverlay = function(){
+      var r = orig.apply(this, arguments);
+      setTimeout(function(){
+        try{
+          var z = (window.map && window.map.getZoom) ? window.map.getZoom() : 0;
+          if(z > 0 && z < 15 && window.nseLayerActive){
+            showToast('🔍 Acércate al mapa (zoom 15+) para ver NSE por MANZANA. Ahora estás viendo polígonos AGEB.', 5000);
+          } else if(z >= 15 && window.nseLayerActive){
+            showToast('✓ NSE por manzana activo (Censo 2020 INEGI)', 3000);
+          }
+        }catch(_){}
+      }, 600);
+      return r;
+    };
+    window.toggleNSEOverlay._zoomHint = true;
+
+    // También al hacer drawNSEGrid (en cambios de zoom)
+    var origDraw = window.drawNSEGrid;
+    if(typeof origDraw === 'function' && !origDraw._zoomHint){
+      window.drawNSEGrid = function(){
+        var z = (window.map && window.map.getZoom) ? window.map.getZoom() : 0;
+        var prevWasManzana = window._nseLastWasManzana;
+        var nowIsManzana = z >= 15;
+        if(prevWasManzana !== nowIsManzana && window.nseLayerActive){
+          window._nseLastWasManzana = nowIsManzana;
+          if(nowIsManzana){
+            showToast('✓ Cambiando a NSE por MANZANA (zoom alto)', 2500);
+          } else if(prevWasManzana === true){
+            showToast('🔍 Aléjaste — volviendo a NSE por AGEB. Acércate para ver manzanas.', 3000);
+          }
+        }
+        return origDraw.apply(this, arguments);
+      };
+      window.drawNSEGrid._zoomHint = true;
+    }
+  }
+
+  function start(){
+    reinforceClose();
+    attachExpandedDrag();
+    gridifyDrawer();
+    attachNSEHint();
+  }
+  function startRetry(){
+    start();
+    [400, 1200, 3000, 6000].forEach(function(d){ setTimeout(start, d); });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', startRetry);
+  } else {
+    startRetry();
+  }
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
