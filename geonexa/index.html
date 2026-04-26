@@ -21542,49 +21542,66 @@ header.brand .ci-icon{
     wrapToggleClearClose('refreshAutoReport',        'auto-report');
   }
 
-  /* ===== 3) Emoji → Material Icons gris ===== */
+  /* ===== 3) Emoji → Material Icons gris =====
+     Importante: los emojis del HTML de la toolbar usan a menudo el
+     "variation selector" U+FE0F después del emoji para forzar render
+     emoji vs texto. Las claves del map NO incluyen FE0F y normalizamos
+     el texto antes de matchear.  */
   var ICON_MAP = {
-    '📍':'place','💰':'payments','📊':'bar_chart','🎛️':'tune',
-    '🚦':'traffic','🗺️':'map','🔍':'search','📋':'assignment',
-    '👥':'groups','📅':'calendar_today','🏠':'home','🏢':'apartment',
-    '🌐':'public','⭐':'star','🛠️':'handyman','🚶':'directions_walk',
-    '🚗':'directions_car','🚌':'directions_bus','🚴':'directions_bike',
-    '👨':'person','👩':'person_outline','🏘️':'location_city',
-    '⚠️':'warning','ℹ️':'info','▾':'expand_more','▼':'expand_more',
+    // Toolbar (Select)
+    '📍':'place','⭕':'radio_button_unchecked','▬':'crop_landscape',
+    '⬟':'change_history','🛣':'route','📎':'attach_file',
+    // Toolbar (Map)
+    '🛰':'satellite_alt','🚗':'directions_car','🏷':'local_offer',
+    '🗂':'folder',
+    // Toolbar (Tool / Analysis / Heat)
+    '📏':'straighten','🔍':'search','🚦':'traffic',
+    // Toolbar (Acciones)
+    '↩':'undo','🗑':'delete','🔗':'link',
+    // Brillo
+    '🔅':'brightness_low','🔆':'brightness_high',
+    // Reportes / paneles
+    '💰':'payments','📊':'bar_chart','🎛':'tune',
+    '🗺':'map','📋':'assignment','👥':'groups',
+    '📅':'calendar_today','🏠':'home','🏢':'apartment',
+    '🌐':'public','⭐':'star','🛠':'handyman',
+    '🚶':'directions_walk','🚌':'directions_bus','🚴':'directions_bike',
+    '👨':'person','👩':'person_outline','🏘':'location_city',
+    '⚠':'warning','ℹ':'info','▾':'expand_more','▼':'expand_more',
     '✨':'auto_awesome','💳':'credit_card','🚇':'train',
     '🚏':'directions_bus','🪧':'signpost','🌉':'apartment',
-    '🏛️':'account_balance','📷':'photo_camera','📸':'camera_alt',
+    '🏛':'account_balance','📷':'photo_camera','📸':'camera_alt',
     '🎯':'adjust','🔥':'local_fire_department','🆕':'fiber_new',
-    '🚜':'agriculture','🏭':'factory','🏞️':'landscape','🎓':'school',
+    '🚜':'agriculture','🏭':'factory','🏞':'landscape','🎓':'school',
     '🏥':'local_hospital','💊':'medication','📈':'trending_up',
     '📉':'trending_down','💼':'business_center','📞':'call',
     '📧':'email','📱':'smartphone','💻':'computer','🛒':'shopping_cart',
-    '🍽️':'restaurant','☕':'coffee','🛍️':'shopping_bag',
-    '🛏️':'hotel','✈️':'flight','🚆':'train','🚊':'tram',
-    '⛽':'local_gas_station','🅿️':'local_parking',
-    '🌳':'park','🏖️':'beach_access','⛱️':'beach_access',
+    '🍽':'restaurant','☕':'coffee','🛍':'shopping_bag',
+    '🛏':'hotel','✈':'flight','🚆':'train','🚊':'tram',
+    '⛽':'local_gas_station','🅿':'local_parking',
+    '🌳':'park','🏖':'beach_access','⛱':'beach_access',
     '👫':'people','💎':'diamond','🔔':'notifications',
     '💾':'save','📂':'folder_open','📁':'folder',
     '🎵':'music_note','🎬':'movie','🎮':'sports_esports',
     '⚽':'sports_soccer','🏀':'sports_basketball','🏈':'sports_football',
     '🐾':'pets','🌀':'cyclone','💡':'lightbulb',
-    '🔋':'battery_full','📡':'satellite_alt','🌡️':'thermostat',
+    '🔋':'battery_full','📡':'satellite_alt','🌡':'thermostat',
     '🧭':'explore','📌':'push_pin','🪙':'paid','💸':'savings',
     '🏪':'store','🏬':'store','🧾':'receipt',
     '🚪':'door_front','🛌':'bed','🚿':'shower','🚽':'wc',
     '🤝':'handshake','🤖':'smart_toy','🌍':'public','🌎':'public',
-    '🌏':'public','♻️':'recycling','💧':'water_drop',
-    '🌧️':'rainy','☀️':'wb_sunny','☁️':'cloud',
-    '⏰':'alarm','⏱️':'timer','📺':'tv','📻':'radio',
+    '🌏':'public','♻':'recycling','💧':'water_drop',
+    '🌧':'rainy','☀':'wb_sunny','☁':'cloud',
+    '⏰':'alarm','⏱':'timer','📺':'tv','📻':'radio',
     '🔵':'circle','🟢':'circle','🔴':'circle','🟡':'circle','🟠':'circle','🟣':'circle',
     '⚪':'circle','⚫':'circle','📦':'inventory_2'
   };
 
-  // Construye un regex con todos los emojis del map
+  // Construye un regex con todos los emojis del map.
+  // El regex tolera un U+FE0F opcional DESPUÉS del emoji (variation selector).
   var emojiKeys = Object.keys(ICON_MAP);
-  // Escapar caracteres especiales en regex
   function escRx(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-  var EMOJI_RX = new RegExp(emojiKeys.map(escRx).join('|'), 'gu');
+  var EMOJI_RX = new RegExp('(' + emojiKeys.map(escRx).join('|') + ')\\uFE0F?', 'gu');
 
   // Containers donde SÍ aplicar el reemplazo
   var SAFE_SCOPES = [
@@ -21620,9 +21637,12 @@ header.brand .ci-icon{
     while((n = walker.nextNode())) nodes.push(n);
     var count = 0;
     nodes.forEach(function(textNode){
-      var html = textNode.nodeValue.replace(EMOJI_RX, function(em){
+      var html = textNode.nodeValue.replace(EMOJI_RX, function(em, p1){
         count++;
-        var iconName = ICON_MAP[em];
+        // p1 = grupo capturado (emoji sin FE0F). Si por algún motivo viene undefined,
+        // hacer fallback strip manual.
+        var key = p1 || em.replace(/️/g, '');
+        var iconName = ICON_MAP[key];
         if(!iconName) return '';
         return '<span class="ci-icon" aria-hidden="true">' + iconName + '</span>';
       });
