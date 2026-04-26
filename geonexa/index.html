@@ -17,6 +17,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
 <script id="connectia-sw-register">
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
@@ -21390,6 +21392,295 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
   function startRetry(){
     start();
     [400, 1200, 3000, 6000].forEach(function(d){ setTimeout(start, d); });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', startRetry);
+  } else {
+    startRetry();
+  }
+})();
+</script>
+
+<style id="connectia-round4-css">
+/* === ROUND 4 — drawer 1 col + iconos grises === */
+
+/* Drawer: revertir a columna única (anula el grid 3-col de round3) */
+.is-mobile-view #mob-tool-drawer{
+  width:200px !important;
+}
+.is-mobile-view #mob-tool-drawer .drawer-grid{
+  display:flex !important; flex-direction:column !important; gap:3px !important;
+}
+.is-mobile-view #mob-tool-drawer .drawer-tool{
+  display:flex !important; flex-direction:row !important;
+  align-items:center !important; justify-content:flex-start !important;
+  gap:8px !important; width:100% !important;
+  padding:7px 10px !important; min-height:36px !important;
+  font-size:12px !important; text-align:left !important;
+}
+.is-mobile-view #mob-tool-drawer .drawer-tool > *:first-child{
+  width:20px !important; font-size:15px !important; flex-shrink:0; text-align:center;
+}
+.is-mobile-view #mob-tool-drawer .drawer-tool .tb-lbl{
+  font-size:12px !important; line-height:1.2 !important;
+  white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis;
+}
+
+/* === Material Icons Outlined estilo gris oscuro uniforme === */
+.ci-icon{
+  font-family:'Material Icons Outlined' !important;
+  font-weight:normal; font-style:normal;
+  font-size:1em; line-height:1;
+  letter-spacing:normal; text-transform:none;
+  display:inline-block; white-space:nowrap;
+  word-wrap:normal; direction:ltr;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  -moz-osx-font-smoothing:grayscale;
+  font-feature-settings:'liga';
+  vertical-align:-3px;
+  color:#5f6368 !important;
+  margin-right:2px;
+}
+/* En contextos sobre fondo oscuro/morado, usar blanco */
+.tmenu-item .ci-icon,
+.cta .ci-icon,
+[style*="background:linear-gradient(135deg,#6D28D9"] .ci-icon,
+[style*="background:linear-gradient(135deg, #6D28D9"] .ci-icon,
+header.brand .ci-icon{
+  color:#ffffff !important;
+}
+/* Topbar y toolbar: iconos un poco más oscuros para contraste */
+#topbar .ci-icon,
+#toolbar .ci-icon,
+.tb .ci-icon{
+  color:#424245 !important;
+}
+/* Mob-chip activa: ícono blanco */
+.mob-chip.active .ci-icon{ color:#fff !important; }
+</style>
+
+<script id="connectia-round4-js">
+/* ============================================================
+   ROUND 4
+   1) Drawer reopen-after-close (defensivo)
+   2) Wrap toggle functions: limpiar _userClosedAt antes de abrir
+   3) Reemplazar emojis por Material Icons grises
+============================================================ */
+(function(){
+
+  /* ===== 1) Drawer reopen defensivo ===== */
+  function fixDrawerReopen(){
+    var ham = document.getElementById('mob-hamburger-btn');
+    var drawer = document.getElementById('mob-tool-drawer');
+    var backdrop = document.getElementById('mob-tool-backdrop');
+    if(!ham || !drawer || !backdrop) return false;
+    if(ham._reopenFixed) return true;
+    ham._reopenFixed = true;
+
+    function _open(){
+      drawer.classList.add('open');
+      backdrop.classList.add('show');
+      ham.classList.add('open');
+    }
+    function _close(){
+      drawer.classList.remove('open');
+      backdrop.classList.remove('show');
+      ham.classList.remove('open');
+    }
+    function _toggle(e){
+      if(e){ e.preventDefault(); e.stopPropagation(); }
+      if(drawer.classList.contains('open')) _close(); else _open();
+    }
+
+    // Reemplazar listener viejo clonando el nodo (limpia listeners previos)
+    var hamClone = ham.cloneNode(true);
+    ham.parentNode.replaceChild(hamClone, ham);
+    ham = hamClone;
+    ham.addEventListener('click', _toggle);
+    ham.addEventListener('touchend', function(e){ e.preventDefault(); _toggle(); });
+
+    // Backdrop cierra (clonar también)
+    var bdClone = backdrop.cloneNode(true);
+    backdrop.parentNode.replaceChild(bdClone, backdrop);
+    backdrop = bdClone;
+    backdrop.addEventListener('click', _close);
+    return true;
+  }
+
+  /* ===== 2) Wrap toggle functions para limpiar _userClosedAt =====
+     Cuando el usuario tap "Reporte" en bottom nav, queremos que abra
+     aunque previamente lo haya cerrado. */
+  function wrapToggleClearClose(fnName, panelId){
+    var orig = window[fnName];
+    if(typeof orig !== 'function' || orig._clearClose) return;
+    window[fnName] = function(){
+      var el = document.getElementById(panelId);
+      if(el){
+        // Si el panel está visible y vamos a TOGGLE, dejará el flag intacto
+        // (porque el toggle lo cerrará). Si está oculto, limpiamos para permitir abrir.
+        var isVisible = (getComputedStyle(el).display !== 'none');
+        if(!isVisible){
+          el._userClosedAt = 0;  // permitir reapertura
+        }
+      }
+      return orig.apply(this, arguments);
+    };
+    window[fnName]._clearClose = true;
+    window[fnName]._origFn = orig;
+  }
+
+  function attachToggleWraps(){
+    wrapToggleClearClose('toggleReportPanel',        'auto-report');
+    wrapToggleClearClose('toggleReportPanel',        'report-panel');  // por si alterna ambos
+    wrapToggleClearClose('toggleAfluencia',          'afl-panel');
+    wrapToggleClearClose('toggleGlobalFilterPanel',  'global-filter-panel');
+    wrapToggleClearClose('toggleLayerManager',       'reports-layer-panel');
+    wrapToggleClearClose('togglePlacesMenu',         'places-menu');
+    wrapToggleClearClose('toggleNSEOverlay',         'nse-layers-menu');
+    wrapToggleClearClose('refreshAutoReport',        'auto-report');
+  }
+
+  /* ===== 3) Emoji → Material Icons gris ===== */
+  var ICON_MAP = {
+    '📍':'place','💰':'payments','📊':'bar_chart','🎛️':'tune',
+    '🚦':'traffic','🗺️':'map','🔍':'search','📋':'assignment',
+    '👥':'groups','📅':'calendar_today','🏠':'home','🏢':'apartment',
+    '🌐':'public','⭐':'star','🛠️':'handyman','🚶':'directions_walk',
+    '🚗':'directions_car','🚌':'directions_bus','🚴':'directions_bike',
+    '👨':'person','👩':'person_outline','🏘️':'location_city',
+    '⚠️':'warning','ℹ️':'info','▾':'expand_more','▼':'expand_more',
+    '✨':'auto_awesome','💳':'credit_card','🚇':'train',
+    '🚏':'directions_bus','🪧':'signpost','🌉':'apartment',
+    '🏛️':'account_balance','📷':'photo_camera','📸':'camera_alt',
+    '🎯':'adjust','🔥':'local_fire_department','🆕':'fiber_new',
+    '🚜':'agriculture','🏭':'factory','🏞️':'landscape','🎓':'school',
+    '🏥':'local_hospital','💊':'medication','📈':'trending_up',
+    '📉':'trending_down','💼':'business_center','📞':'call',
+    '📧':'email','📱':'smartphone','💻':'computer','🛒':'shopping_cart',
+    '🍽️':'restaurant','☕':'coffee','🛍️':'shopping_bag',
+    '🛏️':'hotel','✈️':'flight','🚆':'train','🚊':'tram',
+    '⛽':'local_gas_station','🅿️':'local_parking',
+    '🌳':'park','🏖️':'beach_access','⛱️':'beach_access',
+    '👫':'people','💎':'diamond','🔔':'notifications',
+    '💾':'save','📂':'folder_open','📁':'folder',
+    '🎵':'music_note','🎬':'movie','🎮':'sports_esports',
+    '⚽':'sports_soccer','🏀':'sports_basketball','🏈':'sports_football',
+    '🐾':'pets','🌀':'cyclone','💡':'lightbulb',
+    '🔋':'battery_full','📡':'satellite_alt','🌡️':'thermostat',
+    '🧭':'explore','📌':'push_pin','🪙':'paid','💸':'savings',
+    '🏪':'store','🏬':'store','🧾':'receipt',
+    '🚪':'door_front','🛌':'bed','🚿':'shower','🚽':'wc',
+    '🤝':'handshake','🤖':'smart_toy','🌍':'public','🌎':'public',
+    '🌏':'public','♻️':'recycling','💧':'water_drop',
+    '🌧️':'rainy','☀️':'wb_sunny','☁️':'cloud',
+    '⏰':'alarm','⏱️':'timer','📺':'tv','📻':'radio',
+    '🔵':'circle','🟢':'circle','🔴':'circle','🟡':'circle','🟠':'circle','🟣':'circle',
+    '⚪':'circle','⚫':'circle','📦':'inventory_2'
+  };
+
+  // Construye un regex con todos los emojis del map
+  var emojiKeys = Object.keys(ICON_MAP);
+  // Escapar caracteres especiales en regex
+  function escRx(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  var EMOJI_RX = new RegExp(emojiKeys.map(escRx).join('|'), 'gu');
+
+  // Containers donde SÍ aplicar el reemplazo
+  var SAFE_SCOPES = [
+    '#topbar','#toolbar','#mob-top','#mob-nav','#mob-tool-drawer','#mob-sheet',
+    '#afl-panel','#auto-report','#report-panel','#global-filter-panel',
+    '#reports-layer-panel','#places-menu','#nse-layers-menu','#nse-legend',
+    '#share-dialog','.tmenu-item','.tb','.mob-chip','.mob-tool','.drawer-tool',
+    '.mob-nav-btn','.panel-chrome-bar'
+  ];
+
+  function shouldSkip(node){
+    if(!node || !node.parentNode) return true;
+    var p = node.parentNode;
+    var tag = p.nodeName;
+    if(tag === 'SCRIPT' || tag === 'STYLE' || tag === 'INPUT'
+       || tag === 'TEXTAREA' || tag === 'NOSCRIPT' || tag === 'IFRAME') return true;
+    if(p.classList && p.classList.contains('ci-icon')) return true;
+    if(p.closest && p.closest('.ci-icon')) return true;
+    return false;
+  }
+
+  function replaceInElement(root){
+    if(!root || !root.querySelectorAll) return 0;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n){
+        if(shouldSkip(n)) return NodeFilter.FILTER_REJECT;
+        if(!EMOJI_RX.test(n.nodeValue)) { EMOJI_RX.lastIndex = 0; return NodeFilter.FILTER_REJECT; }
+        EMOJI_RX.lastIndex = 0;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var nodes = [], n;
+    while((n = walker.nextNode())) nodes.push(n);
+    var count = 0;
+    nodes.forEach(function(textNode){
+      var html = textNode.nodeValue.replace(EMOJI_RX, function(em){
+        count++;
+        var iconName = ICON_MAP[em];
+        if(!iconName) return '';
+        return '<span class="ci-icon" aria-hidden="true">' + iconName + '</span>';
+      });
+      var wrapper = document.createElement('span');
+      wrapper.innerHTML = html;
+      // Marcar como procesado para que no vuelva a entrar en el observer
+      wrapper.dataset.ciProcessed = '1';
+      textNode.parentNode.replaceChild(wrapper, textNode);
+    });
+    return count;
+  }
+
+  function replaceAll(){
+    var total = 0;
+    SAFE_SCOPES.forEach(function(sel){
+      try{
+        document.querySelectorAll(sel).forEach(function(el){
+          total += replaceInElement(el);
+        });
+      }catch(_){}
+    });
+    if(total) console.log('[connectia round4] reemplazados ' + total + ' emojis por Material Icons');
+    return total;
+  }
+
+  // Observer para contenido dinámico (e.g. reports re-render)
+  var _replaceObs = null;
+  function watchDynamic(){
+    if(_replaceObs) return;
+    _replaceObs = new MutationObserver(function(muts){
+      var pending = 0;
+      muts.forEach(function(m){
+        m.addedNodes && m.addedNodes.forEach(function(n){
+          if(n.nodeType !== 1) return;
+          if(n.dataset && n.dataset.ciProcessed) return;
+          // Solo procesar si está dentro de un scope seguro
+          if(SAFE_SCOPES.some(function(sel){
+            try{ return n.matches && (n.matches(sel) || n.closest(sel)); }catch(_){ return false; }
+          })){
+            pending++;
+            setTimeout(function(){ replaceInElement(n); }, 0);
+          }
+        });
+      });
+    });
+    _replaceObs.observe(document.body, {childList:true, subtree:true});
+  }
+
+  /* ===== INIT ===== */
+  function start(){
+    fixDrawerReopen();
+    attachToggleWraps();
+    replaceAll();
+    watchDynamic();
+  }
+  function startRetry(){
+    start();
+    [400, 1200, 3000, 6000, 12000].forEach(function(d){ setTimeout(start, d); });
   }
 
   if(document.readyState === 'loading'){
