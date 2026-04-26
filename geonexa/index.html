@@ -21068,6 +21068,177 @@ body.is-mobile-view .panel-chrome-host.snap-full{ transform:translateY(0) !impor
   }
 })();
 </script>
+<script id="connectia-session-html-export">
+/* ============================================================
+   SESSION EXPORT como HTML standalone
+   Wrap aditivo de saveSession(): además de guardar en localStorage,
+   genera un .html descargable que abre en cualquier navegador con:
+   - Header marca + fecha
+   - Datos de ubicación + radio + zoom
+   - Snapshot del reporte actual (texto + chart bars)
+   - Botones para abrir en Connectia y en Google Maps
+   No modifica saveSession original.
+============================================================ */
+(function(){
+  function _fmtDate(d){
+    try{
+      return d.toLocaleDateString('es-MX', {weekday:'long', year:'numeric', month:'long', day:'numeric'})
+        + ' · ' + d.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+    }catch(e){ return d.toISOString(); }
+  }
+
+  function _captureReportHtml(){
+    // Buscar el contenedor del reporte auto-render
+    var ar = document.getElementById('auto-report');
+    if(ar){
+      // Preferir solo el body del reporte (sin barras chrome)
+      var body = ar.querySelector('[id$="-body"], .ar-body') || ar;
+      // Sanitizar: quitar onclick, scripts, y la barra chrome propia
+      var clone = body.cloneNode(true);
+      var bar = clone.querySelector('.panel-chrome-bar');
+      if(bar) bar.remove();
+      // Eliminar todos los handlers inline y elementos interactivos
+      clone.querySelectorAll('*').forEach(function(el){
+        Array.from(el.attributes || []).forEach(function(a){
+          if(/^on/i.test(a.name)) el.removeAttribute(a.name);
+        });
+        // Convertir buttons en spans estáticos
+        if(el.tagName === 'BUTTON' || el.tagName === 'SCRIPT'){
+          if(el.tagName === 'SCRIPT'){ el.remove(); return; }
+          var span = document.createElement('span');
+          span.innerHTML = el.innerHTML;
+          span.style.cssText = el.style.cssText + ';display:inline-block;pointer-events:none';
+          el.parentNode && el.parentNode.replaceChild(span, el);
+        }
+      });
+      return clone.innerHTML;
+    }
+    // Fallback al report-content del panel principal
+    var rc = document.getElementById('report-content');
+    return rc ? rc.innerHTML : '';
+  }
+
+  function _exportSessionAsHtml(){
+    var ts = new Date();
+    var center = (window.currentData && window.currentData.center && typeof window.currentData.center.lat === 'function')
+      ? {lat: window.currentData.center.lat(), lng: window.currentData.center.lng()}
+      : null;
+    var radius = (window.currentData && window.currentData.radiusM) || 0;
+    var zoom = (typeof window.map !== 'undefined' && window.map && window.map.getZoom) ? window.map.getZoom() : 14;
+    var stateCode = (window.currentData && window.currentData.stateCode) || '';
+    var pop  = (window.currentData && window.currentData.estPop)  || 0;
+    var hog  = (window.currentData && window.currentData.estHog)  || 0;
+    var area = (window.currentData && window.currentData.areaSqKm) || 0;
+
+    var connectiaUrl = window.location.href;
+    var report = _captureReportHtml();
+
+    var coordsTxt = center ? (center.lat.toFixed(6) + ', ' + center.lng.toFixed(6)) : '—';
+    var gmapsUrl  = center ? ('https://maps.google.com/?q=' + center.lat + ',' + center.lng) : '#';
+    var gstaticImg = center
+      ? ('https://maps.googleapis.com/maps/api/staticmap?center=' + center.lat + ',' + center.lng
+         + '&zoom=' + zoom + '&size=800x400&scale=2&markers=color:0x6D28D9%7C' + center.lat + ',' + center.lng
+         + (radius ? '&path=color:0x8B3A9F88%7Cfillcolor:0x8B3A9F33%7Cweight:2%7Cenc:' : '')
+         + '&key=AIzaSyCSz9vl6r8FAFAI-ifVr7O1yu5yW2Qrxek')
+      : '';
+
+    var fmt = function(n){
+      if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+      if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+      return Math.round(n).toLocaleString('es-MX');
+    };
+
+    var doc = ''
+      + '<!DOCTYPE html>\n'
+      + '<html lang="es">\n<head>\n'
+      + '<meta charset="UTF-8">\n'
+      + '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+      + '<title>Sesión Connectia · ' + _fmtDate(ts) + '</title>\n'
+      + '<style>\n'
+      + '*{box-sizing:border-box}\n'
+      + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;background:#f5f5f7;color:#1d1d1f;line-height:1.45}\n'
+      + '.wrap{max-width:920px;margin:0 auto;padding:24px 16px 60px}\n'
+      + 'header.brand{background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;padding:28px 24px;border-radius:16px;margin-bottom:18px;box-shadow:0 8px 24px rgba(109,40,217,.18)}\n'
+      + 'header.brand h1{margin:0 0 4px;font-size:30px;font-weight:800;letter-spacing:-.5px}\n'
+      + 'header.brand .sub{opacity:.85;font-size:13px}\n'
+      + 'section{background:#fff;border-radius:14px;padding:18px 22px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}\n'
+      + 'section h2{margin:0 0 12px;font-size:15px;font-weight:700;color:#6D28D9;text-transform:uppercase;letter-spacing:.4px}\n'
+      + '.kv{display:grid;grid-template-columns:160px 1fr;gap:8px 14px;font-size:14px}\n'
+      + '.kv .k{color:#64748b;font-weight:600}\n'
+      + '.kv .v{color:#1d1d1f;font-weight:500}\n'
+      + '.cta{display:inline-block;padding:10px 18px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:13px;margin-right:8px;margin-top:10px;box-shadow:0 2px 6px rgba(109,40,217,.25)}\n'
+      + '.cta.alt{background:#fff;color:#6D28D9;border:1px solid #e9d5ff;box-shadow:none}\n'
+      + '.snapshot{font-size:12px;line-height:1.6}\n'
+      + '.snapshot button,.snapshot a{pointer-events:none}\n'
+      + '.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:6px}\n'
+      + '.kpi{background:#faf5ff;border:1px solid #e9d5ff;border-radius:10px;padding:10px 12px}\n'
+      + '.kpi .l{font-size:10px;color:#6D28D9;font-weight:700;text-transform:uppercase;letter-spacing:.4px}\n'
+      + '.kpi .v{font-size:20px;font-weight:800;color:#1d1d1f;margin-top:4px}\n'
+      + '.mapimg{width:100%;border-radius:10px;margin-top:6px;border:1px solid #e2e8f0}\n'
+      + 'footer{text-align:center;color:#94a3b8;font-size:11px;margin-top:30px}\n'
+      + '</style>\n</head>\n<body>\n'
+      + '<div class="wrap">\n'
+      + '<header class="brand"><h1>Sesión Connectia</h1><div class="sub">' + _fmtDate(ts) + '</div></header>\n'
+      + '<section><h2>📍 Ubicación</h2><div class="kv">'
+      +   '<div class="k">Coordenadas</div><div class="v">' + coordsTxt + '</div>'
+      +   (radius ? '<div class="k">Radio</div><div class="v">' + radius + ' m (' + (radius/1000).toFixed(2) + ' km)</div>' : '')
+      +   '<div class="k">Zoom</div><div class="v">' + zoom + '</div>'
+      +   (stateCode ? '<div class="k">Entidad</div><div class="v">' + stateCode + '</div>' : '')
+      + '</div>'
+      + (gstaticImg ? '<img class="mapimg" alt="Mapa" src="' + gstaticImg + '">' : '')
+      + '<div>'
+      +   '<a class="cta" href="' + connectiaUrl + '" target="_blank" rel="noopener">Abrir en Connectia</a>'
+      +   (center ? '<a class="cta alt" href="' + gmapsUrl + '" target="_blank" rel="noopener">Ver en Google Maps</a>' : '')
+      + '</div></section>\n'
+      + ((pop || hog || area) ? '<section><h2>📊 Resumen</h2><div class="kpis">'
+        + (pop  ? '<div class="kpi"><div class="l">Población</div><div class="v">' + fmt(pop) + '</div></div>' : '')
+        + (hog  ? '<div class="kpi"><div class="l">Hogares</div><div class="v">' + fmt(hog) + '</div></div>' : '')
+        + (area ? '<div class="kpi"><div class="l">Área</div><div class="v">' + (area<1 ? (area*1e6).toFixed(0)+' m²' : area.toFixed(2)+' km²') + '</div></div>' : '')
+        + '</div></section>\n' : '')
+      + (report ? '<section><h2>📋 Reporte</h2><div class="snapshot">' + report + '</div></section>\n' : '')
+      + '<footer>Generado por Connectia · connectia.mx · Sesión exportada el ' + ts.toISOString() + '</footer>\n'
+      + '</div>\n</body>\n</html>';
+
+    var blob = new Blob([doc], {type: 'text/html;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    var stamp = ts.toISOString().slice(0,16).replace(/[:T]/g, '-');
+    a.download = 'connectia-sesion-' + stamp + '.html';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 100);
+    if(typeof setStatus === 'function'){
+      setStatus('Sesión exportada como HTML descargable');
+    }
+  }
+
+  // Wrap saveSession (aditivo)
+  function attachExport(){
+    var orig = window.saveSession;
+    if(typeof orig !== 'function' || orig._htmlExport) return;
+    window.saveSession = function(){
+      var r;
+      try { r = orig.apply(this, arguments); } catch(e){ console.warn('[connectia] saveSession orig failed', e); }
+      try { _exportSessionAsHtml(); } catch(e){ console.warn('[connectia] export HTML failed', e); }
+      return r;
+    };
+    window.saveSession._htmlExport = true;
+    window.saveSession._origFn = orig;
+    // Función global por si quieres dispararla independientemente
+    window.exportSessionAsHtml = _exportSessionAsHtml;
+    console.log('[connectia] saveSession ahora también descarga HTML standalone');
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', attachExport);
+  } else {
+    attachExport();
+  }
+  setTimeout(attachExport, 500);
+  setTimeout(attachExport, 2000);
+})();
+</script>
 
 </body>
 </html>
