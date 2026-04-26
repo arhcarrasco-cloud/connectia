@@ -15810,7 +15810,41 @@ setInterval(function(){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgenjs.bundle.js"></script>
-<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSz9vl6r8FAFAI-ifVr7O1yu5yW2Qrxek&libraries=drawing,places,geometry,visualization,marker&callback=initMap"></script>
+<script id="connectia-maps-loader">
+/* ============================================================
+   Platform-aware Google Maps loader
+   - Web (connectia.mx): usa la key restringida por HTTP referer
+   - iOS (Capacitor app): usa la key restringida por Bundle ID
+   - Android (Capacitor app): usa la key restringida por Package name
+   Fallback: si no se detecta nativo, usa la web key.
+============================================================ */
+(function(){
+  var WEB_KEY     = 'AIzaSyCSz9vl6r8FAFAI-ifVr7O1yu5yW2Qrxek';   // restringida por referer connectia.mx
+  var IOS_KEY     = 'PASTE_YOUR_IOS_KEY_HERE';                    // restringir por Bundle ID mx.connectia.geonexa
+  var ANDROID_KEY = 'PASTE_YOUR_ANDROID_KEY_HERE';                // restringir por Package name mx.connectia.geonexa
+
+  var platform = 'web';
+  try {
+    if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function'
+        && window.Capacitor.isNativePlatform()) {
+      platform = window.Capacitor.getPlatform();  // 'ios' | 'android'
+    }
+  } catch(_){}
+
+  var key = WEB_KEY;
+  if (platform === 'ios'     && IOS_KEY     && IOS_KEY.indexOf('PASTE_') !== 0) key = IOS_KEY;
+  if (platform === 'android' && ANDROID_KEY && ANDROID_KEY.indexOf('PASTE_') !== 0) key = ANDROID_KEY;
+
+  console.log('[connectia] platform=' + platform + ' usando Google Maps key prefix=' + key.substring(0, 12) + '...');
+
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://maps.googleapis.com/maps/api/js?key=' + key
+        + '&libraries=drawing,places,geometry,visualization,marker'
+        + '&callback=initMap';
+  document.head.appendChild(s);
+})();
+</script>
 
 <!-- Global filter panel replaced by compact dropdown in toggleGlobalFilterPanel() -->
 <div id="global-filter-panel" style="display:none"></div>
