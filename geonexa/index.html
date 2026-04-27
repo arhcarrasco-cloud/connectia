@@ -24223,6 +24223,467 @@ header.brand .ci-icon{
 })();
 </script>
 
+<style id="connectia-round11-css">
+/* ============================================================
+   ROUND 11 — Apple iOS look & feel, paleta pastel morado-rosa
+   ============================================================
+   Principios:
+   - Tipografía: -apple-system / SF Pro
+   - Backgrounds neutros (blanco / Apple grays)
+   - Sombras MUY sutiles
+   - Border-radius generoso (12-16px)
+   - Active states con TINT pastel, no fill sólido
+   - Texto siempre legible: títulos #1d1d1f, subtítulos #6e6e73
+============================================================ */
+
+:root{
+  --cn-text-primary:#1d1d1f;
+  --cn-text-secondary:#6e6e73;
+  --cn-text-tertiary:#86868b;
+  --cn-purple:#6D28D9;
+  --cn-purple-deep:#5B21B6;
+  --cn-pink:#EC4899;
+  --cn-grad-pastel:linear-gradient(135deg,#F5F3FF,#FDF2F8);
+  --cn-grad-pastel-strong:linear-gradient(135deg,#DDD6FE,#FBCFE8);
+  --cn-grad-purple-soft:linear-gradient(135deg,#EDE9FE,#FCE7F3);
+  --cn-bg-soft:#FAFAFA;
+  --cn-card-bg:#FFFFFF;
+  --cn-hairline:rgba(60,60,67,.12);
+  --cn-shadow-sm:0 1px 2px rgba(0,0,0,.04), 0 1px 4px rgba(0,0,0,.04);
+  --cn-shadow-md:0 4px 12px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.04);
+  --cn-shadow-lg:0 12px 32px rgba(0,0,0,.10), 0 4px 12px rgba(0,0,0,.06);
+}
+
+/* === Headers de paneles: gradient pastel + texto gris oscuro === */
+#topbar,
+#auto-report .ar-header,
+#report-title-bar,
+#gflt-title-bar,
+#cn-cmp-panel header,
+#cn-layers-panel header,
+#cn-share-modal h2,
+#cn-cmp-dash .dash-chrome,
+.panel-chrome-bar,
+#mob-tool-drawer-title{
+  background:var(--cn-grad-pastel) !important;
+  color:var(--cn-text-primary) !important;
+  border-bottom:1px solid var(--cn-hairline);
+}
+#topbar *,
+#auto-report .ar-header *,
+#report-title-bar *,
+#gflt-title-bar *,
+#cn-cmp-panel header *,
+#cn-layers-panel header *,
+#cn-cmp-dash .dash-chrome *{
+  color:var(--cn-text-primary) !important;
+  -webkit-text-fill-color:var(--cn-text-primary) !important;
+}
+/* gradient text override (los headers que usaban gradient text) — vuelven a sólido oscuro */
+#mob-menu-btn.is-logo,
+#cn-share-modal h2,
+#cn-cmp-dash header h2,
+#cn-cmp-dash .dash-chrome .dc-title,
+#mob-tool-drawer-title{
+  background:none !important;
+  -webkit-background-clip:initial !important;
+  background-clip:initial !important;
+  -webkit-text-fill-color:var(--cn-purple) !important;
+  color:var(--cn-purple) !important;
+  font-weight:700;
+}
+/* Botones de close en headers — círculo gris claro */
+#topbar button,
+#cn-cmp-panel header button,
+#cn-layers-panel header button,
+#cn-cmp-dash .dash-chrome button{
+  background:rgba(0,0,0,.05) !important;
+  color:var(--cn-text-primary) !important;
+  border:none !important;
+  border-radius:50%;
+}
+#topbar button:hover,
+#cn-cmp-panel header button:hover,
+#cn-layers-panel header button:hover,
+#cn-cmp-dash .dash-chrome button:hover{
+  background:rgba(0,0,0,.08) !important;
+}
+
+/* === Active state: TINT pastel, NO fill sólido morado === */
+.tb.is-active,
+.tb.active,
+.tb[aria-pressed="true"],
+.mob-tool.is-active,
+.mob-tool.active,
+.drawer-tool.is-active,
+.drawer-tool.active,
+.mob-chip.active,
+.cat-chip.active{
+  background:var(--cn-grad-pastel-strong) !important;
+  color:var(--cn-purple-deep) !important;
+  border:1px solid rgba(109,40,217,.25) !important;
+  box-shadow:0 1px 3px rgba(109,40,217,.08) !important;
+}
+.tb.is-active *,
+.tb.active *,
+.tb[aria-pressed="true"] *,
+.mob-tool.is-active *,
+.mob-tool.active *,
+.drawer-tool.is-active *,
+.drawer-tool.active *,
+.mob-chip.active *,
+.cat-chip.active *{
+  color:var(--cn-purple-deep) !important;
+  -webkit-text-fill-color:var(--cn-purple-deep) !important;
+}
+.tb.is-active .ci-icon,
+.tb.active .ci-icon,
+.mob-tool.is-active .ci-icon,
+.drawer-tool.is-active .ci-icon,
+.mob-chip.active .ci-icon{
+  color:var(--cn-purple-deep) !important;
+  -webkit-text-fill-color:var(--cn-purple-deep) !important;
+}
+
+/* === Cards / paneles: bordes hairline, sombras sutiles iOS === */
+#afl-panel,
+#auto-report,
+#report-panel,
+#global-filter-panel,
+#reports-layer-panel,
+#places-menu,
+#nse-layers-menu,
+#cn-cmp-panel,
+#cn-layers-panel,
+#cn-cmp-dash .dash-card,
+#cn-share-modal .modal-card,
+#mob-tool-drawer,
+#mob-sheet{
+  background:var(--cn-card-bg) !important;
+  border:1px solid var(--cn-hairline) !important;
+  box-shadow:var(--cn-shadow-md) !important;
+  border-radius:14px !important;
+}
+#mob-search-pill,
+#cn-share-fab,
+#cn-layers-fab,
+#cn-cmp-fab{
+  box-shadow:var(--cn-shadow-md) !important;
+}
+
+/* === FABs: pastel suave, no morado fuerte === */
+#cn-share-fab{
+  background:var(--cn-grad-pastel-strong) !important;
+  color:var(--cn-purple-deep) !important;
+  border:1px solid rgba(109,40,217,.20) !important;
+}
+
+/* === Tipografía consistente === */
+body, button, input, select, textarea{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',sans-serif !important;
+}
+h1,h2,h3,h4,
+[class*="title"],
+[id*="title"]{
+  color:var(--cn-text-primary) !important;
+  letter-spacing:-.2px;
+}
+.sub, .subtitle, [class*="subtitle"], small{
+  color:var(--cn-text-secondary) !important;
+}
+
+/* === Modal share: card iOS === */
+#cn-share-modal .modal-card{ border-radius:18px !important; }
+#cn-share-modal button.btn.primary{
+  background:var(--cn-grad-pastel-strong) !important;
+  color:var(--cn-purple-deep) !important;
+  border:1px solid rgba(109,40,217,.25) !important;
+}
+
+/* === Drawer tools — cards iOS-like === */
+.is-mobile-view #mob-tool-drawer .drawer-tool{
+  background:var(--cn-bg-soft) !important;
+  border:1px solid var(--cn-hairline) !important;
+}
+
+/* === Bottom nav (mobile) — limpio iOS === */
+.is-mobile-view #mob-nav{
+  background:rgba(255,255,255,.96) !important;
+  -webkit-backdrop-filter:saturate(180%) blur(20px) !important;
+  backdrop-filter:saturate(180%) blur(20px) !important;
+  border-top:1px solid var(--cn-hairline) !important;
+  box-shadow:none !important;
+}
+
+/* === Search inputs: iOS clean === */
+input[type=text], input[type=search]{
+  background:var(--cn-bg-soft) !important;
+}
+input[type=text]:focus, input[type=search]:focus{
+  background:#fff !important;
+  border-color:rgba(109,40,217,.4) !important;
+  box-shadow:0 0 0 3px rgba(109,40,217,.10) !important;
+}
+</style>
+
+<script id="connectia-round11-js">
+/* ============================================================
+   ROUND 11 — Universal emoji nuker + tooltip tipo iOS
+============================================================ */
+(function(){
+
+  // Emoji ranges Unicode comprehensive
+  var EMOJI_RX = /[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{2B00}-\u{2BFF}\u{1F1E0}-\u{1F1FF}\u{200D}\u{FE0F}]+/gu;
+
+  // ICON_MAP de round 4 ya tiene mappings para emojis comunes.
+  // Aquí extendemos con más y default a vacío si no hay match.
+  var EXTRA_MAP = {
+    '🔅':'brightness_low','🔆':'brightness_high',
+    '✓':'check','✗':'close','✕':'close','✖':'close',
+    '⚙':'settings','⚙️':'settings',
+    '📲':'install_mobile','📱':'smartphone',
+    '⚡':'bolt','🔥':'local_fire_department',
+    '⏪':'fast_rewind','▶':'play_arrow','⏸':'pause','⏹':'stop',
+    '🌅':'wb_twilight','🌇':'wb_twilight','🌙':'bedtime',
+    '🛒':'shopping_cart','🍽':'restaurant','🍽️':'restaurant',
+    '👫':'people','💼':'business_center',
+    '⚽':'sports_soccer','🎬':'movie','🚌':'directions_bus',
+    '🏨':'hotel','📦':'inventory_2',
+    '🌐':'public','🗺':'map','🗺️':'map',
+    '📍':'place','💰':'payments','📊':'bar_chart',
+    '🎛':'tune','🎛️':'tune','🚦':'traffic',
+    '🔍':'search','📋':'assignment','👥':'groups',
+    '📅':'calendar_today','🏠':'home','🏢':'apartment',
+    '⭐':'star','🛠':'handyman','🛠️':'handyman',
+    '🚶':'directions_walk','🚗':'directions_car','🚴':'directions_bike',
+    '👨':'person','👩':'person_outline','🏘':'location_city','🏘️':'location_city',
+    '⚠':'warning','⚠️':'warning','ℹ':'info','ℹ️':'info',
+    '▾':'expand_more','▼':'expand_more','▴':'expand_less','▲':'expand_less',
+    '✨':'auto_awesome','💳':'credit_card','🚇':'train',
+    '🌉':'apartment','🏛':'account_balance','🏛️':'account_balance',
+    '📷':'photo_camera','📸':'camera_alt','🎯':'adjust',
+    '🚜':'agriculture','🏭':'factory','🏞':'landscape','🏞️':'landscape',
+    '🎓':'school','🏥':'local_hospital','💊':'medication',
+    '📈':'trending_up','📉':'trending_down','📞':'call',
+    '📧':'email','💻':'computer','🛍':'shopping_bag','🛍️':'shopping_bag',
+    '✈':'flight','✈️':'flight','🚆':'train','🚊':'tram',
+    '⛽':'local_gas_station','🅿':'local_parking','🅿️':'local_parking',
+    '🌳':'park','🏖':'beach_access','🏖️':'beach_access',
+    '💎':'diamond','🔔':'notifications','💾':'save',
+    '📂':'folder_open','📁':'folder','💡':'lightbulb',
+    '🪙':'paid','💸':'savings','🏪':'store','🏬':'store',
+    '🧾':'receipt','🤝':'handshake','♻':'recycling','♻️':'recycling',
+    '💧':'water_drop','☀':'wb_sunny','☀️':'wb_sunny','☁':'cloud','☁️':'cloud',
+    '⏰':'alarm','⏱':'timer','⏱️':'timer',
+    '🔵':'circle','🟢':'circle','🔴':'circle','🟡':'circle','🟠':'circle','🟣':'circle',
+    '⚪':'circle','⚫':'circle',
+    '🟪':'square','🟦':'square','🟥':'square','🟫':'square','🟧':'square','🟩':'square','🟨':'square',
+    '↩':'undo','↩️':'undo','🗑':'delete','🗑️':'delete','🔗':'link',
+    '⭕':'radio_button_unchecked','▬':'crop_landscape','⬟':'pentagon',
+    '🛣':'route','🛣️':'route','📎':'attach_file',
+    '🛰':'satellite_alt','🛰️':'satellite_alt','🏷':'local_offer','🏷️':'local_offer',
+    '🗂':'folder','🗂️':'folder','📏':'straighten'
+  };
+  // Mezclar con el ICON_MAP global si existe
+  if(window.ICON_MAP) Object.keys(window.ICON_MAP).forEach(function(k){
+    if(!EXTRA_MAP[k]) EXTRA_MAP[k] = window.ICON_MAP[k];
+  });
+  window.ICON_MAP = EXTRA_MAP;
+
+  function emojiKey(em){ return em.replace(/️/g, ''); }
+
+  function nukeInTextNode(textNode){
+    var v = textNode.nodeValue;
+    if(!EMOJI_RX.test(v)){ EMOJI_RX.lastIndex = 0; return false; }
+    EMOJI_RX.lastIndex = 0;
+    var html = v.replace(EMOJI_RX, function(m){
+      // Para cada emoji individual del match, intentar mappear
+      var out = '';
+      // Splittear por code points
+      var iter = m[Symbol.iterator]();
+      var step = iter.next();
+      var buffer = '';
+      while(!step.done){
+        buffer += step.value;
+        step = iter.next();
+      }
+      // Heurística simple: usar el emoji entero (sin FE0F) como key
+      var key = emojiKey(m);
+      var name = EXTRA_MAP[key];
+      if(name){
+        out = '<span class="ci-icon" aria-hidden="true">' + name + '</span>';
+      }
+      // Si no hay match, devolver vacío (eliminar emoji)
+      return out;
+    });
+    if(html === v) return false;
+    var wrapper = document.createElement('span');
+    wrapper.innerHTML = html;
+    wrapper.dataset.ciNuked = '1';
+    textNode.parentNode.replaceChild(wrapper, textNode);
+    return true;
+  }
+
+  function shouldSkipNode(node){
+    if(!node || !node.parentNode) return true;
+    var p = node.parentNode;
+    var tag = p.nodeName;
+    if(tag === 'SCRIPT' || tag === 'STYLE' || tag === 'INPUT'
+       || tag === 'TEXTAREA' || tag === 'NOSCRIPT' || tag === 'IFRAME'
+       || tag === 'OPTION' || tag === 'SELECT') return true;
+    if(p.classList && (p.classList.contains('ci-icon') || p.classList.contains('material-icons-outlined') || p.classList.contains('material-icons'))) return true;
+    if(p.closest && p.closest('.ci-icon, .material-icons-outlined, .material-icons')) return true;
+    // Skip Google Maps internal DOM (puede causar issues)
+    if(p.closest && p.closest('.gm-style, .gm-style-iw, .gm-style-cc')) return true;
+    return false;
+  }
+
+  function nukeAllEmojis(root){
+    root = root || document.body;
+    if(!root || !root.querySelectorAll) return 0;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n){
+        if(shouldSkipNode(n)) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var nodes = [], n;
+    while((n = walker.nextNode())) nodes.push(n);
+    var count = 0;
+    nodes.forEach(function(t){ if(nukeInTextNode(t)) count++; });
+    if(count) console.log('[r11] nuked emojis en ' + count + ' text nodes');
+    return count;
+  }
+
+  // También quitar emoji de attributes (placeholder, title, value, data-tip, aria-label)
+  function nukeAttributes(root){
+    root = root || document.body;
+    var attrs = ['placeholder','title','aria-label','data-tip','value'];
+    var els = root.querySelectorAll('*');
+    var count = 0;
+    els.forEach(function(el){
+      attrs.forEach(function(a){
+        if(!el.hasAttribute(a)) return;
+        var v = el.getAttribute(a);
+        if(!EMOJI_RX.test(v)){ EMOJI_RX.lastIndex = 0; return; }
+        EMOJI_RX.lastIndex = 0;
+        var nv = v.replace(EMOJI_RX, '').replace(/\s{2,}/g, ' ').trim();
+        if(nv !== v){
+          el.setAttribute(a, nv);
+          count++;
+        }
+      });
+    });
+    if(count) console.log('[r11] cleaned ' + count + ' emoji-laden attributes');
+    return count;
+  }
+
+  function fullSweep(){
+    nukeAllEmojis();
+    nukeAttributes();
+  }
+
+  // MutationObserver para nuevos nodos (reportes dinámicos, etc.)
+  function watchDom(){
+    if(window._r11Obs) return;
+    var obs = new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        m.addedNodes && m.addedNodes.forEach(function(n){
+          if(n.nodeType === 1){
+            // Skip internal Google Maps additions
+            if(n.closest && n.closest('.gm-style')) return;
+            if(n.dataset && n.dataset.ciNuked) return;
+            setTimeout(function(){
+              try{
+                nukeAllEmojis(n);
+                nukeAttributes(n);
+              }catch(_){}
+            }, 0);
+          }
+        });
+      });
+    });
+    obs.observe(document.body, {childList:true, subtree:true});
+    window._r11Obs = obs;
+  }
+
+  // ============================================================
+  // CONTADOR DE KM DEL CÍRCULO en tiempo real desde el primer click
+  // Capturamos mousedown/touchstart DOM directamente para no depender
+  // de eventos Google Maps que pueden ser consumidos por Drawing Manager.
+  // ============================================================
+  function attachCircleLiveDom(){
+    if(window._circleDomLiveR11) return;
+    var mapEl = document.getElementById('map');
+    if(!mapEl) return false;
+    if(typeof window.drawingManager === 'undefined' || !window.drawingManager) return false;
+    if(typeof window._pixelToLatLng !== 'function') return false;
+    if(typeof window._updateRadiusDisplay !== 'function') return false;
+    if(typeof google === 'undefined' || !google.maps || !google.maps.geometry) return false;
+    window._circleDomLiveR11 = true;
+
+    function inCircleMode(){
+      try{ return window.drawingManager.getDrawingMode() === google.maps.drawing.OverlayType.CIRCLE; }
+      catch(_){ return false; }
+    }
+
+    var liveCenter = null;
+    function startDraw(x, y){
+      if(!inCircleMode()) return;
+      var ll = window._pixelToLatLng(x, y);
+      if(ll){
+        liveCenter = ll;
+        window._circleLiveCenter = ll; // mantener compatibilidad con código existente
+        // Mostrar label inmediatamente con radio 0 → arranca cuando user mueve
+        try{ window._updateRadiusDisplay(0); }catch(_){}
+      }
+    }
+    function updateDraw(x, y){
+      if(!liveCenter || !inCircleMode()) return;
+      var cur = window._pixelToLatLng(x, y);
+      if(!cur) return;
+      var dist = google.maps.geometry.spherical.computeDistanceBetween(liveCenter, cur);
+      try{ window._updateRadiusDisplay(dist); }catch(_){}
+    }
+    function endDraw(){
+      liveCenter = null;
+      // Hide label after a short delay so user ve el final
+      // (no escondemos si hay overlay creado — el label se queda)
+    }
+
+    // Mouse
+    mapEl.addEventListener('mousedown', function(e){ startDraw(e.clientX, e.clientY); }, true);
+    mapEl.addEventListener('mousemove', function(e){ updateDraw(e.clientX, e.clientY); }, true);
+    mapEl.addEventListener('mouseup',   function(){ endDraw(); }, true);
+    // Touch
+    mapEl.addEventListener('touchstart', function(e){
+      if(e.touches && e.touches[0]) startDraw(e.touches[0].clientX, e.touches[0].clientY);
+    }, {capture:true, passive:true});
+    mapEl.addEventListener('touchmove', function(e){
+      if(e.touches && e.touches[0]) updateDraw(e.touches[0].clientX, e.touches[0].clientY);
+    }, {capture:true, passive:true});
+    mapEl.addEventListener('touchend', function(){ endDraw(); }, true);
+    return true;
+  }
+
+  // INIT
+  function start(){
+    fullSweep();
+    watchDom();
+    attachCircleLiveDom();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+  // Reintentos repetidos para barrer nuevos placeholders, etc.
+  [400, 1500, 4000, 9000, 18000].forEach(function(d){
+    setTimeout(function(){ fullSweep(); attachCircleLiveDom(); }, d);
+  });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
