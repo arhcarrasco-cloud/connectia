@@ -24061,7 +24061,7 @@ header.brand .ci-icon{
     var panel = document.createElement('div');
     panel.id = 'cn-cmp-panel';
     var html = '<header><h3>Comparativa de marcas</h3>'
-             + '<button onclick="document.getElementById(\'cn-cmp-panel\').classList.remove(\'show\')" data-tip="Cerrar">×</button>'
+             + '<button onclick="document.getElementById(\'cn-cmp-panel\').classList.remove(\'show\');if(window._cmpMarkers)window._cmpMarkers.forEach(function(m){m.setMap(null)})" data-tip="Cerrar">×</button>'
              + '</header><div class="body">'
              + '<div class="area-status" id="cn-cmp-area">Verificando área seleccionada…</div>'
              + '<div class="search-row">'
