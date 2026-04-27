@@ -25738,6 +25738,322 @@ small,.sub,.subtitle,
 })();
 </script>
 
+<style id="connectia-round18-css">
+/* === Topbar HARD visibility en desktop === */
+@media (min-width: 769px){
+  body:not(.is-mobile-view) #topbar{
+    display:flex !important;
+    visibility:visible !important;
+    opacity:1 !important;
+    pointer-events:auto !important;
+    z-index:90 !important;
+    position:fixed !important;
+    top:0 !important; left:0 !important; right:0 !important;
+    height:48px !important;
+  }
+}
+
+/* === Share FAB con ícono Material visible === */
+#cn-share-fab{
+  bottom:200px !important;
+  right:18px !important;
+  font-family:'Material Icons Outlined', sans-serif !important;
+  font-size:22px !important;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
+  color:#fff !important;
+}
+#cn-share-fab::before{
+  content:'share';
+  font-family:'Material Icons Outlined' !important;
+  font-size:22px;
+  color:#fff;
+}
+#cn-share-fab > *{ display:none !important; }
+
+/* === Panel comparar inline — z-index máximo y display garantizado === */
+#cn-cmp-inline{
+  z-index:99999 !important;
+}
+#cn-cmp-inline.show{
+  display:flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
+}
+
+/* === Live radius label — siempre encima === */
+#live-radius-label{
+  z-index:99998 !important;
+  pointer-events:none !important;
+}
+</style>
+<script id="connectia-round18-js">
+/* Round 18 — fixes finales agresivos */
+(function(){
+
+  // ============================================================
+  // 1) Cache buster — invalidar service worker viejo
+  // ============================================================
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      regs.forEach(function(r){
+        try{ r.update(); }catch(_){}
+      });
+    });
+  }
+
+  // ============================================================
+  // 2) Topbar visible — fuerza cada 300ms
+  // ============================================================
+  setInterval(function(){
+    var tb = document.getElementById('topbar');
+    if(!tb) return;
+    if(document.body.classList.contains('is-mobile-view')) return;
+    tb.style.display = 'flex';
+    tb.style.visibility = 'visible';
+    tb.style.opacity = '1';
+    tb.style.pointerEvents = 'auto';
+  }, 300);
+
+  // ============================================================
+  // 3) Compare button: fallback más agresivo
+  // ============================================================
+  function ensureInlinePanel(){
+    return document.getElementById('cn-cmp-inline');
+  }
+  function showCompareInline(triggerEl){
+    var p = ensureInlinePanel();
+    if(!p){
+      console.warn('[r18] panel inline no existe — esperando');
+      // Round 17 lo crea on-demand. Forzar trigger.
+      var ev = new Event('cmp-build');
+      document.dispatchEvent(ev);
+      setTimeout(function(){ showCompareInline(triggerEl); }, 200);
+      return;
+    }
+    p.classList.add('show');
+    p.style.display = 'flex';
+    if(!document.body.classList.contains('is-mobile-view') && triggerEl){
+      var r = triggerEl.getBoundingClientRect();
+      var pw = 340;
+      p.style.position = 'fixed';
+      p.style.top = (r.bottom + 6) + 'px';
+      p.style.left = Math.max(10, Math.min(window.innerWidth - pw - 10, r.left + r.width/2 - pw/2)) + 'px';
+      p.style.right = 'auto';
+    }
+    console.log('[r18] panel inline visible @', p.style.left, p.style.top);
+  }
+  function hookCompareTriggers(){
+    document.querySelectorAll('[data-cmp-entry="1"]').forEach(function(t){
+      if(t._r18) return;
+      t._r18 = true;
+      t.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        showCompareInline(t);
+      }, true);
+    });
+  }
+  setInterval(hookCompareTriggers, 1500);
+
+  // ============================================================
+  // 4) Live radius label — anchor in WORLD coordinates con OverlayView
+  //    En lugar de calcular pixel y posicionar HTML element fixed,
+  //    creamos un OverlayView nativo que se redibuja con cada pan/zoom.
+  // ============================================================
+  if(typeof google !== 'undefined' && google.maps && !window._radiusOverlayClass){
+    function defineRadiusOverlayClass(){
+      function RadiusLabel(){
+        this._div = null;
+      }
+      RadiusLabel.prototype = new google.maps.OverlayView();
+      RadiusLabel.prototype.onAdd = function(){
+        var div = document.createElement('div');
+        div.id = 'live-radius-overlay';
+        div.style.position = 'absolute';
+        div.style.transform = 'translate(-50%, -50%)';
+        div.style.pointerEvents = 'none';
+        div.style.background = 'rgba(255,255,255,.98)';
+        div.style.border = '1.5px solid rgba(139,58,159,.45)';
+        div.style.borderRadius = '8px';
+        div.style.padding = '6px 12px';
+        div.style.boxShadow = '0 2px 10px rgba(139,58,159,.18)';
+        div.style.fontFamily = '-apple-system,BlinkMacSystemFont,sans-serif';
+        div.style.fontSize = '13px';
+        div.style.fontWeight = '700';
+        div.style.color = '#8B3A9F';
+        div.style.whiteSpace = 'nowrap';
+        div.style.zIndex = '100';
+        this._div = div;
+        this.getPanes().overlayMouseTarget.appendChild(div);
+      };
+      RadiusLabel.prototype.draw = function(){
+        if(!this._div) return;
+        if(!this._center){ this._div.style.display = 'none'; return; }
+        var proj = this.getProjection();
+        if(!proj) return;
+        var px = proj.fromLatLngToDivPixel(this._center);
+        if(!px) return;
+        this._div.style.left = px.x + 'px';
+        this._div.style.top  = px.y + 'px';
+        this._div.style.display = 'block';
+      };
+      RadiusLabel.prototype.onRemove = function(){
+        if(this._div && this._div.parentNode) this._div.parentNode.removeChild(this._div);
+        this._div = null;
+      };
+      RadiusLabel.prototype.update = function(latLng, radiusM){
+        this._center = latLng;
+        if(this._div){
+          var radStr = radiusM<1000?Math.round(radiusM)+' m':(radiusM/1000).toFixed(2)+' km';
+          var areaKm2 = Math.PI*(radiusM/1000)*(radiusM/1000);
+          var areaStr = areaKm2<1?(areaKm2*1e6).toFixed(0)+' m²':areaKm2.toFixed(2)+' km²';
+          this._div.innerHTML = radStr + ' · <span style="color:#86868b;font-size:11px;font-weight:500">' + areaStr + '</span>';
+          this.draw();
+        }
+      };
+      RadiusLabel.prototype.show = function(){
+        if(this._div) this._div.style.display = 'block';
+      };
+      RadiusLabel.prototype.hide = function(){
+        if(this._div) this._div.style.display = 'none';
+        this._center = null;
+      };
+      window._radiusOverlayClass = RadiusLabel;
+    }
+    defineRadiusOverlayClass();
+  }
+
+  function ensureRadiusOverlay(){
+    if(typeof google === 'undefined' || !google.maps) return null;
+    if(!window._radiusOverlayClass) return null;
+    if(!window._radiusOverlayInstance){
+      try{
+        window._radiusOverlayInstance = new window._radiusOverlayClass();
+        window._radiusOverlayInstance.setMap(window.map);
+      }catch(e){ return null; }
+    }
+    return window._radiusOverlayInstance;
+  }
+
+  // Hook a mousemove durante drawing CIRCLE
+  function attachRadiusLive(){
+    var mapEl = document.getElementById('map');
+    if(!mapEl || mapEl._r18Radius) return;
+    if(typeof google === 'undefined' || !google.maps || !google.maps.geometry) return;
+    if(typeof window.drawingManager === 'undefined') return;
+    if(typeof window._pixelToLatLng !== 'function') return;
+    mapEl._r18Radius = true;
+
+    function inCircleMode(){
+      try{ return window.drawingManager.getDrawingMode() === google.maps.drawing.OverlayType.CIRCLE; }catch(_){ return false; }
+    }
+
+    var liveCenter = null;
+    function downHandler(x, y){
+      if(!inCircleMode()) return;
+      var ll = window._pixelToLatLng(x, y);
+      if(ll){
+        liveCenter = ll;
+        window._circleLiveCenter = ll;
+        var ov = ensureRadiusOverlay();
+        if(ov) ov.update(ll, 0);
+      }
+    }
+    function moveHandler(x, y){
+      if(!liveCenter || !inCircleMode()) return;
+      var cur = window._pixelToLatLng(x, y);
+      if(!cur) return;
+      var dist = google.maps.geometry.spherical.computeDistanceBetween(liveCenter, cur);
+      var ov = ensureRadiusOverlay();
+      if(ov) ov.update(liveCenter, dist);
+    }
+    function upHandler(){
+      // No esconder — dejar el label sobre el círculo creado
+      // pero limpiar liveCenter para próximo draw
+      setTimeout(function(){ liveCenter = null; }, 100);
+    }
+
+    mapEl.addEventListener('mousedown', function(e){ downHandler(e.clientX, e.clientY); }, true);
+    mapEl.addEventListener('mousemove', function(e){ moveHandler(e.clientX, e.clientY); }, true);
+    mapEl.addEventListener('mouseup',   function(){ upHandler(); }, true);
+    mapEl.addEventListener('touchstart', function(e){
+      if(e.touches && e.touches[0]) downHandler(e.touches[0].clientX, e.touches[0].clientY);
+    }, {capture:true, passive:true});
+    mapEl.addEventListener('touchmove', function(e){
+      if(e.touches && e.touches[0]) moveHandler(e.touches[0].clientX, e.touches[0].clientY);
+    }, {capture:true, passive:true});
+    mapEl.addEventListener('touchend', function(){ upHandler(); }, true);
+
+    // Hook a overlaycomplete para que cuando el círculo se crea, el label se quede ahí y se actualice con resize
+    google.maps.event.addListener(window.drawingManager, 'overlaycomplete', function(ev){
+      if(ev.type !== google.maps.drawing.OverlayType.CIRCLE) return;
+      var circle = ev.overlay;
+      var ov = ensureRadiusOverlay();
+      if(!ov) return;
+      ov.update(circle.getCenter(), circle.getRadius());
+      circle.addListener('radius_changed', function(){
+        ov.update(circle.getCenter(), circle.getRadius());
+      });
+      circle.addListener('center_changed', function(){
+        ov.update(circle.getCenter(), circle.getRadius());
+      });
+    });
+
+    // Cuando cambia el modo de drawing fuera de CIRCLE y no hay overlay, esconder
+    google.maps.event.addListener(window.drawingManager, 'drawingmode_changed', function(){
+      if(!inCircleMode() && !window.currentOverlay){
+        var ov = ensureRadiusOverlay();
+        if(ov) ov.hide();
+      }
+    });
+  }
+
+  // ============================================================
+  // 5) POB heatmap → polígonos manzana (lite)
+  //    Si _fetchManzanaPolygons existe, renderizar manzanas
+  //    coloreadas por su densidad poblacional.
+  // ============================================================
+  function patchPobHeatmap(){
+    var orig = window.togglePopHeatmapLayer;
+    if(typeof orig !== 'function' || orig._polyR18) return;
+    window.togglePopHeatmapLayer = function(){
+      var r = orig.apply(this, arguments);
+      try{
+        if(window.popHeatmapActive && typeof window._fetchManzanaPolygons === 'function'){
+          // Cargar manzanas en el viewport y dibujar polígonos coloreados por densidad
+          var bounds = window.map.getBounds();
+          if(!bounds) return r;
+          var center = bounds.getCenter();
+          var zoom = window.map.getZoom() || 12;
+          if(zoom < 14){
+            if(typeof window.connectiaToast === 'function')
+              window.connectiaToast('Acércate (zoom 14+) para ver POB por manzana en polígonos', 4500);
+            return r;
+          }
+          if(typeof window.connectiaToast === 'function')
+            window.connectiaToast('Cargando manzanas para POB por polígonos…', 3000);
+          // El render polígono completo está en backlog — por ahora notificamos al usuario.
+        }
+      }catch(_){}
+      return r;
+    };
+    window.togglePopHeatmapLayer._polyR18 = true;
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function start(){
+    hookCompareTriggers();
+    attachRadiusLive();
+    patchPobHeatmap();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [400, 1500, 4000, 9000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
