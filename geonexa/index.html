@@ -25151,6 +25151,153 @@ small,.sub,.subtitle,
 })();
 </script>
 
+<style id="connectia-round16-fix-topbar">
+/* CRITICAL — el #topbar NUNCA debe estar oculto */
+#topbar{
+  display:flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  pointer-events:auto !important;
+  z-index:90 !important;
+}
+.is-mobile-view #topbar{ display:none !important; }
+/* En mobile sí se oculta porque la pill mob-top lo reemplaza */
+</style>
+<script id="connectia-round16-protect-topbar">
+/* Round 16 — proteger el topbar y otras estructuras críticas del sweep agresivo de emojis */
+(function(){
+  // El sweep de Round 11/13 puede estar reemplazando text nodes en estructuras
+  // que dependen de su orden de hijos. Aquí marcamos zonas off-limits.
+  function markCriticalZones(){
+    var critical = ['#topbar', '#topbar *', '.logo', '.tmenu-item',
+                    '#search-box', '#geo-selector-box', '#ai-search-box',
+                    '#search-input', '#geo-selector-input', '#ai-search-input'];
+    critical.forEach(function(sel){
+      try{
+        document.querySelectorAll(sel).forEach(function(el){
+          el.dataset.ciSkip = '1';
+        });
+      }catch(_){}
+    });
+  }
+  markCriticalZones();
+  setInterval(markCriticalZones, 1500);
+
+  // Asegurar que #topbar exista y sea visible en desktop
+  function protectTopbar(){
+    var tb = document.getElementById('topbar');
+    if(!tb) return;
+    if(document.body.classList.contains('is-mobile-view')) return;
+    var s = getComputedStyle(tb);
+    if(s.display === 'none' || s.visibility === 'hidden' || parseFloat(s.opacity) < 0.5){
+      tb.style.display = 'flex';
+      tb.style.visibility = 'visible';
+      tb.style.opacity = '1';
+    }
+  }
+  setInterval(protectTopbar, 500);
+})();
+</script>
+<style id="connectia-round15-css">
+/* Round 15 — revertir #cn-share-fab al diseño original morado fuerte */
+#cn-share-fab{
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
+  color:#fff !important;
+  border:none !important;
+  box-shadow:0 6px 18px rgba(109,40,217,.32) !important;
+}
+#cn-share-fab *,
+#cn-share-fab .ci-icon{
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+}
+
+/* Asegurar que el panel de Comparar SIEMPRE sea visible cuando .show */
+#cn-cmp-panel.show{
+  display:flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
+}
+</style>
+<script id="connectia-round15-js">
+/* Round 15 — forzar abrir Comparativa al click */
+(function(){
+  function ensureComparePanelExists(){
+    var p = document.getElementById('cn-cmp-panel');
+    if(p) return p;
+    // Llamar al builder de Round 7 si está disponible vía global
+    if(typeof window.openComparativa === 'function'){
+      try{ window.openComparativa(); }catch(e){ console.warn('[r15] openComparativa fail', e); }
+    }
+    return document.getElementById('cn-cmp-panel');
+  }
+
+  function showCompareNow(triggerEl){
+    var p = ensureComparePanelExists();
+    if(!p){
+      console.warn('[r15] cn-cmp-panel no se pudo crear. Reintentando en 200ms');
+      setTimeout(function(){ showCompareNow(triggerEl); }, 200);
+      return;
+    }
+    p.classList.add('show');
+    p.style.display = 'flex';
+    p.style.visibility = 'visible';
+    p.style.opacity = '1';
+    p.style.zIndex = '9300';
+    if(document.body.classList.contains('is-mobile-view')){
+      // Mobile: bottom sheet
+      p.style.position = 'fixed';
+      p.style.bottom = 'calc(56px + env(safe-area-inset-bottom,0px))';
+      p.style.left = '8px';
+      p.style.right = '8px';
+      p.style.top = 'auto';
+      p.style.width = 'auto';
+      p.style.maxHeight = '60vh';
+    } else {
+      // Desktop: dropdown debajo del trigger, o centrado si no hay
+      if(triggerEl){
+        var r = triggerEl.getBoundingClientRect();
+        var pw = 340;
+        var left = Math.max(10, Math.min(window.innerWidth - pw - 10, r.left + r.width/2 - pw/2));
+        p.style.position = 'fixed';
+        p.style.top = (r.bottom + 6) + 'px';
+        p.style.left = left + 'px';
+        p.style.right = 'auto';
+        p.style.transform = 'none';
+      } else {
+        p.style.position = 'fixed';
+        p.style.top = '70px';
+        p.style.right = '14px';
+        p.style.left = 'auto';
+        p.style.transform = 'none';
+      }
+      p.style.width = '340px';
+      p.style.maxHeight = '480px';
+    }
+    console.log('[r15] cn-cmp-panel forzado a visible en', p.style.left, p.style.top);
+  }
+
+  function attachClickHandlers(){
+    var triggers = document.querySelectorAll('[data-cmp-entry="1"]');
+    triggers.forEach(function(t){
+      if(t._r15) return;
+      t._r15 = true;
+      t.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        showCompareNow(t);
+      }, true);
+    });
+  }
+
+  function start(){ attachClickHandlers(); }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [400, 1500, 4000, 9000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
