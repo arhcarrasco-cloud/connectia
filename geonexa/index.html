@@ -24035,6 +24035,194 @@ header.brand .ci-icon{
 })();
 </script>
 
+<style id="connectia-round10-css">
+/* Active state — todo lo que esté DENTRO del botón activo va blanco */
+.tb.is-active,
+.tb.active,
+.tb[aria-pressed="true"]{
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
+  color:#fff !important;
+  border-color:transparent !important;
+}
+.tb.is-active *,
+.tb.active *,
+.tb[aria-pressed="true"] *{
+  color:#fff !important;
+}
+.tb.is-active .ci-icon,
+.tb.active .ci-icon,
+.tb[aria-pressed="true"] .ci-icon,
+.mob-tool.is-active .ci-icon,
+.mob-tool.active .ci-icon,
+.drawer-tool.is-active .ci-icon,
+.drawer-tool.active .ci-icon,
+.mob-chip.active .ci-icon,
+.cat-chip.active .ci-icon{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+}
+/* Override any lingering color set by round 4 with same specificity */
+#topbar .tb.is-active .ci-icon,
+#toolbar .tb.is-active .ci-icon,
+.tb.is-active .ci-icon,
+#topbar .tb.active .ci-icon,
+#toolbar .tb.active .ci-icon,
+.tb.active .ci-icon{ color:#ffffff !important; }
+</style>
+
+<script id="connectia-round10-js">
+/* Round 10 — fixes urgentes */
+(function(){
+
+  // ============================================================
+  // 1) Placeholders de los 3 buscadores
+  // ============================================================
+  function setPlaceholders(){
+    var p = [
+      ['search-input',       'buscar sitios de interés'],
+      ['geo-selector-input', 'buscar colonia, ciudad, cp'],
+      ['ai-search-input',    'pídeme lo que sea']
+    ];
+    p.forEach(function(pair){
+      var el = document.getElementById(pair[0]);
+      if(el && el.getAttribute('placeholder') !== pair[1]){
+        el.setAttribute('placeholder', pair[1]);
+      }
+    });
+  }
+
+  // ============================================================
+  // 2) Label de km del círculo — handler global más confiable
+  //    Captura mousemove a nivel document (capture phase) y posiciona
+  //    el label DIRECTAMENTE, sin depender del wrapper anterior.
+  // ============================================================
+  var _cur = {x:0, y:0, ok:false};
+  function _setCur(x, y){ _cur.x = x; _cur.y = y; _cur.ok = true; }
+
+  function repositionLabelAtCursor(){
+    var lbl = document.getElementById('live-radius-label');
+    if(!lbl || !_cur.ok) return;
+    if(getComputedStyle(lbl).display === 'none') return;
+    // Medir
+    var w = lbl.offsetWidth || 220;
+    var h = lbl.offsetHeight || 44;
+    // Posición arriba-derecha del cursor con offset
+    var x = _cur.x + 16;
+    var y = _cur.y - h - 16;
+    if(x + w > window.innerWidth - 8) x = _cur.x - w - 16;
+    if(y < 8) y = _cur.y + 22;
+    x = Math.max(6, Math.min(window.innerWidth - w - 6, x));
+    y = Math.max(6, Math.min(window.innerHeight - h - 6, y));
+    lbl.style.left = x + 'px';
+    lbl.style.top = y + 'px';
+    lbl.style.right = 'auto';
+    lbl.style.bottom = 'auto';
+    lbl.style.position = 'fixed';
+    lbl.style.zIndex = '99999';
+  }
+
+  function attachCursorTracking(){
+    if(window._cursorTrackerR10) return;
+    window._cursorTrackerR10 = true;
+    // Document level: garantiza captura aunque Google Maps consuma eventos
+    document.addEventListener('mousemove', function(e){
+      _setCur(e.clientX, e.clientY);
+      // Reposicionar label si está visible (poll-friendly)
+      var lbl = document.getElementById('live-radius-label');
+      if(lbl && getComputedStyle(lbl).display !== 'none'){
+        repositionLabelAtCursor();
+      }
+    }, true);
+    document.addEventListener('touchmove', function(e){
+      if(e.touches && e.touches[0]){
+        _setCur(e.touches[0].clientX, e.touches[0].clientY);
+        var lbl = document.getElementById('live-radius-label');
+        if(lbl && getComputedStyle(lbl).display !== 'none'){
+          repositionLabelAtCursor();
+        }
+      }
+    }, {capture:true, passive:true});
+    document.addEventListener('touchstart', function(e){
+      if(e.touches && e.touches[0]){
+        _setCur(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, {capture:true, passive:true});
+
+    // Override _positionRadiusLabel para no anclar al btn-circle
+    var orig = window._positionRadiusLabel;
+    window._positionRadiusLabel = function(){
+      if(_cur.ok){
+        repositionLabelAtCursor();
+        return;
+      }
+      if(typeof orig === 'function') return orig.apply(this, arguments);
+    };
+    window._positionRadiusLabel._r10 = true;
+  }
+
+  // ============================================================
+  // 3) Botón Comparar: garantizar que abre el panel
+  // ============================================================
+  function fixCompareButton(){
+    var triggers = document.querySelectorAll('[data-cmp-entry="1"]');
+    triggers.forEach(function(t){
+      if(t._r10Wired) return;
+      t._r10Wired = true;
+      // Reemplazar listeners con uno limpio
+      t.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        try{
+          if(typeof window.openComparativa === 'function'){
+            window.openComparativa();
+          }
+          // Forzar mostrado y reposicionado
+          var p = document.getElementById('cn-cmp-panel');
+          if(p){
+            p.classList.add('show');
+            // Reposiciona como dropdown debajo del trigger (desktop)
+            if(!document.body.classList.contains('is-mobile-view')){
+              var r = t.getBoundingClientRect();
+              var pw = 340;
+              var left = Math.max(10, Math.min(window.innerWidth - pw - 10, r.left + r.width/2 - pw/2));
+              p.style.position = 'fixed';
+              p.style.top = (r.bottom + 6) + 'px';
+              p.style.left = left + 'px';
+              p.style.right = 'auto';
+              p.style.transform = 'none';
+              p.style.zIndex = '9300';
+            }
+          } else {
+            console.warn('[r10] cn-cmp-panel no existe, llamando openComparativa de nuevo');
+            if(typeof window.openComparativa === 'function') window.openComparativa();
+          }
+        }catch(err){
+          console.error('[r10] compare button error', err);
+        }
+      }, true);
+    });
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function start(){
+    setPlaceholders();
+    attachCursorTracking();
+    fixCompareButton();
+  }
+  function startRetry(){
+    start();
+    [400, 1500, 4000, 9000].forEach(function(d){ setTimeout(start, d); });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', startRetry);
+  } else {
+    startRetry();
+  }
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
