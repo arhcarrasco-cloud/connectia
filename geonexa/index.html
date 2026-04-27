@@ -25298,6 +25298,446 @@ small,.sub,.subtitle,
 })();
 </script>
 
+<style id="connectia-round17-css">
+/* === Share FAB: subir para no encimar zoom de Google Maps === */
+#cn-share-fab{
+  bottom:200px !important;
+  right:18px !important;
+}
+.is-mobile-view #cn-share-fab{
+  bottom:calc(120px + env(safe-area-inset-bottom,0px)) !important;
+}
+
+/* === Panel comparar fallback inline === */
+#cn-cmp-inline{
+  position:fixed; z-index:9300;
+  width:340px; max-height:480px; overflow:hidden;
+  background:#fff; border-radius:14px;
+  border:1px solid rgba(60,60,67,.12);
+  box-shadow:0 12px 32px rgba(0,0,0,.10), 0 4px 12px rgba(0,0,0,.06);
+  display:none; flex-direction:column;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn-cmp-inline.show{ display:flex; }
+#cn-cmp-inline header{
+  padding:12px 14px;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid rgba(109,40,217,.18);
+  display:flex; justify-content:space-between; align-items:center;
+  position:relative;
+}
+#cn-cmp-inline header::after{
+  content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px;
+  background:linear-gradient(90deg, rgba(109,40,217,.85) 0%, rgba(139,58,159,.4) 50%, transparent 100%);
+}
+#cn-cmp-inline header h3{
+  margin:0; font-size:13px; font-weight:700; color:#1d1d1f;
+}
+#cn-cmp-inline header button{
+  border:none; background:rgba(0,0,0,.05); width:24px; height:24px;
+  border-radius:50%; cursor:pointer; color:#1d1d1f; font-size:14px;
+}
+#cn-cmp-inline .body{ padding:12px; overflow-y:auto; flex:1; background:#fff; }
+#cn-cmp-inline .area-status{
+  padding:8px 10px; background:#fef3c7; color:#92400e;
+  border-radius:8px; font-size:11px; margin-bottom:10px;
+}
+#cn-cmp-inline .area-status.ok{ background:#dcfce7; color:#166534; }
+#cn-cmp-inline input[type=text]{
+  width:100%; padding:8px 10px; border:1px solid #e2e8f0;
+  border-radius:8px; font-size:12px; background:#fafafa; margin-bottom:10px;
+  font-family:inherit;
+}
+#cn-cmp-inline input[type=text]:focus{
+  outline:none; border-color:#6D28D9; background:#fff;
+  box-shadow:0 0 0 3px rgba(109,40,217,.10);
+}
+#cn-cmp-inline .cat-chips{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+#cn-cmp-inline .cat-chip{
+  padding:5px 10px; border:1px solid #e9d5ff; border-radius:14px;
+  background:#fff; color:#1d1d1f; font-size:11px; cursor:pointer;
+  font-family:inherit;
+}
+#cn-cmp-inline .cat-chip.active{
+  background:linear-gradient(135deg,#EDE9FE,#C4B5FD);
+  color:#5B21B6; border-color:rgba(109,40,217,.35);
+}
+#cn-cmp-inline .brand-list{
+  border:1px solid #e2e8f0; border-radius:10px;
+  max-height:240px; overflow-y:auto; margin-bottom:10px;
+}
+#cn-cmp-inline .brand-list:empty::before{
+  content:'Selecciona una categoría o busca una marca'; display:block;
+  padding:20px; text-align:center; color:#94a3b8; font-size:11px;
+}
+#cn-cmp-inline .brand-row{
+  display:flex; align-items:center; gap:8px; padding:8px 10px;
+  border-bottom:1px solid #f1f5f9; font-size:12px;
+}
+#cn-cmp-inline .brand-row:last-child{ border-bottom:none; }
+#cn-cmp-inline .brand-row .name{ flex:1; color:#1d1d1f; }
+#cn-cmp-inline .brand-row .count{ color:#6e6e73; font-size:10px; }
+#cn-cmp-inline .brand-row .toggle{
+  position:relative; width:36px; height:20px;
+  background:#e2e8f0; border-radius:10px; cursor:pointer; transition:background .15s;
+}
+#cn-cmp-inline .brand-row .toggle::after{
+  content:''; position:absolute; top:2px; left:2px;
+  width:16px; height:16px; background:#fff; border-radius:50%;
+  transition:left .15s; box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+#cn-cmp-inline .brand-row.on .toggle{ background:#6D28D9; }
+#cn-cmp-inline .brand-row.on .toggle::after{ left:18px; }
+#cn-cmp-inline .actions{ display:flex; gap:6px; margin-top:8px; }
+#cn-cmp-inline .btn{
+  padding:8px 12px; border:none; border-radius:8px; cursor:pointer;
+  font-size:11px; font-weight:600; font-family:inherit;
+}
+#cn-cmp-inline .btn.primary{
+  flex:1; background:linear-gradient(135deg,#6D28D9,#8B3A9F); color:#fff;
+}
+#cn-cmp-inline .btn.alt{ background:#fff; color:#6D28D9; border:1px solid #e9d5ff; }
+.is-mobile-view #cn-cmp-inline{
+  bottom:calc(56px + env(safe-area-inset-bottom,0px)) !important;
+  left:8px !important; right:8px !important;
+  width:auto !important; max-height:60vh !important;
+}
+</style>
+<script id="connectia-round17-js">
+/* Round 17 — fixes finales */
+(function(){
+
+  // ============================================================
+  // 1) Panel Comparar inline (no depende de Round 7's openComparativa)
+  // ============================================================
+  var COMPARE_CATEGORIES = [
+    {id:'retail',     label:'Retail',       types:['supermarket','department_store','shopping_mall','convenience_store']},
+    {id:'food_fast',  label:'Comida rápida', types:['meal_takeaway','meal_delivery']},
+    {id:'restaurant', label:'Restaurantes',  types:['restaurant']},
+    {id:'cafe',       label:'Cafeterías',    types:['cafe','bakery']},
+    {id:'gas',        label:'Gasolineras',   types:['gas_station']},
+    {id:'bank',       label:'Bancos',        types:['bank','atm']},
+    {id:'pharmacy',   label:'Farmacias',     types:['pharmacy']},
+    {id:'gym',        label:'Gimnasios',     types:['gym']},
+    {id:'hotel',      label:'Hoteles',       types:['lodging']}
+  ];
+
+  var _state = {brands:{}, active:{}};
+
+  function normalizeBrand(name){
+    if(!name) return 'Otro';
+    var s = name.toString().trim().toLowerCase();
+    var rules = [
+      [/walmart/, 'Walmart'], [/sam'?s\s*club/, "Sam's Club"],
+      [/bodega\s*aurrera|aurrera/, 'Bodega Aurrera'],
+      [/soriana/, 'Soriana'], [/chedraui/, 'Chedraui'],
+      [/heb\b|h-?e-?b/, 'HEB'], [/costco/, 'Costco'],
+      [/oxxo/, 'OXXO'], [/7[\s\-]?eleven/, '7-Eleven'],
+      [/circle\s*k/, 'Circle K'], [/extra\b/, 'Extra'],
+      [/farmacias\s*del\s*ahorro/, 'Farmacias del Ahorro'],
+      [/farmacias\s*similares/, 'Farmacias Similares'],
+      [/farmacias?\s*benavides/, 'Farmacias Benavides'],
+      [/farmacias?\s*guadalajara/, 'Farmacias Guadalajara'],
+      [/mcdonal[d']?s|mc\s*donald/, "McDonald's"],
+      [/burger\s*king/, 'Burger King'], [/kfc/, 'KFC'],
+      [/subway/, 'Subway'], [/domino[\s'\-]?s/, "Domino's Pizza"],
+      [/pizza\s*hut/, 'Pizza Hut'], [/little\s*caesars/, 'Little Caesars'],
+      [/starbucks/, 'Starbucks'], [/banamex/, 'Citibanamex'],
+      [/banorte/, 'Banorte'], [/bbva|bancomer/, 'BBVA'],
+      [/santander/, 'Santander'], [/hsbc/, 'HSBC'],
+      [/scotiabank/, 'Scotiabank'], [/pemex/, 'Pemex'],
+      [/shell/, 'Shell'], [/mobil/, 'Mobil'],
+      [/sanborns/, 'Sanborns'], [/liverpool/, 'Liverpool'],
+      [/coppel/, 'Coppel'], [/elektra/, 'Elektra'],
+      [/cinepolis/, 'Cinépolis'], [/cinemex/, 'Cinemex']
+    ];
+    for(var i=0; i<rules.length; i++){
+      if(rules[i][0].test(s)) return rules[i][1];
+    }
+    return name.replace(/\s+(suc(ursal)?|store|tienda|#?\d+).*$/i, '').replace(/\s+/g,' ').trim();
+  }
+
+  function getActiveArea(){
+    if(window.currentOverlay){
+      var o = window.currentOverlay;
+      try{
+        if(typeof o.getBounds === 'function') return {bounds:o.getBounds()};
+        if(typeof o.getCenter === 'function' && typeof o.getRadius === 'function'){
+          return {center:o.getCenter(), radius:o.getRadius()};
+        }
+      }catch(_){}
+    }
+    try{ var b = window.map && window.map.getBounds(); if(b) return {bounds:b}; }catch(_){}
+    return null;
+  }
+
+  function searchPlaces(category, query, callback){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.places){ callback([]); return; }
+    var area = getActiveArea();
+    if(!area){ callback([], 'no-area'); return; }
+    var svc = new google.maps.places.PlacesService(window.map);
+    var req = {};
+    if(area.bounds) req.bounds = area.bounds;
+    else if(area.center && area.radius){ req.location = area.center; req.radius = area.radius; }
+    if(category && category.types && category.types.length) req.type = category.types[0];
+    if(query) req.keyword = query;
+    svc.nearbySearch(req, function(results, status){
+      callback((status === google.maps.places.PlacesServiceStatus.OK && results) ? results : []);
+    });
+  }
+
+  function buildPanel(){
+    if(document.getElementById('cn-cmp-inline')) return document.getElementById('cn-cmp-inline');
+    var p = document.createElement('div');
+    p.id = 'cn-cmp-inline';
+    var html = '<header><h3>Comparativa</h3>'
+             + '<button id="cn-cmp-inline-close" data-tip="Cerrar">×</button></header>'
+             + '<div class="body">'
+             + '<div class="area-status" id="cn-cmp-inline-status">Verificando área…</div>'
+             + '<input type="text" id="cn-cmp-inline-search" placeholder="Buscar marca o palabra">'
+             + '<div class="cat-chips" id="cn-cmp-inline-cats">';
+    COMPARE_CATEGORIES.forEach(function(c){
+      html += '<button class="cat-chip" data-cat="'+c.id+'">'+c.label+'</button>';
+    });
+    html += '</div><div class="brand-list" id="cn-cmp-inline-list"></div>'
+          + '<div class="actions">'
+          + '<button class="btn primary" id="cn-cmp-inline-go">Selecciona marcas</button>'
+          + '<button class="btn alt" id="cn-cmp-inline-clear">Limpiar</button>'
+          + '</div></div>';
+    p.innerHTML = html;
+    document.body.appendChild(p);
+
+    p.querySelector('#cn-cmp-inline-close').addEventListener('click', function(){
+      p.classList.remove('show');
+    });
+
+    var listEl = p.querySelector('#cn-cmp-inline-list');
+    var statusEl = p.querySelector('#cn-cmp-inline-status');
+    var goBtn = p.querySelector('#cn-cmp-inline-go');
+
+    function updateGoBtn(){
+      var n = Object.keys(_state.active).length;
+      goBtn.textContent = n > 0 ? 'Comparar '+n+' marca'+(n>1?'s':'') : 'Selecciona marcas';
+      goBtn.style.opacity = n === 0 ? '0.5' : '1';
+    }
+    function renderList(){
+      listEl.innerHTML = '';
+      var brands = Object.keys(_state.brands).sort(function(a,b){
+        return _state.brands[b].length - _state.brands[a].length;
+      });
+      brands.forEach(function(b){
+        var n = _state.brands[b].length;
+        var on = !!_state.active[b];
+        var row = document.createElement('div');
+        row.className = 'brand-row' + (on?' on':'');
+        row.innerHTML = '<span class="name">'+b+'</span>'
+                      + '<span class="count">'+n+' suc.</span>'
+                      + '<div class="toggle"></div>';
+        row.querySelector('.toggle').addEventListener('click', function(){
+          if(_state.active[b]){
+            delete _state.active[b]; row.classList.remove('on');
+          } else {
+            _state.active[b] = _state.brands[b]; row.classList.add('on');
+          }
+          updateGoBtn();
+        });
+        listEl.appendChild(row);
+      });
+    }
+    function groupByBrand(places){
+      var map = {};
+      places.forEach(function(p){
+        var b = normalizeBrand(p.name);
+        if(!map[b]) map[b] = [];
+        map[b].push(p);
+      });
+      return map;
+    }
+    function refreshArea(){
+      var area = getActiveArea();
+      if(area && (area.bounds || area.center)){
+        statusEl.textContent = area.center ? 'Área: círculo de '+Math.round(area.radius)+' m' : 'Área: viewport actual';
+        statusEl.classList.add('ok');
+      } else {
+        statusEl.textContent = 'Selecciona un área (círculo, polígono o rectángulo)';
+        statusEl.classList.remove('ok');
+      }
+    }
+    refreshArea();
+
+    // Search
+    var sIn = p.querySelector('#cn-cmp-inline-search');
+    var st = null;
+    sIn.addEventListener('input', function(){
+      var q = sIn.value.trim();
+      clearTimeout(st);
+      if(q.length < 2) return;
+      st = setTimeout(function(){
+        p.querySelectorAll('.cat-chip').forEach(function(c){c.classList.remove('active');});
+        statusEl.textContent = 'Buscando "'+q+'"…';
+        searchPlaces(null, q, function(places){
+          _state.brands = groupByBrand(places);
+          _state.active = {};
+          renderList(); updateGoBtn();
+          statusEl.textContent = places.length+' resultados — '+Object.keys(_state.brands).length+' marcas';
+        });
+      }, 400);
+    });
+
+    // Categories
+    p.querySelectorAll('.cat-chip').forEach(function(c){
+      c.addEventListener('click', function(){
+        var catId = c.dataset.cat;
+        var cat = COMPARE_CATEGORIES.find(function(x){return x.id===catId;});
+        p.querySelectorAll('.cat-chip').forEach(function(x){x.classList.remove('active');});
+        c.classList.add('active');
+        statusEl.textContent = 'Cargando '+cat.label+'…';
+        searchPlaces(cat, '', function(places){
+          _state.brands = groupByBrand(places);
+          _state.active = {};
+          renderList(); updateGoBtn();
+          statusEl.textContent = places.length+' lugares — '+Object.keys(_state.brands).length+' marcas';
+        });
+      });
+    });
+
+    // Clear
+    p.querySelector('#cn-cmp-inline-clear').addEventListener('click', function(){
+      _state.active = {};
+      p.querySelectorAll('.brand-row').forEach(function(r){r.classList.remove('on');});
+      updateGoBtn();
+    });
+
+    // Compare → delegar al dashboard de Round 7 si existe
+    goBtn.addEventListener('click', function(){
+      if(Object.keys(_state.active).length === 0) return;
+      // Sincronizar con state global de Round 7 si existe
+      if(window._cmpState){
+        window._cmpState.activeBrands = _state.active;
+        window._cmpState.allBrands = _state.brands;
+      }
+      var dash = document.getElementById('cn-cmp-dash');
+      if(dash){
+        dash.classList.add('show');
+        if(typeof window.openDashboard === 'function') window.openDashboard();
+      } else {
+        alert('Dashboard de Round 7 no disponible. Activa la nueva comparativa después.');
+      }
+    });
+
+    return p;
+  }
+
+  function showInline(triggerEl){
+    var p = buildPanel();
+    p.classList.add('show');
+    if(document.body.classList.contains('is-mobile-view')){
+      // CSS lo coloca en bottom sheet via media
+    } else {
+      var r = triggerEl ? triggerEl.getBoundingClientRect() : null;
+      if(r){
+        var pw = 340;
+        var left = Math.max(10, Math.min(window.innerWidth - pw - 10, r.left + r.width/2 - pw/2));
+        p.style.top = (r.bottom + 6) + 'px';
+        p.style.left = left + 'px';
+      } else {
+        p.style.top = '70px';
+        p.style.right = '14px';
+        p.style.left = 'auto';
+      }
+    }
+  }
+
+  function hookCmpButtons(){
+    var triggers = document.querySelectorAll('[data-cmp-entry="1"]');
+    triggers.forEach(function(t){
+      if(t._r17) return;
+      t._r17 = true;
+      t.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        showInline(t);
+      }, true);
+    });
+  }
+
+  // ============================================================
+  // 2) Km del círculo en tiempo real — raf loop forzado
+  // ============================================================
+  function getCenterLatLng(){
+    if(window._circleLiveCenter){
+      var c = window._circleLiveCenter;
+      if(typeof c.lat === 'function') return c;
+      if(typeof c.lat === 'number') {
+        try{ return new google.maps.LatLng(c.lat, c.lng); }catch(_){}
+      }
+    }
+    var ov = window.currentOverlay;
+    if(ov && typeof ov.getCenter === 'function' && typeof ov.getRadius === 'function'){
+      try{ return ov.getCenter(); }catch(_){}
+    }
+    return null;
+  }
+  function getCenterPx(latLng){
+    if(typeof google === 'undefined' || !google.maps) return null;
+    if(!window._radiusOverlay){
+      try{
+        window._radiusOverlay = new google.maps.OverlayView();
+        window._radiusOverlay.draw = function(){};
+        window._radiusOverlay.setMap(window.map);
+      }catch(e){ return null; }
+    }
+    var proj = window._radiusOverlay.getProjection();
+    if(!proj) return null;
+    try{
+      var px = proj.fromLatLngToContainerPixel(latLng);
+      if(!px) return null;
+      var mapDiv = window.map.getDiv();
+      var rect = mapDiv.getBoundingClientRect();
+      return {x: px.x + rect.left, y: px.y + rect.top};
+    }catch(_){ return null; }
+  }
+  var rafOn = false;
+  function rafTick(){
+    if(!rafOn) return;
+    var lbl = document.getElementById('live-radius-label');
+    if(lbl && getComputedStyle(lbl).display !== 'none'){
+      var c = getCenterLatLng();
+      if(c){
+        var px = getCenterPx(c);
+        if(px){
+          var w = lbl.offsetWidth || 200;
+          var h = lbl.offsetHeight || 44;
+          lbl.style.position = 'fixed';
+          lbl.style.zIndex = '99999';
+          lbl.style.left = Math.max(6, Math.min(window.innerWidth - w - 6, px.x - w/2)) + 'px';
+          lbl.style.top  = Math.max(6, Math.min(window.innerHeight - h - 6, px.y - h/2)) + 'px';
+          lbl.style.right = 'auto';
+          lbl.style.bottom = 'auto';
+        }
+      }
+      // También forzar update del contenido si tenemos overlay con radio
+      var ov = window.currentOverlay;
+      if(ov && typeof ov.getRadius === 'function' && typeof window._updateRadiusDisplay === 'function'){
+        try{ window._updateRadiusDisplay(ov.getRadius()); }catch(_){}
+      }
+    }
+    requestAnimationFrame(rafTick);
+  }
+  function startRaf(){ if(!rafOn){ rafOn = true; rafTick(); } }
+  // Iniciar raf siempre — bajo costo
+  startRaf();
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function start(){ hookCmpButtons(); }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [400, 1500, 4000, 9000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
