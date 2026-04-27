@@ -24708,6 +24708,314 @@ input[type=text]:focus, input[type=search]:focus{
 })();
 </script>
 
+<style id="connectia-round13-css">
+/* === Round 13 — headers SOLO contorno morado fade, sin fondo === */
+
+/* Override Round 11: quitar el fondo pastel y dejar solo border morado fade */
+#topbar,
+#auto-report .ar-header,
+#report-title-bar,
+#gflt-title-bar,
+#cn-cmp-panel header,
+#cn-layers-panel header,
+#cn-cmp-dash .dash-chrome,
+.panel-chrome-bar,
+#mob-tool-drawer-title{
+  background:#ffffff !important;
+  color:#1d1d1f !important;
+  /* Border-image gradient: contorno morado fade más a menos */
+  border:1.5px solid transparent !important;
+  border-image:linear-gradient(135deg,#6D28D9 0%,#A855F7 50%,#EC4899 100%) 1 !important;
+  border-radius:0 !important;
+  position:relative;
+}
+/* Como border-image no respeta border-radius, hacemos un truco con outline */
+#auto-report,
+#report-panel,
+#global-filter-panel,
+#cn-cmp-panel,
+#cn-layers-panel,
+#cn-cmp-dash .dash-card{
+  border:1px solid #EDE9FE !important;
+  border-image:linear-gradient(135deg,#A78BFA 0%,#F0ABFC 100%) 1 !important;
+}
+/* Texto en headers: gris oscuro siempre */
+#topbar *,
+#auto-report .ar-header *,
+#report-title-bar *,
+#gflt-title-bar *,
+#cn-cmp-panel header *,
+#cn-layers-panel header *,
+#cn-cmp-dash .dash-chrome *,
+.panel-chrome-bar *,
+#mob-tool-drawer-title{
+  color:#1d1d1f !important;
+  -webkit-text-fill-color:#1d1d1f !important;
+  background:transparent !important;
+}
+/* Logo en headers — morado oscuro (no transparent) */
+.logo,
+#mob-menu-btn.is-logo,
+#cn-cmp-dash header h2,
+#cn-share-modal h2,
+#mob-tool-drawer-title{
+  color:#6D28D9 !important;
+  -webkit-text-fill-color:#6D28D9 !important;
+  background:none !important;
+  font-weight:700 !important;
+}
+
+/* === Botones activos: SOLO contorno fade, sin fondo === */
+.tb.is-active,
+.tb.active,
+.tb[aria-pressed="true"],
+.mob-tool.is-active,
+.mob-tool.active,
+.drawer-tool.is-active,
+.drawer-tool.active,
+.mob-chip.active,
+.cat-chip.active{
+  background:#ffffff !important;
+  color:#6D28D9 !important;
+  border:1.5px solid transparent !important;
+  border-image:linear-gradient(135deg,#6D28D9 0%,#EC4899 100%) 1 !important;
+  box-shadow:none !important;
+}
+.tb.is-active *,
+.tb.active *,
+.mob-tool.is-active *,
+.drawer-tool.is-active *,
+.mob-chip.active *,
+.cat-chip.active *{
+  color:#6D28D9 !important;
+  -webkit-text-fill-color:#6D28D9 !important;
+  background:transparent !important;
+}
+
+/* === Tipografía consistente === */
+h1,h2,h3,h4,strong,b,
+[class*="title"]:not([class*="subtitle"]),
+[id*="title"]:not([id*="subtitle"]){
+  color:#1d1d1f !important;
+}
+small,.sub,.subtitle,
+[class*="subtitle"],[id*="subtitle"]{
+  color:#6e6e73 !important;
+}
+
+/* FAB share: solo contorno también */
+#cn-share-fab{
+  background:#fff !important;
+  color:#6D28D9 !important;
+  border:1.5px solid transparent !important;
+  border-image:linear-gradient(135deg,#6D28D9,#EC4899) 1 !important;
+  box-shadow:0 2px 8px rgba(109,40,217,.15) !important;
+}
+</style>
+
+<script id="connectia-round13-js">
+/* ============================================================
+   ROUND 13 — sweep emoji brutal + cap estPop realista
+============================================================ */
+(function(){
+
+  // ============================================================
+  // 1) SWEEP DE EMOJIS — más amplio y más persistente
+  // ============================================================
+  // Regex Unicode emoji COMPLETO (Unicode 15.x)
+  var EMOJI_RX = /(?:[\u{1F1E0}-\u{1F1FF}]{2}|[\u{1F300}-\u{1F5FF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{2300}-\u{23FF}]|[\u{2B00}-\u{2BFF}]|[\u{3000}-\u{303F}]|[\u{3200}-\u{32FF}]|\u{200D}|\u{FE0F}|\u{20E3})+/gu;
+
+  var FALLBACK_MAP = (window.ICON_MAP || {});
+
+  function shouldSkip(node){
+    if(!node || !node.parentNode) return true;
+    var p = node.parentNode;
+    var tag = p.nodeName;
+    if(tag === 'SCRIPT' || tag === 'STYLE' || tag === 'INPUT'
+       || tag === 'TEXTAREA' || tag === 'NOSCRIPT' || tag === 'IFRAME'
+       || tag === 'OPTION' || tag === 'SELECT') return true;
+    if(p.classList && (p.classList.contains('ci-icon')
+       || p.classList.contains('material-icons')
+       || p.classList.contains('material-icons-outlined'))) return true;
+    if(p.closest && p.closest('.gm-style, .gm-style-iw, .gm-style-cc, .ci-icon, .material-icons, .material-icons-outlined')) return true;
+    return false;
+  }
+
+  function nukeText(node){
+    var v = node.nodeValue;
+    if(!EMOJI_RX.test(v)){ EMOJI_RX.lastIndex = 0; return false; }
+    EMOJI_RX.lastIndex = 0;
+    var html = v.replace(EMOJI_RX, function(m){
+      var key = m.replace(/️/g, '').replace(/‍/g, '');
+      // Intentar mapear (con o sin variation selector)
+      var name = FALLBACK_MAP[m] || FALLBACK_MAP[key] || FALLBACK_MAP[m.charAt(0)];
+      if(name) return '<span class="ci-icon" aria-hidden="true">' + name + '</span>';
+      return ''; // ELIMINAR si no hay mapping
+    }).replace(/\s{2,}/g, ' ');
+    if(html === v) return false;
+    var span = document.createElement('span');
+    span.innerHTML = html;
+    span.dataset.r13Nuked = '1';
+    node.parentNode.replaceChild(span, node);
+    return true;
+  }
+
+  function nukeInTree(root){
+    root = root || document.body;
+    if(!root.querySelectorAll) return 0;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n){
+        if(shouldSkip(n)) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var nodes = [], n;
+    while((n = walker.nextNode())) nodes.push(n);
+    var c = 0;
+    nodes.forEach(function(t){ if(nukeText(t)) c++; });
+    return c;
+  }
+
+  function nukeAttrs(root){
+    root = root || document.body;
+    var attrs = ['placeholder','title','aria-label','data-tip','value','alt'];
+    var c = 0;
+    root.querySelectorAll('*').forEach(function(el){
+      attrs.forEach(function(a){
+        if(!el.hasAttribute(a)) return;
+        var v = el.getAttribute(a);
+        if(!EMOJI_RX.test(v)){ EMOJI_RX.lastIndex = 0; return; }
+        EMOJI_RX.lastIndex = 0;
+        var nv = v.replace(EMOJI_RX, '').replace(/\s{2,}/g, ' ').trim();
+        if(nv !== v){ el.setAttribute(a, nv); c++; }
+      });
+    });
+    return c;
+  }
+
+  function fullSweep(){
+    var c1 = nukeInTree();
+    var c2 = nukeAttrs();
+    if(c1 || c2) console.log('[r13] sweep: ' + c1 + ' textnodes, ' + c2 + ' attrs');
+  }
+
+  // Sweep persistente cada 500ms durante el primer minuto, luego 3s permanente
+  var _sweepCount = 0;
+  function persistentSweep(){
+    fullSweep();
+    _sweepCount++;
+    if(_sweepCount < 120) setTimeout(persistentSweep, 500);
+    else setTimeout(persistentSweep, 3000);
+  }
+
+  // MutationObserver para reaccionar a cualquier nuevo nodo/atributo
+  function watchEverything(){
+    if(window._r13obs) return;
+    var obs = new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        if(m.type === 'characterData' && m.target){
+          if(!shouldSkip(m.target)) try{ nukeText(m.target); }catch(_){}
+        } else if(m.type === 'attributes' && m.target && m.target.nodeType === 1){
+          var a = m.attributeName;
+          if(['placeholder','title','aria-label','data-tip','value','alt'].indexOf(a) < 0) return;
+          var v = m.target.getAttribute(a);
+          if(!v) return;
+          EMOJI_RX.lastIndex = 0;
+          if(EMOJI_RX.test(v)){
+            EMOJI_RX.lastIndex = 0;
+            var nv = v.replace(EMOJI_RX, '').replace(/\s{2,}/g, ' ').trim();
+            if(nv !== v) m.target.setAttribute(a, nv);
+          }
+        } else if(m.type === 'childList'){
+          m.addedNodes && m.addedNodes.forEach(function(n){
+            if(n.nodeType === 1){
+              if(n.closest && n.closest('.gm-style')) return;
+              setTimeout(function(){ try{ nukeInTree(n); nukeAttrs(n); }catch(_){} }, 0);
+            } else if(n.nodeType === 3){
+              if(!shouldSkip(n)) try{ nukeText(n); }catch(_){}
+            }
+          });
+        }
+      });
+    });
+    obs.observe(document.body, {
+      childList:true, subtree:true,
+      characterData:true,
+      attributes:true,
+      attributeFilter:['placeholder','title','aria-label','data-tip','value','alt']
+    });
+    window._r13obs = obs;
+  }
+
+  // ============================================================
+  // 2) CAP estPop basado en densidad realista (fix bug 9.2M)
+  // ============================================================
+  // Densidades máximas REALES por estado (hab/km²):
+  // CDMX (09)=6,200 promedio, Iztapalapa peak ~30k. Cap conservador: 35k/km²
+  var MAX_DENS_BY_STATE = {
+    '09': 35000, // CDMX
+    '15': 25000, // Edomex
+    '22': 12000, // Querétaro
+    '14': 18000, // Jalisco (ZMG)
+    '19': 15000, // NL
+    'default': 30000
+  };
+  function patchAnalyzeOverlay(){
+    var orig = window.analyzeOverlay;
+    if(typeof orig !== 'function' || orig._r13Capped) return false;
+    window.analyzeOverlay = function(overlay, type){
+      var r = orig.apply(this, arguments);
+      // Cap después del cálculo (es asíncrono por el geocoder, así que reintentamos)
+      var attempts = 0;
+      function tryCap(){
+        attempts++;
+        if(!window.currentData){ if(attempts < 20) setTimeout(tryCap, 200); return; }
+        var d = window.currentData;
+        if(!d.estPop || !d.areaSqKm){ if(attempts < 20) setTimeout(tryCap, 200); return; }
+        var st = d.stateCode || '09';
+        var maxDens = MAX_DENS_BY_STATE[st] || MAX_DENS_BY_STATE['default'];
+        var maxRealistic = Math.round(d.areaSqKm * maxDens);
+        if(d.estPop > maxRealistic){
+          console.warn('[r13] cap estPop: ' + d.estPop + ' → ' + maxRealistic
+                     + ' (área=' + d.areaSqKm.toFixed(2) + 'km² · max ' + maxDens + '/km²)');
+          d.estPop = maxRealistic;
+          d.estHog = Math.round(maxRealistic / 3.5);
+          // Trigger re-render del reporte si está abierto
+          try{
+            if(typeof window.refreshAutoReport === 'function') window.refreshAutoReport();
+          }catch(_){}
+        }
+      }
+      setTimeout(tryCap, 300);
+      return r;
+    };
+    window.analyzeOverlay._r13Capped = true;
+    window.analyzeOverlay._origFn = orig;
+    return true;
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function start(){
+    fullSweep();
+    watchEverything();
+    patchAnalyzeOverlay();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){
+      start();
+      persistentSweep();
+    });
+  } else {
+    start();
+    persistentSweep();
+  }
+  // Reintentos para patchAnalyzeOverlay si analyzeOverlay no existe al inicio
+  [800, 2500, 6000, 12000].forEach(function(d){ setTimeout(patchAnalyzeOverlay, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
