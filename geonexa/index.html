@@ -22057,6 +22057,655 @@ header.brand .ci-icon{
 })();
 </script>
 
+<style id="connectia-round6-css">
+/* ============================================================
+   ROUND 6 — POI icons por tipo + heatmap groups + share button
+============================================================ */
+
+/* === Share button (siempre visible, esquina inferior derecha en desktop, no tapa nada en mobile) === */
+#cn-share-fab{
+  position:fixed; bottom:18px; right:18px; z-index:9000;
+  width:48px; height:48px; border-radius:50%; border:none;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F); color:#fff;
+  box-shadow:0 6px 18px rgba(109,40,217,.32);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-family:'Material Icons Outlined'; font-size:22px;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+#cn-share-fab:hover{ transform:scale(1.05); box-shadow:0 8px 22px rgba(109,40,217,.4); }
+.is-mobile-view #cn-share-fab{
+  bottom:calc(56px + env(safe-area-inset-bottom,0px) + 8px);
+  width:44px; height:44px; font-size:20px;
+}
+
+/* === Share modal === */
+#cn-share-modal{
+  position:fixed; inset:0; z-index:11000; display:none;
+  background:rgba(0,0,0,.45); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  align-items:center; justify-content:center;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','SF Pro Display',sans-serif;
+}
+#cn-share-modal.show{ display:flex; }
+#cn-share-modal .modal-card{
+  background:#fff; border-radius:18px; padding:24px;
+  width:min(440px, 92vw); max-height:90vh; overflow-y:auto;
+  box-shadow:0 24px 60px rgba(0,0,0,.32);
+}
+#cn-share-modal h2{
+  margin:0 0 4px; font-size:18px; font-weight:700; color:#1d1d1f;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+#cn-share-modal .sub{ font-size:12px; color:#64748b; margin-bottom:14px; }
+#cn-share-modal label{
+  display:block; font-size:11px; font-weight:600; color:#475569;
+  text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; margin-top:12px;
+}
+#cn-share-modal input[type=text],
+#cn-share-modal input[type=password]{
+  width:100%; padding:10px 12px; border:1px solid #e2e8f0;
+  border-radius:8px; font-size:13px; background:#f8fafc;
+  color:#1d1d1f; font-family:inherit;
+}
+#cn-share-modal input[type=text]:focus,
+#cn-share-modal input[type=password]:focus{
+  outline:none; border-color:#6D28D9; background:#fff;
+  box-shadow:0 0 0 3px rgba(109,40,217,.12);
+}
+#cn-share-modal .toggle-row{
+  display:flex; align-items:center; gap:8px; margin:12px 0 4px;
+  padding:10px 12px; background:#faf5ff; border-radius:10px;
+  cursor:pointer; user-select:none;
+}
+#cn-share-modal .toggle-row input{ accent-color:#6D28D9; }
+#cn-share-modal .toggle-row label{
+  margin:0; font-size:12px; text-transform:none; letter-spacing:0;
+  color:#1d1d1f; font-weight:500; cursor:pointer;
+}
+#cn-share-modal .url-row{ display:flex; gap:6px; margin-top:6px; }
+#cn-share-modal .url-row input{ flex:1; }
+#cn-share-modal button.btn{
+  padding:10px 14px; border:none; border-radius:8px;
+  cursor:pointer; font-weight:600; font-size:12px; font-family:inherit;
+}
+#cn-share-modal button.btn.primary{
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F); color:#fff;
+}
+#cn-share-modal button.btn.alt{
+  background:#fff; color:#6D28D9; border:1px solid #e9d5ff;
+}
+#cn-share-modal .actions{
+  display:flex; gap:8px; justify-content:flex-end; margin-top:18px;
+}
+#cn-share-modal .hint{
+  margin-top:8px; padding:8px 10px; background:#f1f5f9;
+  border-radius:6px; font-size:10px; color:#64748b; line-height:1.4;
+}
+#cn-share-modal .copied{ color:#16a34a; font-weight:600; }
+
+/* === Heatmap layer panel categorizado === */
+#cn-layers-panel{
+  position:fixed; top:64px; right:14px; z-index:9100;
+  width:280px; max-height:calc(100vh - 84px);
+  background:#fff; border-radius:14px;
+  box-shadow:0 12px 36px rgba(0,0,0,.18);
+  display:none; flex-direction:column; overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn-layers-panel.show{ display:flex; }
+#cn-layers-panel header{
+  padding:12px 14px;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F);
+  color:#fff; display:flex; justify-content:space-between; align-items:center;
+}
+#cn-layers-panel header h3{ margin:0; font-size:13px; font-weight:700; }
+#cn-layers-panel header button{
+  border:none; background:rgba(255,255,255,.18); color:#fff;
+  width:24px; height:24px; border-radius:6px; cursor:pointer; font-size:14px;
+}
+#cn-layers-panel .body{ padding:10px; overflow-y:auto; flex:1; }
+#cn-layers-panel .group{
+  margin-bottom:10px; border:1px solid #e9d5ff; border-radius:10px; overflow:hidden;
+}
+#cn-layers-panel .group-head{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px; background:#faf5ff; cursor:pointer;
+  font-size:11px; font-weight:700; color:#6D28D9;
+  text-transform:uppercase; letter-spacing:.4px;
+  user-select:none;
+}
+#cn-layers-panel .group-head .chevron{
+  margin-left:auto; transition:transform .2s ease;
+  font-family:'Material Icons Outlined'; font-size:16px; color:#6D28D9;
+}
+#cn-layers-panel .group.open .chevron{ transform:rotate(90deg); }
+#cn-layers-panel .group-body{
+  display:none; padding:6px 8px;
+}
+#cn-layers-panel .group.open .group-body{ display:block; }
+#cn-layers-panel .layer-toggle{
+  display:flex; align-items:center; gap:8px;
+  padding:7px 6px; border-radius:6px; cursor:pointer;
+  font-size:12px; color:#1d1d1f;
+  transition:background .15s;
+}
+#cn-layers-panel .layer-toggle:hover{ background:#f1f5f9; }
+#cn-layers-panel .layer-toggle .dot{
+  width:10px; height:10px; border-radius:50%; flex-shrink:0;
+}
+#cn-layers-panel .layer-toggle input[type=checkbox]{ accent-color:#6D28D9; margin-left:auto; }
+#cn-layers-panel .layer-toggle.disabled{ opacity:.5; cursor:not-allowed; }
+#cn-layers-panel .layer-toggle.disabled small{
+  color:#94a3b8; font-size:9px; margin-left:4px;
+}
+
+#cn-layers-fab{
+  position:fixed; bottom:74px; right:18px; z-index:9000;
+  width:42px; height:42px; border-radius:50%; border:none;
+  background:#fff; color:#1d1d1f; cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,.16);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Material Icons Outlined'; font-size:20px;
+}
+.is-mobile-view #cn-layers-fab{
+  bottom:calc(56px + env(safe-area-inset-bottom,0px) + 56px);
+  width:38px; height:38px; font-size:18px;
+}
+</style>
+
+<script id="connectia-round6-js">
+/* ============================================================
+   ROUND 6 — JavaScript
+============================================================ */
+(function(){
+
+  // ============================================================
+  // 1) POI ICONS POR TIPO — wrapper de _trySetPlaceLogo
+  // ============================================================
+  /* Mapping: place.types[0] → {icon Material Outlined, color} */
+  var POI_ICONS = {
+    // Comida y bebida
+    'restaurant':       {icon:'restaurant',         color:'#ea580c'},
+    'cafe':             {icon:'local_cafe',         color:'#8b5a2b'},
+    'bar':              {icon:'sports_bar',         color:'#d97706'},
+    'night_club':       {icon:'nightlife',          color:'#7c3aed'},
+    'bakery':           {icon:'bakery_dining',      color:'#a16207'},
+    'meal_takeaway':    {icon:'takeout_dining',     color:'#dc2626'},
+    'meal_delivery':    {icon:'delivery_dining',    color:'#dc2626'},
+    'food':             {icon:'restaurant_menu',    color:'#ea580c'},
+    // Compras
+    'shopping_mall':    {icon:'storefront',         color:'#7c3aed'},
+    'supermarket':      {icon:'local_grocery_store',color:'#16a34a'},
+    'convenience_store':{icon:'store',              color:'#16a34a'},
+    'clothing_store':   {icon:'checkroom',          color:'#db2777'},
+    'jewelry_store':    {icon:'diamond',            color:'#9333ea'},
+    'shoe_store':       {icon:'directions_walk',    color:'#7c2d12'},
+    'department_store': {icon:'shopping_cart',      color:'#7c3aed'},
+    'electronics_store':{icon:'devices',            color:'#0891b2'},
+    'furniture_store':  {icon:'chair',              color:'#7c2d12'},
+    'hardware_store':   {icon:'handyman',           color:'#737373'},
+    'book_store':       {icon:'menu_book',          color:'#7c2d12'},
+    'pet_store':        {icon:'pets',               color:'#16a34a'},
+    'liquor_store':     {icon:'liquor',             color:'#dc2626'},
+    'florist':          {icon:'local_florist',      color:'#16a34a'},
+    'store':            {icon:'storefront',         color:'#7c3aed'},
+    // Finanzas
+    'bank':             {icon:'account_balance',    color:'#1e40af'},
+    'atm':              {icon:'atm',                color:'#1e40af'},
+    'finance':          {icon:'account_balance_wallet', color:'#1e40af'},
+    'accounting':       {icon:'calculate',          color:'#1e40af'},
+    'insurance_agency': {icon:'shield',             color:'#1e40af'},
+    // Salud
+    'hospital':         {icon:'local_hospital',     color:'#dc2626'},
+    'pharmacy':         {icon:'local_pharmacy',     color:'#16a34a'},
+    'doctor':           {icon:'medical_services',   color:'#dc2626'},
+    'dentist':          {icon:'medical_services',   color:'#0891b2'},
+    'physiotherapist':  {icon:'self_improvement',   color:'#0891b2'},
+    'veterinary_care':  {icon:'pets',               color:'#dc2626'},
+    'spa':              {icon:'spa',                color:'#9333ea'},
+    'beauty_salon':     {icon:'face_retouching_natural', color:'#db2777'},
+    'hair_care':        {icon:'content_cut',        color:'#db2777'},
+    // Transporte
+    'gas_station':      {icon:'local_gas_station',  color:'#ea580c'},
+    'parking':          {icon:'local_parking',      color:'#1e40af'},
+    'airport':          {icon:'flight',             color:'#0284c7'},
+    'bus_station':      {icon:'directions_bus',     color:'#16a34a'},
+    'subway_station':   {icon:'subway',             color:'#7c3aed'},
+    'train_station':    {icon:'train',              color:'#dc2626'},
+    'transit_station':  {icon:'commute',            color:'#7c3aed'},
+    'taxi_stand':       {icon:'local_taxi',         color:'#eab308'},
+    'car_rental':       {icon:'car_rental',         color:'#1e40af'},
+    'car_repair':       {icon:'car_repair',         color:'#7c2d12'},
+    'car_wash':         {icon:'local_car_wash',     color:'#0891b2'},
+    'car_dealer':       {icon:'directions_car',     color:'#1e40af'},
+    'bicycle_store':    {icon:'pedal_bike',         color:'#16a34a'},
+    // Fitness y deportes
+    'gym':              {icon:'fitness_center',     color:'#9333ea'},
+    'stadium':          {icon:'stadium',            color:'#16a34a'},
+    'park':             {icon:'park',               color:'#16a34a'},
+    'bowling_alley':    {icon:'sports_bar',         color:'#9333ea'},
+    'amusement_park':   {icon:'attractions',        color:'#ea580c'},
+    'zoo':              {icon:'pets',               color:'#16a34a'},
+    'aquarium':         {icon:'water',              color:'#0284c7'},
+    // Educación
+    'school':           {icon:'school',             color:'#1e40af'},
+    'university':       {icon:'school',             color:'#7c3aed'},
+    'library':          {icon:'local_library',      color:'#7c2d12'},
+    // Hospedaje
+    'lodging':          {icon:'hotel',              color:'#9333ea'},
+    'rv_park':          {icon:'rv_hookup',          color:'#9333ea'},
+    'campground':       {icon:'camping',            color:'#16a34a'},
+    // Gobierno y seguridad
+    'police':           {icon:'local_police',       color:'#1e40af'},
+    'fire_station':     {icon:'local_fire_department', color:'#dc2626'},
+    'post_office':      {icon:'local_post_office',  color:'#dc2626'},
+    'embassy':          {icon:'public',             color:'#1e40af'},
+    'city_hall':        {icon:'apartment',          color:'#737373'},
+    'courthouse':       {icon:'gavel',              color:'#1e40af'},
+    'lawyer':           {icon:'gavel',              color:'#1e40af'},
+    'local_government_office':{icon:'apartment',    color:'#737373'},
+    // Religión
+    'church':           {icon:'church',             color:'#9ca3af'},
+    'mosque':           {icon:'mosque',             color:'#9ca3af'},
+    'synagogue':        {icon:'synagogue',          color:'#9ca3af'},
+    'hindu_temple':     {icon:'temple_hindu',       color:'#9ca3af'},
+    'place_of_worship': {icon:'church',             color:'#9ca3af'},
+    'cemetery':         {icon:'church',             color:'#737373'},
+    // Entretenimiento
+    'movie_theater':    {icon:'theaters',           color:'#dc2626'},
+    'museum':           {icon:'museum',             color:'#7c2d12'},
+    'art_gallery':      {icon:'palette',            color:'#9333ea'},
+    'casino':           {icon:'casino',             color:'#9333ea'},
+    'tourist_attraction':{icon:'attractions',       color:'#ea580c'},
+    // Misc / servicios
+    'real_estate_agency':{icon:'home_work',         color:'#7c3aed'},
+    'travel_agency':    {icon:'flight_takeoff',     color:'#0284c7'},
+    'laundry':          {icon:'local_laundry_service', color:'#0891b2'},
+    'storage':          {icon:'inventory_2',        color:'#737373'},
+    'moving_company':   {icon:'local_shipping',     color:'#737373'},
+    'plumber':          {icon:'plumbing',           color:'#0891b2'},
+    'electrician':      {icon:'electrical_services',color:'#eab308'},
+    'painter':          {icon:'format_paint',       color:'#7c3aed'},
+    'roofing_contractor':{icon:'roofing',           color:'#737373'},
+    'locksmith':        {icon:'key',                color:'#737373'},
+    // Default
+    '_default':         {icon:'place',              color:'#6D28D9'}
+  };
+
+  /* Cache de Material Icons → data URL para no regenerar cada vez */
+  var _iconCache = {};
+
+  /* Espera a que Material Icons font se cargue */
+  var _materialFontReady = false;
+  if(document.fonts && document.fonts.load){
+    document.fonts.load('24px "Material Icons Outlined"').then(function(){
+      _materialFontReady = true;
+    }).catch(function(){});
+  }
+
+  /* Genera data URL PNG con: círculo color + glifo Material centrado */
+  function makePoiIconDataUrl(typeKey){
+    var def = POI_ICONS[typeKey] || POI_ICONS._default;
+    var key = typeKey + '|' + def.icon + '|' + def.color;
+    if(_iconCache[key]) return _iconCache[key];
+
+    var size = 64;  // 2x for retina
+    var canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    var ctx = canvas.getContext('2d');
+
+    // Soft shadow
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    ctx.beginPath();
+    ctx.arc(size/2, size/2 + 2, 22, 0, Math.PI*2);
+    ctx.fill();
+
+    // Colored circle
+    ctx.fillStyle = def.color;
+    ctx.beginPath();
+    ctx.arc(size/2, size/2, 22, 0, Math.PI*2);
+    ctx.fill();
+
+    // White border
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(size/2, size/2, 22, 0, Math.PI*2);
+    ctx.stroke();
+
+    // Material Icon glyph
+    ctx.fillStyle = '#fff';
+    ctx.font = '24px "Material Icons Outlined"';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(def.icon, size/2, size/2);
+
+    var url = canvas.toDataURL('image/png');
+    _iconCache[key] = url;
+    return url;
+  }
+
+  function pickPoiTypeKey(place){
+    if(!place || !place.types) return '_default';
+    for(var i=0; i<place.types.length; i++){
+      if(POI_ICONS[place.types[i]]) return place.types[i];
+    }
+    return '_default';
+  }
+
+  /* Wrap _trySetPlaceLogo: si no hay brand logo + photo, usar nuestro POI icon */
+  function patchPlaceLogos(){
+    var orig = window._trySetPlaceLogo;
+    if(typeof orig !== 'function' || orig._poiPatched) return;
+    window._trySetPlaceLogo = function(marker, place, borderColor){
+      try{
+        var brandLogo = (typeof window.getBrandLogoUrl === 'function')
+          ? window.getBrandLogoUrl(place && place.name) : null;
+        if(brandLogo){ return orig.apply(this, arguments); }
+        if(place && place.photos && place.photos.length > 0){
+          return orig.apply(this, arguments);
+        }
+        // Sin brand logo ni photo: usar POI icon Material
+        var typeKey = pickPoiTypeKey(place);
+        var url = makePoiIconDataUrl(typeKey);
+        if(typeof window.trySetBrandLogo === 'function'){
+          window.trySetBrandLogo(marker, url, (POI_ICONS[typeKey]||POI_ICONS._default).color);
+        }
+      } catch(e){
+        try{ orig.apply(this, arguments); }catch(_){}
+      }
+    };
+    window._trySetPlaceLogo._poiPatched = true;
+    window._trySetPlaceLogo._origFn = orig;
+  }
+
+  // ============================================================
+  // 2) HEATMAP LAYERS — panel agrupado por categoría
+  // ============================================================
+  var HEATMAP_GROUPS = [
+    {
+      id:'demo', title:'Demográficos', icon:'groups',
+      layers:[
+        {id:'nse',  label:'NSE por Zona', color:'#6D28D9', toggleFn:'toggleNSEOverlay',     active:'nseLayerActive'},
+        {id:'pob',  label:'Densidad poblacional', color:'#0891b2', toggleFn:'togglePopHeatmapLayer', active:'popHeatmapActive'},
+      ]
+    },
+    {
+      id:'mobility', title:'Movilidad', icon:'commute',
+      layers:[
+        {id:'veh',  label:'Tráfico vehicular', color:'#ea580c', toggleFn:'toggleTrafficHeatLayer', active:'trafficHeatActive'},
+        {id:'mob',  label:'Análisis de movilidad', color:'#16a34a', toggleFn:'toggleMobilityAnalysis', active:'mobilityActive'},
+      ]
+    },
+    {
+      id:'security', title:'Seguridad', icon:'shield',
+      layers:[
+        {id:'crime',label:'Delincuencia (SESNSP)', color:'#dc2626', disabled:true, hint:'Pronto'},
+        {id:'rob',  label:'Robos a comercio',     color:'#9333ea', disabled:true, hint:'Pronto'},
+        {id:'viol', label:'Incidentes violentos', color:'#a16207', disabled:true, hint:'Pronto'},
+      ]
+    },
+    {
+      id:'geophysical', title:'Geofísicos', icon:'public',
+      layers:[
+        {id:'seismic', label:'Zonas sísmicas (CENAPRED)', color:'#dc2626', disabled:true, hint:'Pronto'},
+        {id:'flood',   label:'Riesgo inundación',         color:'#0284c7', disabled:true, hint:'Pronto'},
+        {id:'volcano', label:'Actividad volcánica',       color:'#ea580c', disabled:true, hint:'Pronto'},
+      ]
+    }
+  ];
+
+  function buildLayersPanel(){
+    if(document.getElementById('cn-layers-panel')) return;
+    var panel = document.createElement('div');
+    panel.id = 'cn-layers-panel';
+    var html = '<header><h3>Capas del mapa</h3>'
+             + '<button onclick="document.getElementById(\'cn-layers-panel\').classList.remove(\'show\')">×</button>'
+             + '</header><div class="body">';
+    HEATMAP_GROUPS.forEach(function(g, gi){
+      html += '<div class="group' + (gi === 0 ? ' open' : '') + '" data-gid="'+g.id+'">';
+      html += '<div class="group-head" onclick="this.parentNode.classList.toggle(\'open\')">';
+      html += '<span style="font-family:\'Material Icons Outlined\';font-size:16px;color:#6D28D9">'+g.icon+'</span>';
+      html += '<span>'+g.title+'</span>';
+      html += '<span class="chevron">chevron_right</span>';
+      html += '</div><div class="group-body">';
+      g.layers.forEach(function(l){
+        html += '<label class="layer-toggle' + (l.disabled?' disabled':'') + '" data-layer="'+l.id+'">';
+        html += '<span class="dot" style="background:'+l.color+'"></span>';
+        html += '<span>'+l.label+'</span>';
+        if(l.disabled){
+          html += '<small>'+(l.hint||'Pronto')+'</small>';
+        } else {
+          html += '<input type="checkbox" data-toggle-fn="'+l.toggleFn+'" data-active-var="'+(l.active||'')+'">';
+        }
+        html += '</label>';
+      });
+      html += '</div></div>';
+    });
+    html += '</div>';
+    panel.innerHTML = html;
+    document.body.appendChild(panel);
+
+    // Wire checkboxes
+    panel.querySelectorAll('input[type=checkbox][data-toggle-fn]').forEach(function(cb){
+      var fn = cb.getAttribute('data-toggle-fn');
+      var av = cb.getAttribute('data-active-var');
+      // Initial state
+      if(av && window[av]) cb.checked = true;
+      cb.addEventListener('change', function(){
+        if(typeof window[fn] === 'function'){
+          try{ window[fn](); }catch(e){ console.warn('[round6] toggle '+fn+' failed', e); }
+        }
+      });
+    });
+
+    // FAB to open
+    if(!document.getElementById('cn-layers-fab')){
+      var fab = document.createElement('button');
+      fab.id = 'cn-layers-fab';
+      fab.title = 'Capas del mapa';
+      fab.textContent = 'layers';
+      fab.addEventListener('click', function(){ panel.classList.toggle('show'); });
+      document.body.appendChild(fab);
+    }
+  }
+
+  // ============================================================
+  // 3) SHARE BUTTON — modal con link público o con contraseña
+  // ============================================================
+  function buildShareButton(){
+    if(document.getElementById('cn-share-fab')) return;
+    var fab = document.createElement('button');
+    fab.id = 'cn-share-fab';
+    fab.title = 'Compartir vista';
+    fab.textContent = 'share';
+    fab.addEventListener('click', openShareModal);
+    document.body.appendChild(fab);
+
+    var modal = document.createElement('div');
+    modal.id = 'cn-share-modal';
+    modal.innerHTML =
+      '<div class="modal-card">' +
+        '<h2>Compartir vista de Connectia</h2>' +
+        '<div class="sub">Genera un enlace que abre exactamente lo que ves ahora — ubicación, zoom, capas activas, selecciones.</div>' +
+        '<label>Enlace público</label>' +
+        '<div class="url-row">' +
+          '<input type="text" id="cn-share-url-public" readonly>' +
+          '<button class="btn primary" data-copy="cn-share-url-public">Copiar</button>' +
+        '</div>' +
+        '<div class="hint">Cualquiera con el enlace ve la misma vista. No requiere login ni contraseña.</div>' +
+        '<div class="toggle-row">' +
+          '<input type="checkbox" id="cn-share-pwd-on">' +
+          '<label for="cn-share-pwd-on">Proteger con contraseña</label>' +
+        '</div>' +
+        '<div id="cn-share-pwd-block" style="display:none">' +
+          '<label>Contraseña (mínimo 4 caracteres)</label>' +
+          '<input type="password" id="cn-share-pwd-input" placeholder="Pon una contraseña">' +
+          '<div class="url-row" style="margin-top:8px">' +
+            '<input type="text" id="cn-share-url-pwd" readonly placeholder="Genera el enlace tras escribir contraseña">' +
+            '<button class="btn primary" data-copy="cn-share-url-pwd">Copiar</button>' +
+          '</div>' +
+          '<div class="hint">El destinatario verá una pantalla pidiendo la contraseña al abrir el enlace. Dásela por canal seguro.</div>' +
+        '</div>' +
+        '<div class="actions">' +
+          '<button class="btn alt" id="cn-share-close">Cerrar</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+
+    // Close
+    modal.addEventListener('click', function(ev){
+      if(ev.target === modal || ev.target.id === 'cn-share-close'){
+        modal.classList.remove('show');
+      }
+    });
+
+    // Toggle password block
+    modal.querySelector('#cn-share-pwd-on').addEventListener('change', function(e){
+      modal.querySelector('#cn-share-pwd-block').style.display = e.target.checked ? 'block' : 'none';
+      if(e.target.checked){
+        var inp = modal.querySelector('#cn-share-pwd-input');
+        setTimeout(function(){ inp.focus(); }, 50);
+      }
+    });
+
+    // Generate password URL on input
+    var pwdInput = modal.querySelector('#cn-share-pwd-input');
+    var pwdUrlOut = modal.querySelector('#cn-share-url-pwd');
+    pwdInput.addEventListener('input', async function(){
+      var pwd = pwdInput.value.trim();
+      if(pwd.length < 4){
+        pwdUrlOut.value = '';
+        return;
+      }
+      pwdUrlOut.value = 'Generando...';
+      try{
+        var u = await generatePasswordProtectedUrl(pwd);
+        pwdUrlOut.value = u;
+      }catch(e){
+        pwdUrlOut.value = 'Error al cifrar';
+        console.error(e);
+      }
+    });
+
+    // Copy buttons
+    modal.querySelectorAll('button[data-copy]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var inp = modal.querySelector('#'+b.getAttribute('data-copy'));
+        if(!inp || !inp.value) return;
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(inp.value).then(function(){
+            var orig = b.textContent; b.textContent = '✓ Copiado'; b.classList.add('copied');
+            setTimeout(function(){ b.textContent = orig; b.classList.remove('copied'); }, 2000);
+          });
+        } else {
+          inp.select();
+          try{ document.execCommand('copy'); }catch(_){}
+        }
+      });
+    });
+  }
+
+  function getCurrentShareUrl(){
+    // Reusa el sistema existente de URL hash sync
+    try{
+      if(typeof window._writeUrl === 'function') window._writeUrl();
+    }catch(e){}
+    return window.location.href;
+  }
+
+  function openShareModal(){
+    var modal = document.getElementById('cn-share-modal');
+    if(!modal) return;
+    var publicUrl = getCurrentShareUrl();
+    modal.querySelector('#cn-share-url-public').value = publicUrl;
+    modal.querySelector('#cn-share-pwd-input').value = '';
+    modal.querySelector('#cn-share-url-pwd').value = '';
+    modal.querySelector('#cn-share-pwd-on').checked = false;
+    modal.querySelector('#cn-share-pwd-block').style.display = 'none';
+    modal.classList.add('show');
+  }
+
+  /* === Cifrado AES-GCM con password (Web Crypto) === */
+  async function deriveKey(password, salt){
+    var enc = new TextEncoder();
+    var keyMat = await crypto.subtle.importKey('raw', enc.encode(password),
+      'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      {name:'PBKDF2', salt:salt, iterations:100000, hash:'SHA-256'},
+      keyMat, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+  }
+  function b64url(buf){
+    var s = btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
+    return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  async function generatePasswordProtectedUrl(password){
+    var publicUrl = getCurrentShareUrl();
+    var hashIdx = publicUrl.indexOf('#');
+    var base = hashIdx >= 0 ? publicUrl.substring(0, hashIdx) : publicUrl;
+    var hash = hashIdx >= 0 ? publicUrl.substring(hashIdx) : '';
+    if(!hash) return base; // nada que cifrar
+    var enc = new TextEncoder();
+    var salt = crypto.getRandomValues(new Uint8Array(16));
+    var iv   = crypto.getRandomValues(new Uint8Array(12));
+    var key  = await deriveKey(password, salt);
+    var ct   = await crypto.subtle.encrypt({name:'AES-GCM', iv:iv}, key, enc.encode(hash));
+    var payload = b64url(salt) + '.' + b64url(iv) + '.' + b64url(ct);
+    return base + '#pwshare=' + payload;
+  }
+  /* Si la URL al cargar tiene #pwshare=..., pedir contraseña y descifrar */
+  async function maybeUnlockPasswordShare(){
+    var hash = window.location.hash || '';
+    if(hash.indexOf('#pwshare=') !== 0) return;
+    var payload = hash.substring(9);
+    var parts = payload.split('.');
+    if(parts.length !== 3) return;
+    function from64(s){
+      s = s.replace(/-/g,'+').replace(/_/g,'/');
+      while(s.length%4) s+='=';
+      var bin = atob(s);
+      var arr = new Uint8Array(bin.length);
+      for(var i=0; i<bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return arr;
+    }
+    var salt = from64(parts[0]);
+    var iv   = from64(parts[1]);
+    var ct   = from64(parts[2]);
+    var pwd = prompt('Esta vista de Connectia está protegida con contraseña.\nIntroduce la contraseña:');
+    if(!pwd) return;
+    try{
+      var key = await deriveKey(pwd, salt);
+      var pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:iv}, key, ct);
+      var dec = new TextDecoder().decode(pt);
+      window.location.hash = dec;
+      // Reload to apply state
+      setTimeout(function(){ window.location.reload(); }, 100);
+    }catch(e){
+      alert('Contraseña incorrecta. Pídela al remitente.');
+    }
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function start(){
+    patchPlaceLogos();
+    buildLayersPanel();
+    buildShareButton();
+    maybeUnlockPasswordShare();
+  }
+  function startRetry(){
+    start();
+    [600, 2000, 5000].forEach(function(d){ setTimeout(start, d); });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', startRetry);
+  } else {
+    startRetry();
+  }
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
