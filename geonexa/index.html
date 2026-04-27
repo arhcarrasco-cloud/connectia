@@ -26054,6 +26054,650 @@ small,.sub,.subtitle,
 })();
 </script>
 
+<style id="connectia-round19-css">
+/* === Share FAB: ícono único — sin ::before duplicado === */
+#cn-share-fab{
+  bottom:200px !important;
+  right:18px !important;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
+  color:#fff !important;
+  font-family:'Material Icons Outlined' !important;
+  font-size:22px !important;
+  display:flex !important; align-items:center; justify-content:center;
+}
+#cn-share-fab::before{ content:none !important; }
+#cn-share-fab > *{ display:initial !important; color:#fff !important; }
+
+/* === Headers: radial gradient morado → rosa pastel === */
+#topbar,
+#auto-report .ar-header,
+#report-title-bar,
+#gflt-title-bar,
+#cn-cmp-panel header,
+#cn-layers-panel header,
+#cn-cmp-dash .dash-chrome,
+.panel-chrome-bar,
+#cn-cmp-v2 header{
+  background:radial-gradient(circle at 20% 50%, rgba(109,40,217,.16) 0%, rgba(236,72,153,.12) 50%, rgba(255,255,255,.96) 100%) !important;
+  border-bottom:1px solid rgba(109,40,217,.18) !important;
+}
+/* Texto oscuro sobre el fade pastel */
+#topbar > *,
+#auto-report .ar-header,
+#report-title-bar > span:first-child,
+#gflt-title-bar h2, #gflt-title-bar h3,
+#cn-cmp-panel header h3,
+#cn-layers-panel header h3,
+#cn-cmp-dash .dash-chrome .dc-title,
+#cn-cmp-v2 header h3{
+  color:#1d1d1f !important;
+  -webkit-text-fill-color:#1d1d1f !important;
+}
+
+/* === Reporte: ocultar × duplicado (la chrome bar tiene una propia, dejar solo esa) === */
+#auto-report .ar-header > button.ar-close,
+#auto-report > button[onclick*="display"][onclick*="none"]:not(.pcb-close){
+  display:none !important;
+}
+
+/* === Comparar v2 panel === */
+#cn-cmp-v2{
+  position:fixed; z-index:99999;
+  width:360px; max-height:560px;
+  background:#fff; border-radius:14px;
+  border:1px solid rgba(60,60,67,.12);
+  box-shadow:0 16px 40px rgba(0,0,0,.18), 0 4px 12px rgba(0,0,0,.06);
+  display:none; flex-direction:column; overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn-cmp-v2.show{ display:flex; }
+#cn-cmp-v2 header{
+  padding:12px 14px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+#cn-cmp-v2 header h3{ margin:0; font-size:13px; font-weight:700; }
+#cn-cmp-v2 header button{
+  border:none; background:rgba(0,0,0,.08); width:26px; height:26px;
+  border-radius:50%; cursor:pointer; color:#1d1d1f;
+  font-size:14px; font-family:inherit; line-height:1;
+}
+#cn-cmp-v2 .body{ padding:12px; overflow-y:auto; flex:1; }
+#cn-cmp-v2 .area-status{
+  padding:6px 10px; background:#fef3c7; color:#92400e;
+  border-radius:6px; font-size:11px; margin-bottom:10px;
+}
+#cn-cmp-v2 .area-status.ok{ background:#dcfce7; color:#166534; }
+#cn-cmp-v2 .search-row{ margin-bottom:8px; }
+#cn-cmp-v2 .search-row input{
+  width:100%; padding:8px 12px; border:1px solid #e2e8f0;
+  border-radius:8px; font-size:12px; background:#fafafa;
+  font-family:inherit; box-sizing:border-box;
+}
+#cn-cmp-v2 .search-row input:focus{
+  outline:none; border-color:#6D28D9; background:#fff;
+  box-shadow:0 0 0 3px rgba(109,40,217,.12);
+}
+#cn-cmp-v2 .cats{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+#cn-cmp-v2 .cat{
+  padding:5px 10px; border:1px solid #e9d5ff; border-radius:14px;
+  background:#fff; color:#1d1d1f; font-size:11px; cursor:pointer;
+  font-family:inherit;
+}
+#cn-cmp-v2 .cat.active{
+  background:linear-gradient(135deg,#EDE9FE,#C4B5FD);
+  color:#5B21B6; border-color:rgba(109,40,217,.35);
+}
+#cn-cmp-v2 .list{
+  border:1px solid #e2e8f0; border-radius:10px;
+  max-height:240px; overflow-y:auto; margin-bottom:10px;
+}
+#cn-cmp-v2 .list:empty::before{
+  content:'Selecciona una categoría o busca una marca'; display:block;
+  padding:20px; text-align:center; color:#94a3b8; font-size:11px;
+}
+#cn-cmp-v2 .row{
+  display:flex; align-items:center; gap:8px; padding:8px 10px;
+  border-bottom:1px solid #f1f5f9; font-size:12px;
+}
+#cn-cmp-v2 .row:last-child{ border-bottom:none; }
+#cn-cmp-v2 .row .name{ flex:1; color:#1d1d1f; }
+#cn-cmp-v2 .row .cnt{ color:#6e6e73; font-size:10px; }
+#cn-cmp-v2 .row .tg{
+  position:relative; width:36px; height:20px;
+  background:#e2e8f0; border-radius:10px; cursor:pointer;
+  transition:background .15s; flex-shrink:0;
+}
+#cn-cmp-v2 .row .tg::after{
+  content:''; position:absolute; top:2px; left:2px;
+  width:16px; height:16px; background:#fff; border-radius:50%;
+  transition:left .15s; box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+#cn-cmp-v2 .row.on .tg{ background:#6D28D9; }
+#cn-cmp-v2 .row.on .tg::after{ left:18px; }
+#cn-cmp-v2 .actions{ display:flex; gap:6px; }
+#cn-cmp-v2 .btn{
+  padding:8px 12px; border:none; border-radius:8px; cursor:pointer;
+  font-size:11px; font-weight:600; font-family:inherit;
+}
+#cn-cmp-v2 .btn.primary{
+  flex:1; background:linear-gradient(135deg,#6D28D9,#8B3A9F); color:#fff;
+}
+#cn-cmp-v2 .btn.alt{ background:#fff; color:#6D28D9; border:1px solid #e9d5ff; }
+
+/* Dashboard v2 */
+#cn-cmp-dash-v2{
+  position:fixed; top:80px; right:14px; z-index:99998;
+  width:440px; max-height:calc(100vh - 100px); overflow-y:auto;
+  background:#fff; border-radius:14px;
+  border:1px solid rgba(60,60,67,.12);
+  box-shadow:0 16px 40px rgba(0,0,0,.18);
+  display:none; flex-direction:column;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn-cmp-dash-v2.show{ display:flex; }
+#cn-cmp-dash-v2 .dash-head{
+  padding:12px 14px; display:flex; justify-content:space-between; align-items:center;
+  background:radial-gradient(circle at 20% 50%, rgba(109,40,217,.16) 0%, rgba(236,72,153,.12) 50%, rgba(255,255,255,.96) 100%) !important;
+  border-bottom:1px solid rgba(109,40,217,.18);
+}
+#cn-cmp-dash-v2 .dash-head h2{ margin:0; font-size:14px; font-weight:700; color:#1d1d1f; }
+#cn-cmp-dash-v2 .dash-head button{
+  border:none; background:rgba(0,0,0,.08); width:26px; height:26px;
+  border-radius:50%; cursor:pointer; color:#1d1d1f; font-size:14px;
+}
+#cn-cmp-dash-v2 .dash-body{ padding:14px 16px; overflow-y:auto; flex:1; }
+#cn-cmp-dash-v2 .kpis{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+  gap:6px; margin-bottom:14px;
+}
+#cn-cmp-dash-v2 .kpi{
+  background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px;
+  padding:8px 10px;
+}
+#cn-cmp-dash-v2 .kpi .l{ font-size:9px; color:#6D28D9; font-weight:700; text-transform:uppercase; }
+#cn-cmp-dash-v2 .kpi .v{ font-size:18px; font-weight:800; color:#1d1d1f; margin-top:3px; }
+#cn-cmp-dash-v2 h3{
+  font-size:11px; font-weight:700; color:#475569;
+  text-transform:uppercase; letter-spacing:.4px;
+  margin:0 0 8px;
+}
+#cn-cmp-dash-v2 .bars{ display:flex; flex-direction:column; gap:4px; margin-bottom:18px; }
+#cn-cmp-dash-v2 .bar{
+  display:flex; align-items:center; gap:8px; font-size:11px;
+}
+#cn-cmp-dash-v2 .bar .lb{ width:110px; color:#1d1d1f; font-weight:500; flex-shrink:0; }
+#cn-cmp-dash-v2 .bar .b{
+  flex:1; height:18px; background:#f1f5f9; border-radius:4px; overflow:hidden;
+}
+#cn-cmp-dash-v2 .bar .b > div{ height:100%; transition:width .35s ease; }
+#cn-cmp-dash-v2 .bar .n{ width:32px; text-align:right; color:#475569; font-weight:600; }
+#cn-cmp-dash-v2 .donut-wrap{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+}
+#cn-cmp-dash-v2 svg.donut{ width:140px; height:140px; flex-shrink:0; }
+#cn-cmp-dash-v2 .legend{ flex:1; min-width:140px; }
+#cn-cmp-dash-v2 .leg{ display:flex; align-items:center; gap:6px; margin:3px 0; font-size:11px; }
+#cn-cmp-dash-v2 .leg .d{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+#cn-cmp-dash-v2 .leg .nm{ flex:1; color:#1d1d1f; }
+#cn-cmp-dash-v2 .leg .pc{ color:#64748b; font-size:10px; }
+</style>
+
+<script id="connectia-round19-js">
+/* Round 19 — Comparar v2 desde cero, todo nuevo y aislado */
+(function(){
+
+  var COMPARE_CATEGORIES = [
+    {id:'retail',     label:'Retail',       types:['supermarket','department_store','shopping_mall','convenience_store']},
+    {id:'food_fast',  label:'Comida rápida', types:['meal_takeaway','meal_delivery']},
+    {id:'restaurant', label:'Restaurantes',  types:['restaurant']},
+    {id:'cafe',       label:'Cafeterías',    types:['cafe','bakery']},
+    {id:'gas',        label:'Gasolineras',   types:['gas_station']},
+    {id:'bank',       label:'Bancos',        types:['bank','atm']},
+    {id:'pharmacy',   label:'Farmacias',     types:['pharmacy']},
+    {id:'gym',        label:'Gimnasios',     types:['gym']},
+    {id:'hotel',      label:'Hoteles',       types:['lodging']}
+  ];
+
+  var BRAND_RULES = [
+    [/walmart/i, 'Walmart'], [/sam'?s\s*club/i, "Sam's Club"],
+    [/bodega\s*aurrera|aurrera/i, 'Bodega Aurrera'],
+    [/soriana/i, 'Soriana'], [/chedraui/i, 'Chedraui'],
+    [/heb\b|h-?e-?b/i, 'HEB'], [/costco/i, 'Costco'],
+    [/oxxo/i, 'OXXO'], [/7[\s\-]?eleven/i, '7-Eleven'],
+    [/circle\s*k/i, 'Circle K'], [/extra\b/i, 'Extra'],
+    [/farmacias\s*del\s*ahorro/i, 'Farmacias del Ahorro'],
+    [/farmacias\s*similares/i, 'Farmacias Similares'],
+    [/farmacias?\s*benavides/i, 'Farmacias Benavides'],
+    [/farmacias?\s*guadalajara/i, 'Farmacias Guadalajara'],
+    [/mcdonal[d']?s|mc\s*donald/i, "McDonald's"],
+    [/burger\s*king/i, 'Burger King'], [/kfc/i, 'KFC'],
+    [/subway/i, 'Subway'], [/domino[\s'\-]?s/i, "Domino's Pizza"],
+    [/pizza\s*hut/i, 'Pizza Hut'], [/little\s*caesars/i, 'Little Caesars'],
+    [/starbucks/i, 'Starbucks'], [/banamex/i, 'Citibanamex'],
+    [/banorte/i, 'Banorte'], [/bbva|bancomer/i, 'BBVA'],
+    [/santander/i, 'Santander'], [/hsbc/i, 'HSBC'],
+    [/scotiabank/i, 'Scotiabank'], [/pemex/i, 'Pemex'],
+    [/shell/i, 'Shell'], [/mobil/i, 'Mobil'],
+    [/sanborns/i, 'Sanborns'], [/liverpool/i, 'Liverpool'],
+    [/coppel/i, 'Coppel'], [/elektra/i, 'Elektra'],
+    [/cinepolis|cinépolis/i, 'Cinépolis'], [/cinemex/i, 'Cinemex']
+  ];
+
+  var COLORS = ['#6D28D9','#8B3A9F','#dc2626','#ea580c','#eab308','#16a34a','#0891b2','#1e40af','#9333ea','#db2777','#7c2d12','#737373'];
+
+  var state = { brands:{}, active:{}, markers:{} };
+  var panelEl = null;
+  var dashEl = null;
+
+  function normalizeBrand(name){
+    if(!name) return 'Otro';
+    var s = name.toString().trim();
+    for(var i=0; i<BRAND_RULES.length; i++){
+      if(BRAND_RULES[i][0].test(s)) return BRAND_RULES[i][1];
+    }
+    return s.replace(/\s+(suc(ursal)?|store|tienda|#?\d+).*$/i, '').replace(/\s+/g,' ').trim();
+  }
+
+  function getActiveArea(){
+    if(window.currentOverlay){
+      var o = window.currentOverlay;
+      try{
+        if(typeof o.getBounds === 'function') return {bounds:o.getBounds()};
+        if(typeof o.getCenter === 'function' && typeof o.getRadius === 'function'){
+          return {center:o.getCenter(), radius:o.getRadius()};
+        }
+      }catch(_){}
+    }
+    try{ var b = window.map && window.map.getBounds(); if(b) return {bounds:b}; }catch(_){}
+    return null;
+  }
+
+  function searchPlaces(category, query, callback){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.places){
+      callback([], 'no-api'); return;
+    }
+    var area = getActiveArea();
+    if(!area){ callback([], 'no-area'); return; }
+    var svc = new google.maps.places.PlacesService(window.map);
+    var req = {};
+    if(area.bounds) req.bounds = area.bounds;
+    else if(area.center && area.radius){ req.location = area.center; req.radius = area.radius; }
+    if(category && category.types && category.types.length) req.type = category.types[0];
+    if(query) req.keyword = query;
+    svc.nearbySearch(req, function(results, status){
+      if(status === google.maps.places.PlacesServiceStatus.OK && results){
+        callback(results);
+      } else {
+        callback([], status);
+      }
+    });
+  }
+
+  function groupByBrand(places){
+    var map = {};
+    places.forEach(function(p){
+      var b = normalizeBrand(p.name);
+      if(!map[b]) map[b] = [];
+      map[b].push(p);
+    });
+    return map;
+  }
+
+  function addBrandPins(brand){
+    if(state.markers[brand]) return;
+    var places = state.brands[brand] || [];
+    var color = COLORS[Math.abs(hashStr(brand)) % COLORS.length];
+    var markers = [];
+    places.forEach(function(p){
+      try{
+        var pos = p.geometry && p.geometry.location;
+        if(!pos) return;
+        var m = new google.maps.Marker({
+          position: pos,
+          map: window.map,
+          title: brand + ' — ' + (p.name || ''),
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 9,
+            fillColor: color,
+            fillOpacity: 0.95,
+            strokeColor: '#ffffff',
+            strokeWeight: 2
+          },
+          zIndex: 10000
+        });
+        // Intentar superponer logo si existe
+        if(typeof window._trySetPlaceLogo === 'function'){
+          try{ window._trySetPlaceLogo(m, {name: brand, types: p.types || []}, color); }catch(_){}
+        }
+        markers.push(m);
+      }catch(_){}
+    });
+    state.markers[brand] = markers;
+  }
+  function hashStr(s){
+    var h = 0;
+    for(var i=0; i<s.length; i++){ h = ((h<<5) - h) + s.charCodeAt(i); h |= 0; }
+    return h;
+  }
+  function removeBrandPins(brand){
+    var ms = state.markers[brand];
+    if(!ms) return;
+    ms.forEach(function(m){
+      try{
+        if(m._logoOverlay) m._logoOverlay.setMap(null);
+        m.setMap(null);
+      }catch(_){}
+    });
+    delete state.markers[brand];
+  }
+  function clearAllPins(){
+    Object.keys(state.markers).forEach(removeBrandPins);
+  }
+
+  function renderList(){
+    var listEl = panelEl.querySelector('.list');
+    listEl.innerHTML = '';
+    var brands = Object.keys(state.brands).sort(function(a,b){
+      return state.brands[b].length - state.brands[a].length;
+    });
+    brands.forEach(function(b){
+      var n = state.brands[b].length;
+      var on = !!state.active[b];
+      var row = document.createElement('div');
+      row.className = 'row' + (on?' on':'');
+      row.innerHTML = '<span class="name">'+escapeHtml(b)+'</span>'
+                    + '<span class="cnt">'+n+' suc.</span>'
+                    + '<div class="tg"></div>';
+      var tg = row.querySelector('.tg');
+      tg.addEventListener('click', function(){
+        if(state.active[b]){
+          delete state.active[b];
+          row.classList.remove('on');
+          removeBrandPins(b);
+        } else {
+          state.active[b] = state.brands[b];
+          row.classList.add('on');
+          addBrandPins(b);
+        }
+        updateGo();
+      });
+      listEl.appendChild(row);
+    });
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function updateGo(){
+    var n = Object.keys(state.active).length;
+    var btn = panelEl.querySelector('.btn.primary');
+    btn.textContent = n > 0 ? 'Comparar '+n+' marca'+(n>1?'s':'') : 'Selecciona marcas';
+    btn.style.opacity = n === 0 ? '0.5' : '1';
+    btn.disabled = n === 0;
+  }
+
+  function updateStatus(text, ok){
+    var st = panelEl.querySelector('.area-status');
+    st.textContent = text;
+    st.classList.toggle('ok', !!ok);
+  }
+
+  function buildPanel(){
+    if(panelEl) return panelEl;
+    panelEl = document.createElement('div');
+    panelEl.id = 'cn-cmp-v2';
+    var html = '<header><h3>Comparativa de marcas</h3>'
+             + '<button class="close-btn" data-tip="Cerrar">×</button></header>'
+             + '<div class="body">'
+             + '<div class="area-status">Verificando área…</div>'
+             + '<div class="search-row"><input type="text" placeholder="Buscar marca o palabra"></div>'
+             + '<div class="cats">';
+    COMPARE_CATEGORIES.forEach(function(c){
+      html += '<button class="cat" data-cat="'+c.id+'">'+c.label+'</button>';
+    });
+    html += '</div><div class="list"></div>'
+          + '<div class="actions">'
+          + '<button class="btn primary">Selecciona marcas</button>'
+          + '<button class="btn alt clear-btn">Limpiar</button>'
+          + '</div></div>';
+    panelEl.innerHTML = html;
+    document.body.appendChild(panelEl);
+
+    // CLOSE — botón ×
+    panelEl.querySelector('.close-btn').addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      panelEl.classList.remove('show');
+      panelEl.style.display = 'none';
+    });
+
+    // Search
+    var searchInp = panelEl.querySelector('.search-row input');
+    var st = null;
+    searchInp.addEventListener('input', function(){
+      var q = searchInp.value.trim();
+      clearTimeout(st);
+      if(q.length < 2) return;
+      st = setTimeout(function(){
+        panelEl.querySelectorAll('.cat').forEach(function(c){c.classList.remove('active');});
+        updateStatus('Buscando "'+q+'"…');
+        searchPlaces(null, q, function(places, errStatus){
+          if(places.length === 0){
+            updateStatus('Sin resultados ('+(errStatus||'')+')');
+            state.brands = {}; state.active = {};
+            clearAllPins(); renderList(); updateGo();
+            return;
+          }
+          state.brands = groupByBrand(places);
+          state.active = {};
+          clearAllPins(); renderList(); updateGo();
+          updateStatus(places.length+' resultados — '+Object.keys(state.brands).length+' marcas', true);
+        });
+      }, 400);
+    });
+
+    // Categories
+    panelEl.querySelectorAll('.cat').forEach(function(c){
+      c.addEventListener('click', function(){
+        var catId = c.dataset.cat;
+        var cat = COMPARE_CATEGORIES.find(function(x){return x.id===catId;});
+        panelEl.querySelectorAll('.cat').forEach(function(x){x.classList.remove('active');});
+        c.classList.add('active');
+        searchInp.value = '';
+        updateStatus('Cargando '+cat.label+'…');
+        searchPlaces(cat, '', function(places, errStatus){
+          if(places.length === 0){
+            updateStatus('Sin resultados ('+(errStatus||'')+')');
+            state.brands = {}; state.active = {};
+            clearAllPins(); renderList(); updateGo();
+            return;
+          }
+          state.brands = groupByBrand(places);
+          state.active = {};
+          clearAllPins(); renderList(); updateGo();
+          updateStatus(places.length+' lugares — '+Object.keys(state.brands).length+' marcas', true);
+        });
+      });
+    });
+
+    // Clear
+    panelEl.querySelector('.clear-btn').addEventListener('click', function(){
+      state.active = {};
+      clearAllPins();
+      panelEl.querySelectorAll('.row').forEach(function(r){r.classList.remove('on');});
+      updateGo();
+    });
+
+    // Compare → dashboard
+    panelEl.querySelector('.btn.primary').addEventListener('click', function(){
+      if(Object.keys(state.active).length === 0) return;
+      openDashboard();
+    });
+
+    return panelEl;
+  }
+
+  function showPanel(triggerEl){
+    var p = buildPanel();
+    p.classList.add('show');
+    p.style.display = 'flex';
+    var area = getActiveArea();
+    if(area && (area.bounds || area.center)){
+      updateStatus(area.center ? 'Área: círculo de '+Math.round(area.radius)+' m' : 'Área: viewport actual', true);
+    } else {
+      updateStatus('Selecciona un área (círculo, polígono) o haz zoom al área de interés', false);
+    }
+    if(document.body.classList.contains('is-mobile-view')){
+      p.style.position = 'fixed';
+      p.style.top = 'auto';
+      p.style.bottom = 'calc(56px + env(safe-area-inset-bottom,0px))';
+      p.style.left = '8px';
+      p.style.right = '8px';
+      p.style.width = 'auto';
+      p.style.maxHeight = '60vh';
+    } else if(triggerEl){
+      var r = triggerEl.getBoundingClientRect();
+      var pw = 360;
+      p.style.position = 'fixed';
+      p.style.top = (r.bottom + 6) + 'px';
+      p.style.left = Math.max(10, Math.min(window.innerWidth - pw - 10, r.left + r.width/2 - pw/2)) + 'px';
+      p.style.right = 'auto';
+      p.style.width = '360px';
+    } else {
+      p.style.position = 'fixed';
+      p.style.top = '70px';
+      p.style.right = '14px';
+      p.style.left = 'auto';
+    }
+  }
+
+  // ============================================================
+  // Dashboard v2
+  // ============================================================
+  function buildDashboard(){
+    if(dashEl) return dashEl;
+    dashEl = document.createElement('div');
+    dashEl.id = 'cn-cmp-dash-v2';
+    dashEl.innerHTML =
+      '<div class="dash-head">' +
+        '<h2>Dashboard comparativo</h2>' +
+        '<button class="dclose" data-tip="Cerrar">×</button>' +
+      '</div>' +
+      '<div class="dash-body">' +
+        '<div class="kpis"></div>' +
+        '<h3>Sucursales por marca</h3>' +
+        '<div class="bars"></div>' +
+        '<h3>Distribución</h3>' +
+        '<div class="donut-wrap">' +
+          '<svg class="donut" viewBox="0 0 42 42"></svg>' +
+          '<div class="legend"></div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(dashEl);
+    dashEl.querySelector('.dclose').addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      dashEl.classList.remove('show');
+      dashEl.style.display = 'none';
+    });
+    return dashEl;
+  }
+
+  function openDashboard(){
+    var d = buildDashboard();
+    var brands = Object.keys(state.active);
+    if(brands.length === 0) return;
+    var totalSuc = brands.reduce(function(s,b){return s + state.active[b].length;}, 0);
+    var sorted = brands.slice().sort(function(a,b){
+      return state.active[b].length - state.active[a].length;
+    });
+    var leader = sorted[0];
+    var leaderCount = state.active[leader].length;
+    var avg = (totalSuc / brands.length).toFixed(1);
+
+    var kpis = d.querySelector('.kpis');
+    kpis.innerHTML =
+      '<div class="kpi"><div class="l">Marcas</div><div class="v">'+brands.length+'</div></div>'+
+      '<div class="kpi"><div class="l">Sucursales</div><div class="v">'+totalSuc+'</div></div>'+
+      '<div class="kpi"><div class="l">Líder</div><div class="v" style="font-size:13px">'+escapeHtml(leader)+'</div></div>'+
+      '<div class="kpi"><div class="l">Prom/marca</div><div class="v">'+avg+'</div></div>';
+
+    var maxN = state.active[sorted[0]].length;
+    var bars = d.querySelector('.bars');
+    bars.innerHTML = '';
+    sorted.forEach(function(b, i){
+      var n = state.active[b].length;
+      var color = COLORS[i % COLORS.length];
+      var pct = (n / maxN) * 100;
+      var row = document.createElement('div');
+      row.className = 'bar';
+      row.innerHTML = '<div class="lb">'+escapeHtml(b)+'</div>'
+                    + '<div class="b"><div style="background:'+color+';width:0%"></div></div>'
+                    + '<div class="n">'+n+'</div>';
+      bars.appendChild(row);
+      setTimeout(function(){
+        row.querySelector('.b > div').style.width = pct + '%';
+      }, 60 + i*30);
+    });
+
+    var donut = d.querySelector('svg.donut');
+    donut.innerHTML = '';
+    var legend = d.querySelector('.legend');
+    legend.innerHTML = '';
+    var cum = 0;
+    sorted.forEach(function(b, i){
+      var n = state.active[b].length;
+      var pct = (n / totalSuc) * 100;
+      var color = COLORS[i % COLORS.length];
+      var c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('cx','21'); c.setAttribute('cy','21'); c.setAttribute('r','15.915');
+      c.setAttribute('fill','transparent');
+      c.setAttribute('stroke', color);
+      c.setAttribute('stroke-width','4');
+      c.setAttribute('stroke-dasharray', pct.toFixed(2)+' '+(100-pct).toFixed(2));
+      c.setAttribute('stroke-dashoffset', (100-cum).toFixed(2));
+      c.setAttribute('transform', 'rotate(-90 21 21)');
+      donut.appendChild(c);
+      cum += pct;
+      var leg = document.createElement('div');
+      leg.className = 'leg';
+      leg.innerHTML = '<span class="d" style="background:'+color+'"></span>'
+                    + '<span class="nm">'+escapeHtml(b)+'</span>'
+                    + '<span class="pc">'+pct.toFixed(1)+'% ('+n+')</span>';
+      legend.appendChild(leg);
+    });
+
+    d.classList.add('show');
+    d.style.display = 'flex';
+  }
+
+  // ============================================================
+  // Hook al botón "Comparar" — REEMPLAZA todos los handlers viejos
+  // ============================================================
+  function rehookCompareButtons(){
+    document.querySelectorAll('[data-cmp-entry="1"]').forEach(function(t){
+      // Forzar reemplazo del handler clonando el nodo (limpia listeners)
+      if(t._r19) return;
+      var clone = t.cloneNode(true);
+      t.parentNode.replaceChild(clone, t);
+      clone._r19 = true;
+      clone.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        showPanel(clone);
+      });
+    });
+  }
+
+  function start(){
+    rehookCompareButtons();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [400, 1500, 4000, 9000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
