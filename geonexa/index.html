@@ -24684,6 +24684,30 @@ input[type=text]:focus, input[type=search]:focus{
 })();
 </script>
 
+<style id="connectia-round12-css">
+/* === Round 12 — quitar el FAB de Capas (icono confuso arriba del Compartir) === */
+#cn-layers-fab{ display:none !important; }
+/* (El panel de capas sigue accesible desde el menú principal y desde los toggles
+   individuales de las herramientas NSE/POB/VEH en el toolbar) */
+
+/* Aviso visual: si POB o VEH están activos, indicar que pronto serán polígonos */
+/* (placeholder estilístico mínimo, no afecta funcionalidad) */
+</style>
+<script id="connectia-round12-js">
+/* Round 12 — limpieza fab + flag para futuro de heatmaps a polígonos */
+(function(){
+  function removeLayersFab(){
+    var f = document.getElementById('cn-layers-fab');
+    if(f) f.remove();
+  }
+  function start(){ removeLayersFab(); }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [400, 1500, 4000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
