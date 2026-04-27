@@ -15837,12 +15837,79 @@ setInterval(function(){
 
   console.log('[connectia] platform=' + platform + ' usando Google Maps key prefix=' + key.substring(0, 12) + '...');
 
+  // Exponer globalmente para que otros scripts (autocomplete, static maps, etc.)
+  // puedan usar la misma key. También sustituir window.GAPI_KEY si existe.
+  window._GMAPS_KEY = key;
+  window._GMAPS_WEB_KEY = WEB_KEY;
+  window._GMAPS_PLATFORM = platform;
+  try { window.GAPI_KEY = key; } catch(_){}
+
   var s = document.createElement('script');
   s.async = true;
   s.src = 'https://maps.googleapis.com/maps/api/js?key=' + key
         + '&libraries=drawing,places,geometry,visualization,marker'
         + '&callback=initMap';
   document.head.appendChild(s);
+
+  // === Interceptor universal: cualquier URL hardcodeada con la web key se reescribe ===
+  // Cubre fetch, XMLHttpRequest, e <img src="..."> insertadas dinámicamente.
+  if (key !== WEB_KEY) {
+    function _rewriteKey(url) {
+      if (typeof url !== 'string') return url;
+      if (url.indexOf(WEB_KEY) === -1) return url;
+      return url.split(WEB_KEY).join(key);
+    }
+    // fetch
+    if (window.fetch) {
+      var _origFetch = window.fetch;
+      window.fetch = function(input, init) {
+        try {
+          if (typeof input === 'string') input = _rewriteKey(input);
+          else if (input && input.url && input.url.indexOf(WEB_KEY) !== -1) {
+            input = new Request(_rewriteKey(input.url), input);
+          }
+        } catch(_){}
+        return _origFetch.call(this, input, init);
+      };
+    }
+    // XHR
+    var _origOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url) {
+      try { arguments[1] = _rewriteKey(url); } catch(_){}
+      return _origOpen.apply(this, arguments);
+    };
+    // <img src="..."> con la web key (Static Maps, etc.)
+    function _watchImages() {
+      var imgObs = new MutationObserver(function(muts){
+        muts.forEach(function(m){
+          m.addedNodes && m.addedNodes.forEach(function(n){
+            if (n && n.tagName === 'IMG' && n.src && n.src.indexOf(WEB_KEY) !== -1) {
+              n.src = _rewriteKey(n.src);
+            } else if (n && n.querySelectorAll) {
+              n.querySelectorAll('img[src*="' + WEB_KEY + '"]').forEach(function(img){
+                img.src = _rewriteKey(img.src);
+              });
+            }
+          });
+          if (m.type === 'attributes' && m.target && m.target.tagName === 'IMG'
+              && m.target.src && m.target.src.indexOf(WEB_KEY) !== -1) {
+            m.target.src = _rewriteKey(m.target.src);
+          }
+        });
+      });
+      imgObs.observe(document.documentElement, {
+        childList:true, subtree:true, attributes:true, attributeFilter:['src']
+      });
+      // Reescribir las imgs YA presentes
+      document.querySelectorAll('img[src*="' + WEB_KEY + '"]').forEach(function(img){
+        img.src = _rewriteKey(img.src);
+      });
+    }
+    if (document.body) _watchImages();
+    else document.addEventListener('DOMContentLoaded', _watchImages);
+    window.__rewriteMapsKey = _rewriteKey;
+    console.log('[connectia] URL interceptor activo: Web key → ' + platform + ' key en fetch/XHR/img');
+  }
 })();
 </script>
 
