@@ -42,7 +42,7 @@ html,body{width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,'S
 #search-box{position:relative;flex:1;max-width:360px}
 #search-input{width:100%;padding:7px 12px;border:1px solid #d2d2d7;border-radius:8px;font-size:13px;outline:none;background:#f5f5f7;transition:all .2s}
 #search-input:focus{border-color:#0071e3;box-shadow:0 0 0 3px rgba(0,113,227,.15);background:#fff}
-#suggestions{position:absolute;top:100%;left:0;right:0;background:#ffffff;border:1px solid #d2d2d7;border-top:0;border-radius:0 0 10px 10px;display:none;z-index:200;max-height:260px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+#suggestions{position:absolute;top:100%;left:0;right:0;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #d2d2d7;border-top:0;border-radius:0 0 10px 10px;display:none;z-index:200;max-height:260px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.08)}
 #suggestions.open{display:block}
 .sug-item{padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f5f5f7}
 .sug-item:hover{background:#f5f5f7}
@@ -121,7 +121,7 @@ select:focus{border-color:#0071e3}
 #geo-selector-input{width:100%;padding:7px 12px;border:1px solid #22c55e;border-radius:8px;font-size:12px;outline:none;background:#f0fdf4;transition:all .2s;color:#15803d}
 #geo-selector-input:focus{border-color:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.2);background:#fff}
 #geo-selector-input::placeholder{color:#86868b;opacity:0.8}
-#geo-suggestions{position:absolute;top:100%;left:0;right:0;background:#ffffff;border:1px solid #d2d2d7;border-radius:0 0 10px 10px;max-height:280px;overflow-y:auto;z-index:105;display:none}
+#geo-suggestions{position:absolute;top:100%;left:0;right:0;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #d2d2d7;border-radius:0 0 10px 10px;max-height:280px;overflow-y:auto;z-index:105;display:none}
 #geo-suggestions.open{display:block}
 #geo-suggestions .geo-sug-item{padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f5f5f7}
 #geo-suggestions .geo-sug-item:hover{background:#f5f5f7}
@@ -246,7 +246,7 @@ select:focus{border-color:#0071e3}
     <div id="geo-suggestions"></div>
   </div>
   <div id="ai-search-box" title="ConnectIA · Buscador inteligente Powered by Claude AI. Pregunta lo que quieras en lenguaje natural.">
-    <input type="text" id="ai-search-input" placeholder="AI Search" autocomplete="off">
+    <input type="text" id="ai-search-input" placeholder="✨ ConnectIA · pregunta lo que quieras (rutas, marcas, zonas NSE…)" autocomplete="off">
   </div>
   <div id="coords">lat: --, lng: --</div>
   <div id="map-brightness-ctrl" style="display:flex;align-items:center;gap:4px;margin-left:8px;white-space:nowrap" title="Brillo del mapa base">
@@ -349,7 +349,17 @@ select:focus{border-color:#0071e3}
   <div class="pm-body" id="pm-body"></div>
 </div>
 
-<!-- heatmap-dropdown removed -->
+<div id="heatmap-dropdown">
+  <div style="padding:8px 0;border-bottom:1px solid rgba(0,0,0,.06);margin-bottom:4px;font-size:11px;font-weight:600;color:#1d1d1f;padding-left:10px">Tipo de mapa de calor</div>
+  <label class="hm-item">
+    <input type="radio" name="heatmap-type" value="pop" checked>
+    <span>🔥 Densidad poblacional</span>
+  </label>
+  <label class="hm-item">
+    <input type="radio" name="heatmap-type" value="traffic">
+    <span>🚗 Tráfico vehicular</span>
+  </label>
+</div>
 
 <div id="nse-layers-menu">
   <div class="pm-header">
@@ -2269,8 +2279,8 @@ function _msRenderPinReport(sel,d){
   }
   // Row 3: Gender & Age
   r+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin-bottom:3px">';
-  r+='<div style="text-align:center;padding:3px;background:#fce7f3;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#db2777">'+fp+'%</div><div style="font-size:6px;color:#94a3b8">Mujeres</div></div>';
-  r+='<div style="text-align:center;padding:3px;background:#dbeafe;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#2563eb">'+mp+'%</div><div style="font-size:6px;color:#94a3b8">Hombres</div></div>';
+  r+='<div style="text-align:center;padding:3px;background:#fce7f3;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#db2777">'+fp+'%</div><div style="font-size:6px;color:#94a3b8">👩 Mujeres</div></div>';
+  r+='<div style="text-align:center;padding:3px;background:#dbeafe;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#2563eb">'+mp+'%</div><div style="font-size:6px;color:#94a3b8">👨 Hombres</div></div>';
   r+='<div style="text-align:center;padding:3px;background:#f1f5f9;border-radius:4px"><div style="font-size:9px;font-weight:700;color:#475569">'+medAge+'</div><div style="font-size:6px;color:#94a3b8">📅 Edad med</div></div>';
   r+='</div>';
   // Gender bar
@@ -3102,8 +3112,8 @@ function showMultiSelectReport(filterGroupId){
     html+='</div>';
     // Gender & Age
     html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:6px">';
-    html+='<div style="text-align:center;padding:5px;background:#fce7f3;border-radius:6px"><div style="font-size:13px;font-weight:800;color:#db2777">'+fp+'%</div><div style="font-size:7px;color:#94a3b8">Mujeres</div></div>';
-    html+='<div style="text-align:center;padding:5px;background:#dbeafe;border-radius:6px"><div style="font-size:13px;font-weight:800;color:#2563eb">'+mp+'%</div><div style="font-size:7px;color:#94a3b8">Hombres</div></div>';
+    html+='<div style="text-align:center;padding:5px;background:#fce7f3;border-radius:6px"><div style="font-size:13px;font-weight:800;color:#db2777">'+fp+'%</div><div style="font-size:7px;color:#94a3b8">👩 Mujeres</div></div>';
+    html+='<div style="text-align:center;padding:5px;background:#dbeafe;border-radius:6px"><div style="font-size:13px;font-weight:800;color:#2563eb">'+mp+'%</div><div style="font-size:7px;color:#94a3b8">👨 Hombres</div></div>';
     html+='<div style="text-align:center;padding:5px;background:#f1f5f9;border-radius:6px"><div style="font-size:13px;font-weight:800;color:#475569">'+medAge+'</div><div style="font-size:7px;color:#94a3b8">📅 Edad med.</div></div>';
     html+='</div>';
     html+='<div style="display:flex;height:8px;border-radius:3px;overflow:hidden;margin-bottom:6px"><div style="width:'+fp+'%;background:#ec4899"></div><div style="width:'+mp+'%;background:#3b82f6"></div></div>';
@@ -3758,7 +3768,7 @@ function updateDemo(){
   gh+='<canvas id="gender-pie-canvas" width="140" height="140" style="max-width:140px;max-height:140px;flex-shrink:0"></canvas>';
   gh+='<div style="font-size:11px;line-height:1.6">';
   gh+='<div><span style="display:inline-block;width:10px;height:10px;background:#3b82f6;border-radius:50%;margin-right:4px"></span>🧑 Hombres: <b>'+_udG.m+'%</b> <span style="color:#64748b;font-size:9px">('+fmt(mPop)+')</span></div>';
-  gh+='<div><span style="display:inline-block;width:10px;height:10px;background:#ec4899;border-radius:50%;margin-right:4px"></span>Mujeres: <b>'+_udG.f+'%</b> <span style="color:#64748b;font-size:9px">('+fmt(fPop)+')</span></div>';
+  gh+='<div><span style="display:inline-block;width:10px;height:10px;background:#ec4899;border-radius:50%;margin-right:4px"></span>👩 Mujeres: <b>'+_udG.f+'%</b> <span style="color:#64748b;font-size:9px">('+fmt(fPop)+')</span></div>';
   gh+='</div></div>';
   document.getElementById('gender-bars').innerHTML=gh;
   // Render pie chart
@@ -4804,23 +4814,22 @@ function _drawNSEGridFallback(activeNSE,nseColors){
   var bounds=map.getBounds();if(!bounds)return;
   var ne=bounds.getNorthEast(),sw=bounds.getSouthWest();
   var zoom=map.getZoom();
-  var hexR=zoom>=16?0.0003:zoom>=14?0.0015:zoom>=12?0.005:zoom>=10?0.02:0.05;
+  var cellSize=zoom>=16?0.0005:zoom>=14?0.003:zoom>=12?0.01:zoom>=10?0.04:0.1;
   var latR=ne.lat()-sw.lat(),lngR=ne.lng()-sw.lng();
-  var h=hexR*Math.sqrt(3);
-  var rows=Math.min(Math.ceil(latR/h),40),cols=Math.min(Math.ceil(lngR/(hexR*1.5)),40);
-  function hexPts(cLat,cLng,r){var pts=[];for(var i=0;i<6;i++){var ang=Math.PI/180*(60*i+30);pts.push({lat:cLat+r*Math.cos(ang),lng:cLng+r*Math.sin(ang)/Math.cos(cLat*Math.PI/180)});}return pts;}
+  var maxC=zoom>=15?2000:900;
+  var cols=Math.min(Math.ceil(lngR/cellSize),50),rows=Math.min(Math.ceil(latR/cellSize),50);
+  if(cols*rows>maxC){var sc=Math.sqrt(maxC/(cols*rows));cols=Math.floor(cols*sc);rows=Math.floor(rows*sc);}
+  var aW=lngR/Math.max(cols,1),aH=latR/Math.max(rows,1);
   for(var r=0;r<rows;r++){for(var c=0;c<cols;c++){
-    var cLng=sw.lng()+c*hexR*1.5+hexR;
-    var cLat=sw.lat()+r*h+(c%2===1?h/2:0)+h/2;
-    if(cLat>ne.lat()||cLng>ne.lng())continue;
+    var cLat=sw.lat()+r*aH+aH/2,cLng=sw.lng()+c*aW+aW/2;
     var stC=getStateForCoords(cLat,cLng);if(!ENIGH[stC]||!CENSUS[stC])continue;
     var nL=getNSEForCell(stC,cLat,cLng);var nK=getNSEKey(nL.name);
     if(!activeNSE[nK])continue;
-    var poly=new google.maps.Polygon({paths:hexPts(cLat,cLng,hexR),
+    var poly=new google.maps.Polygon({paths:[{lat:sw.lat()+r*aH,lng:sw.lng()+c*aW},{lat:sw.lat()+r*aH,lng:sw.lng()+(c+1)*aW},{lat:sw.lat()+(r+1)*aH,lng:sw.lng()+(c+1)*aW},{lat:sw.lat()+(r+1)*aH,lng:sw.lng()+c*aW}],
       fillColor:nseColors[nK]||nL.color,fillOpacity:0.3,strokeColor:nseColors[nK]||nL.color,strokeWeight:0.5,strokeOpacity:0.3,clickable:false,map:map});
     nseGridPolygons.push(poly);
   }}
-  setStatus('NSE: Estimación hexagonal por zona');
+  setStatus('NSE: Estimación por zona (sin datos AGEB para esta área)');
 }
 
 function getStateForCoords(lat,lng){
@@ -5304,7 +5313,7 @@ function nseIndexToDistribution(idx){
   else if(idx>=0.42){ab=5;cp=14;c=26;dp=24;d=20;e=11;}
   else if(idx>=0.32){ab=2;cp=8;c=18;dp=24;d=28;e=20;}
   else if(idx>=0.22){ab=1;cp=4;c=12;dp=18;d=32;e=33;}
-  else{ab=1;cp=2;c=6;dp=12;d=30;e=49;}
+  else{ab=0;cp=2;c=6;dp=12;d=30;e=50;}
   return{AB:ab,Cplus:cp,C:c,Dplus:dp,D:d,E:e};
 }
 
@@ -7243,217 +7252,7 @@ function exportReport(){
   });
   html+='</table>';
   html+='<div class="footer">Fuentes: INEGI ENIGH 2024 (Microdatos) | INEGI Censo de Poblacion y Vivienda 2020 | Google Places API | INEGI DENUE<br>Generado por Connectia - Inteligencia Geoespacial | '+new Date().toLocaleDateString('es-MX')+'</div>';
-  html+='
-<style id="connectia-mobile-optimization">
-/* === MOBILE OPTIMIZATION === */
-@media(max-width:767px){
-  /* All panels smaller */
-  #cn-cmp-panel{width:calc(100vw - 24px)!important;max-height:60vh!important;top:auto!important;bottom:12px!important;left:12px!important;right:12px!important;border-radius:16px 16px 0 0!important;}
-  #cn-cmp-dash .dash-card{width:calc(100vw - 16px)!important;max-height:85vh!important;padding:16px!important;}
-  #cn-cmp-dash .kpi-row{grid-template-columns:repeat(2,1fr)!important;}
-  #cn-poi-heatmaps{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  #nse-layers-menu{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  /* Report panel compact */
-  #report-panel{max-height:55vh!important;}
-  #report-panel .report-section{padding:8px!important;}
-  /* Sidebar compact */
-  #sidebar{max-height:50vh!important;}
-  /* All fixed panels: ensure no overlap */
-  .is-mobile-view [id$="-panel"]{max-height:55vh!important;}
-  /* Swipe indicator on panels */
-  #cn-cmp-panel::before,#cn-poi-heatmaps::before,#nse-layers-menu::before{
-    content:'';display:block;width:36px;height:4px;background:#d1d5db;border-radius:2px;margin:8px auto 4px;flex-shrink:0;
-  }
-  /* Auto-hide panels on map interaction */
-  .map-interacting .auto-hide-panel{opacity:0;pointer-events:none;transition:opacity .2s;}
-}
-</style>
-
-<script id="connectia-mobile-opt-js">
-(function(){
-  // Swipe-to-close for mobile panels
-  function addSwipeClose(panelId){
-    var el=document.getElementById(panelId);
-    if(!el||el._swipeClose)return;
-    el._swipeClose=true;
-    var startY=0,startX=0;
-    el.addEventListener('touchstart',function(e){
-      var t=e.touches[0];startY=t.clientY;startX=t.clientX;
-    },{passive:true});
-    el.addEventListener('touchmove',function(e){
-      var t=e.touches[0];
-      var dy=t.clientY-startY;
-      var dx=Math.abs(t.clientX-startX);
-      if(dy>60&&dx<40){
-        el.classList.remove('show','open');
-        el.style.display='none';
-        setTimeout(function(){el.style.display='';},300);
-      }
-    },{passive:true});
-  }
-  // Auto-hide panels when map moves
-  function setupAutoHide(){
-    if(!window.map)return;
-    var panels=['cn-cmp-panel','cn-poi-heatmaps','nse-layers-menu','heatmap-dropdown','places-menu'];
-    google.maps.event.addListener(window.map,'dragstart',function(){
-      if(window.innerWidth>=768)return;
-      panels.forEach(function(id){
-        var p=document.getElementById(id);
-        if(p&&(p.classList.contains('show')||p.classList.contains('open'))){
-          p.classList.remove('show','open');
-        }
-      });
-    });
-  }
-  function init(){
-    addSwipeClose('cn-cmp-panel');
-    addSwipeClose('cn-poi-heatmaps');
-    addSwipeClose('nse-layers-menu');
-    addSwipeClose('sidebar');
-    setupAutoHide();
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-  else init();
-  [1000,3000,6000].forEach(function(d){setTimeout(init,d);});
-})();
-</script>
-
-<style id="connectia-export-filters">
-#export-filter-panel{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  z-index:12000;width:min(420px,92vw);max-height:80vh;
-  background:#fff;border-radius:16px;
-  box-shadow:0 24px 60px rgba(0,0,0,.3);
-  display:none;flex-direction:column;overflow:hidden;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
-#export-filter-panel.show{display:flex;}
-#export-filter-panel .efp-header{
-  padding:14px 18px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);
-  color:#fff;display:flex;justify-content:space-between;align-items:center;
-}
-#export-filter-panel .efp-header h3{margin:0;font-size:14px;font-weight:700;}
-#export-filter-panel .efp-header button{border:none;background:rgba(255,255,255,.2);color:#fff;width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;}
-#export-filter-panel .efp-body{padding:16px;overflow-y:auto;flex:1;}
-.efp-section{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9;}
-.efp-section:last-child{border-bottom:none;}
-.efp-section .name{font-size:13px;color:#1d1d1f;font-weight:500;}
-.efp-toggle{position:relative;width:42px;height:24px;background:#e2e8f0;border-radius:12px;cursor:pointer;transition:background .15s;flex-shrink:0;}
-.efp-toggle.on{background:#6D28D9;}
-.efp-toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.efp-toggle.on::after{left:20px;}
-#export-filter-panel .efp-actions{padding:12px 18px;display:flex;gap:8px;border-top:1px solid #e2e8f0;}
-#export-filter-panel .efp-btn{flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;}
-#export-filter-panel .efp-btn.primary{background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;}
-#export-filter-panel .efp-btn.secondary{background:#f1f5f9;color:#1d1d1f;}
-#export-filter-backdrop{position:fixed;inset:0;z-index:11999;background:rgba(0,0,0,.4);display:none;}
-#export-filter-backdrop.show{display:block;}
-</style>
-
-<script id="connectia-export-filters-js">
-(function(){
-  var EXPORT_SECTIONS=[
-    {id:'demographics',name:'Demograficos',default:true},
-    {id:'nse',name:'NSE (Nivel Socioeconomico)',default:true},
-    {id:'gender_age',name:'Genero y Edad',default:true},
-    {id:'economy',name:'Economia',default:true},
-    {id:'mobility',name:'Movilidad',default:true},
-    {id:'competition',name:'Competencia',default:true},
-    {id:'heatmap',name:'Mapa de calor',default:true},
-    {id:'map_screenshot',name:'Captura del mapa',default:true},
-    {id:'charts',name:'Graficas y charts',default:true},
-  ];
-  var _exportFilters={};
-  EXPORT_SECTIONS.forEach(function(s){_exportFilters[s.id]=s.default;});
-
-  function buildFilterPanel(){
-    if(document.getElementById('export-filter-panel'))return;
-    var backdrop=document.createElement('div');
-    backdrop.id='export-filter-backdrop';
-    backdrop.addEventListener('click',function(){closeFilterPanel();});
-    document.body.appendChild(backdrop);
-
-    var panel=document.createElement('div');
-    panel.id='export-filter-panel';
-    var html='<div class="efp-header"><h3>Filtros de exportacion</h3><button onclick="window._closeExportFilters()">\u2715</button></div>';
-    html+='<div class="efp-body">';
-    EXPORT_SECTIONS.forEach(function(s){
-      html+='<div class="efp-section"><span class="name">'+s.name+'</span>';
-      html+='<div class="efp-toggle'+(s.default?' on':'')+'" data-section="'+s.id+'"></div></div>';
-    });
-    html+='</div>';
-    html+='<div class="efp-actions">';
-    html+='<button class="efp-btn secondary" onclick="window._closeExportFilters()">Cancelar</button>';
-    html+='<button class="efp-btn primary" id="efp-export-btn">Exportar</button>';
-    html+='</div>';
-    panel.innerHTML=html;
-    document.body.appendChild(panel);
-
-    // Toggle handlers
-    panel.querySelectorAll('.efp-toggle').forEach(function(t){
-      t.addEventListener('click',function(){
-        var sid=t.dataset.section;
-        t.classList.toggle('on');
-        _exportFilters[sid]=t.classList.contains('on');
-      });
-    });
-  }
-
-  function openFilterPanel(format){
-    buildFilterPanel();
-    document.getElementById('export-filter-backdrop').classList.add('show');
-    document.getElementById('export-filter-panel').classList.add('show');
-    // Set export button action
-    var btn=document.getElementById('efp-export-btn');
-    btn.textContent='Exportar '+format.toUpperCase();
-    btn.onclick=function(){
-      closeFilterPanel();
-      window._exportFilteredSections=_exportFilters;
-      // Trigger original export
-      if(format==='pdf'&&typeof window.exportPDF==='function')window.exportPDF();
-      else if(format==='pptx'&&typeof window.exportPPTX==='function')window.exportPPTX();
-      else if(format==='excel'&&typeof window.exportExcel==='function')window.exportExcel();
-      else if(typeof window['export'+format.charAt(0).toUpperCase()+format.slice(1)]==='function')
-        window['export'+format.charAt(0).toUpperCase()+format.slice(1)]();
-    };
-  }
-
-  function closeFilterPanel(){
-    var p=document.getElementById('export-filter-panel');
-    var b=document.getElementById('export-filter-backdrop');
-    if(p)p.classList.remove('show');
-    if(b)b.classList.remove('show');
-  }
-
-  window._closeExportFilters=closeFilterPanel;
-  window._openExportFilters=openFilterPanel;
-  window._exportFilteredSections=_exportFilters;
-
-  // Intercept export buttons to show filter panel first
-  function interceptExports(){
-    // Find export buttons and intercept
-    var exportBtns=document.querySelectorAll('[onclick*="exportPDF"],[onclick*="exportPPTX"],[onclick*="exportExcel"]');
-    exportBtns.forEach(function(btn){
-      if(btn._intercepted)return;
-      btn._intercepted=true;
-      var orig=btn.getAttribute('onclick')||'';
-      var format='pdf';
-      if(orig.indexOf('PPTX')>=0||orig.indexOf('pptx')>=0)format='pptx';
-      else if(orig.indexOf('Excel')>=0||orig.indexOf('excel')>=0)format='excel';
-      btn.removeAttribute('onclick');
-      btn.addEventListener('click',function(e){
-        e.preventDefault();e.stopPropagation();
-        openFilterPanel(format);
-      });
-    });
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(interceptExports,2000);});
-  else setTimeout(interceptExports,2000);
-  setTimeout(interceptExports,5000);
-  setTimeout(interceptExports,10000);
-})();
-</script>
-</body></html>';
+  html+='</body></html>';
   var w=window.open('','_blank');w.document.write(html);w.document.close();
 }
 
@@ -7490,217 +7289,7 @@ function exportPDF(){
   html+='</table>';
   html+='<div class="print-note"><strong>Nota para impresión:</strong> Para incluir el mapa, haz screenshot de la vista actual del mapa y pégalo aquí antes de imprimir. También puedes usar las opciones de impresión del navegador para capturar esta página en PDF.</div>';
   html+='<div class="footer">© Connectia - Inteligencia Geoespacial<br>Datos: INEGI ENIGH 2024 | Censo 2020 | Google Places | INEGI DENUE<br>Generado: '+new Date().toLocaleDateString('es-MX')+' '+new Date().toLocaleTimeString('es-MX')+'</div>';
-  html+='
-<style id="connectia-mobile-optimization">
-/* === MOBILE OPTIMIZATION === */
-@media(max-width:767px){
-  /* All panels smaller */
-  #cn-cmp-panel{width:calc(100vw - 24px)!important;max-height:60vh!important;top:auto!important;bottom:12px!important;left:12px!important;right:12px!important;border-radius:16px 16px 0 0!important;}
-  #cn-cmp-dash .dash-card{width:calc(100vw - 16px)!important;max-height:85vh!important;padding:16px!important;}
-  #cn-cmp-dash .kpi-row{grid-template-columns:repeat(2,1fr)!important;}
-  #cn-poi-heatmaps{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  #nse-layers-menu{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  /* Report panel compact */
-  #report-panel{max-height:55vh!important;}
-  #report-panel .report-section{padding:8px!important;}
-  /* Sidebar compact */
-  #sidebar{max-height:50vh!important;}
-  /* All fixed panels: ensure no overlap */
-  .is-mobile-view [id$="-panel"]{max-height:55vh!important;}
-  /* Swipe indicator on panels */
-  #cn-cmp-panel::before,#cn-poi-heatmaps::before,#nse-layers-menu::before{
-    content:'';display:block;width:36px;height:4px;background:#d1d5db;border-radius:2px;margin:8px auto 4px;flex-shrink:0;
-  }
-  /* Auto-hide panels on map interaction */
-  .map-interacting .auto-hide-panel{opacity:0;pointer-events:none;transition:opacity .2s;}
-}
-</style>
-
-<script id="connectia-mobile-opt-js">
-(function(){
-  // Swipe-to-close for mobile panels
-  function addSwipeClose(panelId){
-    var el=document.getElementById(panelId);
-    if(!el||el._swipeClose)return;
-    el._swipeClose=true;
-    var startY=0,startX=0;
-    el.addEventListener('touchstart',function(e){
-      var t=e.touches[0];startY=t.clientY;startX=t.clientX;
-    },{passive:true});
-    el.addEventListener('touchmove',function(e){
-      var t=e.touches[0];
-      var dy=t.clientY-startY;
-      var dx=Math.abs(t.clientX-startX);
-      if(dy>60&&dx<40){
-        el.classList.remove('show','open');
-        el.style.display='none';
-        setTimeout(function(){el.style.display='';},300);
-      }
-    },{passive:true});
-  }
-  // Auto-hide panels when map moves
-  function setupAutoHide(){
-    if(!window.map)return;
-    var panels=['cn-cmp-panel','cn-poi-heatmaps','nse-layers-menu','heatmap-dropdown','places-menu'];
-    google.maps.event.addListener(window.map,'dragstart',function(){
-      if(window.innerWidth>=768)return;
-      panels.forEach(function(id){
-        var p=document.getElementById(id);
-        if(p&&(p.classList.contains('show')||p.classList.contains('open'))){
-          p.classList.remove('show','open');
-        }
-      });
-    });
-  }
-  function init(){
-    addSwipeClose('cn-cmp-panel');
-    addSwipeClose('cn-poi-heatmaps');
-    addSwipeClose('nse-layers-menu');
-    addSwipeClose('sidebar');
-    setupAutoHide();
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-  else init();
-  [1000,3000,6000].forEach(function(d){setTimeout(init,d);});
-})();
-</script>
-
-<style id="connectia-export-filters">
-#export-filter-panel{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  z-index:12000;width:min(420px,92vw);max-height:80vh;
-  background:#fff;border-radius:16px;
-  box-shadow:0 24px 60px rgba(0,0,0,.3);
-  display:none;flex-direction:column;overflow:hidden;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
-#export-filter-panel.show{display:flex;}
-#export-filter-panel .efp-header{
-  padding:14px 18px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);
-  color:#fff;display:flex;justify-content:space-between;align-items:center;
-}
-#export-filter-panel .efp-header h3{margin:0;font-size:14px;font-weight:700;}
-#export-filter-panel .efp-header button{border:none;background:rgba(255,255,255,.2);color:#fff;width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;}
-#export-filter-panel .efp-body{padding:16px;overflow-y:auto;flex:1;}
-.efp-section{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9;}
-.efp-section:last-child{border-bottom:none;}
-.efp-section .name{font-size:13px;color:#1d1d1f;font-weight:500;}
-.efp-toggle{position:relative;width:42px;height:24px;background:#e2e8f0;border-radius:12px;cursor:pointer;transition:background .15s;flex-shrink:0;}
-.efp-toggle.on{background:#6D28D9;}
-.efp-toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.efp-toggle.on::after{left:20px;}
-#export-filter-panel .efp-actions{padding:12px 18px;display:flex;gap:8px;border-top:1px solid #e2e8f0;}
-#export-filter-panel .efp-btn{flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;}
-#export-filter-panel .efp-btn.primary{background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;}
-#export-filter-panel .efp-btn.secondary{background:#f1f5f9;color:#1d1d1f;}
-#export-filter-backdrop{position:fixed;inset:0;z-index:11999;background:rgba(0,0,0,.4);display:none;}
-#export-filter-backdrop.show{display:block;}
-</style>
-
-<script id="connectia-export-filters-js">
-(function(){
-  var EXPORT_SECTIONS=[
-    {id:'demographics',name:'Demograficos',default:true},
-    {id:'nse',name:'NSE (Nivel Socioeconomico)',default:true},
-    {id:'gender_age',name:'Genero y Edad',default:true},
-    {id:'economy',name:'Economia',default:true},
-    {id:'mobility',name:'Movilidad',default:true},
-    {id:'competition',name:'Competencia',default:true},
-    {id:'heatmap',name:'Mapa de calor',default:true},
-    {id:'map_screenshot',name:'Captura del mapa',default:true},
-    {id:'charts',name:'Graficas y charts',default:true},
-  ];
-  var _exportFilters={};
-  EXPORT_SECTIONS.forEach(function(s){_exportFilters[s.id]=s.default;});
-
-  function buildFilterPanel(){
-    if(document.getElementById('export-filter-panel'))return;
-    var backdrop=document.createElement('div');
-    backdrop.id='export-filter-backdrop';
-    backdrop.addEventListener('click',function(){closeFilterPanel();});
-    document.body.appendChild(backdrop);
-
-    var panel=document.createElement('div');
-    panel.id='export-filter-panel';
-    var html='<div class="efp-header"><h3>Filtros de exportacion</h3><button onclick="window._closeExportFilters()">\u2715</button></div>';
-    html+='<div class="efp-body">';
-    EXPORT_SECTIONS.forEach(function(s){
-      html+='<div class="efp-section"><span class="name">'+s.name+'</span>';
-      html+='<div class="efp-toggle'+(s.default?' on':'')+'" data-section="'+s.id+'"></div></div>';
-    });
-    html+='</div>';
-    html+='<div class="efp-actions">';
-    html+='<button class="efp-btn secondary" onclick="window._closeExportFilters()">Cancelar</button>';
-    html+='<button class="efp-btn primary" id="efp-export-btn">Exportar</button>';
-    html+='</div>';
-    panel.innerHTML=html;
-    document.body.appendChild(panel);
-
-    // Toggle handlers
-    panel.querySelectorAll('.efp-toggle').forEach(function(t){
-      t.addEventListener('click',function(){
-        var sid=t.dataset.section;
-        t.classList.toggle('on');
-        _exportFilters[sid]=t.classList.contains('on');
-      });
-    });
-  }
-
-  function openFilterPanel(format){
-    buildFilterPanel();
-    document.getElementById('export-filter-backdrop').classList.add('show');
-    document.getElementById('export-filter-panel').classList.add('show');
-    // Set export button action
-    var btn=document.getElementById('efp-export-btn');
-    btn.textContent='Exportar '+format.toUpperCase();
-    btn.onclick=function(){
-      closeFilterPanel();
-      window._exportFilteredSections=_exportFilters;
-      // Trigger original export
-      if(format==='pdf'&&typeof window.exportPDF==='function')window.exportPDF();
-      else if(format==='pptx'&&typeof window.exportPPTX==='function')window.exportPPTX();
-      else if(format==='excel'&&typeof window.exportExcel==='function')window.exportExcel();
-      else if(typeof window['export'+format.charAt(0).toUpperCase()+format.slice(1)]==='function')
-        window['export'+format.charAt(0).toUpperCase()+format.slice(1)]();
-    };
-  }
-
-  function closeFilterPanel(){
-    var p=document.getElementById('export-filter-panel');
-    var b=document.getElementById('export-filter-backdrop');
-    if(p)p.classList.remove('show');
-    if(b)b.classList.remove('show');
-  }
-
-  window._closeExportFilters=closeFilterPanel;
-  window._openExportFilters=openFilterPanel;
-  window._exportFilteredSections=_exportFilters;
-
-  // Intercept export buttons to show filter panel first
-  function interceptExports(){
-    // Find export buttons and intercept
-    var exportBtns=document.querySelectorAll('[onclick*="exportPDF"],[onclick*="exportPPTX"],[onclick*="exportExcel"]');
-    exportBtns.forEach(function(btn){
-      if(btn._intercepted)return;
-      btn._intercepted=true;
-      var orig=btn.getAttribute('onclick')||'';
-      var format='pdf';
-      if(orig.indexOf('PPTX')>=0||orig.indexOf('pptx')>=0)format='pptx';
-      else if(orig.indexOf('Excel')>=0||orig.indexOf('excel')>=0)format='excel';
-      btn.removeAttribute('onclick');
-      btn.addEventListener('click',function(e){
-        e.preventDefault();e.stopPropagation();
-        openFilterPanel(format);
-      });
-    });
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(interceptExports,2000);});
-  else setTimeout(interceptExports,2000);
-  setTimeout(interceptExports,5000);
-  setTimeout(interceptExports,10000);
-})();
-</script>
-</body></html>';
+  html+='</body></html>';
   var w=window.open('','_blank');w.document.write(html);w.document.close();
 }
 
@@ -8161,12 +7750,12 @@ function toggleGlobalFilterPanel(btnOrForce){
   h+='<div>';
   h+='<div style="font-size:9px;font-weight:800;color:#6D28D9;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Género</div>';
   h+='<select id="gflt-gender" style="width:100%;padding:5px 6px;border:1px solid #e9d5ff;border-radius:6px;font-size:10px;background:#fff;color:#1d1d1f;cursor:pointer" onchange="applyReportFilters()">';
-  h+='<option value="all">Ambos</option><option value="m">Hombres</option><option value="f">Mujeres</option>';
+  h+='<option value="all">Ambos</option><option value="m">👨 Hombres</option><option value="f">👩 Mujeres</option>';
   h+='</select></div>';
   h+='<div>';
   h+='<div style="font-size:9px;font-weight:800;color:#6D28D9;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Movilidad</div>';
   h+='<select id="gflt-mobility" style="width:100%;padding:5px 6px;border:1px solid #e9d5ff;border-radius:6px;font-size:10px;background:#fff;color:#1d1d1f;cursor:pointer" onchange="applyReportFilters()">';
-  h+='<option value="all">Todos</option><option value="vehicle">Vehículos</option><option value="pedestrian">Peatones</option><option value="transit">Transporte</option><option value="bike">Bicicleta</option>';
+  h+='<option value="all">Todos</option><option value="vehicle">🚗 Vehículos</option><option value="pedestrian">🚶 Peatones</option><option value="transit">🚌 Transporte</option><option value="bike">🚴 Bicicleta</option>';
   h+='</select></div>';
   h+='</div>';
 
@@ -9278,15 +8867,15 @@ function exportReportPDF(){
   html+='<h2>⚡ Movilidad e Impactos (Mensual)</h2>';
   html+='<div class="kpi3">';
   html+='<div class="kpi impact"><div class="lbl">Impacto Total</div><div class="val">'+_fmtN(impTotal)+'</div><div class="sub">veh + personas · mensual</div></div>';
-  html+='<div class="kpi impact"><div class="lbl">Vehículos</div><div class="val">'+_fmtN(impVeh)+'</div><div class="sub">impactos vehiculares/mes</div></div>';
+  html+='<div class="kpi impact"><div class="lbl">🚗 Vehículos</div><div class="val">'+_fmtN(impVeh)+'</div><div class="sub">impactos vehiculares/mes</div></div>';
   html+='<div class="kpi impact"><div class="lbl">🚶 Personas</div><div class="val">'+_fmtN(impPer)+'</div><div class="sub">× 1.44 ocupación vehicular</div></div>';
   html+='</div>';
   // Desglose modal — proporcional
   var modalData=[
-    {l:'Vehículos',p:fp.vehShare,v:vehMonthly,c:'#6D28D9'},
-    {l:'Transporte público',p:transitShare,v:transitMonthly,c:'#8B5CF6'},
-    {l:'Peatones',p:fp.pedShare,v:pedMonthly,c:'#A855F7'},
-    {l:'Bicicleta',p:bikeShare,v:bikeMonthly,c:'#C084FC'}
+    {l:'🚗 Vehículos',p:fp.vehShare,v:vehMonthly,c:'#6D28D9'},
+    {l:'🚌 Transporte público',p:transitShare,v:transitMonthly,c:'#8B5CF6'},
+    {l:'🚶 Peatones',p:fp.pedShare,v:pedMonthly,c:'#A855F7'},
+    {l:'🚴 Bicicleta',p:bikeShare,v:bikeMonthly,c:'#C084FC'}
   ];
   var modalMaxV=Math.max.apply(null,modalData.map(function(x){return x.v||0;}))||1;
   html+='<div class="box"><div class="bxt">Reparto Modal — Flujo Mensual Filtrado (EOD 2017 · INEGI)</div>';
@@ -9339,217 +8928,7 @@ function exportReportPDF(){
   html+='Connectia · Inteligencia Geoespacial · Generado '+new Date().toLocaleString('es-MX')+'<br>';
   html+='Fuentes: INEGI ENIGH 2024 · Censo de Población y Vivienda 2020 · EOD ZMVM 2017 · CONAPO 2020–2050 · AMAI 2023 · Geopath VAI · Google Places API · INEGI DENUE';
   html+='</div>';
-  html+='
-<style id="connectia-mobile-optimization">
-/* === MOBILE OPTIMIZATION === */
-@media(max-width:767px){
-  /* All panels smaller */
-  #cn-cmp-panel{width:calc(100vw - 24px)!important;max-height:60vh!important;top:auto!important;bottom:12px!important;left:12px!important;right:12px!important;border-radius:16px 16px 0 0!important;}
-  #cn-cmp-dash .dash-card{width:calc(100vw - 16px)!important;max-height:85vh!important;padding:16px!important;}
-  #cn-cmp-dash .kpi-row{grid-template-columns:repeat(2,1fr)!important;}
-  #cn-poi-heatmaps{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  #nse-layers-menu{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  /* Report panel compact */
-  #report-panel{max-height:55vh!important;}
-  #report-panel .report-section{padding:8px!important;}
-  /* Sidebar compact */
-  #sidebar{max-height:50vh!important;}
-  /* All fixed panels: ensure no overlap */
-  .is-mobile-view [id$="-panel"]{max-height:55vh!important;}
-  /* Swipe indicator on panels */
-  #cn-cmp-panel::before,#cn-poi-heatmaps::before,#nse-layers-menu::before{
-    content:'';display:block;width:36px;height:4px;background:#d1d5db;border-radius:2px;margin:8px auto 4px;flex-shrink:0;
-  }
-  /* Auto-hide panels on map interaction */
-  .map-interacting .auto-hide-panel{opacity:0;pointer-events:none;transition:opacity .2s;}
-}
-</style>
-
-<script id="connectia-mobile-opt-js">
-(function(){
-  // Swipe-to-close for mobile panels
-  function addSwipeClose(panelId){
-    var el=document.getElementById(panelId);
-    if(!el||el._swipeClose)return;
-    el._swipeClose=true;
-    var startY=0,startX=0;
-    el.addEventListener('touchstart',function(e){
-      var t=e.touches[0];startY=t.clientY;startX=t.clientX;
-    },{passive:true});
-    el.addEventListener('touchmove',function(e){
-      var t=e.touches[0];
-      var dy=t.clientY-startY;
-      var dx=Math.abs(t.clientX-startX);
-      if(dy>60&&dx<40){
-        el.classList.remove('show','open');
-        el.style.display='none';
-        setTimeout(function(){el.style.display='';},300);
-      }
-    },{passive:true});
-  }
-  // Auto-hide panels when map moves
-  function setupAutoHide(){
-    if(!window.map)return;
-    var panels=['cn-cmp-panel','cn-poi-heatmaps','nse-layers-menu','heatmap-dropdown','places-menu'];
-    google.maps.event.addListener(window.map,'dragstart',function(){
-      if(window.innerWidth>=768)return;
-      panels.forEach(function(id){
-        var p=document.getElementById(id);
-        if(p&&(p.classList.contains('show')||p.classList.contains('open'))){
-          p.classList.remove('show','open');
-        }
-      });
-    });
-  }
-  function init(){
-    addSwipeClose('cn-cmp-panel');
-    addSwipeClose('cn-poi-heatmaps');
-    addSwipeClose('nse-layers-menu');
-    addSwipeClose('sidebar');
-    setupAutoHide();
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-  else init();
-  [1000,3000,6000].forEach(function(d){setTimeout(init,d);});
-})();
-</script>
-
-<style id="connectia-export-filters">
-#export-filter-panel{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  z-index:12000;width:min(420px,92vw);max-height:80vh;
-  background:#fff;border-radius:16px;
-  box-shadow:0 24px 60px rgba(0,0,0,.3);
-  display:none;flex-direction:column;overflow:hidden;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
-#export-filter-panel.show{display:flex;}
-#export-filter-panel .efp-header{
-  padding:14px 18px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);
-  color:#fff;display:flex;justify-content:space-between;align-items:center;
-}
-#export-filter-panel .efp-header h3{margin:0;font-size:14px;font-weight:700;}
-#export-filter-panel .efp-header button{border:none;background:rgba(255,255,255,.2);color:#fff;width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;}
-#export-filter-panel .efp-body{padding:16px;overflow-y:auto;flex:1;}
-.efp-section{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9;}
-.efp-section:last-child{border-bottom:none;}
-.efp-section .name{font-size:13px;color:#1d1d1f;font-weight:500;}
-.efp-toggle{position:relative;width:42px;height:24px;background:#e2e8f0;border-radius:12px;cursor:pointer;transition:background .15s;flex-shrink:0;}
-.efp-toggle.on{background:#6D28D9;}
-.efp-toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.efp-toggle.on::after{left:20px;}
-#export-filter-panel .efp-actions{padding:12px 18px;display:flex;gap:8px;border-top:1px solid #e2e8f0;}
-#export-filter-panel .efp-btn{flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;}
-#export-filter-panel .efp-btn.primary{background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;}
-#export-filter-panel .efp-btn.secondary{background:#f1f5f9;color:#1d1d1f;}
-#export-filter-backdrop{position:fixed;inset:0;z-index:11999;background:rgba(0,0,0,.4);display:none;}
-#export-filter-backdrop.show{display:block;}
-</style>
-
-<script id="connectia-export-filters-js">
-(function(){
-  var EXPORT_SECTIONS=[
-    {id:'demographics',name:'Demograficos',default:true},
-    {id:'nse',name:'NSE (Nivel Socioeconomico)',default:true},
-    {id:'gender_age',name:'Genero y Edad',default:true},
-    {id:'economy',name:'Economia',default:true},
-    {id:'mobility',name:'Movilidad',default:true},
-    {id:'competition',name:'Competencia',default:true},
-    {id:'heatmap',name:'Mapa de calor',default:true},
-    {id:'map_screenshot',name:'Captura del mapa',default:true},
-    {id:'charts',name:'Graficas y charts',default:true},
-  ];
-  var _exportFilters={};
-  EXPORT_SECTIONS.forEach(function(s){_exportFilters[s.id]=s.default;});
-
-  function buildFilterPanel(){
-    if(document.getElementById('export-filter-panel'))return;
-    var backdrop=document.createElement('div');
-    backdrop.id='export-filter-backdrop';
-    backdrop.addEventListener('click',function(){closeFilterPanel();});
-    document.body.appendChild(backdrop);
-
-    var panel=document.createElement('div');
-    panel.id='export-filter-panel';
-    var html='<div class="efp-header"><h3>Filtros de exportacion</h3><button onclick="window._closeExportFilters()">\u2715</button></div>';
-    html+='<div class="efp-body">';
-    EXPORT_SECTIONS.forEach(function(s){
-      html+='<div class="efp-section"><span class="name">'+s.name+'</span>';
-      html+='<div class="efp-toggle'+(s.default?' on':'')+'" data-section="'+s.id+'"></div></div>';
-    });
-    html+='</div>';
-    html+='<div class="efp-actions">';
-    html+='<button class="efp-btn secondary" onclick="window._closeExportFilters()">Cancelar</button>';
-    html+='<button class="efp-btn primary" id="efp-export-btn">Exportar</button>';
-    html+='</div>';
-    panel.innerHTML=html;
-    document.body.appendChild(panel);
-
-    // Toggle handlers
-    panel.querySelectorAll('.efp-toggle').forEach(function(t){
-      t.addEventListener('click',function(){
-        var sid=t.dataset.section;
-        t.classList.toggle('on');
-        _exportFilters[sid]=t.classList.contains('on');
-      });
-    });
-  }
-
-  function openFilterPanel(format){
-    buildFilterPanel();
-    document.getElementById('export-filter-backdrop').classList.add('show');
-    document.getElementById('export-filter-panel').classList.add('show');
-    // Set export button action
-    var btn=document.getElementById('efp-export-btn');
-    btn.textContent='Exportar '+format.toUpperCase();
-    btn.onclick=function(){
-      closeFilterPanel();
-      window._exportFilteredSections=_exportFilters;
-      // Trigger original export
-      if(format==='pdf'&&typeof window.exportPDF==='function')window.exportPDF();
-      else if(format==='pptx'&&typeof window.exportPPTX==='function')window.exportPPTX();
-      else if(format==='excel'&&typeof window.exportExcel==='function')window.exportExcel();
-      else if(typeof window['export'+format.charAt(0).toUpperCase()+format.slice(1)]==='function')
-        window['export'+format.charAt(0).toUpperCase()+format.slice(1)]();
-    };
-  }
-
-  function closeFilterPanel(){
-    var p=document.getElementById('export-filter-panel');
-    var b=document.getElementById('export-filter-backdrop');
-    if(p)p.classList.remove('show');
-    if(b)b.classList.remove('show');
-  }
-
-  window._closeExportFilters=closeFilterPanel;
-  window._openExportFilters=openFilterPanel;
-  window._exportFilteredSections=_exportFilters;
-
-  // Intercept export buttons to show filter panel first
-  function interceptExports(){
-    // Find export buttons and intercept
-    var exportBtns=document.querySelectorAll('[onclick*="exportPDF"],[onclick*="exportPPTX"],[onclick*="exportExcel"]');
-    exportBtns.forEach(function(btn){
-      if(btn._intercepted)return;
-      btn._intercepted=true;
-      var orig=btn.getAttribute('onclick')||'';
-      var format='pdf';
-      if(orig.indexOf('PPTX')>=0||orig.indexOf('pptx')>=0)format='pptx';
-      else if(orig.indexOf('Excel')>=0||orig.indexOf('excel')>=0)format='excel';
-      btn.removeAttribute('onclick');
-      btn.addEventListener('click',function(e){
-        e.preventDefault();e.stopPropagation();
-        openFilterPanel(format);
-      });
-    });
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(interceptExports,2000);});
-  else setTimeout(interceptExports,2000);
-  setTimeout(interceptExports,5000);
-  setTimeout(interceptExports,10000);
-})();
-</script>
-</body></html>';
+  html+='</body></html>';
 
   var win=window.open('','_blank');
   if(!win){setStatus('El navegador bloqueó la ventana emergente. Permite pop-ups para este sitio.');return;}
@@ -11009,8 +10388,8 @@ function _aiDemographicSearch(detected){
     h+='<div>💰 Ingreso p/c: <strong>$'+fmt(Math.round(r.en.ingPC||r.en.ing))+'/mes</strong></div>';
     h+='<div>💸 Gasto p/c: <strong>$'+fmt(Math.round(r.en.gasPC||r.en.gas))+'/mes</strong></div>';
     h+='<div>🌐 Internet: <strong>'+r.ce.inet+'%</strong></div>';
-    h+='<div>Mujeres: <strong>'+r.ce.f+'%</strong></div>';
-    h+='<div>Hombres: <strong>'+r.ce.m+'%</strong></div>';
+    h+='<div>👩 Mujeres: <strong>'+r.ce.f+'%</strong></div>';
+    h+='<div>👨 Hombres: <strong>'+r.ce.m+'%</strong></div>';
     h+='</div>';
     // NSE bars
     if(r.nse&&r.nse.length){
@@ -11060,8 +10439,8 @@ function buildZoneInfoHtml(cl,idx,color){
   h+='<div style="margin:6px 0;padding:6px;background:#f1f5f9;border-radius:6px">';
   h+='<div style="font-size:10px;font-weight:600;color:#334155;margin-bottom:4px">Demografía</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;font-size:10px;color:#475569">';
-  h+='<div>Mujeres: <strong>'+(d.mujeres||'--')+'%</strong></div>';
-  h+='<div>Hombres: <strong>'+(d.hombres||'--')+'%</strong></div>';
+  h+='<div>👩 Mujeres: <strong>'+(d.mujeres||'--')+'%</strong></div>';
+  h+='<div>👨 Hombres: <strong>'+(d.hombres||'--')+'%</strong></div>';
   h+='<div>👶 0-14: <strong>'+(d.a014||'--')+'%</strong></div>';
   h+='<div>🧑 15-19: <strong>'+(d.a1519||'--')+'%</strong></div>';
   h+='<div>🧑 20-24: <strong>'+(d.a2024||'--')+'%</strong></div>';
@@ -11360,7 +10739,7 @@ function showAIResultsPanel(query,detected,clusters,totalFound){
   h+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">';
   if(detected.city)h+='<span style="background:#dbeafe;color:#1e40af;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:600">📍 '+detected.city.name+'</span>';
   if(detected.nse)h+='<span style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:600">💰 NSE '+detected.nse+'</span>';
-  if(detected.gender)h+='<span style="background:#fce7f3;color:#9d174d;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:600">'+(detected.gender==='f'?'Mujeres':'Hombres')+'</span>';
+  if(detected.gender)h+='<span style="background:#fce7f3;color:#9d174d;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:600">'+(detected.gender==='f'?'👩 Mujeres':'👨 Hombres')+'</span>';
   if(detected.ageRange){
     var aL={young:'Jóvenes',adult:'Adultos 30-44',senior:'60+',family:'Familias'};
     h+='<span style="background:#e0e7ff;color:#3730a3;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:600">👥 '+aL[detected.ageRange]+'</span>';
@@ -11431,8 +10810,8 @@ function showAIResultsPanel(query,detected,clusters,totalFound){
       h+='<div style="background:#f1f5f9;border-radius:6px;padding:6px;margin-bottom:6px">';
       h+='<div style="font-size:10px;font-weight:600;color:#334155;margin-bottom:3px">Demografía</div>';
       h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;font-size:10px;color:#475569">';
-      h+='<div>Mujeres: <strong>'+(d.mujeres||'--')+'%</strong></div>';
-      h+='<div>Hombres: <strong>'+(d.hombres||'--')+'%</strong></div></div>';
+      h+='<div>👩 Mujeres: <strong>'+(d.mujeres||'--')+'%</strong></div>';
+      h+='<div>👨 Hombres: <strong>'+(d.hombres||'--')+'%</strong></div></div>';
       // Age pyramid mini — 7 ranges
       h+='<div style="display:flex;gap:3px;margin-top:4px;font-size:8px;color:#64748b;flex-wrap:wrap">';
       h+='<span>0-14: '+(d.a014||'--')+'%</span>';
@@ -11860,8 +11239,8 @@ function showAIRoutesReport(query,detected,routeResults,searchKeyword){
     h+='<div style="margin-top:6px;padding:5px;background:#f0f9ff;border-radius:5px;font-size:10px">';
     h+='<div style="font-weight:600;color:#0369a1;margin-bottom:3px">🚦 Movilidad estimada</div>';
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">';
-    h+='<div>Vehículos/mes: <strong>'+fmt(rVehD*30)+'</strong></div>';
-    h+='<div>Peatones/mes: <strong>'+fmt(rPedD*30)+'</strong></div>';
+    h+='<div>🚗 Vehículos/mes: <strong>'+fmt(rVehD*30)+'</strong></div>';
+    h+='<div>🚶 Peatones/mes: <strong>'+fmt(rPedD*30)+'</strong></div>';
     h+='</div>';
     h+='<div style="margin-top:3px;font-size:9px;color:#475569">Viajes totales/día: '+fmt(rTotalTrips)+' · Factor throughput: ×'+rThroughM.toFixed(1)+'</div>';
     h+='</div>';
@@ -16565,8 +15944,8 @@ setInterval(function(){
       <label style="font-size:9px;font-weight:600;color:#6D28D9;text-transform:uppercase">Género
         <select id="flt-gender" style="width:100%;margin-top:3px;padding:6px 8px;border:1px solid #e9d5ff;border-radius:6px;font-size:11px;background:#fff;color:#1d1d1f;cursor:pointer">
           <option value="all">Ambos géneros</option>
-          <option value="m">Hombres</option>
-          <option value="f">Mujeres</option>
+          <option value="m">👨 Hombres</option>
+          <option value="f">👩 Mujeres</option>
         </select>
       </label>
       <label style="font-size:9px;font-weight:600;color:#6D28D9;text-transform:uppercase">Rango de edad
@@ -16727,217 +16106,7 @@ setInterval(function(){
       html+='<h1>Connectia — Reporte del Área</h1>';
       html+='<p>Estado: <b>'+d.en.n+'</b> | Centro: '+d.center.lat().toFixed(4)+', '+d.center.lng().toFixed(4)+' | Fecha: '+new Date().toLocaleDateString('es-MX')+'</p>';
       html+=document.getElementById('ar-body').innerHTML;
-      html+='
-<style id="connectia-mobile-optimization">
-/* === MOBILE OPTIMIZATION === */
-@media(max-width:767px){
-  /* All panels smaller */
-  #cn-cmp-panel{width:calc(100vw - 24px)!important;max-height:60vh!important;top:auto!important;bottom:12px!important;left:12px!important;right:12px!important;border-radius:16px 16px 0 0!important;}
-  #cn-cmp-dash .dash-card{width:calc(100vw - 16px)!important;max-height:85vh!important;padding:16px!important;}
-  #cn-cmp-dash .kpi-row{grid-template-columns:repeat(2,1fr)!important;}
-  #cn-poi-heatmaps{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  #nse-layers-menu{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  /* Report panel compact */
-  #report-panel{max-height:55vh!important;}
-  #report-panel .report-section{padding:8px!important;}
-  /* Sidebar compact */
-  #sidebar{max-height:50vh!important;}
-  /* All fixed panels: ensure no overlap */
-  .is-mobile-view [id$="-panel"]{max-height:55vh!important;}
-  /* Swipe indicator on panels */
-  #cn-cmp-panel::before,#cn-poi-heatmaps::before,#nse-layers-menu::before{
-    content:'';display:block;width:36px;height:4px;background:#d1d5db;border-radius:2px;margin:8px auto 4px;flex-shrink:0;
-  }
-  /* Auto-hide panels on map interaction */
-  .map-interacting .auto-hide-panel{opacity:0;pointer-events:none;transition:opacity .2s;}
-}
-</style>
-
-<script id="connectia-mobile-opt-js">
-(function(){
-  // Swipe-to-close for mobile panels
-  function addSwipeClose(panelId){
-    var el=document.getElementById(panelId);
-    if(!el||el._swipeClose)return;
-    el._swipeClose=true;
-    var startY=0,startX=0;
-    el.addEventListener('touchstart',function(e){
-      var t=e.touches[0];startY=t.clientY;startX=t.clientX;
-    },{passive:true});
-    el.addEventListener('touchmove',function(e){
-      var t=e.touches[0];
-      var dy=t.clientY-startY;
-      var dx=Math.abs(t.clientX-startX);
-      if(dy>60&&dx<40){
-        el.classList.remove('show','open');
-        el.style.display='none';
-        setTimeout(function(){el.style.display='';},300);
-      }
-    },{passive:true});
-  }
-  // Auto-hide panels when map moves
-  function setupAutoHide(){
-    if(!window.map)return;
-    var panels=['cn-cmp-panel','cn-poi-heatmaps','nse-layers-menu','heatmap-dropdown','places-menu'];
-    google.maps.event.addListener(window.map,'dragstart',function(){
-      if(window.innerWidth>=768)return;
-      panels.forEach(function(id){
-        var p=document.getElementById(id);
-        if(p&&(p.classList.contains('show')||p.classList.contains('open'))){
-          p.classList.remove('show','open');
-        }
-      });
-    });
-  }
-  function init(){
-    addSwipeClose('cn-cmp-panel');
-    addSwipeClose('cn-poi-heatmaps');
-    addSwipeClose('nse-layers-menu');
-    addSwipeClose('sidebar');
-    setupAutoHide();
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-  else init();
-  [1000,3000,6000].forEach(function(d){setTimeout(init,d);});
-})();
-</script>
-
-<style id="connectia-export-filters">
-#export-filter-panel{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  z-index:12000;width:min(420px,92vw);max-height:80vh;
-  background:#fff;border-radius:16px;
-  box-shadow:0 24px 60px rgba(0,0,0,.3);
-  display:none;flex-direction:column;overflow:hidden;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
-#export-filter-panel.show{display:flex;}
-#export-filter-panel .efp-header{
-  padding:14px 18px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);
-  color:#fff;display:flex;justify-content:space-between;align-items:center;
-}
-#export-filter-panel .efp-header h3{margin:0;font-size:14px;font-weight:700;}
-#export-filter-panel .efp-header button{border:none;background:rgba(255,255,255,.2);color:#fff;width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;}
-#export-filter-panel .efp-body{padding:16px;overflow-y:auto;flex:1;}
-.efp-section{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9;}
-.efp-section:last-child{border-bottom:none;}
-.efp-section .name{font-size:13px;color:#1d1d1f;font-weight:500;}
-.efp-toggle{position:relative;width:42px;height:24px;background:#e2e8f0;border-radius:12px;cursor:pointer;transition:background .15s;flex-shrink:0;}
-.efp-toggle.on{background:#6D28D9;}
-.efp-toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.efp-toggle.on::after{left:20px;}
-#export-filter-panel .efp-actions{padding:12px 18px;display:flex;gap:8px;border-top:1px solid #e2e8f0;}
-#export-filter-panel .efp-btn{flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;}
-#export-filter-panel .efp-btn.primary{background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;}
-#export-filter-panel .efp-btn.secondary{background:#f1f5f9;color:#1d1d1f;}
-#export-filter-backdrop{position:fixed;inset:0;z-index:11999;background:rgba(0,0,0,.4);display:none;}
-#export-filter-backdrop.show{display:block;}
-</style>
-
-<script id="connectia-export-filters-js">
-(function(){
-  var EXPORT_SECTIONS=[
-    {id:'demographics',name:'Demograficos',default:true},
-    {id:'nse',name:'NSE (Nivel Socioeconomico)',default:true},
-    {id:'gender_age',name:'Genero y Edad',default:true},
-    {id:'economy',name:'Economia',default:true},
-    {id:'mobility',name:'Movilidad',default:true},
-    {id:'competition',name:'Competencia',default:true},
-    {id:'heatmap',name:'Mapa de calor',default:true},
-    {id:'map_screenshot',name:'Captura del mapa',default:true},
-    {id:'charts',name:'Graficas y charts',default:true},
-  ];
-  var _exportFilters={};
-  EXPORT_SECTIONS.forEach(function(s){_exportFilters[s.id]=s.default;});
-
-  function buildFilterPanel(){
-    if(document.getElementById('export-filter-panel'))return;
-    var backdrop=document.createElement('div');
-    backdrop.id='export-filter-backdrop';
-    backdrop.addEventListener('click',function(){closeFilterPanel();});
-    document.body.appendChild(backdrop);
-
-    var panel=document.createElement('div');
-    panel.id='export-filter-panel';
-    var html='<div class="efp-header"><h3>Filtros de exportacion</h3><button onclick="window._closeExportFilters()">\u2715</button></div>';
-    html+='<div class="efp-body">';
-    EXPORT_SECTIONS.forEach(function(s){
-      html+='<div class="efp-section"><span class="name">'+s.name+'</span>';
-      html+='<div class="efp-toggle'+(s.default?' on':'')+'" data-section="'+s.id+'"></div></div>';
-    });
-    html+='</div>';
-    html+='<div class="efp-actions">';
-    html+='<button class="efp-btn secondary" onclick="window._closeExportFilters()">Cancelar</button>';
-    html+='<button class="efp-btn primary" id="efp-export-btn">Exportar</button>';
-    html+='</div>';
-    panel.innerHTML=html;
-    document.body.appendChild(panel);
-
-    // Toggle handlers
-    panel.querySelectorAll('.efp-toggle').forEach(function(t){
-      t.addEventListener('click',function(){
-        var sid=t.dataset.section;
-        t.classList.toggle('on');
-        _exportFilters[sid]=t.classList.contains('on');
-      });
-    });
-  }
-
-  function openFilterPanel(format){
-    buildFilterPanel();
-    document.getElementById('export-filter-backdrop').classList.add('show');
-    document.getElementById('export-filter-panel').classList.add('show');
-    // Set export button action
-    var btn=document.getElementById('efp-export-btn');
-    btn.textContent='Exportar '+format.toUpperCase();
-    btn.onclick=function(){
-      closeFilterPanel();
-      window._exportFilteredSections=_exportFilters;
-      // Trigger original export
-      if(format==='pdf'&&typeof window.exportPDF==='function')window.exportPDF();
-      else if(format==='pptx'&&typeof window.exportPPTX==='function')window.exportPPTX();
-      else if(format==='excel'&&typeof window.exportExcel==='function')window.exportExcel();
-      else if(typeof window['export'+format.charAt(0).toUpperCase()+format.slice(1)]==='function')
-        window['export'+format.charAt(0).toUpperCase()+format.slice(1)]();
-    };
-  }
-
-  function closeFilterPanel(){
-    var p=document.getElementById('export-filter-panel');
-    var b=document.getElementById('export-filter-backdrop');
-    if(p)p.classList.remove('show');
-    if(b)b.classList.remove('show');
-  }
-
-  window._closeExportFilters=closeFilterPanel;
-  window._openExportFilters=openFilterPanel;
-  window._exportFilteredSections=_exportFilters;
-
-  // Intercept export buttons to show filter panel first
-  function interceptExports(){
-    // Find export buttons and intercept
-    var exportBtns=document.querySelectorAll('[onclick*="exportPDF"],[onclick*="exportPPTX"],[onclick*="exportExcel"]');
-    exportBtns.forEach(function(btn){
-      if(btn._intercepted)return;
-      btn._intercepted=true;
-      var orig=btn.getAttribute('onclick')||'';
-      var format='pdf';
-      if(orig.indexOf('PPTX')>=0||orig.indexOf('pptx')>=0)format='pptx';
-      else if(orig.indexOf('Excel')>=0||orig.indexOf('excel')>=0)format='excel';
-      btn.removeAttribute('onclick');
-      btn.addEventListener('click',function(e){
-        e.preventDefault();e.stopPropagation();
-        openFilterPanel(format);
-      });
-    });
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(interceptExports,2000);});
-  else setTimeout(interceptExports,2000);
-  setTimeout(interceptExports,5000);
-  setTimeout(interceptExports,10000);
-})();
-</script>
-</body></html>';
+      html+='</body></html>';
       var blob=new Blob([html],{type:'text/html'});
       var a=document.createElement('a');a.href=URL.createObjectURL(blob);
       a.download='Connectia_Reporte_'+d.en.n.replace(/\s/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.html';
@@ -23579,7 +22748,7 @@ header.brand .ci-icon{
   background:linear-gradient(135deg,#6D28D9,#8B3A9F);
   color:#fff; display:flex; justify-content:space-between; align-items:center;
 }
-#cn-cmp-panel header h3{ margin:0; font-size:13px; font-weight:700; cursor:move; }
+#cn-cmp-panel header h3{ margin:0; font-size:13px; font-weight:700; }
 #cn-cmp-panel header button{
   border:none; background:rgba(255,255,255,.18); color:#fff;
   width:24px; height:24px; border-radius:6px; cursor:pointer; font-size:14px;
@@ -24061,7 +23230,7 @@ header.brand .ci-icon{
     var panel = document.createElement('div');
     panel.id = 'cn-cmp-panel';
     var html = '<header><h3>Comparativa de marcas</h3>'
-             + '<button onclick="document.getElementById(\'cn-cmp-panel\').classList.remove(\'show\');if(window._cmpMarkers)window._cmpMarkers.forEach(function(m){m.setMap(null)})" data-tip="Cerrar">×</button>'
+             + '<button onclick="document.getElementById(\'cn-cmp-panel\').classList.remove(\'show\')" data-tip="Cerrar">×</button>'
              + '</header><div class="body">'
              + '<div class="area-status" id="cn-cmp-area">Verificando área seleccionada…</div>'
              + '<div class="search-row">'
@@ -24149,7 +23318,6 @@ header.brand .ci-icon{
       updateCompareBtn();
     });
 
-    _makeDraggable(panel);
     // Refresh area on open
     var origObs = new MutationObserver(function(){
       if(panel.classList.contains('show')) refreshArea();
@@ -24191,29 +23359,9 @@ header.brand .ci-icon{
 
   function openDashboard(){
     buildDashboard();
-    // Clear previous comparison markers
-    if(window._cmpMarkers){window._cmpMarkers.forEach(function(m){m.setMap(null)});} window._cmpMarkers=[];
     var dash = document.getElementById('cn-cmp-dash');
     var brands = Object.keys(_cmpState.activeBrands);
     if(brands.length === 0) return;
-    // Place markers on map for selected brands
-    var MCOLORS=['#6D28D9','#dc2626','#2563eb','#059669','#d97706','#db2777','#0891b2','#4f46e5','#84cc16','#f97316'];
-    var mBounds=new google.maps.LatLngBounds();
-    brands.forEach(function(b,bi){
-      var places=_cmpState.activeBrands[b];var color=MCOLORS[bi%MCOLORS.length];
-      places.forEach(function(p){
-        if(!p.geometry||!p.geometry.location)return;
-        var mk=new google.maps.Marker({position:p.geometry.location,map:window.map,title:p.name,
-          icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:color,fillOpacity:0.9,strokeColor:'#fff',strokeWeight:2},zIndex:200});
-        var info='<div style="font-size:12px;padding:4px"><b>'+p.name+'</b><br>'+(p.vicinity||'');
-        if(p.rating)info+='<br>\u2B50 '+p.rating+' ('+(p.user_ratings_total||0)+' reviews)';
-        info+='</div>';
-        var iw=new google.maps.InfoWindow({content:info});
-        mk.addListener('click',function(){iw.open(window.map,mk)});
-        window._cmpMarkers.push(mk);mBounds.extend(p.geometry.location);
-      });
-    });
-    if(window._cmpMarkers.length>0)window.map.fitBounds(mBounds,{top:60,right:360,bottom:60,left:60});
 
     var totalSuc = brands.reduce(function(s,b){return s + _cmpState.activeBrands[b].length;}, 0);
     var area = getActiveArea();
@@ -24292,20 +23440,6 @@ header.brand .ci-icon{
   }
 
   /* Lanzar Comparativa desde el menú principal o drawer */
-  function _makeDraggable(el){
-    var hdr=el.querySelector('header');if(!hdr)return;
-    var ox=0,oy=0,mx=0,my=0;
-    hdr.onmousedown=function(e){if(e.target.tagName==='BUTTON')return;e.preventDefault();
-      mx=e.clientX;my=e.clientY;
-      document.onmousemove=function(ev){ox=mx-ev.clientX;oy=my-ev.clientY;mx=ev.clientX;my=ev.clientY;
-        el.style.top=(el.offsetTop-oy)+'px';el.style.left=(el.offsetLeft-ox)+'px';el.style.right='auto';};
-      document.onmouseup=function(){document.onmousemove=null;document.onmouseup=null;};};
-    hdr.ontouchstart=function(e){if(e.target.tagName==='BUTTON')return;
-      var t=e.touches[0];mx=t.clientX;my=t.clientY;
-      hdr.ontouchmove=function(ev){var t2=ev.touches[0];ox=mx-t2.clientX;oy=my-t2.clientY;mx=t2.clientX;my=t2.clientY;
-        el.style.top=(el.offsetTop-oy)+'px';el.style.left=(el.offsetLeft-ox)+'px';el.style.right='auto';};
-      hdr.ontouchend=function(){hdr.ontouchmove=null;};};
-  }
   function attachComparativaTrigger(){
     if(window._cmpTriggered) return;
     window._cmpTriggered = true;
@@ -27658,19 +26792,11 @@ small,.sub,.subtitle,
     }
     var bounds = window.map && window.map.getBounds();
     if(!bounds){ callback(null, 'no-bounds'); return; }
-    var selBounds=bounds;
-    if(window.currentOverlay){try{
-      if(window.currentOverlay.getBounds)selBounds=window.currentOverlay.getBounds();
-      else if(window.currentOverlay.getCenter&&window.currentOverlay.getRadius){
-        var _cc=window.currentOverlay.getCenter(),_rr=window.currentOverlay.getRadius();
-        selBounds=new google.maps.LatLngBounds(google.maps.geometry.spherical.computeOffset(_cc,_rr,225),google.maps.geometry.spherical.computeOffset(_cc,_rr,45));}
-      else if(window.currentOverlay.getPath){selBounds=new google.maps.LatLngBounds();window.currentOverlay.getPath().forEach(function(pp){selBounds.extend(pp)});}
-    }catch(_){}}
     var svc = new google.maps.places.PlacesService(window.map);
     var allPoints = [];
     var pendingTypes = layer.types.length;
     layer.types.forEach(function(t){
-      svc.nearbySearch({bounds:selBounds, type:t}, function(results, status){
+      svc.nearbySearch({bounds:bounds, type:t}, function(results, status){
         pendingTypes--;
         if(status === google.maps.places.PlacesServiceStatus.OK && results){
           results.forEach(function(p){
@@ -27797,7 +26923,6 @@ small,.sub,.subtitle,
     window.toggleNSEOverlay._r20 = true;
   }
 
-  window._r20BuildPanel=buildPanel;
   function start(){
     buildPanel();
     patchNseToggle();
@@ -28149,7 +27274,7 @@ small,.sub,.subtitle,
 }
 
 /* === Heatmaps button en toolbar (en lugar de FAB flotante) === */
-/* FAB as fallback */#cn-poi-heatmaps-fab{ display:flex; }
+#cn-poi-heatmaps-fab{ display:none !important; }
 .tb#btn-poi-heatmaps{
   /* hereda estilo .tb */
 }
@@ -28174,11 +27299,7 @@ small,.sub,.subtitle,
     btn.addEventListener('click', function(e){
       e.preventDefault();
       var p = document.getElementById('cn-poi-heatmaps');
-      if(!p){
-        if(typeof window._r20BuildPanel==='function')window._r20BuildPanel();
-        p=document.getElementById('cn-poi-heatmaps');
-        if(!p)return;
-      }
+      if(!p) return;
       // Toggle visibility
       if(p.classList.contains('show')){
         p.classList.remove('show');
@@ -28365,6 +27486,87 @@ small,.sub,.subtitle,
 })();
 </script>
 
+<style id="connectia-round23-css">
+/* === ROUND 23 — RESTAURAR MAPA + cerrar ventana huérfana === */
+/* Mapa SIEMPRE visible al 100% */
+#map{
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  width:100% !important;
+  height:100% !important;
+  position:absolute !important;
+  top:0 !important; left:0 !important; right:0 !important; bottom:0 !important;
+  z-index:0 !important;
+}
+html, body{
+  width:100% !important;
+  height:100% !important;
+  overflow:hidden !important;
+}
+
+/* Cualquier dialog huérfano de "horario" que no sea panel reconocido va oculto */
+body > [id*="time"]:not([id="topbar"]):not([id="map"]),
+body > [class*="time-picker"],
+body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):not([id^="auto"]):not([id^="report"]):not([id^="gflt"]):not([id^="cn-share"]):not([id^="cn-cmp"]):not([id^="cn-layers"]):not([id^="cn-poi"]):not([id^="mob-"]){
+  display:none !important;
+}
+</style>
+<script id="connectia-round23-js">
+/* Round 23 — restaurar mapa + cerrar dialog huérfano */
+(function(){
+  function restoreMap(){
+    var m = document.getElementById('map');
+    if(!m) return;
+    m.style.display = 'block';
+    m.style.visibility = 'visible';
+    m.style.opacity = '1';
+    m.style.width = '100%';
+    m.style.height = '100%';
+    m.style.position = 'absolute';
+    m.style.top = '0';
+    m.style.left = '0';
+    m.style.right = '0';
+    m.style.bottom = '0';
+    m.style.zIndex = '0';
+  }
+  function killOrphanDialogs(){
+    // Buscar dialogs/modals que no sean reconocidos (panel huérfano "horario")
+    var KNOWN_PREFIXES = ['cn-','connectia-','mob-','afl-','auto-','report-','gflt-','global-','reports-','places-','nse-','live-','share-','toolbar','topbar','map'];
+    document.querySelectorAll('body > div, body > dialog, body > section').forEach(function(el){
+      if(!el.id) return;
+      var id = el.id.toLowerCase();
+      var isKnown = KNOWN_PREFIXES.some(function(p){ return id.indexOf(p) === 0 || id === p; });
+      if(isKnown) return;
+      // Si tiene la palabra "horario" o "time" en su contenido visible, ocultarlo
+      var txt = (el.textContent || '').toLowerCase();
+      if(txt.indexOf('horario') > -1 && txt.length < 200){
+        el.style.display = 'none';
+      }
+    });
+    // También cerrar inputs type="time" huérfanos visibles
+    document.querySelectorAll('input[type="time"]').forEach(function(inp){
+      var p = inp.closest('div, dialog, section');
+      if(p && p.id && p.id.indexOf('gflt') !== 0 && p.id.indexOf('cn-') !== 0){
+        // No tocar — puede ser legítimo
+      }
+    });
+  }
+
+  function start(){
+    restoreMap();
+    killOrphanDialogs();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  // Reintentos para garantizar
+  [200, 800, 2000, 5000, 12000].forEach(function(d){ setTimeout(start, d); });
+  // Ciclo defensivo cada 1s
+  setInterval(restoreMap, 1000);
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
@@ -28494,217 +27696,7 @@ small,.sub,.subtitle,
         + '</div></section>\n' : '')
       + (report ? '<section><h2>📋 Reporte</h2><div class="snapshot">' + report + '</div></section>\n' : '')
       + '<footer>Generado por Connectia · connectia.mx · Sesión exportada el ' + ts.toISOString() + '</footer>\n'
-      + '</div>\n
-<style id="connectia-mobile-optimization">
-/* === MOBILE OPTIMIZATION === */
-@media(max-width:767px){
-  /* All panels smaller */
-  #cn-cmp-panel{width:calc(100vw - 24px)!important;max-height:60vh!important;top:auto!important;bottom:12px!important;left:12px!important;right:12px!important;border-radius:16px 16px 0 0!important;}
-  #cn-cmp-dash .dash-card{width:calc(100vw - 16px)!important;max-height:85vh!important;padding:16px!important;}
-  #cn-cmp-dash .kpi-row{grid-template-columns:repeat(2,1fr)!important;}
-  #cn-poi-heatmaps{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  #nse-layers-menu{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  /* Report panel compact */
-  #report-panel{max-height:55vh!important;}
-  #report-panel .report-section{padding:8px!important;}
-  /* Sidebar compact */
-  #sidebar{max-height:50vh!important;}
-  /* All fixed panels: ensure no overlap */
-  .is-mobile-view [id$="-panel"]{max-height:55vh!important;}
-  /* Swipe indicator on panels */
-  #cn-cmp-panel::before,#cn-poi-heatmaps::before,#nse-layers-menu::before{
-    content:'';display:block;width:36px;height:4px;background:#d1d5db;border-radius:2px;margin:8px auto 4px;flex-shrink:0;
-  }
-  /* Auto-hide panels on map interaction */
-  .map-interacting .auto-hide-panel{opacity:0;pointer-events:none;transition:opacity .2s;}
-}
-</style>
-
-<script id="connectia-mobile-opt-js">
-(function(){
-  // Swipe-to-close for mobile panels
-  function addSwipeClose(panelId){
-    var el=document.getElementById(panelId);
-    if(!el||el._swipeClose)return;
-    el._swipeClose=true;
-    var startY=0,startX=0;
-    el.addEventListener('touchstart',function(e){
-      var t=e.touches[0];startY=t.clientY;startX=t.clientX;
-    },{passive:true});
-    el.addEventListener('touchmove',function(e){
-      var t=e.touches[0];
-      var dy=t.clientY-startY;
-      var dx=Math.abs(t.clientX-startX);
-      if(dy>60&&dx<40){
-        el.classList.remove('show','open');
-        el.style.display='none';
-        setTimeout(function(){el.style.display='';},300);
-      }
-    },{passive:true});
-  }
-  // Auto-hide panels when map moves
-  function setupAutoHide(){
-    if(!window.map)return;
-    var panels=['cn-cmp-panel','cn-poi-heatmaps','nse-layers-menu','heatmap-dropdown','places-menu'];
-    google.maps.event.addListener(window.map,'dragstart',function(){
-      if(window.innerWidth>=768)return;
-      panels.forEach(function(id){
-        var p=document.getElementById(id);
-        if(p&&(p.classList.contains('show')||p.classList.contains('open'))){
-          p.classList.remove('show','open');
-        }
-      });
-    });
-  }
-  function init(){
-    addSwipeClose('cn-cmp-panel');
-    addSwipeClose('cn-poi-heatmaps');
-    addSwipeClose('nse-layers-menu');
-    addSwipeClose('sidebar');
-    setupAutoHide();
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-  else init();
-  [1000,3000,6000].forEach(function(d){setTimeout(init,d);});
-})();
-</script>
-
-<style id="connectia-export-filters">
-#export-filter-panel{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  z-index:12000;width:min(420px,92vw);max-height:80vh;
-  background:#fff;border-radius:16px;
-  box-shadow:0 24px 60px rgba(0,0,0,.3);
-  display:none;flex-direction:column;overflow:hidden;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
-#export-filter-panel.show{display:flex;}
-#export-filter-panel .efp-header{
-  padding:14px 18px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);
-  color:#fff;display:flex;justify-content:space-between;align-items:center;
-}
-#export-filter-panel .efp-header h3{margin:0;font-size:14px;font-weight:700;}
-#export-filter-panel .efp-header button{border:none;background:rgba(255,255,255,.2);color:#fff;width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;}
-#export-filter-panel .efp-body{padding:16px;overflow-y:auto;flex:1;}
-.efp-section{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9;}
-.efp-section:last-child{border-bottom:none;}
-.efp-section .name{font-size:13px;color:#1d1d1f;font-weight:500;}
-.efp-toggle{position:relative;width:42px;height:24px;background:#e2e8f0;border-radius:12px;cursor:pointer;transition:background .15s;flex-shrink:0;}
-.efp-toggle.on{background:#6D28D9;}
-.efp-toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.efp-toggle.on::after{left:20px;}
-#export-filter-panel .efp-actions{padding:12px 18px;display:flex;gap:8px;border-top:1px solid #e2e8f0;}
-#export-filter-panel .efp-btn{flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;}
-#export-filter-panel .efp-btn.primary{background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;}
-#export-filter-panel .efp-btn.secondary{background:#f1f5f9;color:#1d1d1f;}
-#export-filter-backdrop{position:fixed;inset:0;z-index:11999;background:rgba(0,0,0,.4);display:none;}
-#export-filter-backdrop.show{display:block;}
-</style>
-
-<script id="connectia-export-filters-js">
-(function(){
-  var EXPORT_SECTIONS=[
-    {id:'demographics',name:'Demograficos',default:true},
-    {id:'nse',name:'NSE (Nivel Socioeconomico)',default:true},
-    {id:'gender_age',name:'Genero y Edad',default:true},
-    {id:'economy',name:'Economia',default:true},
-    {id:'mobility',name:'Movilidad',default:true},
-    {id:'competition',name:'Competencia',default:true},
-    {id:'heatmap',name:'Mapa de calor',default:true},
-    {id:'map_screenshot',name:'Captura del mapa',default:true},
-    {id:'charts',name:'Graficas y charts',default:true},
-  ];
-  var _exportFilters={};
-  EXPORT_SECTIONS.forEach(function(s){_exportFilters[s.id]=s.default;});
-
-  function buildFilterPanel(){
-    if(document.getElementById('export-filter-panel'))return;
-    var backdrop=document.createElement('div');
-    backdrop.id='export-filter-backdrop';
-    backdrop.addEventListener('click',function(){closeFilterPanel();});
-    document.body.appendChild(backdrop);
-
-    var panel=document.createElement('div');
-    panel.id='export-filter-panel';
-    var html='<div class="efp-header"><h3>Filtros de exportacion</h3><button onclick="window._closeExportFilters()">\u2715</button></div>';
-    html+='<div class="efp-body">';
-    EXPORT_SECTIONS.forEach(function(s){
-      html+='<div class="efp-section"><span class="name">'+s.name+'</span>';
-      html+='<div class="efp-toggle'+(s.default?' on':'')+'" data-section="'+s.id+'"></div></div>';
-    });
-    html+='</div>';
-    html+='<div class="efp-actions">';
-    html+='<button class="efp-btn secondary" onclick="window._closeExportFilters()">Cancelar</button>';
-    html+='<button class="efp-btn primary" id="efp-export-btn">Exportar</button>';
-    html+='</div>';
-    panel.innerHTML=html;
-    document.body.appendChild(panel);
-
-    // Toggle handlers
-    panel.querySelectorAll('.efp-toggle').forEach(function(t){
-      t.addEventListener('click',function(){
-        var sid=t.dataset.section;
-        t.classList.toggle('on');
-        _exportFilters[sid]=t.classList.contains('on');
-      });
-    });
-  }
-
-  function openFilterPanel(format){
-    buildFilterPanel();
-    document.getElementById('export-filter-backdrop').classList.add('show');
-    document.getElementById('export-filter-panel').classList.add('show');
-    // Set export button action
-    var btn=document.getElementById('efp-export-btn');
-    btn.textContent='Exportar '+format.toUpperCase();
-    btn.onclick=function(){
-      closeFilterPanel();
-      window._exportFilteredSections=_exportFilters;
-      // Trigger original export
-      if(format==='pdf'&&typeof window.exportPDF==='function')window.exportPDF();
-      else if(format==='pptx'&&typeof window.exportPPTX==='function')window.exportPPTX();
-      else if(format==='excel'&&typeof window.exportExcel==='function')window.exportExcel();
-      else if(typeof window['export'+format.charAt(0).toUpperCase()+format.slice(1)]==='function')
-        window['export'+format.charAt(0).toUpperCase()+format.slice(1)]();
-    };
-  }
-
-  function closeFilterPanel(){
-    var p=document.getElementById('export-filter-panel');
-    var b=document.getElementById('export-filter-backdrop');
-    if(p)p.classList.remove('show');
-    if(b)b.classList.remove('show');
-  }
-
-  window._closeExportFilters=closeFilterPanel;
-  window._openExportFilters=openFilterPanel;
-  window._exportFilteredSections=_exportFilters;
-
-  // Intercept export buttons to show filter panel first
-  function interceptExports(){
-    // Find export buttons and intercept
-    var exportBtns=document.querySelectorAll('[onclick*="exportPDF"],[onclick*="exportPPTX"],[onclick*="exportExcel"]');
-    exportBtns.forEach(function(btn){
-      if(btn._intercepted)return;
-      btn._intercepted=true;
-      var orig=btn.getAttribute('onclick')||'';
-      var format='pdf';
-      if(orig.indexOf('PPTX')>=0||orig.indexOf('pptx')>=0)format='pptx';
-      else if(orig.indexOf('Excel')>=0||orig.indexOf('excel')>=0)format='excel';
-      btn.removeAttribute('onclick');
-      btn.addEventListener('click',function(e){
-        e.preventDefault();e.stopPropagation();
-        openFilterPanel(format);
-      });
-    });
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(interceptExports,2000);});
-  else setTimeout(interceptExports,2000);
-  setTimeout(interceptExports,5000);
-  setTimeout(interceptExports,10000);
-})();
-</script>
-</body>\n</html>';
+      + '</div>\n</body>\n</html>';
 
     var blob = new Blob([doc], {type: 'text/html;charset=utf-8'});
     var url = URL.createObjectURL(blob);
@@ -28747,215 +27739,5 @@ small,.sub,.subtitle,
 })();
 </script>
 
-
-<style id="connectia-mobile-optimization">
-/* === MOBILE OPTIMIZATION === */
-@media(max-width:767px){
-  /* All panels smaller */
-  #cn-cmp-panel{width:calc(100vw - 24px)!important;max-height:60vh!important;top:auto!important;bottom:12px!important;left:12px!important;right:12px!important;border-radius:16px 16px 0 0!important;}
-  #cn-cmp-dash .dash-card{width:calc(100vw - 16px)!important;max-height:85vh!important;padding:16px!important;}
-  #cn-cmp-dash .kpi-row{grid-template-columns:repeat(2,1fr)!important;}
-  #cn-poi-heatmaps{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  #nse-layers-menu{width:calc(100vw - 24px)!important;max-height:50vh!important;top:auto!important;bottom:60px!important;left:12px!important;right:12px!important;}
-  /* Report panel compact */
-  #report-panel{max-height:55vh!important;}
-  #report-panel .report-section{padding:8px!important;}
-  /* Sidebar compact */
-  #sidebar{max-height:50vh!important;}
-  /* All fixed panels: ensure no overlap */
-  .is-mobile-view [id$="-panel"]{max-height:55vh!important;}
-  /* Swipe indicator on panels */
-  #cn-cmp-panel::before,#cn-poi-heatmaps::before,#nse-layers-menu::before{
-    content:'';display:block;width:36px;height:4px;background:#d1d5db;border-radius:2px;margin:8px auto 4px;flex-shrink:0;
-  }
-  /* Auto-hide panels on map interaction */
-  .map-interacting .auto-hide-panel{opacity:0;pointer-events:none;transition:opacity .2s;}
-}
-</style>
-
-<script id="connectia-mobile-opt-js">
-(function(){
-  // Swipe-to-close for mobile panels
-  function addSwipeClose(panelId){
-    var el=document.getElementById(panelId);
-    if(!el||el._swipeClose)return;
-    el._swipeClose=true;
-    var startY=0,startX=0;
-    el.addEventListener('touchstart',function(e){
-      var t=e.touches[0];startY=t.clientY;startX=t.clientX;
-    },{passive:true});
-    el.addEventListener('touchmove',function(e){
-      var t=e.touches[0];
-      var dy=t.clientY-startY;
-      var dx=Math.abs(t.clientX-startX);
-      if(dy>60&&dx<40){
-        el.classList.remove('show','open');
-        el.style.display='none';
-        setTimeout(function(){el.style.display='';},300);
-      }
-    },{passive:true});
-  }
-  // Auto-hide panels when map moves
-  function setupAutoHide(){
-    if(!window.map)return;
-    var panels=['cn-cmp-panel','cn-poi-heatmaps','nse-layers-menu','heatmap-dropdown','places-menu'];
-    google.maps.event.addListener(window.map,'dragstart',function(){
-      if(window.innerWidth>=768)return;
-      panels.forEach(function(id){
-        var p=document.getElementById(id);
-        if(p&&(p.classList.contains('show')||p.classList.contains('open'))){
-          p.classList.remove('show','open');
-        }
-      });
-    });
-  }
-  function init(){
-    addSwipeClose('cn-cmp-panel');
-    addSwipeClose('cn-poi-heatmaps');
-    addSwipeClose('nse-layers-menu');
-    addSwipeClose('sidebar');
-    setupAutoHide();
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-  else init();
-  [1000,3000,6000].forEach(function(d){setTimeout(init,d);});
-})();
-</script>
-
-<style id="connectia-export-filters">
-#export-filter-panel{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  z-index:12000;width:min(420px,92vw);max-height:80vh;
-  background:#fff;border-radius:16px;
-  box-shadow:0 24px 60px rgba(0,0,0,.3);
-  display:none;flex-direction:column;overflow:hidden;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
-#export-filter-panel.show{display:flex;}
-#export-filter-panel .efp-header{
-  padding:14px 18px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);
-  color:#fff;display:flex;justify-content:space-between;align-items:center;
-}
-#export-filter-panel .efp-header h3{margin:0;font-size:14px;font-weight:700;}
-#export-filter-panel .efp-header button{border:none;background:rgba(255,255,255,.2);color:#fff;width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;}
-#export-filter-panel .efp-body{padding:16px;overflow-y:auto;flex:1;}
-.efp-section{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9;}
-.efp-section:last-child{border-bottom:none;}
-.efp-section .name{font-size:13px;color:#1d1d1f;font-weight:500;}
-.efp-toggle{position:relative;width:42px;height:24px;background:#e2e8f0;border-radius:12px;cursor:pointer;transition:background .15s;flex-shrink:0;}
-.efp-toggle.on{background:#6D28D9;}
-.efp-toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.efp-toggle.on::after{left:20px;}
-#export-filter-panel .efp-actions{padding:12px 18px;display:flex;gap:8px;border-top:1px solid #e2e8f0;}
-#export-filter-panel .efp-btn{flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;}
-#export-filter-panel .efp-btn.primary{background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;}
-#export-filter-panel .efp-btn.secondary{background:#f1f5f9;color:#1d1d1f;}
-#export-filter-backdrop{position:fixed;inset:0;z-index:11999;background:rgba(0,0,0,.4);display:none;}
-#export-filter-backdrop.show{display:block;}
-</style>
-
-<script id="connectia-export-filters-js">
-(function(){
-  var EXPORT_SECTIONS=[
-    {id:'demographics',name:'Demograficos',default:true},
-    {id:'nse',name:'NSE (Nivel Socioeconomico)',default:true},
-    {id:'gender_age',name:'Genero y Edad',default:true},
-    {id:'economy',name:'Economia',default:true},
-    {id:'mobility',name:'Movilidad',default:true},
-    {id:'competition',name:'Competencia',default:true},
-    {id:'heatmap',name:'Mapa de calor',default:true},
-    {id:'map_screenshot',name:'Captura del mapa',default:true},
-    {id:'charts',name:'Graficas y charts',default:true},
-  ];
-  var _exportFilters={};
-  EXPORT_SECTIONS.forEach(function(s){_exportFilters[s.id]=s.default;});
-
-  function buildFilterPanel(){
-    if(document.getElementById('export-filter-panel'))return;
-    var backdrop=document.createElement('div');
-    backdrop.id='export-filter-backdrop';
-    backdrop.addEventListener('click',function(){closeFilterPanel();});
-    document.body.appendChild(backdrop);
-
-    var panel=document.createElement('div');
-    panel.id='export-filter-panel';
-    var html='<div class="efp-header"><h3>Filtros de exportacion</h3><button onclick="window._closeExportFilters()">\u2715</button></div>';
-    html+='<div class="efp-body">';
-    EXPORT_SECTIONS.forEach(function(s){
-      html+='<div class="efp-section"><span class="name">'+s.name+'</span>';
-      html+='<div class="efp-toggle'+(s.default?' on':'')+'" data-section="'+s.id+'"></div></div>';
-    });
-    html+='</div>';
-    html+='<div class="efp-actions">';
-    html+='<button class="efp-btn secondary" onclick="window._closeExportFilters()">Cancelar</button>';
-    html+='<button class="efp-btn primary" id="efp-export-btn">Exportar</button>';
-    html+='</div>';
-    panel.innerHTML=html;
-    document.body.appendChild(panel);
-
-    // Toggle handlers
-    panel.querySelectorAll('.efp-toggle').forEach(function(t){
-      t.addEventListener('click',function(){
-        var sid=t.dataset.section;
-        t.classList.toggle('on');
-        _exportFilters[sid]=t.classList.contains('on');
-      });
-    });
-  }
-
-  function openFilterPanel(format){
-    buildFilterPanel();
-    document.getElementById('export-filter-backdrop').classList.add('show');
-    document.getElementById('export-filter-panel').classList.add('show');
-    // Set export button action
-    var btn=document.getElementById('efp-export-btn');
-    btn.textContent='Exportar '+format.toUpperCase();
-    btn.onclick=function(){
-      closeFilterPanel();
-      window._exportFilteredSections=_exportFilters;
-      // Trigger original export
-      if(format==='pdf'&&typeof window.exportPDF==='function')window.exportPDF();
-      else if(format==='pptx'&&typeof window.exportPPTX==='function')window.exportPPTX();
-      else if(format==='excel'&&typeof window.exportExcel==='function')window.exportExcel();
-      else if(typeof window['export'+format.charAt(0).toUpperCase()+format.slice(1)]==='function')
-        window['export'+format.charAt(0).toUpperCase()+format.slice(1)]();
-    };
-  }
-
-  function closeFilterPanel(){
-    var p=document.getElementById('export-filter-panel');
-    var b=document.getElementById('export-filter-backdrop');
-    if(p)p.classList.remove('show');
-    if(b)b.classList.remove('show');
-  }
-
-  window._closeExportFilters=closeFilterPanel;
-  window._openExportFilters=openFilterPanel;
-  window._exportFilteredSections=_exportFilters;
-
-  // Intercept export buttons to show filter panel first
-  function interceptExports(){
-    // Find export buttons and intercept
-    var exportBtns=document.querySelectorAll('[onclick*="exportPDF"],[onclick*="exportPPTX"],[onclick*="exportExcel"]');
-    exportBtns.forEach(function(btn){
-      if(btn._intercepted)return;
-      btn._intercepted=true;
-      var orig=btn.getAttribute('onclick')||'';
-      var format='pdf';
-      if(orig.indexOf('PPTX')>=0||orig.indexOf('pptx')>=0)format='pptx';
-      else if(orig.indexOf('Excel')>=0||orig.indexOf('excel')>=0)format='excel';
-      btn.removeAttribute('onclick');
-      btn.addEventListener('click',function(e){
-        e.preventDefault();e.stopPropagation();
-        openFilterPanel(format);
-      });
-    });
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(interceptExports,2000);});
-  else setTimeout(interceptExports,2000);
-  setTimeout(interceptExports,5000);
-  setTimeout(interceptExports,10000);
-})();
-</script>
 </body>
 </html>
