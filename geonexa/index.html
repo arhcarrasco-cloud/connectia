@@ -27567,6 +27567,688 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 })();
 </script>
 
+<style id="connectia-round24-css">
+/* === Búsqueda predictiva opaca (no traslúcida) === */
+#suggestions, #geo-suggestions{
+  background:#ffffff !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+  border:1px solid rgba(60,60,67,.12) !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.12) !important;
+}
+
+/* === Comparar v3 — panel limpio bullet-proof === */
+#cn-cmp-v3{
+  position:fixed; z-index:99999;
+  top:64px; left:50%;
+  transform:translateX(-50%);
+  width:380px; max-height:560px;
+  background:#fff; border-radius:14px;
+  border:1px solid rgba(60,60,67,.12);
+  box-shadow:0 16px 40px rgba(0,0,0,.18);
+  display:none; flex-direction:column; overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn-cmp-v3.show{ display:flex; }
+#cn-cmp-v3 .h{
+  padding:12px 14px;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid rgba(109,40,217,.18);
+  display:flex; justify-content:space-between; align-items:center;
+  position:relative; cursor:grab;
+}
+#cn-cmp-v3 .h.dragging{ cursor:grabbing; }
+#cn-cmp-v3 .h::after{
+  content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px;
+  background:linear-gradient(90deg, rgba(109,40,217,.7) 0%, rgba(236,72,153,.45) 70%, transparent 100%);
+}
+#cn-cmp-v3 .h h3{ margin:0; font-size:13px; font-weight:700; color:#1d1d1f; flex:1; }
+#cn-cmp-v3 .h button{
+  border:none; background:rgba(0,0,0,.06); width:26px; height:26px;
+  border-radius:50%; cursor:pointer; color:#1d1d1f; font-size:14px;
+  margin-left:4px;
+}
+#cn-cmp-v3 .b{ padding:12px; overflow-y:auto; flex:1; }
+#cn-cmp-v3 .st{
+  padding:6px 10px; background:#fef3c7; color:#92400e;
+  border-radius:6px; font-size:11px; margin-bottom:10px;
+}
+#cn-cmp-v3 .st.ok{ background:#dcfce7; color:#166534; }
+#cn-cmp-v3 input[type=text]{
+  width:100%; padding:8px 12px; border:1px solid #e2e8f0;
+  border-radius:8px; font-size:12px; background:#fafafa;
+  font-family:inherit; box-sizing:border-box; margin-bottom:8px;
+}
+#cn-cmp-v3 input[type=text]:focus{
+  outline:none; border-color:#6D28D9; background:#fff;
+  box-shadow:0 0 0 3px rgba(109,40,217,.12);
+}
+#cn-cmp-v3 .cats{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+#cn-cmp-v3 .cat{
+  padding:5px 10px; border:1px solid #e9d5ff; border-radius:14px;
+  background:#fff; color:#1d1d1f; font-size:11px; cursor:pointer;
+  font-family:inherit;
+}
+#cn-cmp-v3 .cat.on{
+  background:linear-gradient(135deg,#EDE9FE,#C4B5FD);
+  color:#5B21B6; border-color:rgba(109,40,217,.35);
+}
+#cn-cmp-v3 .list{
+  border:1px solid #e2e8f0; border-radius:10px;
+  max-height:260px; overflow-y:auto; margin-bottom:10px;
+}
+#cn-cmp-v3 .list:empty::before{
+  content:'Selecciona una categoría o busca una marca';
+  display:block; padding:20px; text-align:center;
+  color:#94a3b8; font-size:11px;
+}
+#cn-cmp-v3 .row{
+  display:flex; align-items:center; gap:8px; padding:8px 10px;
+  border-bottom:1px solid #f1f5f9; font-size:12px;
+}
+#cn-cmp-v3 .row:last-child{ border-bottom:none; }
+#cn-cmp-v3 .row .sw{
+  width:14px; height:14px; border-radius:50%; flex-shrink:0;
+  border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.15);
+}
+#cn-cmp-v3 .row .nm{ flex:1; color:#1d1d1f; }
+#cn-cmp-v3 .row .cnt{ color:#6e6e73; font-size:10px; }
+#cn-cmp-v3 .row .tg{
+  position:relative; width:36px; height:20px;
+  background:#e2e8f0; border-radius:10px; cursor:pointer;
+  transition:background .15s; flex-shrink:0;
+}
+#cn-cmp-v3 .row .tg::after{
+  content:''; position:absolute; top:2px; left:2px;
+  width:16px; height:16px; background:#fff; border-radius:50%;
+  transition:left .15s; box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+#cn-cmp-v3 .row.on .tg{ background:#6D28D9; }
+#cn-cmp-v3 .row.on .tg::after{ left:18px; }
+#cn-cmp-v3 .actions{ display:flex; gap:6px; }
+#cn-cmp-v3 .btn{
+  padding:8px 12px; border:none; border-radius:8px; cursor:pointer;
+  font-size:11px; font-weight:600; font-family:inherit;
+}
+#cn-cmp-v3 .btn.p{
+  flex:1; background:linear-gradient(135deg,#6D28D9,#8B3A9F); color:#fff;
+}
+#cn-cmp-v3 .btn.a{ background:#fff; color:#6D28D9; border:1px solid #e9d5ff; }
+
+/* Dashboard v3 con Chart.js */
+#cn-cmp-v3-dash{
+  position:fixed; z-index:99998;
+  top:80px; left:auto; right:14px;
+  width:480px; max-height:calc(100vh - 100px); overflow-y:auto;
+  background:#fff; border-radius:14px;
+  border:1px solid rgba(60,60,67,.12);
+  box-shadow:0 16px 40px rgba(0,0,0,.18);
+  display:none; flex-direction:column;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn-cmp-v3-dash.show{ display:flex; }
+#cn-cmp-v3-dash .h{
+  padding:12px 14px; display:flex; justify-content:space-between; align-items:center;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid rgba(109,40,217,.18);
+  position:relative; cursor:grab;
+}
+#cn-cmp-v3-dash .h::after{
+  content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px;
+  background:linear-gradient(90deg, rgba(109,40,217,.7) 0%, rgba(236,72,153,.45) 70%, transparent 100%);
+}
+#cn-cmp-v3-dash .h h2{ margin:0; font-size:14px; font-weight:700; color:#1d1d1f; flex:1; }
+#cn-cmp-v3-dash .h button{
+  border:none; background:rgba(0,0,0,.06); width:26px; height:26px;
+  border-radius:50%; cursor:pointer; color:#1d1d1f; font-size:14px;
+  margin-left:4px;
+}
+#cn-cmp-v3-dash .b{ padding:14px 16px; overflow-y:auto; flex:1; }
+#cn-cmp-v3-dash .kpis{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+  gap:6px; margin-bottom:14px;
+}
+#cn-cmp-v3-dash .kpi{
+  background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px;
+  padding:8px 10px;
+}
+#cn-cmp-v3-dash .kpi .l{ font-size:9px; color:#6D28D9; font-weight:700; text-transform:uppercase; }
+#cn-cmp-v3-dash .kpi .v{ font-size:18px; font-weight:800; color:#1d1d1f; margin-top:3px; }
+#cn-cmp-v3-dash h3{
+  font-size:11px; font-weight:700; color:#475569;
+  text-transform:uppercase; letter-spacing:.4px;
+  margin:14px 0 8px;
+}
+#cn-cmp-v3-dash canvas{ max-width:100%; }
+.is-mobile-view #cn-cmp-v3,
+.is-mobile-view #cn-cmp-v3-dash{
+  top:auto !important;
+  bottom:calc(56px + env(safe-area-inset-bottom,0px)) !important;
+  left:8px !important; right:8px !important;
+  width:auto !important; max-height:70vh !important;
+  transform:none !important;
+}
+</style>
+<script id="connectia-round24-js">
+/* Round 24 — comparar v3 bullet-proof */
+(function(){
+
+  // ============================================================
+  // 1) AI Search placeholder
+  // ============================================================
+  function fixPlaceholders(){
+    var ai = document.getElementById('ai-search-input');
+    if(ai && ai.getAttribute('placeholder') !== 'AI Search'){
+      ai.setAttribute('placeholder', 'AI Search');
+    }
+  }
+  setInterval(fixPlaceholders, 1500);
+
+  // ============================================================
+  // 2) Comparar v3 — panel limpio
+  // ============================================================
+  var CATS = [
+    {id:'retail',     label:'Retail',       types:['supermarket','department_store','shopping_mall','convenience_store']},
+    {id:'food_fast',  label:'Comida rápida', types:['meal_takeaway','meal_delivery']},
+    {id:'restaurant', label:'Restaurantes',  types:['restaurant']},
+    {id:'cafe',       label:'Cafeterías',    types:['cafe','bakery']},
+    {id:'gas',        label:'Gasolineras',   types:['gas_station']},
+    {id:'bank',       label:'Bancos',        types:['bank','atm']},
+    {id:'pharmacy',   label:'Farmacias',     types:['pharmacy']},
+    {id:'gym',        label:'Gimnasios',     types:['gym']},
+    {id:'hotel',      label:'Hoteles',       types:['lodging']}
+  ];
+  var COLORS = ['#6D28D9','#8B3A9F','#dc2626','#ea580c','#eab308','#16a34a','#0891b2','#1e40af','#9333ea','#db2777','#7c2d12','#737373'];
+  var BRAND_RULES = [
+    [/walmart/i, 'Walmart'], [/sam'?s\s*club/i, "Sam's Club"],
+    [/bodega\s*aurrera|aurrera/i, 'Bodega Aurrera'],
+    [/soriana/i, 'Soriana'], [/chedraui/i, 'Chedraui'],
+    [/heb\b|h-?e-?b/i, 'HEB'], [/costco/i, 'Costco'],
+    [/oxxo/i, 'OXXO'], [/7[\s\-]?eleven/i, '7-Eleven'],
+    [/circle\s*k/i, 'Circle K'], [/extra\b/i, 'Extra'],
+    [/farmacias\s*del\s*ahorro/i, 'Farmacias del Ahorro'],
+    [/farmacias\s*similares/i, 'Farmacias Similares'],
+    [/farmacias?\s*benavides/i, 'Farmacias Benavides'],
+    [/farmacias?\s*guadalajara/i, 'Farmacias Guadalajara'],
+    [/mcdonal[d']?s|mc\s*donald/i, "McDonald's"],
+    [/burger\s*king/i, 'Burger King'], [/kfc/i, 'KFC'],
+    [/subway/i, 'Subway'], [/domino[\s'\-]?s/i, "Domino's Pizza"],
+    [/pizza\s*hut/i, 'Pizza Hut'], [/little\s*caesars/i, 'Little Caesars'],
+    [/starbucks/i, 'Starbucks'], [/banamex/i, 'Citibanamex'],
+    [/banorte/i, 'Banorte'], [/bbva|bancomer/i, 'BBVA'],
+    [/santander/i, 'Santander'], [/hsbc/i, 'HSBC'],
+    [/scotiabank/i, 'Scotiabank'], [/pemex/i, 'Pemex'],
+    [/shell/i, 'Shell'], [/mobil/i, 'Mobil'],
+    [/sanborns/i, 'Sanborns'], [/liverpool/i, 'Liverpool'],
+    [/coppel/i, 'Coppel'], [/elektra/i, 'Elektra'],
+    [/cinepolis|cinépolis/i, 'Cinépolis'], [/cinemex/i, 'Cinemex']
+  ];
+
+  var v3 = {
+    panel: null,
+    dash: null,
+    state: { brands:{}, active:{}, markers:{}, colors:{} },
+    barChart: null,
+    donutChart: null
+  };
+
+  function normalize(name){
+    if(!name) return 'Otro';
+    for(var i=0; i<BRAND_RULES.length; i++){
+      if(BRAND_RULES[i][0].test(name)) return BRAND_RULES[i][1];
+    }
+    return name.replace(/\s+(suc(ursal)?|store|tienda|#?\d+).*$/i, '').replace(/\s+/g,' ').trim();
+  }
+
+  function colorFor(brand){
+    if(v3.state.colors[brand]) return v3.state.colors[brand];
+    var idx = Object.keys(v3.state.colors).length % COLORS.length;
+    var c = COLORS[idx];
+    v3.state.colors[brand] = c;
+    return c;
+  }
+
+  function getArea(){
+    if(window.currentOverlay){
+      var o = window.currentOverlay;
+      try{
+        if(typeof o.getBounds === 'function') return {bounds:o.getBounds()};
+        if(typeof o.getCenter === 'function' && typeof o.getRadius === 'function'){
+          return {center:o.getCenter(), radius:o.getRadius()};
+        }
+      }catch(_){}
+    }
+    try{ var b = window.map && window.map.getBounds(); if(b) return {bounds:b}; }catch(_){}
+    return null;
+  }
+
+  function search(cat, query, cb){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.places){
+      cb([], 'no-api'); return;
+    }
+    var area = getArea();
+    if(!area){ cb([], 'no-area'); return; }
+    var svc = new google.maps.places.PlacesService(window.map);
+    var req = {};
+    if(area.bounds) req.bounds = area.bounds;
+    else if(area.center && area.radius){ req.location = area.center; req.radius = area.radius; }
+    if(cat && cat.types && cat.types.length) req.type = cat.types[0];
+    if(query) req.keyword = query;
+    svc.nearbySearch(req, function(results, status){
+      cb((status === google.maps.places.PlacesServiceStatus.OK && results) ? results : [], status);
+    });
+  }
+
+  function group(places){
+    var map = {};
+    places.forEach(function(p){
+      var b = normalize(p.name);
+      if(!map[b]) map[b] = [];
+      map[b].push(p);
+    });
+    return map;
+  }
+
+  function addPins(brand){
+    if(v3.state.markers[brand]) return;
+    var places = v3.state.brands[brand] || [];
+    var color = colorFor(brand);
+    var arr = [];
+    places.forEach(function(p){
+      try{
+        var pos = p.geometry && p.geometry.location;
+        if(!pos) return;
+        var m = new google.maps.Marker({
+          position: pos,
+          map: window.map,
+          title: brand + ' — ' + (p.name || ''),
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 11,
+            fillColor: color,
+            fillOpacity: 0.96,
+            strokeColor: '#ffffff',
+            strokeWeight: 2.5
+          },
+          label: {
+            text: brand.length > 16 ? brand.substring(0,16) : brand,
+            color: '#1d1d1f',
+            fontSize: '10px',
+            fontWeight: '700'
+          },
+          zIndex: 10000
+        });
+        arr.push(m);
+      }catch(e){ console.warn('[r24] marker fail', e); }
+    });
+    v3.state.markers[brand] = arr;
+  }
+  function rmPins(brand){
+    var arr = v3.state.markers[brand];
+    if(!arr) return;
+    arr.forEach(function(m){ try{ m.setMap(null); }catch(_){} });
+    delete v3.state.markers[brand];
+  }
+  function rmAllPins(){
+    Object.keys(v3.state.markers).forEach(rmPins);
+  }
+
+  function escHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function renderList(){
+    var listEl = v3.panel.querySelector('.list');
+    listEl.innerHTML = '';
+    var brands = Object.keys(v3.state.brands).sort(function(a,b){
+      return v3.state.brands[b].length - v3.state.brands[a].length;
+    });
+    brands.forEach(function(b){
+      var n = v3.state.brands[b].length;
+      var on = !!v3.state.active[b];
+      var color = colorFor(b);
+      var row = document.createElement('div');
+      row.className = 'row' + (on?' on':'');
+      row.innerHTML = '<span class="sw" style="background:'+color+'"></span>'
+                    + '<span class="nm">'+escHtml(b)+'</span>'
+                    + '<span class="cnt">'+n+'</span>'
+                    + '<div class="tg"></div>';
+      var tg = row.querySelector('.tg');
+      tg.addEventListener('click', function(){
+        if(v3.state.active[b]){
+          delete v3.state.active[b];
+          row.classList.remove('on');
+          rmPins(b);
+        } else {
+          v3.state.active[b] = v3.state.brands[b];
+          row.classList.add('on');
+          addPins(b);
+        }
+        updateGo();
+      });
+      listEl.appendChild(row);
+    });
+  }
+  function updateGo(){
+    var n = Object.keys(v3.state.active).length;
+    var btn = v3.panel.querySelector('.btn.p');
+    btn.textContent = n > 0 ? 'Ver dashboard ('+n+')' : 'Selecciona marcas';
+    btn.style.opacity = n === 0 ? '0.5' : '1';
+    btn.disabled = n === 0;
+  }
+  function updateStatus(text, ok){
+    var st = v3.panel.querySelector('.st');
+    st.textContent = text;
+    st.classList.toggle('ok', !!ok);
+  }
+
+  function build(){
+    if(v3.panel) return v3.panel;
+    var p = document.createElement('div');
+    p.id = 'cn-cmp-v3';
+    var html = '<div class="h"><h3>Comparativa</h3>'
+             + '<button class="min" data-tip="Minimizar">_</button>'
+             + '<button class="cl" data-tip="Cerrar">×</button></div>'
+             + '<div class="b">'
+             + '<div class="st">Verificando área…</div>'
+             + '<input type="text" placeholder="Buscar marca o palabra">'
+             + '<div class="cats">';
+    CATS.forEach(function(c){
+      html += '<button class="cat" data-cat="'+c.id+'">'+c.label+'</button>';
+    });
+    html += '</div><div class="list"></div>'
+          + '<div class="actions">'
+          + '<button class="btn p">Selecciona marcas</button>'
+          + '<button class="btn a">Limpiar</button>'
+          + '</div></div>';
+    p.innerHTML = html;
+    document.body.appendChild(p);
+    v3.panel = p;
+
+    // Close
+    p.querySelector('.cl').addEventListener('click', function(){
+      p.classList.remove('show');
+    });
+    // Minimize toggle
+    var minimized = false;
+    p.querySelector('.min').addEventListener('click', function(){
+      var b = p.querySelector('.b');
+      minimized = !minimized;
+      b.style.display = minimized ? 'none' : 'block';
+    });
+
+    // Drag from header
+    var head = p.querySelector('.h');
+    var drag = null;
+    head.addEventListener('pointerdown', function(ev){
+      if(ev.target.closest('button')) return;
+      var r = p.getBoundingClientRect();
+      drag = {x:ev.clientX, y:ev.clientY, l:r.left, t:r.top};
+      try{ head.setPointerCapture(ev.pointerId); }catch(_){}
+      head.classList.add('dragging');
+    });
+    head.addEventListener('pointermove', function(ev){
+      if(!drag) return;
+      p.style.transform = 'none';
+      p.style.left = Math.max(0, Math.min(window.innerWidth-100, drag.l + ev.clientX - drag.x)) + 'px';
+      p.style.top  = Math.max(0, Math.min(window.innerHeight-60, drag.t + ev.clientY - drag.y)) + 'px';
+    });
+    head.addEventListener('pointerup', function(ev){
+      if(!drag) return;
+      try{ head.releasePointerCapture(ev.pointerId); }catch(_){}
+      head.classList.remove('dragging');
+      drag = null;
+    });
+
+    // Search
+    var inp = p.querySelector('input[type=text]');
+    var t = null;
+    inp.addEventListener('input', function(){
+      var q = inp.value.trim();
+      clearTimeout(t);
+      if(q.length < 2) return;
+      t = setTimeout(function(){
+        p.querySelectorAll('.cat').forEach(function(c){c.classList.remove('on');});
+        updateStatus('Buscando "'+q+'"…');
+        search(null, q, function(places, st){
+          if(places.length === 0){
+            updateStatus('Sin resultados ('+st+')');
+            v3.state.brands = {}; v3.state.active = {}; v3.state.colors = {};
+            rmAllPins(); renderList(); updateGo();
+            return;
+          }
+          v3.state.brands = group(places);
+          v3.state.active = {};
+          v3.state.colors = {};
+          rmAllPins(); renderList(); updateGo();
+          updateStatus(places.length+' resultados — '+Object.keys(v3.state.brands).length+' marcas', true);
+        });
+      }, 400);
+    });
+
+    // Categories
+    p.querySelectorAll('.cat').forEach(function(c){
+      c.addEventListener('click', function(){
+        var catId = c.dataset.cat;
+        var cat = CATS.find(function(x){return x.id===catId;});
+        p.querySelectorAll('.cat').forEach(function(x){x.classList.remove('on');});
+        c.classList.add('on');
+        inp.value = '';
+        updateStatus('Cargando '+cat.label+'…');
+        search(cat, '', function(places, st){
+          if(places.length === 0){
+            updateStatus('Sin resultados ('+st+')');
+            v3.state.brands = {}; v3.state.active = {}; v3.state.colors = {};
+            rmAllPins(); renderList(); updateGo();
+            return;
+          }
+          v3.state.brands = group(places);
+          v3.state.active = {};
+          v3.state.colors = {};
+          rmAllPins(); renderList(); updateGo();
+          updateStatus(places.length+' lugares — '+Object.keys(v3.state.brands).length+' marcas', true);
+        });
+      });
+    });
+
+    // Clear
+    p.querySelector('.btn.a').addEventListener('click', function(){
+      v3.state.active = {};
+      rmAllPins();
+      p.querySelectorAll('.row').forEach(function(r){r.classList.remove('on');});
+      updateGo();
+    });
+
+    // Compare → dashboard
+    p.querySelector('.btn.p').addEventListener('click', function(){
+      if(Object.keys(v3.state.active).length === 0) return;
+      openDash();
+    });
+
+    return p;
+  }
+
+  function buildDash(){
+    if(v3.dash) return v3.dash;
+    var d = document.createElement('div');
+    d.id = 'cn-cmp-v3-dash';
+    d.innerHTML =
+      '<div class="h"><h2>Dashboard comparativo</h2>'
+      + '<button class="dmin" data-tip="Minimizar">_</button>'
+      + '<button class="dcl" data-tip="Cerrar">×</button></div>'
+      + '<div class="b">'
+      + '<div class="kpis"></div>'
+      + '<h3>Sucursales por marca</h3>'
+      + '<canvas id="cn-cmp-v3-bar" height="180"></canvas>'
+      + '<h3>Distribución</h3>'
+      + '<canvas id="cn-cmp-v3-donut" height="200"></canvas>'
+      + '</div>';
+    document.body.appendChild(d);
+    v3.dash = d;
+    d.querySelector('.dcl').addEventListener('click', function(){
+      d.classList.remove('show');
+    });
+    var minimized = false;
+    d.querySelector('.dmin').addEventListener('click', function(){
+      var b = d.querySelector('.b');
+      minimized = !minimized;
+      b.style.display = minimized ? 'none' : 'block';
+    });
+    // Drag
+    var head = d.querySelector('.h');
+    var drag = null;
+    head.addEventListener('pointerdown', function(ev){
+      if(ev.target.closest('button')) return;
+      var r = d.getBoundingClientRect();
+      drag = {x:ev.clientX, y:ev.clientY, l:r.left, t:r.top};
+      try{ head.setPointerCapture(ev.pointerId); }catch(_){}
+    });
+    head.addEventListener('pointermove', function(ev){
+      if(!drag) return;
+      d.style.left = Math.max(0, Math.min(window.innerWidth-100, drag.l + ev.clientX - drag.x)) + 'px';
+      d.style.top  = Math.max(0, Math.min(window.innerHeight-60, drag.t + ev.clientY - drag.y)) + 'px';
+      d.style.right = 'auto';
+    });
+    head.addEventListener('pointerup', function(ev){
+      try{ head.releasePointerCapture(ev.pointerId); }catch(_){}
+      drag = null;
+    });
+    return d;
+  }
+
+  function openDash(){
+    var d = buildDash();
+    var brands = Object.keys(v3.state.active);
+    if(brands.length === 0) return;
+    var totalSuc = brands.reduce(function(s,b){return s + v3.state.active[b].length;}, 0);
+    var sorted = brands.slice().sort(function(a,b){
+      return v3.state.active[b].length - v3.state.active[a].length;
+    });
+    var leader = sorted[0];
+    var avg = (totalSuc / brands.length).toFixed(1);
+    var leaderCount = v3.state.active[leader].length;
+
+    var kpis = d.querySelector('.kpis');
+    kpis.innerHTML =
+      '<div class="kpi"><div class="l">Marcas</div><div class="v">'+brands.length+'</div></div>'+
+      '<div class="kpi"><div class="l">Sucursales</div><div class="v">'+totalSuc+'</div></div>'+
+      '<div class="kpi"><div class="l">Líder</div><div class="v" style="font-size:13px">'+escHtml(leader)+'</div></div>'+
+      '<div class="kpi"><div class="l">Prom/marca</div><div class="v">'+avg+'</div></div>';
+
+    d.classList.add('show');
+
+    // Wait for canvas to be visible, then chart
+    setTimeout(function(){
+      if(typeof Chart === 'undefined'){
+        console.warn('[r24] Chart.js no disponible');
+        return;
+      }
+      // Destroy previous
+      if(v3.barChart) try{ v3.barChart.destroy(); }catch(_){}
+      if(v3.donutChart) try{ v3.donutChart.destroy(); }catch(_){}
+      var labels = sorted;
+      var counts = sorted.map(function(b){ return v3.state.active[b].length; });
+      var colors = sorted.map(function(b){ return colorFor(b); });
+
+      var barCtx = d.querySelector('#cn-cmp-v3-bar').getContext('2d');
+      v3.barChart = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Sucursales',
+            data: counts,
+            backgroundColor: colors,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { size: 10 }}, grid: { color: 'rgba(0,0,0,.05)' }},
+            y: { ticks: { font: { size: 10 }}, grid: { display: false }}
+          }
+        }
+      });
+
+      var donutCtx = d.querySelector('#cn-cmp-v3-donut').getContext('2d');
+      v3.donutChart = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: counts,
+            backgroundColor: colors,
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '60%',
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { font: { size: 10 }, padding: 8, boxWidth: 12 }
+            }
+          }
+        }
+      });
+    }, 100);
+  }
+
+  function showPanel(triggerEl){
+    var p = build();
+    p.classList.add('show');
+    var area = getArea();
+    if(area && (area.bounds || area.center)){
+      updateStatus(area.center ? 'Área: círculo de '+Math.round(area.radius)+' m' : 'Área: viewport actual', true);
+    } else {
+      updateStatus('Selecciona área (círculo, polígono, rectángulo) o haz zoom', false);
+    }
+    if(document.body.classList.contains('is-mobile-view')) return;
+    if(triggerEl){
+      var r = triggerEl.getBoundingClientRect();
+      var pw = 380;
+      p.style.position = 'fixed';
+      p.style.top = (r.bottom + 6) + 'px';
+      p.style.left = Math.max(10, Math.min(window.innerWidth - pw - 10, r.left + r.width/2 - pw/2)) + 'px';
+      p.style.transform = 'none';
+    }
+  }
+
+  function hookButtons(){
+    document.querySelectorAll('[data-cmp-entry="1"]').forEach(function(t){
+      if(t._r24) return;
+      t._r24 = true;
+      // Reemplazar handlers anteriores clonando
+      var clone = t.cloneNode(true);
+      t.parentNode.replaceChild(clone, t);
+      clone._r24 = true;
+      clone.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        showPanel(clone);
+      });
+    });
+  }
+
+  function start(){
+    fixPlaceholders();
+    hookButtons();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [600, 2500, 6000, 12000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
