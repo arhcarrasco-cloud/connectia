@@ -26698,6 +26698,242 @@ small,.sub,.subtitle,
 })();
 </script>
 
+<style id="connectia-round20-css">
+/* Sección Heatmaps por categoría POI dentro del panel de capas */
+#cn-poi-heatmaps{
+  position:fixed; top:64px; right:14px; z-index:9100;
+  width:280px; max-height:calc(100vh - 84px);
+  background:#fff; border-radius:14px;
+  border:1px solid rgba(60,60,67,.12);
+  box-shadow:0 12px 32px rgba(0,0,0,.10);
+  display:none; flex-direction:column; overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn-poi-heatmaps.show{ display:flex; }
+#cn-poi-heatmaps header{
+  padding:12px 14px;
+  background:radial-gradient(circle at 20% 50%, rgba(109,40,217,.16) 0%, rgba(236,72,153,.12) 50%, rgba(255,255,255,.96) 100%);
+  border-bottom:1px solid rgba(109,40,217,.18);
+  display:flex; justify-content:space-between; align-items:center;
+}
+#cn-poi-heatmaps header h3{ margin:0; font-size:13px; font-weight:700; color:#1d1d1f; }
+#cn-poi-heatmaps header button{
+  border:none; background:rgba(0,0,0,.08); width:24px; height:24px;
+  border-radius:50%; cursor:pointer; color:#1d1d1f; font-size:14px;
+}
+#cn-poi-heatmaps .body{ padding:10px; overflow-y:auto; flex:1; }
+#cn-poi-heatmaps .hint{
+  font-size:10px; color:#6e6e73; padding:6px 10px;
+  background:#fafafa; border-radius:6px; margin-bottom:8px; line-height:1.4;
+}
+#cn-poi-heatmaps .layer-row{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px; border-radius:8px; cursor:pointer;
+  font-size:12px; color:#1d1d1f;
+  transition:background .15s;
+  margin-bottom:2px;
+}
+#cn-poi-heatmaps .layer-row:hover{ background:#f8fafc; }
+#cn-poi-heatmaps .layer-row .ic{
+  font-family:'Material Icons Outlined';
+  font-size:16px; color:#5f6368; width:22px; text-align:center;
+}
+#cn-poi-heatmaps .layer-row .nm{ flex:1; }
+#cn-poi-heatmaps .layer-row input[type=checkbox]{ accent-color:#6D28D9; }
+#cn-poi-heatmaps .layer-row.loading .nm::after{
+  content:' …'; color:#6D28D9; font-style:italic;
+}
+#cn-poi-heatmaps .layer-row.active{
+  background:linear-gradient(135deg, #EDE9FE, #C4B5FD);
+}
+#cn-poi-heatmaps .layer-row.active .ic,
+#cn-poi-heatmaps .layer-row.active .nm{ color:#5B21B6; }
+#cn-poi-heatmaps-fab{
+  position:fixed; bottom:140px; right:18px; z-index:8999;
+  width:42px; height:42px; border-radius:50%; border:none;
+  background:#fff; color:#1d1d1f; cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,.14);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Material Icons Outlined'; font-size:20px;
+}
+.is-mobile-view #cn-poi-heatmaps-fab{
+  bottom:calc(180px + env(safe-area-inset-bottom,0px));
+  width:38px; height:38px; font-size:18px;
+}
+.is-mobile-view #cn-poi-heatmaps{
+  bottom:calc(56px + env(safe-area-inset-bottom,0px));
+  top:auto; left:8px; right:8px; width:auto;
+  max-height:60vh;
+}
+</style>
+<script id="connectia-round20-js">
+/* Round 20 — Heatmaps por categoría POI + NSE auto-fetch */
+(function(){
+
+  var POI_HEATMAP_LAYERS = [
+    {id:'retail',     label:'Retail',         icon:'storefront',          types:['supermarket','department_store','shopping_mall','convenience_store'], gradient:['rgba(109,40,217,0)','rgba(109,40,217,0.5)','#5B21B6','#3B0764']},
+    {id:'food_fast',  label:'Comida rápida',  icon:'fastfood',            types:['meal_takeaway','meal_delivery'],                                      gradient:['rgba(234,88,12,0)','rgba(234,88,12,0.5)','#dc2626','#7f1d1d']},
+    {id:'restaurant', label:'Restaurantes',   icon:'restaurant',          types:['restaurant'],                                                          gradient:['rgba(220,38,38,0)','rgba(220,38,38,0.5)','#991b1b','#450a0a']},
+    {id:'cafe',       label:'Cafeterías',     icon:'local_cafe',          types:['cafe','bakery'],                                                       gradient:['rgba(139,90,43,0)','rgba(139,90,43,0.5)','#7c2d12','#431407']},
+    {id:'gas',        label:'Gasolineras',    icon:'local_gas_station',   types:['gas_station'],                                                         gradient:['rgba(234,88,12,0)','rgba(234,88,12,0.5)','#c2410c','#7c2d12']},
+    {id:'bank',       label:'Bancos / ATM',   icon:'account_balance',     types:['bank','atm'],                                                          gradient:['rgba(30,64,175,0)','rgba(30,64,175,0.5)','#1e3a8a','#172554']},
+    {id:'pharmacy',   label:'Farmacias',      icon:'local_pharmacy',      types:['pharmacy'],                                                            gradient:['rgba(22,163,74,0)','rgba(22,163,74,0.5)','#15803d','#14532d']},
+    {id:'gym',        label:'Gimnasios',      icon:'fitness_center',      types:['gym'],                                                                 gradient:['rgba(147,51,234,0)','rgba(147,51,234,0.5)','#7e22ce','#3b0764']},
+    {id:'hotel',      label:'Hoteles',        icon:'hotel',               types:['lodging'],                                                             gradient:['rgba(236,72,153,0)','rgba(236,72,153,0.5)','#be185d','#500724']},
+    {id:'school',     label:'Escuelas',       icon:'school',              types:['school','university'],                                                 gradient:['rgba(8,145,178,0)','rgba(8,145,178,0.5)','#0e7490','#164e63']},
+    {id:'hospital',   label:'Hospitales',     icon:'local_hospital',      types:['hospital'],                                                            gradient:['rgba(220,38,38,0)','rgba(220,38,38,0.5)','#b91c1c','#7f1d1d']},
+  ];
+
+  var activeLayers = {};
+
+  function searchAndHeat(layer, callback){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.places || !google.maps.visualization){
+      callback(null, 'no-api'); return;
+    }
+    var bounds = window.map && window.map.getBounds();
+    if(!bounds){ callback(null, 'no-bounds'); return; }
+    var svc = new google.maps.places.PlacesService(window.map);
+    var allPoints = [];
+    var pendingTypes = layer.types.length;
+    layer.types.forEach(function(t){
+      svc.nearbySearch({bounds:bounds, type:t}, function(results, status){
+        pendingTypes--;
+        if(status === google.maps.places.PlacesServiceStatus.OK && results){
+          results.forEach(function(p){
+            if(p.geometry && p.geometry.location){
+              allPoints.push(p.geometry.location);
+            }
+          });
+        }
+        if(pendingTypes === 0){
+          if(allPoints.length === 0){ callback(null, 'empty'); return; }
+          var heat = new google.maps.visualization.HeatmapLayer({
+            data: allPoints,
+            map: window.map,
+            radius: 32,
+            opacity: 0.7,
+            gradient: layer.gradient
+          });
+          callback(heat, 'ok');
+        }
+      });
+    });
+  }
+
+  function toggleLayer(layer, rowEl){
+    if(activeLayers[layer.id]){
+      try{ activeLayers[layer.id].setMap(null); }catch(_){}
+      delete activeLayers[layer.id];
+      rowEl.classList.remove('active');
+      rowEl.classList.remove('loading');
+      var cb = rowEl.querySelector('input[type=checkbox]');
+      if(cb) cb.checked = false;
+      return;
+    }
+    rowEl.classList.add('loading');
+    searchAndHeat(layer, function(heat, status){
+      rowEl.classList.remove('loading');
+      if(!heat){
+        if(typeof window.connectiaToast === 'function')
+          window.connectiaToast('No se encontraron lugares de '+layer.label+' en el viewport ('+status+')', 3500);
+        var cb = rowEl.querySelector('input[type=checkbox]');
+        if(cb) cb.checked = false;
+        return;
+      }
+      activeLayers[layer.id] = heat;
+      rowEl.classList.add('active');
+      var cb = rowEl.querySelector('input[type=checkbox]');
+      if(cb) cb.checked = true;
+      if(typeof window.connectiaToast === 'function')
+        window.connectiaToast('Mapa de calor de '+layer.label+' activo', 2000);
+    });
+  }
+
+  function buildPanel(){
+    if(document.getElementById('cn-poi-heatmaps')) return;
+    var panel = document.createElement('div');
+    panel.id = 'cn-poi-heatmaps';
+    var html = '<header><h3>Mapas de calor por categoría</h3>'
+             + '<button class="close" data-tip="Cerrar">×</button></header>'
+             + '<div class="body">'
+             + '<div class="hint">Activa una categoría para ver su densidad como mapa de calor en el viewport actual. Reactiva al cambiar de zona.</div>';
+    POI_HEATMAP_LAYERS.forEach(function(l){
+      html += '<div class="layer-row" data-layer-id="'+l.id+'">'
+            + '<span class="ic">'+l.icon+'</span>'
+            + '<span class="nm">'+l.label+'</span>'
+            + '<input type="checkbox">'
+            + '</div>';
+    });
+    html += '</div>';
+    panel.innerHTML = html;
+    document.body.appendChild(panel);
+
+    panel.querySelector('header .close').addEventListener('click', function(){
+      panel.classList.remove('show');
+    });
+
+    POI_HEATMAP_LAYERS.forEach(function(layer){
+      var row = panel.querySelector('[data-layer-id="'+layer.id+'"]');
+      row.addEventListener('click', function(e){
+        if(e.target.tagName === 'INPUT') return; // checkbox handled below
+        toggleLayer(layer, row);
+      });
+      var cb = row.querySelector('input[type=checkbox]');
+      cb.addEventListener('change', function(){ toggleLayer(layer, row); });
+    });
+
+    // FAB para abrirlo
+    if(!document.getElementById('cn-poi-heatmaps-fab')){
+      var fab = document.createElement('button');
+      fab.id = 'cn-poi-heatmaps-fab';
+      fab.title = 'Mapas de calor por categoría';
+      fab.setAttribute('data-tip', 'Mapas de calor por categoría POI');
+      fab.textContent = 'whatshot';
+      fab.addEventListener('click', function(){ panel.classList.toggle('show'); });
+      document.body.appendChild(fab);
+    }
+  }
+
+  // ============================================================
+  // NSE: garantizar render de polígonos al activarse
+  // ============================================================
+  function patchNseToggle(){
+    var orig = window.toggleNSEOverlay;
+    if(typeof orig !== 'function' || orig._r20) return;
+    window.toggleNSEOverlay = function(){
+      var r = orig.apply(this, arguments);
+      try{
+        if(window.nseLayerActive){
+          // Forzar render de polígonos si no se dispararon
+          var z = (window.map && window.map.getZoom) ? window.map.getZoom() : 0;
+          if(z < 14){
+            if(typeof window.connectiaToast === 'function')
+              window.connectiaToast('NSE: acércate al mapa (zoom 14+) para ver polígonos por manzana INEGI', 5000);
+          } else {
+            if(typeof window.drawNSEGrid === 'function'){
+              setTimeout(function(){ try{ window.drawNSEGrid(); }catch(_){} }, 300);
+            }
+            if(typeof window.connectiaToast === 'function')
+              window.connectiaToast('NSE por manzana INEGI Censo 2020', 2000);
+          }
+        }
+      }catch(_){}
+      return r;
+    };
+    window.toggleNSEOverlay._r20 = true;
+  }
+
+  function start(){
+    buildPanel();
+    patchNseToggle();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [600, 2500, 6000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
