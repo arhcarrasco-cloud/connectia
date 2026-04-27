@@ -23943,6 +23943,98 @@ header.brand .ci-icon{
 })();
 </script>
 
+<style id="connectia-round9-css">
+/* Label de radio: estilo más prominente y siempre arriba */
+#live-radius-label{
+  z-index:10500 !important;
+  pointer-events:none !important;
+}
+#live-radius-label > div{
+  /* asegura buena lectura sobre cualquier mapa */
+  border:1.5px solid rgba(139,58,159,.45) !important;
+  background:rgba(255,255,255,.98) !important;
+}
+</style>
+<script id="connectia-round9-js">
+/* Round 9 — el label de km del círculo sigue al cursor en tiempo real,
+   tanto al dibujar como al redimensionar. Aditivo: wrap _positionRadiusLabel. */
+(function(){
+  // Tracker global de última posición del cursor (mouse o touch) sobre el mapa
+  var _last = {x:0, y:0, set:false};
+  function track(x, y){
+    _last.x = x; _last.y = y; _last.set = true;
+  }
+  function attachTrackers(){
+    if(window._radiusCursorTrackerAttached) return;
+    window._radiusCursorTrackerAttached = true;
+    var mapEl = document.getElementById('map');
+    if(!mapEl) return false;
+    mapEl.addEventListener('mousemove', function(e){ track(e.clientX, e.clientY); }, {passive:true});
+    mapEl.addEventListener('touchmove', function(e){
+      if(e.touches && e.touches[0]) track(e.touches[0].clientX, e.touches[0].clientY);
+    }, {passive:true});
+    mapEl.addEventListener('touchstart', function(e){
+      if(e.touches && e.touches[0]) track(e.touches[0].clientX, e.touches[0].clientY);
+    }, {passive:true});
+    return true;
+  }
+
+  function patchPosition(){
+    var orig = window._positionRadiusLabel;
+    if(typeof orig !== 'function' || orig._cursorFollow) return false;
+    window._positionRadiusLabel = function(){
+      var lbl = (typeof window._getRadiusLabel === 'function')
+        ? window._getRadiusLabel()
+        : document.getElementById('live-radius-label');
+      if(!lbl) return;
+      // Si ya tenemos una posición de cursor reciente, anclar ahí
+      if(_last.set){
+        // Medir tamaño del label para no salirse de pantalla
+        lbl.style.left = '-9999px';
+        lbl.style.top  = '-9999px';
+        lbl.style.display = 'block';
+        var w = lbl.offsetWidth || 200;
+        var h = lbl.offsetHeight || 40;
+        // Por defecto: arriba-derecha del cursor, con offset
+        var x = _last.x + 14;
+        var y = _last.y - h - 14;
+        // Si se sale por la derecha → poner a la izquierda
+        if(x + w > window.innerWidth - 8) x = _last.x - w - 14;
+        // Si se sale por arriba → poner debajo
+        if(y < 8) y = _last.y + 18;
+        // Clamp final
+        x = Math.max(6, Math.min(window.innerWidth - w - 6, x));
+        y = Math.max(6, Math.min(window.innerHeight - h - 6, y));
+        lbl.style.left = x + 'px';
+        lbl.style.top  = y + 'px';
+        return;
+      }
+      // Sin cursor conocido: usa lógica original (anclado a btn-circle)
+      try{ return orig.apply(this, arguments); }catch(_){}
+    };
+    window._positionRadiusLabel._cursorFollow = true;
+    window._positionRadiusLabel._origFn = orig;
+    return true;
+  }
+
+  function init(){
+    var ok1 = attachTrackers();
+    var ok2 = patchPosition();
+    return ok1 && ok2;
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  // Reintentos por si el #map o _positionRadiusLabel se definen después
+  setTimeout(init, 600);
+  setTimeout(init, 2000);
+  setTimeout(init, 5000);
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
