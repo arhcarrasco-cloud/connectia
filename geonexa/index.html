@@ -23518,6 +23518,431 @@ header.brand .ci-icon{
 })();
 </script>
 
+<style id="connectia-round8-css">
+/* === Active state: cuando un .tb queda en morado, texto/icono blanco === */
+.tb.active,
+.tb[aria-pressed="true"],
+.tb.is-active{
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
+  color:#fff !important;
+  border-color:transparent !important;
+}
+.tb.active .ci-icon,
+.tb[aria-pressed="true"] .ci-icon,
+.tb.is-active .ci-icon{ color:#fff !important; }
+.tb.active .tb-lbl,
+.tb[aria-pressed="true"] .tb-lbl,
+.tb.is-active .tb-lbl{ color:#fff !important; }
+.mob-tool.active,
+.mob-tool[aria-pressed="true"],
+.mob-tool.is-active{
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
+  color:#fff !important;
+}
+.mob-tool.active .ci-icon,
+.mob-tool[aria-pressed="true"] .ci-icon,
+.mob-tool.is-active .ci-icon,
+.mob-tool.active .tb-lbl,
+.mob-tool[aria-pressed="true"] .tb-lbl,
+.mob-tool.is-active .tb-lbl{ color:#fff !important; }
+.drawer-tool.active,
+.drawer-tool.is-active{
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
+  color:#fff !important;
+}
+.drawer-tool.active .ci-icon,
+.drawer-tool.is-active .ci-icon,
+.drawer-tool.active .tb-lbl,
+.drawer-tool.is-active .tb-lbl{ color:#fff !important; }
+
+/* === Comparativa: cambio de panel lateral a dropdown debajo del botón === */
+#cn-cmp-panel{
+  position:absolute !important;
+  top:auto !important;
+  right:auto !important;
+  width:340px;
+  max-height:480px;
+  border-radius:12px;
+  z-index:9200;
+}
+#cn-cmp-panel.dropdown-anchored{
+  /* Position is set via JS based on trigger */
+}
+.is-mobile-view #cn-cmp-panel{
+  position:fixed !important;
+  bottom:calc(56px + env(safe-area-inset-bottom,0px)) !important;
+  left:8px !important; right:8px !important;
+  width:auto !important; max-height:60vh !important;
+  border-radius:14px 14px 0 0 !important;
+}
+
+/* === Dashboard: cambiar de modal full-screen a panel lateral movible === */
+#cn-cmp-dash{
+  /* Anula modal background */
+  position:fixed !important;
+  top:80px !important; right:14px !important;
+  bottom:auto !important; left:auto !important;
+  width:420px !important; max-width:96vw !important;
+  max-height:calc(100vh - 100px);
+  background:transparent !important; backdrop-filter:none !important;
+  display:none !important; align-items:flex-start !important;
+  z-index:9300 !important;
+  pointer-events:none;
+}
+#cn-cmp-dash.show{ display:flex !important; }
+#cn-cmp-dash .dash-card{
+  width:100% !important; max-height:calc(100vh - 110px); margin:0 !important;
+  border-radius:14px !important;
+  pointer-events:auto;
+  position:relative;
+  padding:0 !important;
+  display:flex; flex-direction:column;
+  border:1px solid rgba(0,0,0,.08);
+}
+#cn-cmp-dash .dash-chrome{
+  display:flex; align-items:center; gap:6px;
+  padding:10px 12px; background:linear-gradient(135deg,#6D28D9,#8B3A9F);
+  color:#fff; cursor:grab; user-select:none;
+  border-radius:14px 14px 0 0;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn-cmp-dash .dash-chrome.dragging{ cursor:grabbing; }
+#cn-cmp-dash .dash-chrome .dc-grip{
+  width:16px; height:4px; background:rgba(255,255,255,.45);
+  border-radius:2px; margin-right:4px;
+}
+#cn-cmp-dash .dash-chrome .dc-title{
+  flex:1; font-size:12px; font-weight:700;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+#cn-cmp-dash .dash-chrome button{
+  width:24px; height:24px; border:none; background:rgba(255,255,255,.18);
+  color:#fff; border-radius:6px; cursor:pointer; font-size:14px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Material Icons Outlined';
+}
+#cn-cmp-dash .dash-chrome button:hover{ background:rgba(255,255,255,.32); }
+#cn-cmp-dash .dash-body{
+  padding:18px; overflow-y:auto; flex:1; background:#fff;
+  border-radius:0 0 14px 14px;
+}
+#cn-cmp-dash.minimized .dash-body{ display:none; }
+#cn-cmp-dash.minimized{
+  width:280px !important; height:auto !important;
+}
+#cn-cmp-dash.minimized .dash-card{ max-height:42px !important; }
+.is-mobile-view #cn-cmp-dash{
+  top:auto !important; bottom:calc(56px + env(safe-area-inset-bottom,0px)) !important;
+  right:0 !important; left:0 !important; width:100% !important;
+  max-height:75vh !important;
+}
+.is-mobile-view #cn-cmp-dash .dash-card{ border-radius:14px 14px 0 0 !important; }
+
+/* Drawer-tool active no debe perderse el ícono — usado para Comparativa toggle */
+.drawer-tool.is-active .ci-icon { color:#fff !important; }
+
+/* Compact label en .tb (cuando contiene ci-icon + tb-lbl) — texto chico debajo */
+.tb .ci-icon{ font-size:14px !important; line-height:1; display:block; margin:0 auto 2px; }
+.tb .tb-lbl{ font-size:9px !important; }
+</style>
+
+<script id="connectia-round8-js">
+/* ============================================================
+   ROUND 8 — Comparativa dropdown + pins por marca + dashboard movible
+============================================================ */
+(function(){
+
+  // ============================================================
+  // 1) Toolbar buttons: quitar abreviaturas, poner icono + texto
+  // ============================================================
+  var TB_REPLACE = {
+    'btn-report':       {icon:'assignment',          label:'Reporte'},
+    'btn-afluencia':    {icon:'directions_walk',     label:'Afluencia'},
+    'btn-nse-map':      {icon:'location_city',       label:'NSE'},
+    'btn-pop-heat':     {icon:'groups',              label:'Población'},
+    'btn-traffic-heat': {icon:'directions_car',      label:'Vehículos'}
+  };
+  function replaceTbAbbrevs(){
+    Object.keys(TB_REPLACE).forEach(function(id){
+      var btn = document.getElementById(id);
+      if(!btn || btn._iconRefined) return;
+      btn._iconRefined = true;
+      var def = TB_REPLACE[id];
+      var lbl = btn.querySelector('.tb-lbl');
+      var lblText = lbl ? lbl.textContent : def.label;
+      btn.innerHTML = '<span class="ci-icon">' + def.icon + '</span><span class="tb-lbl">' + lblText + '</span>';
+      // Reset font-size override que algunos botones tenían
+      btn.style.fontSize = '';
+      btn.style.fontWeight = '';
+    });
+
+    // CMP button (creado por Round 7) — también puede llegar con texto plano
+    var cmp = document.querySelector('#toolbar [data-cmp-entry="1"]');
+    if(cmp && !cmp._iconRefined){
+      cmp._iconRefined = true;
+      cmp.innerHTML = '<span class="ci-icon">compare_arrows</span><span class="tb-lbl">Comparar</span>';
+      cmp.style.fontSize = '';
+      cmp.style.fontWeight = '';
+    }
+  }
+
+  // ============================================================
+  // 2) Active state binding — observa cuando se toggle el panel/feature
+  //    correspondiente al botón y le pone .is-active
+  // ============================================================
+  var BTN_TO_PANEL = {
+    'btn-report':       'auto-report',
+    'btn-afluencia':    'afl-panel',
+    'btn-nse-map':      null,  // controlado por window.nseLayerActive
+    'btn-pop-heat':     null,  // window.popHeatmapActive
+    'btn-traffic-heat': null,  // window.trafficHeatActive
+    'btn-mobility':     null,  // window.mobilityActive
+    'btn-categories':   'places-menu',
+    'btn-layers':       'reports-layer-panel'
+  };
+  var BTN_TO_FLAG = {
+    'btn-nse-map':      'nseLayerActive',
+    'btn-pop-heat':     'popHeatmapActive',
+    'btn-traffic-heat': 'trafficHeatActive',
+    'btn-mobility':     'mobilityActive'
+  };
+  function syncActiveStates(){
+    Object.keys(BTN_TO_PANEL).forEach(function(id){
+      var btn = document.getElementById(id);
+      if(!btn) return;
+      var pid = BTN_TO_PANEL[id];
+      var flag = BTN_TO_FLAG[id];
+      var active = false;
+      if(pid){
+        var p = document.getElementById(pid);
+        active = p && getComputedStyle(p).display !== 'none';
+      } else if(flag){
+        active = !!window[flag];
+      }
+      btn.classList.toggle('is-active', !!active);
+    });
+  }
+
+  // ============================================================
+  // 3) Comparativa: dropdown debajo del botón (no panel lateral)
+  // ============================================================
+  function repositionCompareAsDropdown(){
+    var panel = document.getElementById('cn-cmp-panel');
+    if(!panel) return;
+    var trigger = document.querySelector('[data-cmp-entry="1"]')
+               || document.getElementById('cn-cmp-fab');
+    if(!trigger){
+      // Sin trigger conocido, dejar al centro
+      panel.style.left = '50%';
+      panel.style.top = '70px';
+      panel.style.transform = 'translateX(-50%)';
+      return;
+    }
+    if(document.body.classList.contains('is-mobile-view')) return; // mobile usa CSS bottom-sheet
+
+    var rect = trigger.getBoundingClientRect();
+    var pw = panel.offsetWidth || 340;
+    var left = Math.min(window.innerWidth - pw - 10, Math.max(10, rect.left + rect.width/2 - pw/2));
+    var top = rect.bottom + 6;
+    panel.style.left = left + 'px';
+    panel.style.top = top + 'px';
+    panel.style.transform = '';
+  }
+
+  // ============================================================
+  // 4) Pins en mapa por cada marca activa (con logo de marca)
+  // ============================================================
+  if(!window._cmpBrandMarkers) window._cmpBrandMarkers = {};
+
+  function addBrandPins(brand){
+    if(typeof google === 'undefined' || !google.maps) return;
+    if(window._cmpBrandMarkers[brand]) return;
+    var places = (window._cmpState && window._cmpState.activeBrands && window._cmpState.activeBrands[brand]) || [];
+    if(!places.length) return;
+    var markers = [];
+    places.forEach(function(p){
+      try{
+        var pos = p.geometry && p.geometry.location;
+        if(!pos) return;
+        var m = new google.maps.Marker({
+          position: pos,
+          map: window.map,
+          title: brand + ' — ' + (p.name || ''),
+          zIndex: 10000
+        });
+        // Reusar el sistema existente para ponerle logo
+        if(typeof window._trySetPlaceLogo === 'function'){
+          // Pasamos un place sintético para forzar lookup de brand logo
+          window._trySetPlaceLogo(m, {name: brand, types: p.types || []}, '#6D28D9');
+        }
+        markers.push(m);
+      }catch(e){}
+    });
+    window._cmpBrandMarkers[brand] = markers;
+  }
+  function removeBrandPins(brand){
+    var markers = window._cmpBrandMarkers[brand];
+    if(!markers) return;
+    markers.forEach(function(m){
+      try{
+        if(m._logoOverlay) m._logoOverlay.setMap(null);
+        m.setMap(null);
+      }catch(e){}
+    });
+    delete window._cmpBrandMarkers[brand];
+  }
+  function clearAllBrandPins(){
+    Object.keys(window._cmpBrandMarkers).forEach(removeBrandPins);
+  }
+
+  // Hook al toggle de marca: observar cambios en _cmpState.activeBrands
+  function patchBrandToggle(){
+    var panel = document.getElementById('cn-cmp-panel');
+    if(!panel || panel._brandToggleHooked) return;
+    panel._brandToggleHooked = true;
+    panel.addEventListener('click', function(ev){
+      var t = ev.target.closest('.brand-row .toggle');
+      if(!t) return;
+      var row = t.closest('.brand-row');
+      var brand = row && row.querySelector('.name') && row.querySelector('.name').textContent.trim();
+      if(!brand) return;
+      // El toggle ya cambió el state via Round 7 handler; verificar nuevo estado
+      setTimeout(function(){
+        if(row.classList.contains('on')) addBrandPins(brand);
+        else removeBrandPins(brand);
+      }, 20);
+    });
+    // Limpiar al cerrar
+    var origClose = panel.querySelector('header button');
+    if(origClose && !origClose._cleansPins){
+      origClose._cleansPins = true;
+      var prev = origClose.onclick;
+      origClose.addEventListener('click', function(){ /* keep pins; user may want to keep */ });
+    }
+    var clearBtn = panel.querySelector('#cn-cmp-clear');
+    if(clearBtn && !clearBtn._cleansPins){
+      clearBtn._cleansPins = true;
+      clearBtn.addEventListener('click', function(){ clearAllBrandPins(); });
+    }
+  }
+
+  // ============================================================
+  // 5) Dashboard: convertir modal a panel lateral con chrome (drag/min/close)
+  // ============================================================
+  function transformDashboard(){
+    var dash = document.getElementById('cn-cmp-dash');
+    if(!dash || dash._chromified) return;
+    dash._chromified = true;
+    var card = dash.querySelector('.dash-card');
+    if(!card) return;
+    // Wrap existing children in a body
+    var orig = Array.prototype.slice.call(card.children);
+    card.innerHTML = '';
+    var chrome = document.createElement('div');
+    chrome.className = 'dash-chrome';
+    chrome.innerHTML =
+      '<span class="dc-grip"></span>' +
+      '<span class="dc-title">Dashboard comparativo</span>' +
+      '<button class="dc-min" data-tip="Minimizar">remove</button>' +
+      '<button class="dc-close" data-tip="Cerrar">close</button>';
+    var body = document.createElement('div');
+    body.className = 'dash-body';
+    orig.forEach(function(el){ body.appendChild(el); });
+    card.appendChild(chrome);
+    card.appendChild(body);
+
+    chrome.querySelector('.dc-min').addEventListener('click', function(e){
+      e.stopPropagation();
+      dash.classList.toggle('minimized');
+    });
+    chrome.querySelector('.dc-close').addEventListener('click', function(e){
+      e.stopPropagation();
+      dash.classList.remove('show');
+      dash.classList.remove('minimized');
+    });
+
+    // Drag
+    var drag = null;
+    chrome.addEventListener('pointerdown', function(ev){
+      if(ev.target.closest('button')) return;
+      var rect = dash.getBoundingClientRect();
+      drag = {x:ev.clientX, y:ev.clientY, l:rect.left, t:rect.top};
+      try{ chrome.setPointerCapture(ev.pointerId); }catch(_){}
+      chrome.classList.add('dragging');
+    });
+    chrome.addEventListener('pointermove', function(ev){
+      if(!drag) return;
+      var nl = drag.l + (ev.clientX - drag.x);
+      var nt = drag.t + (ev.clientY - drag.y);
+      nl = Math.max(0, Math.min(window.innerWidth - 200, nl));
+      nt = Math.max(0, Math.min(window.innerHeight - 60, nt));
+      dash.style.left = nl + 'px';
+      dash.style.top = nt + 'px';
+      dash.style.right = 'auto';
+    });
+    function endDrag(ev){
+      if(!drag) return;
+      chrome.classList.remove('dragging');
+      try{ chrome.releasePointerCapture(ev.pointerId); }catch(_){}
+      drag = null;
+    }
+    chrome.addEventListener('pointerup', endDrag);
+    chrome.addEventListener('pointercancel', endDrag);
+
+    // Click outside should NOT close (we removed modal behavior). Only close button does.
+    dash.addEventListener('click', function(ev){
+      ev.stopPropagation();
+    });
+  }
+
+  // ============================================================
+  // 6) Auto-stack panels para que no se encimen al abrirse simultáneos
+  // ============================================================
+  var STACKABLE_IDS = ['afl-panel','auto-report','report-panel','global-filter-panel',
+                       'reports-layer-panel','places-menu','nse-layers-menu','cn-cmp-dash'];
+  function stackPanelsOnOpen(){
+    var visibleCount = 0;
+    STACKABLE_IDS.forEach(function(id){
+      var el = document.getElementById(id);
+      if(!el) return;
+      if(getComputedStyle(el).display === 'none') return;
+      // Reposiciona con offset de 30px por panel previo, manteniendo el right por default
+      if(!el._stackInited){
+        el._stackInited = true;
+        // Si el panel ya tiene posición fixed con right, agregar offset top
+        var current = parseFloat(getComputedStyle(el).top) || 60;
+        el.style.top = (current + visibleCount * 36) + 'px';
+      }
+      visibleCount++;
+    });
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function start(){
+    replaceTbAbbrevs();
+    syncActiveStates();
+    repositionCompareAsDropdown();
+    transformDashboard();
+    patchBrandToggle();
+  }
+  function startRetry(){
+    start();
+    [400, 1500, 4000, 9000].forEach(function(d){ setTimeout(start, d); });
+    // Repetir sync de active state cada 1s (cheap)
+    setInterval(syncActiveStates, 1200);
+    // Reposicionar dropdown al hacer resize
+    window.addEventListener('resize', repositionCompareAsDropdown);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', startRetry);
+  } else {
+    startRetry();
+  }
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
