@@ -25016,6 +25016,141 @@ small,.sub,.subtitle,
 })();
 </script>
 
+<script id="connectia-round14-js">
+/* Round 14 — Label de km anclado al CENTRO del círculo, en tiempo real */
+(function(){
+
+  function getProjection(){
+    if(typeof google === 'undefined' || !google.maps) return null;
+    if(!window._radiusPixelHelper){
+      try{
+        window._radiusPixelHelper = new google.maps.OverlayView();
+        window._radiusPixelHelper.draw = function(){};
+        window._radiusPixelHelper.setMap(window.map);
+      }catch(e){ return null; }
+    }
+    return window._radiusPixelHelper.getProjection();
+  }
+
+  function latLngToPixel(latLng){
+    if(!latLng) return null;
+    var proj = getProjection();
+    if(!proj) return null;
+    var px;
+    try{
+      px = proj.fromLatLngToContainerPixel(latLng);
+    }catch(_){ return null; }
+    if(!px) return null;
+    var mapDiv = window.map && window.map.getDiv && window.map.getDiv();
+    if(!mapDiv) return null;
+    var rect = mapDiv.getBoundingClientRect();
+    return {x: px.x + rect.left, y: px.y + rect.top};
+  }
+
+  function getActiveCenter(){
+    // 1) Durante draw inicial
+    if(window._circleLiveCenter){
+      var c = window._circleLiveCenter;
+      // Algunos casos pueden ser objetos LatLng o {lat, lng}
+      if(typeof c.lat === 'function') return c;
+      if(typeof c.lat === 'number' && typeof c.lng === 'number'){
+        try{ return new google.maps.LatLng(c.lat, c.lng); }catch(_){ return null; }
+      }
+      return null;
+    }
+    // 2) Círculo existente seleccionado
+    var ov = window.currentOverlay;
+    if(ov && typeof ov.getCenter === 'function' && typeof ov.getRadius === 'function'){
+      try{ return ov.getCenter(); }catch(_){}
+    }
+    return null;
+  }
+
+  function repositionAtCircleCenter(){
+    var lbl = document.getElementById('live-radius-label');
+    if(!lbl) return false;
+    if(getComputedStyle(lbl).display === 'none') return false;
+    var center = getActiveCenter();
+    if(!center) return false;
+    var px = latLngToPixel(center);
+    if(!px) return false;
+    // Medir
+    lbl.style.position = 'fixed';
+    lbl.style.zIndex = '99999';
+    var w = lbl.offsetWidth || 200;
+    var h = lbl.offsetHeight || 44;
+    // Centrar horizontalmente sobre el centro del círculo,
+    // verticalmente arriba del centro con un offset pequeño
+    var x = px.x - w / 2;
+    var y = px.y - h / 2;
+    // Clamp a viewport
+    x = Math.max(6, Math.min(window.innerWidth - w - 6, x));
+    y = Math.max(6, Math.min(window.innerHeight - h - 6, y));
+    lbl.style.left = x + 'px';
+    lbl.style.top  = y + 'px';
+    lbl.style.right  = 'auto';
+    lbl.style.bottom = 'auto';
+    return true;
+  }
+
+  // Override _positionRadiusLabel para que use el centro del círculo
+  function patchPosition(){
+    var orig = window._positionRadiusLabel;
+    if(typeof orig !== 'function' || orig._r14) return false;
+    window._positionRadiusLabel = function(){
+      if(repositionAtCircleCenter()) return;
+      // Sin centro accesible — fallback al original (que puede usar btn-circle)
+      if(typeof orig === 'function') return orig.apply(this, arguments);
+    };
+    window._positionRadiusLabel._r14 = true;
+    window._positionRadiusLabel._origFn = orig;
+    return true;
+  }
+
+  // Mantener el label sincronizado en cada frame mientras el draw está activo
+  // o el círculo existe. raf evita saltos.
+  var rafActive = false;
+  function rafLoop(){
+    if(!rafActive) return;
+    var lbl = document.getElementById('live-radius-label');
+    if(lbl && getComputedStyle(lbl).display !== 'none'){
+      repositionAtCircleCenter();
+    }
+    requestAnimationFrame(rafLoop);
+  }
+  function startRaf(){ if(!rafActive){ rafActive = true; rafLoop(); } }
+  function stopRaf(){ rafActive = false; }
+
+  function attachLifecycle(){
+    var mapEl = document.getElementById('map');
+    if(!mapEl || mapEl._r14Lifecycle) return false;
+    mapEl._r14Lifecycle = true;
+    // Iniciar raf cuando user empieza un draw o existe currentOverlay tipo círculo
+    function maybeStart(){
+      var lbl = document.getElementById('live-radius-label');
+      if(lbl && getComputedStyle(lbl).display !== 'none') startRaf();
+    }
+    // Ciclo de poll ligero: si el label aparece, arrancar raf
+    setInterval(function(){
+      var lbl = document.getElementById('live-radius-label');
+      if(!lbl){ stopRaf(); return; }
+      if(getComputedStyle(lbl).display === 'none'){ stopRaf(); }
+      else { startRaf(); }
+    }, 250);
+    return true;
+  }
+
+  function start(){
+    patchPosition();
+    attachLifecycle();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [600, 2000, 5000, 12000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
