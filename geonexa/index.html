@@ -22706,6 +22706,818 @@ header.brand .ci-icon{
 })();
 </script>
 
+<style id="connectia-round7-css">
+/* === Tooltip universal: dark gris obscuro, letras blancas === */
+#cn-tooltip{
+  position:fixed; pointer-events:none; z-index:99999;
+  background:#1f2937; color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:11px; font-weight:500;
+  padding:5px 9px; border-radius:5px;
+  box-shadow:0 4px 12px rgba(0,0,0,.25);
+  opacity:0; transform:translateY(-4px);
+  transition:opacity .12s ease, transform .12s ease;
+  white-space:nowrap; max-width:240px;
+  text-overflow:ellipsis; overflow:hidden;
+}
+#cn-tooltip.show{ opacity:1; transform:translateY(0); }
+#cn-tooltip::after{
+  content:''; position:absolute; bottom:-4px; left:50%;
+  transform:translateX(-50%); width:0; height:0;
+  border-left:5px solid transparent; border-right:5px solid transparent;
+  border-top:5px solid #1f2937;
+}
+#cn-tooltip.below::after{ top:-4px; bottom:auto; border-top:none; border-bottom:5px solid #1f2937; }
+
+/* === Heatmaps panel: quitar layer-toggle.disabled completamente === */
+#cn-layers-panel .layer-toggle.disabled{ display:none !important; }
+#cn-layers-panel .group:has(.layer-toggle.disabled:only-child){ display:none; }
+
+/* === Comparativa panel === */
+#cn-cmp-panel{
+  position:fixed; top:64px; right:14px; z-index:9100;
+  width:340px; max-height:calc(100vh - 84px);
+  background:#fff; border-radius:14px;
+  box-shadow:0 12px 36px rgba(0,0,0,.18);
+  display:none; flex-direction:column; overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn-cmp-panel.show{ display:flex; }
+#cn-cmp-panel header{
+  padding:12px 14px;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F);
+  color:#fff; display:flex; justify-content:space-between; align-items:center;
+}
+#cn-cmp-panel header h3{ margin:0; font-size:13px; font-weight:700; }
+#cn-cmp-panel header button{
+  border:none; background:rgba(255,255,255,.18); color:#fff;
+  width:24px; height:24px; border-radius:6px; cursor:pointer; font-size:14px;
+}
+#cn-cmp-panel .body{ padding:12px; overflow-y:auto; flex:1; }
+#cn-cmp-panel .area-status{
+  padding:8px 10px; background:#fef3c7; color:#92400e;
+  border-radius:8px; font-size:11px; margin-bottom:10px;
+}
+#cn-cmp-panel .area-status.ok{ background:#dcfce7; color:#166534; }
+#cn-cmp-panel .search-row{
+  display:flex; gap:6px; margin-bottom:10px;
+}
+#cn-cmp-panel .search-row input{
+  flex:1; padding:8px 10px; border:1px solid #e2e8f0;
+  border-radius:8px; font-size:12px; background:#f8fafc;
+}
+#cn-cmp-panel .search-row input:focus{
+  outline:none; border-color:#6D28D9; background:#fff;
+}
+#cn-cmp-panel .cat-chips{
+  display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px;
+}
+#cn-cmp-panel .cat-chip{
+  padding:5px 10px; border:1px solid #e9d5ff; border-radius:14px;
+  background:#fff; color:#1d1d1f; font-size:11px; cursor:pointer;
+  font-family:inherit;
+}
+#cn-cmp-panel .cat-chip.active{
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F); color:#fff;
+  border-color:transparent;
+}
+#cn-cmp-panel .cat-chip:hover:not(.active){ background:#faf5ff; }
+#cn-cmp-panel .brand-list{
+  border:1px solid #e2e8f0; border-radius:10px;
+  max-height:240px; overflow-y:auto; margin-bottom:10px;
+}
+#cn-cmp-panel .brand-list:empty::before{
+  content:'Selecciona una categoría o busca una marca'; display:block;
+  padding:20px; text-align:center; color:#94a3b8; font-size:11px;
+}
+#cn-cmp-panel .brand-row{
+  display:flex; align-items:center; gap:8px; padding:8px 10px;
+  border-bottom:1px solid #f1f5f9; font-size:12px;
+}
+#cn-cmp-panel .brand-row:last-child{ border-bottom:none; }
+#cn-cmp-panel .brand-row .name{ flex:1; color:#1d1d1f; }
+#cn-cmp-panel .brand-row .count{ color:#64748b; font-size:10px; }
+#cn-cmp-panel .brand-row .toggle{
+  position:relative; width:36px; height:20px;
+  background:#e2e8f0; border-radius:10px; cursor:pointer;
+  transition:background .15s;
+}
+#cn-cmp-panel .brand-row .toggle::after{
+  content:''; position:absolute; top:2px; left:2px;
+  width:16px; height:16px; background:#fff; border-radius:50%;
+  transition:left .15s;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+#cn-cmp-panel .brand-row.on .toggle{ background:#6D28D9; }
+#cn-cmp-panel .brand-row.on .toggle::after{ left:18px; }
+#cn-cmp-panel .actions{
+  display:flex; gap:6px; margin-top:8px;
+}
+#cn-cmp-panel .btn{
+  padding:8px 12px; border:none; border-radius:8px;
+  cursor:pointer; font-size:11px; font-weight:600; font-family:inherit;
+}
+#cn-cmp-panel .btn.primary{
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F); color:#fff;
+  flex:1;
+}
+#cn-cmp-panel .btn.alt{
+  background:#fff; color:#6D28D9; border:1px solid #e9d5ff;
+}
+
+/* Dashboard modal */
+#cn-cmp-dash{
+  position:fixed; inset:0; z-index:11000; display:none;
+  background:rgba(0,0,0,.5); backdrop-filter:blur(8px);
+  align-items:center; justify-content:center;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn-cmp-dash.show{ display:flex; }
+#cn-cmp-dash .dash-card{
+  background:#fff; border-radius:18px;
+  width:min(720px, 96vw); max-height:92vh; overflow-y:auto;
+  padding:24px; box-shadow:0 24px 60px rgba(0,0,0,.32);
+}
+#cn-cmp-dash header{
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:6px;
+}
+#cn-cmp-dash header h2{
+  margin:0; font-size:18px; font-weight:700;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+#cn-cmp-dash header button{
+  border:none; background:#f1f5f9; width:30px; height:30px;
+  border-radius:8px; cursor:pointer; font-size:16px;
+}
+#cn-cmp-dash .sub{ font-size:12px; color:#64748b; margin-bottom:18px; }
+#cn-cmp-dash .kpi-row{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:8px; margin-bottom:18px;
+}
+#cn-cmp-dash .kpi{
+  background:#faf5ff; border:1px solid #e9d5ff; border-radius:10px;
+  padding:10px 12px;
+}
+#cn-cmp-dash .kpi .l{
+  font-size:9px; color:#6D28D9; font-weight:700;
+  text-transform:uppercase; letter-spacing:.4px;
+}
+#cn-cmp-dash .kpi .v{
+  font-size:20px; font-weight:800; color:#1d1d1f; margin-top:4px;
+}
+#cn-cmp-dash .chart-section{ margin-bottom:18px; }
+#cn-cmp-dash .chart-section h3{
+  font-size:11px; font-weight:700; color:#475569;
+  text-transform:uppercase; letter-spacing:.4px; margin:0 0 8px;
+}
+#cn-cmp-dash .bar-chart{ display:flex; flex-direction:column; gap:4px; }
+#cn-cmp-dash .bar-row{
+  display:flex; align-items:center; gap:8px; font-size:11px;
+}
+#cn-cmp-dash .bar-row .lbl{ width:120px; color:#1d1d1f; font-weight:500; flex-shrink:0; }
+#cn-cmp-dash .bar-row .bar{
+  flex:1; height:20px; background:#f1f5f9; border-radius:4px; overflow:hidden;
+  position:relative;
+}
+#cn-cmp-dash .bar-row .bar-fill{
+  height:100%; border-radius:4px; transition:width .35s ease;
+}
+#cn-cmp-dash .bar-row .num{
+  width:36px; text-align:right; color:#475569; font-weight:600; flex-shrink:0;
+}
+#cn-cmp-dash .donut-row{
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+}
+#cn-cmp-dash .donut{
+  width:160px; height:160px; flex-shrink:0;
+}
+#cn-cmp-dash .donut-legend{
+  flex:1; min-width:160px;
+}
+#cn-cmp-dash .donut-legend .leg-row{
+  display:flex; align-items:center; gap:6px; margin:3px 0; font-size:11px;
+}
+#cn-cmp-dash .donut-legend .leg-row .dot{
+  width:10px; height:10px; border-radius:50%; flex-shrink:0;
+}
+#cn-cmp-dash .donut-legend .leg-row .name{ flex:1; color:#1d1d1f; }
+#cn-cmp-dash .donut-legend .leg-row .pct{ color:#64748b; font-size:10px; }
+</style>
+
+<script id="connectia-round7-js">
+/* ============================================================
+   ROUND 7 — Tooltips + Comparativa + Heatmaps cleanup
+============================================================ */
+(function(){
+
+  // ============================================================
+  // 1) TOOLTIPS UNIVERSALES — dark, sobre cualquier botón con title/data-tip
+  // ============================================================
+  function setupTooltips(){
+    if(window._tooltipReady) return;
+    window._tooltipReady = true;
+
+    // Skip on touch devices (no hover) — mobile already has long-press for native title
+    if(('ontouchstart' in window) && window.innerWidth < 1024) return;
+
+    var tip = document.createElement('div');
+    tip.id = 'cn-tooltip';
+    document.body.appendChild(tip);
+
+    var hideTimer = null, showTimer = null;
+    function show(text, x, y, prefBelow){
+      clearTimeout(hideTimer);
+      tip.textContent = text;
+      tip.classList.toggle('below', !!prefBelow);
+      var rect = tip.getBoundingClientRect();
+      // re-measure with text set
+      requestAnimationFrame(function(){
+        var w = tip.offsetWidth, h = tip.offsetHeight;
+        var px = Math.max(6, Math.min(window.innerWidth - w - 6, x - w/2));
+        var py = prefBelow ? (y + 12) : (y - h - 12);
+        tip.style.left = px + 'px';
+        tip.style.top  = py + 'px';
+        tip.classList.add('show');
+      });
+    }
+    function hide(){
+      clearTimeout(showTimer);
+      tip.classList.remove('show');
+    }
+
+    function getLabel(el){
+      // priority: data-tip > aria-label > title > text content of small span
+      var t = el.getAttribute('data-tip')
+           || el.getAttribute('aria-label')
+           || el.getAttribute('title');
+      if(!t){
+        // try inner .tb-lbl text or own clean text
+        var lbl = el.querySelector && el.querySelector('.tb-lbl');
+        if(lbl) t = lbl.textContent.trim();
+      }
+      return t ? t.trim() : '';
+    }
+
+    function isInteractive(el){
+      if(!el || el.nodeType !== 1) return null;
+      // Walk up a few levels looking for interactive
+      var cur = el;
+      for(var i=0; i<5 && cur; i++){
+        var tag = cur.tagName;
+        if(tag === 'BUTTON' || tag === 'A' || cur.getAttribute('role') === 'button') return cur;
+        if(cur.hasAttribute && (cur.hasAttribute('data-tip') || cur.hasAttribute('title'))) return cur;
+        cur = cur.parentNode;
+      }
+      return null;
+    }
+
+    document.addEventListener('mouseover', function(ev){
+      var el = isInteractive(ev.target);
+      if(!el) return;
+      var text = getLabel(el);
+      if(!text || text.length < 2) return;
+      // Suprimir el tooltip nativo del browser para que no se duplique
+      if(el.hasAttribute('title') && !el.hasAttribute('data-orig-title')){
+        el.setAttribute('data-orig-title', el.getAttribute('title'));
+        el.removeAttribute('title');
+      }
+      var rect = el.getBoundingClientRect();
+      var x = rect.left + rect.width/2;
+      var y = rect.top;
+      var prefBelow = (y < 50);
+      clearTimeout(showTimer);
+      showTimer = setTimeout(function(){ show(text, x, prefBelow ? rect.bottom : y, prefBelow); }, 250);
+    }, true);
+
+    document.addEventListener('mouseout', function(ev){
+      var el = isInteractive(ev.target);
+      if(!el) return;
+      // Restaurar title nativo si lo habíamos guardado (por si otros tooltips lo necesitan)
+      if(el.hasAttribute('data-orig-title')){
+        el.setAttribute('title', el.getAttribute('data-orig-title'));
+        el.removeAttribute('data-orig-title');
+      }
+      hideTimer = setTimeout(hide, 60);
+    }, true);
+
+    document.addEventListener('mousedown', hide, true);
+    document.addEventListener('scroll', hide, true);
+  }
+
+  // ============================================================
+  // 2) HEATMAPS CLEANUP — quitar grupos de "Pronto"
+  // ============================================================
+  function cleanupHeatmapPanel(){
+    var panel = document.getElementById('cn-layers-panel');
+    if(!panel) return;
+    // Quitar groups que solo tenían disabled/Pronto
+    panel.querySelectorAll('.group').forEach(function(g){
+      var enabled = g.querySelectorAll('.layer-toggle:not(.disabled)');
+      if(enabled.length === 0) g.remove();
+    });
+  }
+
+  // ============================================================
+  // 3) COMPARATIVA — panel + dashboard
+  // ============================================================
+  var COMPARE_CATEGORIES = [
+    {id:'retail',     label:'Retail',           types:['supermarket','department_store','shopping_mall','convenience_store']},
+    {id:'food_fast',  label:'Comida rápida',    types:['meal_takeaway','meal_delivery'], keywords:['mcdonalds','burger king','kfc','subway','dominos','pizza hut','starbucks','little caesars']},
+    {id:'restaurant', label:'Restaurantes',     types:['restaurant']},
+    {id:'cafe',       label:'Cafeterías',       types:['cafe','bakery']},
+    {id:'bar',        label:'Bares',            types:['bar','night_club']},
+    {id:'gas',        label:'Gasolineras',      types:['gas_station']},
+    {id:'bank',       label:'Bancos / ATM',     types:['bank','atm']},
+    {id:'pharmacy',   label:'Farmacias',        types:['pharmacy']},
+    {id:'hospital',   label:'Hospitales',       types:['hospital','doctor']},
+    {id:'gym',        label:'Gimnasios',        types:['gym']},
+    {id:'hotel',      label:'Hoteles',          types:['lodging']},
+    {id:'auto',       label:'Auto / Servicios', types:['car_repair','car_wash','car_dealer','car_rental']},
+    {id:'beauty',     label:'Belleza / Spa',    types:['beauty_salon','hair_care','spa']},
+  ];
+
+  /* Normalizar nombre a marca canónica */
+  function normalizeBrand(name){
+    if(!name) return 'Otro';
+    var s = name.toString().trim().toLowerCase();
+    // Mapeos comunes en MX
+    var rules = [
+      [/walmart\s*express|walmart\s*supercenter|walmart\b/, 'Walmart'],
+      [/sam'?s\s*club/, "Sam's Club"],
+      [/bodega\s*aurrera|aurrera/, 'Bodega Aurrera'],
+      [/soriana(\s*super|\s*hiper|\s*mercado)?/, 'Soriana'],
+      [/chedraui/, 'Chedraui'],
+      [/heb\b|h-?e-?b/, 'HEB'],
+      [/costco/, 'Costco'],
+      [/oxxo/, 'OXXO'],
+      [/7[\s\-]?eleven|7eleven/, '7-Eleven'],
+      [/circle\s*k/, 'Circle K'],
+      [/extra\b/, 'Extra'],
+      [/seven/, '7-Eleven'],
+      [/k\s*\b|kiosko/, 'Kiosko'],
+      [/farmacias\s*del\s*ahorro|del\s*ahorro/, 'Farmacias del Ahorro'],
+      [/farmacias\s*similares|similares/, 'Farmacias Similares'],
+      [/farmacias?\s*benavides|benavides/, 'Farmacias Benavides'],
+      [/farmacias?\s*guadalajara/, 'Farmacias Guadalajara'],
+      [/san\s*pablo/, 'Farmacia San Pablo'],
+      [/mcdonal[d']?s|mc\s*donald/, "McDonald's"],
+      [/burger\s*king|bk\b/, 'Burger King'],
+      [/kfc|kentucky/, 'KFC'],
+      [/subway/, 'Subway'],
+      [/domino[\s'\-]?s|dominos/, "Domino's Pizza"],
+      [/pizza\s*hut/, 'Pizza Hut'],
+      [/little\s*caesars/, 'Little Caesars'],
+      [/starbucks/, 'Starbucks'],
+      [/cielito\s*querido|cielito/, 'Cielito Querido Café'],
+      [/the\s*italian\s*coffee/, 'The Italian Coffee'],
+      [/punta\s*del\s*cielo/, 'Punta del Cielo'],
+      [/banamex|citibanamex/, 'Citibanamex'],
+      [/banorte/, 'Banorte'],
+      [/bbva|bancomer/, 'BBVA'],
+      [/santander/, 'Santander'],
+      [/hsbc/, 'HSBC'],
+      [/scotiabank/, 'Scotiabank'],
+      [/inbursa/, 'Inbursa'],
+      [/azteca/, 'Banco Azteca'],
+      [/pemex/, 'Pemex'],
+      [/shell/, 'Shell'],
+      [/bp\b/, 'BP'],
+      [/mobil/, 'Mobil'],
+      [/g500|g\s*500/, 'G500'],
+      [/orsan/, 'Orsan'],
+      [/sanborns/, 'Sanborns'],
+      [/liverpool/, 'Liverpool'],
+      [/palacio\s*de\s*hierro/, 'Palacio de Hierro'],
+      [/suburbia/, 'Suburbia'],
+      [/coppel/, 'Coppel'],
+      [/elektra/, 'Elektra'],
+      [/best\s*buy/, 'Best Buy'],
+      [/home\s*depot/, 'Home Depot'],
+      [/cinepolis/, 'Cinépolis'],
+      [/cinemex/, 'Cinemex'],
+      [/holiday\s*inn/, 'Holiday Inn'],
+      [/city\s*express/, 'City Express'],
+      [/marriott/, 'Marriott'],
+      [/hilton/, 'Hilton'],
+      [/smartfit|smart\s*fit/, 'Smart Fit'],
+      [/sport\s*world|sportsworld/, 'Sports World'],
+    ];
+    for(var i=0; i<rules.length; i++){
+      if(rules[i][0].test(s)) return rules[i][1];
+    }
+    // Limpieza genérica: capitalizar palabras, quitar números/sufijos
+    var cleaned = name.toString().trim()
+      .replace(/\s+(suc(ursal)?|store|tienda|#?\d+).*$/i, '')
+      .replace(/\s+/g, ' ');
+    // Capitalize words
+    cleaned = cleaned.split(' ').map(function(w){
+      return w.charAt(0).toUpperCase() + w.substring(1).toLowerCase();
+    }).join(' ');
+    return cleaned;
+  }
+
+  /* Paleta de colores para charts (no emoji) */
+  var CHART_COLORS = ['#6D28D9','#8B3A9F','#dc2626','#ea580c','#eab308','#16a34a','#0891b2','#1e40af','#9333ea','#db2777','#7c2d12','#737373'];
+
+  var _cmpState = {
+    activeBrands: {},   // brandName → place[]  (currently selected ON)
+    allBrands: {},      // brandName → place[]  (all results)
+    lastCategory: null,
+    lastQuery: ''
+  };
+
+  function getActiveArea(){
+    // Try currentOverlay (selection circle/polygon/rect) first
+    if(typeof window.currentOverlay !== 'undefined' && window.currentOverlay){
+      var o = window.currentOverlay;
+      try{
+        if(typeof o.getBounds === 'function') return {bounds:o.getBounds()};
+        if(typeof o.getCenter === 'function' && typeof o.getRadius === 'function'){
+          return {center:o.getCenter(), radius:o.getRadius()};
+        }
+      }catch(_){}
+    }
+    // Fallback: viewport actual
+    try{
+      var b = window.map && window.map.getBounds();
+      if(b) return {bounds:b};
+    }catch(_){}
+    return null;
+  }
+
+  function searchPlaces(category, query, callback){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.places){
+      callback([]); return;
+    }
+    var area = getActiveArea();
+    if(!area){ callback([], 'no-area'); return; }
+    var svc = new google.maps.places.PlacesService(window.map);
+    var req = {};
+    if(area.bounds) req.bounds = area.bounds;
+    else if(area.center && area.radius){ req.location = area.center; req.radius = area.radius; }
+    if(category && category.types && category.types.length){
+      req.type = category.types[0]; // Places API only supports one type
+    }
+    if(query) req.keyword = query;
+    else if(category && category.keywords) req.keyword = category.keywords.join(' ');
+    var allResults = [];
+    function done(){
+      callback(allResults);
+    }
+    svc.nearbySearch(req, function(results, status){
+      if(status === google.maps.places.PlacesServiceStatus.OK && results){
+        allResults = allResults.concat(results);
+      }
+      done();
+    });
+  }
+
+  function groupByBrand(places){
+    var map = {};
+    places.forEach(function(p){
+      var brand = normalizeBrand(p.name);
+      if(!map[brand]) map[brand] = [];
+      map[brand].push(p);
+    });
+    return map;
+  }
+
+  function renderBrandList(){
+    var list = document.querySelector('#cn-cmp-panel .brand-list');
+    if(!list) return;
+    list.innerHTML = '';
+    var brands = Object.keys(_cmpState.allBrands).sort(function(a,b){
+      return _cmpState.allBrands[b].length - _cmpState.allBrands[a].length;
+    });
+    if(brands.length === 0){
+      return; // shows ::before placeholder
+    }
+    brands.forEach(function(b){
+      var n = _cmpState.allBrands[b].length;
+      var on = !!_cmpState.activeBrands[b];
+      var row = document.createElement('div');
+      row.className = 'brand-row' + (on ? ' on' : '');
+      row.innerHTML = '<span class="name">'+b+'</span>'
+                    + '<span class="count">'+n+' suc.</span>'
+                    + '<div class="toggle" data-tip="Activar para incluir en comparación"></div>';
+      row.querySelector('.toggle').addEventListener('click', function(){
+        if(_cmpState.activeBrands[b]){
+          delete _cmpState.activeBrands[b];
+          row.classList.remove('on');
+        } else {
+          _cmpState.activeBrands[b] = _cmpState.allBrands[b];
+          row.classList.add('on');
+        }
+        updateCompareBtn();
+      });
+      list.appendChild(row);
+    });
+  }
+
+  function updateCompareBtn(){
+    var btn = document.querySelector('#cn-cmp-panel .btn-compare');
+    if(!btn) return;
+    var n = Object.keys(_cmpState.activeBrands).length;
+    btn.textContent = n > 0 ? ('Comparar ' + n + ' marca' + (n>1?'s':'')) : 'Selecciona marcas para comparar';
+    btn.disabled = (n === 0);
+    btn.style.opacity = n === 0 ? '0.5' : '1';
+  }
+
+  function buildComparePanel(){
+    if(document.getElementById('cn-cmp-panel')) return;
+    var panel = document.createElement('div');
+    panel.id = 'cn-cmp-panel';
+    var html = '<header><h3>Comparativa de marcas</h3>'
+             + '<button onclick="document.getElementById(\'cn-cmp-panel\').classList.remove(\'show\')" data-tip="Cerrar">×</button>'
+             + '</header><div class="body">'
+             + '<div class="area-status" id="cn-cmp-area">Verificando área seleccionada…</div>'
+             + '<div class="search-row">'
+             +   '<input type="text" id="cn-cmp-search" placeholder="Buscar marca o palabra (ej: starbucks)">'
+             + '</div>'
+             + '<div class="cat-chips" id="cn-cmp-cats">';
+    COMPARE_CATEGORIES.forEach(function(c){
+      html += '<button class="cat-chip" data-cat="'+c.id+'" data-tip="Cargar marcas de '+c.label+' en el área">'+c.label+'</button>';
+    });
+    html += '</div>'
+          + '<div class="brand-list"></div>'
+          + '<div class="actions">'
+          +   '<button class="btn primary btn-compare" data-tip="Generar dashboard de comparación">Selecciona marcas para comparar</button>'
+          +   '<button class="btn alt" id="cn-cmp-clear" data-tip="Limpiar selección">Limpiar</button>'
+          + '</div></div>';
+    panel.innerHTML = html;
+    document.body.appendChild(panel);
+
+    // Update area status when panel opens
+    function refreshArea(){
+      var status = panel.querySelector('#cn-cmp-area');
+      var area = getActiveArea();
+      if(area && (area.bounds || area.center)){
+        status.textContent = area.center ? ('Área: círculo de ' + Math.round(area.radius) + ' m') : 'Área: viewport actual';
+        status.classList.add('ok');
+      } else {
+        status.textContent = 'Selecciona un área (círculo, polígono o rectángulo) o haz zoom al área de interés';
+        status.classList.remove('ok');
+      }
+    }
+
+    // Search input
+    var searchInp = panel.querySelector('#cn-cmp-search');
+    var searchTimer = null;
+    searchInp.addEventListener('input', function(){
+      var q = searchInp.value.trim();
+      _cmpState.lastQuery = q;
+      clearTimeout(searchTimer);
+      if(q.length < 2){ return; }
+      searchTimer = setTimeout(function(){
+        // deselect chip
+        panel.querySelectorAll('.cat-chip').forEach(function(c){ c.classList.remove('active'); });
+        _cmpState.lastCategory = null;
+        var status = panel.querySelector('#cn-cmp-area');
+        var origText = status.textContent;
+        status.textContent = 'Buscando "'+q+'" en el área…';
+        searchPlaces(null, q, function(places){
+          _cmpState.allBrands = groupByBrand(places);
+          renderBrandList();
+          status.textContent = places.length + ' resultados — ' + Object.keys(_cmpState.allBrands).length + ' marcas';
+        });
+      }, 400);
+    });
+
+    // Category chips
+    panel.querySelectorAll('.cat-chip').forEach(function(c){
+      c.addEventListener('click', function(){
+        var catId = c.dataset.cat;
+        var category = COMPARE_CATEGORIES.find(function(x){return x.id===catId;});
+        panel.querySelectorAll('.cat-chip').forEach(function(x){x.classList.remove('active');});
+        c.classList.add('active');
+        _cmpState.lastCategory = catId;
+        var status = panel.querySelector('#cn-cmp-area');
+        status.textContent = 'Cargando ' + category.label + '…';
+        searchPlaces(category, '', function(places){
+          _cmpState.allBrands = groupByBrand(places);
+          _cmpState.activeBrands = {};
+          renderBrandList();
+          updateCompareBtn();
+          status.textContent = places.length + ' lugares — ' + Object.keys(_cmpState.allBrands).length + ' marcas distintas';
+        });
+      });
+    });
+
+    // Compare button
+    panel.querySelector('.btn-compare').addEventListener('click', function(){
+      if(Object.keys(_cmpState.activeBrands).length === 0) return;
+      openDashboard();
+    });
+
+    // Clear
+    panel.querySelector('#cn-cmp-clear').addEventListener('click', function(){
+      _cmpState.activeBrands = {};
+      panel.querySelectorAll('.brand-row').forEach(function(r){r.classList.remove('on');});
+      updateCompareBtn();
+    });
+
+    // Refresh area on open
+    var origObs = new MutationObserver(function(){
+      if(panel.classList.contains('show')) refreshArea();
+    });
+    origObs.observe(panel, {attributes:true, attributeFilter:['class']});
+  }
+
+  function buildDashboard(){
+    if(document.getElementById('cn-cmp-dash')) return;
+    var dash = document.createElement('div');
+    dash.id = 'cn-cmp-dash';
+    dash.innerHTML =
+      '<div class="dash-card">' +
+        '<header>' +
+          '<h2>Dashboard comparativo</h2>' +
+          '<button id="cn-cmp-dash-close" data-tip="Cerrar">×</button>' +
+        '</header>' +
+        '<div class="sub" id="cn-cmp-dash-sub"></div>' +
+        '<div class="kpi-row" id="cn-cmp-dash-kpis"></div>' +
+        '<div class="chart-section">' +
+          '<h3>Sucursales por marca</h3>' +
+          '<div class="bar-chart" id="cn-cmp-dash-bars"></div>' +
+        '</div>' +
+        '<div class="chart-section">' +
+          '<h3>Distribución (donut)</h3>' +
+          '<div class="donut-row">' +
+            '<svg class="donut" id="cn-cmp-dash-donut" viewBox="0 0 42 42"></svg>' +
+            '<div class="donut-legend" id="cn-cmp-dash-legend"></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(dash);
+    dash.addEventListener('click', function(ev){
+      if(ev.target === dash || ev.target.id === 'cn-cmp-dash-close'){
+        dash.classList.remove('show');
+      }
+    });
+  }
+
+  function openDashboard(){
+    buildDashboard();
+    var dash = document.getElementById('cn-cmp-dash');
+    var brands = Object.keys(_cmpState.activeBrands);
+    if(brands.length === 0) return;
+
+    var totalSuc = brands.reduce(function(s,b){return s + _cmpState.activeBrands[b].length;}, 0);
+    var area = getActiveArea();
+    var areaTxt = area && area.center ? ('círculo de ' + Math.round(area.radius) + ' m') : 'viewport actual';
+
+    document.getElementById('cn-cmp-dash-sub').textContent =
+      brands.length + ' marcas · ' + totalSuc + ' sucursales · área: ' + areaTxt;
+
+    // KPIs
+    var leaderBrand = brands.slice().sort(function(a,b){
+      return _cmpState.activeBrands[b].length - _cmpState.activeBrands[a].length;
+    })[0];
+    var leaderCount = _cmpState.activeBrands[leaderBrand].length;
+    var avg = (totalSuc / brands.length).toFixed(1);
+    var kpis = document.getElementById('cn-cmp-dash-kpis');
+    kpis.innerHTML =
+      '<div class="kpi"><div class="l">Total marcas</div><div class="v">'+brands.length+'</div></div>' +
+      '<div class="kpi"><div class="l">Total sucursales</div><div class="v">'+totalSuc+'</div></div>' +
+      '<div class="kpi"><div class="l">Líder</div><div class="v" style="font-size:14px">'+leaderBrand+'</div></div>' +
+      '<div class="kpi"><div class="l">Promedio/marca</div><div class="v">'+avg+'</div></div>';
+
+    // Bar chart sucursales por marca
+    var sortedBrands = brands.slice().sort(function(a,b){
+      return _cmpState.activeBrands[b].length - _cmpState.activeBrands[a].length;
+    });
+    var maxCount = _cmpState.activeBrands[sortedBrands[0]].length;
+    var bars = document.getElementById('cn-cmp-dash-bars');
+    bars.innerHTML = '';
+    sortedBrands.forEach(function(b, i){
+      var n = _cmpState.activeBrands[b].length;
+      var color = CHART_COLORS[i % CHART_COLORS.length];
+      var pct = (n / maxCount) * 100;
+      var row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = '<div class="lbl">'+b+'</div>'
+                    + '<div class="bar"><div class="bar-fill" style="background:'+color+';width:0%"></div></div>'
+                    + '<div class="num">'+n+'</div>';
+      bars.appendChild(row);
+      // Animate
+      setTimeout(function(){
+        row.querySelector('.bar-fill').style.width = pct + '%';
+      }, 80 + i*40);
+    });
+
+    // Donut chart
+    var donut = document.getElementById('cn-cmp-dash-donut');
+    donut.innerHTML = '';
+    var legend = document.getElementById('cn-cmp-dash-legend');
+    legend.innerHTML = '';
+    var cumulative = 0;
+    sortedBrands.forEach(function(b, i){
+      var n = _cmpState.activeBrands[b].length;
+      var pct = (n / totalSuc) * 100;
+      var color = CHART_COLORS[i % CHART_COLORS.length];
+      // SVG donut segment
+      var c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('cx', '21'); c.setAttribute('cy', '21'); c.setAttribute('r', '15.915');
+      c.setAttribute('fill', 'transparent');
+      c.setAttribute('stroke', color);
+      c.setAttribute('stroke-width', '4');
+      c.setAttribute('stroke-dasharray', pct.toFixed(2)+' '+(100-pct).toFixed(2));
+      c.setAttribute('stroke-dashoffset', (100 - cumulative).toFixed(2));
+      c.setAttribute('transform', 'rotate(-90 21 21)');
+      donut.appendChild(c);
+      cumulative += pct;
+      // Legend
+      var leg = document.createElement('div');
+      leg.className = 'leg-row';
+      leg.innerHTML = '<span class="dot" style="background:'+color+'"></span>'
+                    + '<span class="name">'+b+'</span>'
+                    + '<span class="pct">'+pct.toFixed(1)+'% ('+n+')</span>';
+      legend.appendChild(leg);
+    });
+
+    dash.classList.add('show');
+  }
+
+  /* Lanzar Comparativa desde el menú principal o drawer */
+  function attachComparativaTrigger(){
+    if(window._cmpTriggered) return;
+    window._cmpTriggered = true;
+    // Atajo global
+    window.openComparativa = function(){
+      buildComparePanel();
+      buildDashboard();
+      var p = document.getElementById('cn-cmp-panel');
+      p.classList.add('show');
+    };
+
+    // Inyectar entrada en el drawer mobile (Round 2 buildToolDrawer)
+    function injectDrawerEntry(){
+      var drawer = document.getElementById('mob-tool-drawer');
+      if(!drawer) return;
+      if(drawer.querySelector('[data-cmp-entry]')) return;
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'drawer-tool';
+      item.setAttribute('data-cmp-entry', '1');
+      item.setAttribute('data-tip', 'Comparativa de marcas');
+      item.innerHTML = '<span class="ci-icon">compare_arrows</span><span class="tb-lbl">Comparativa</span>';
+      item.addEventListener('click', function(e){
+        e.preventDefault(); e.stopPropagation();
+        window.openComparativa();
+        drawer.classList.remove('open');
+        var bd = document.getElementById('mob-tool-backdrop');
+        if(bd) bd.classList.remove('show');
+      });
+      drawer.appendChild(item);
+    }
+    injectDrawerEntry();
+    setTimeout(injectDrawerEntry, 1500);
+    setTimeout(injectDrawerEntry, 4000);
+
+    // Inyectar entrada en la toolbar de desktop (#toolbar)
+    function injectToolbarEntry(){
+      var toolbar = document.getElementById('toolbar');
+      if(!toolbar || toolbar.querySelector('[data-cmp-entry]')) return;
+      var btn = document.createElement('button');
+      btn.className = 'tb';
+      btn.setAttribute('data-cmp-entry', '1');
+      btn.setAttribute('data-tip', 'Comparativa de marcas');
+      btn.setAttribute('title', 'Comparativa de marcas');
+      btn.style.fontSize = '9px';
+      btn.style.fontWeight = '700';
+      btn.innerHTML = 'CMP<span class="tb-lbl">Comparar</span>';
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        window.openComparativa();
+      });
+      toolbar.appendChild(btn);
+    }
+    injectToolbarEntry();
+    setTimeout(injectToolbarEntry, 1500);
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function start(){
+    setupTooltips();
+    setTimeout(cleanupHeatmapPanel, 800);
+    setTimeout(cleanupHeatmapPanel, 3000);
+    attachComparativaTrigger();
+  }
+  function startRetry(){
+    start();
+    [600, 2500, 6000].forEach(function(d){ setTimeout(start, d); });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', startRetry);
+  } else {
+    startRetry();
+  }
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
