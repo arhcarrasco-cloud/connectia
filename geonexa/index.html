@@ -27154,6 +27154,338 @@ small,.sub,.subtitle,
 })();
 </script>
 
+<style id="connectia-round22-css">
+/* === Look & feel iOS uniforme — todos los paneles, headers, reportes === */
+:root{
+  --cn22-purple:#6D28D9;
+  --cn22-pink:#EC4899;
+  --cn22-text:#1d1d1f;
+  --cn22-sub:#6e6e73;
+  --cn22-card:#FFFFFF;
+  --cn22-soft:#FAFAFA;
+  --cn22-hairline:rgba(60,60,67,.10);
+  --cn22-shadow-md:0 4px 14px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+}
+
+/* Paneles flotantes: card iOS limpia con contorno hairline */
+#afl-panel,
+#auto-report,
+#report-panel,
+#global-filter-panel,
+#reports-layer-panel,
+#places-menu,
+#nse-layers-menu,
+#cn-cmp-panel,
+#cn-cmp-v2,
+#cn-cmp-dash-v2,
+#cn-layers-panel,
+#cn-poi-heatmaps,
+#mob-tool-drawer,
+#cn-share-modal .modal-card,
+#mob-sheet{
+  background:var(--cn22-card) !important;
+  border:1px solid var(--cn22-hairline) !important;
+  box-shadow:var(--cn22-shadow-md) !important;
+  border-radius:14px !important;
+}
+
+/* Headers: blanco con gradient fade morado→rosa solo como línea inferior decorativa */
+#auto-report .ar-header,
+#report-title-bar,
+#gflt-title-bar,
+#cn-cmp-panel header,
+#cn-cmp-v2 header,
+#cn-cmp-dash-v2 .dash-head,
+#cn-layers-panel header,
+#cn-poi-heatmaps header,
+.panel-chrome-bar,
+#mob-tool-drawer-title{
+  background:rgba(255,255,255,.96) !important;
+  -webkit-backdrop-filter:saturate(180%) blur(20px) !important;
+  backdrop-filter:saturate(180%) blur(20px) !important;
+  border-bottom:1px solid var(--cn22-hairline) !important;
+  position:relative;
+}
+/* Línea pseudo: gradient morado→rosa fade */
+#auto-report .ar-header::after,
+#report-title-bar::after,
+#gflt-title-bar::after,
+#cn-cmp-panel header::after,
+#cn-cmp-v2 header::after,
+#cn-cmp-dash-v2 .dash-head::after,
+#cn-layers-panel header::after,
+#cn-poi-heatmaps header::after,
+.panel-chrome-bar::after{
+  content:''; position:absolute; left:0; right:0; bottom:-1px;
+  height:2px;
+  background:linear-gradient(90deg, rgba(109,40,217,.7) 0%, rgba(236,72,153,.45) 70%, transparent 100%);
+  pointer-events:none;
+}
+
+/* Texto headers: gris oscuro (título), gris medio (subtítulo) */
+#auto-report .ar-header,
+#auto-report .ar-header *,
+#report-title-bar > span:first-child,
+#gflt-title-bar > div > div:first-child,
+#cn-cmp-panel header h3,
+#cn-cmp-v2 header h3,
+#cn-cmp-dash-v2 .dash-head h2,
+#cn-layers-panel header h3,
+#cn-poi-heatmaps header h3,
+.panel-chrome-bar .pcb-title{
+  color:var(--cn22-text) !important;
+  -webkit-text-fill-color:var(--cn22-text) !important;
+  font-weight:700;
+}
+#gflt-title-bar > div > div:last-child,
+.dc-title + .sub,
+.panel-chrome-bar .sub{
+  color:var(--cn22-sub) !important;
+  -webkit-text-fill-color:var(--cn22-sub) !important;
+}
+
+/* Botones close en headers — gris suave iOS */
+#auto-report .ar-header button:not(.dc-close),
+#report-title-bar button,
+#gflt-title-bar > button,
+#cn-cmp-panel header button,
+#cn-cmp-v2 header button,
+#cn-cmp-dash-v2 .dash-head button,
+#cn-layers-panel header button,
+#cn-poi-heatmaps header button,
+.panel-chrome-bar .pcb-close{
+  background:rgba(0,0,0,.06) !important;
+  color:var(--cn22-text) !important;
+  border:none !important;
+  border-radius:50%;
+}
+
+/* Excepción: reporte de impactos totales mantiene gradient morado fuerte si lo identificamos */
+[data-report-impact],
+.impact-report-header,
+.report-impactos-totales{
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F) !important;
+  color:#fff !important;
+}
+[data-report-impact] *,
+.impact-report-header *{
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+}
+
+/* === Heatmaps button en toolbar (en lugar de FAB flotante) === */
+#cn-poi-heatmaps-fab{ display:none !important; }
+.tb#btn-poi-heatmaps{
+  /* hereda estilo .tb */
+}
+</style>
+<script id="connectia-round22-js">
+/* Round 22 — iOS uniforme + radio km robusto + heatmaps en toolbar */
+(function(){
+
+  // ============================================================
+  // 1) Mover heatmaps por categoría a la toolbar
+  // ============================================================
+  function moveHeatmapsToToolbar(){
+    var toolbar = document.getElementById('toolbar');
+    if(!toolbar) return;
+    if(document.getElementById('btn-poi-heatmaps')) return;
+    var btn = document.createElement('button');
+    btn.id = 'btn-poi-heatmaps';
+    btn.className = 'tb';
+    btn.setAttribute('data-tip', 'Mapas de calor por categoría');
+    btn.setAttribute('title', 'Mapas de calor por categoría');
+    btn.innerHTML = '<span class="ci-icon">whatshot</span><span class="tb-lbl">Calor</span>';
+    btn.addEventListener('click', function(e){
+      e.preventDefault();
+      var p = document.getElementById('cn-poi-heatmaps');
+      if(!p) return;
+      // Toggle visibility
+      if(p.classList.contains('show')){
+        p.classList.remove('show');
+        return;
+      }
+      p.classList.add('show');
+      // Posicionar como dropdown debajo del botón
+      var r = btn.getBoundingClientRect();
+      var pw = 280;
+      p.style.position = 'fixed';
+      p.style.top = (r.bottom + 6) + 'px';
+      p.style.left = Math.max(10, Math.min(window.innerWidth - pw - 10, r.left + r.width/2 - pw/2)) + 'px';
+      p.style.right = 'auto';
+    });
+    // Insert before el último .tb (si existe)
+    toolbar.appendChild(btn);
+    // Remover el FAB anterior si existe
+    var fab = document.getElementById('cn-poi-heatmaps-fab');
+    if(fab) fab.remove();
+  }
+
+  // ============================================================
+  // 2) Radio km — class definition robusta + listeners agresivos
+  // ============================================================
+  function defineRadiusClassIfNeeded(){
+    if(typeof google === 'undefined' || !google.maps) return false;
+    if(window._r22RadiusClass) return true;
+    function RadiusLabel(){ this._div = null; this._center = null; this._radius = 0; }
+    RadiusLabel.prototype = new google.maps.OverlayView();
+    RadiusLabel.prototype.onAdd = function(){
+      var div = document.createElement('div');
+      div.id = 'r22-radius-overlay';
+      div.style.cssText = [
+        'position:absolute',
+        'transform:translate(-50%,-50%)',
+        'pointer-events:none',
+        'background:rgba(255,255,255,.98)',
+        'border:1.5px solid rgba(109,40,217,.5)',
+        'border-radius:8px',
+        'padding:6px 12px',
+        'box-shadow:0 2px 10px rgba(109,40,217,.18)',
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif',
+        'font-size:13px',
+        'font-weight:700',
+        'color:#5B21B6',
+        'white-space:nowrap',
+        'z-index:100',
+        'display:none'
+      ].join(';');
+      this._div = div;
+      this.getPanes().floatPane.appendChild(div);
+    };
+    RadiusLabel.prototype.draw = function(){
+      if(!this._div || !this._center){ if(this._div) this._div.style.display = 'none'; return; }
+      var proj = this.getProjection();
+      if(!proj) return;
+      var px = proj.fromLatLngToDivPixel(this._center);
+      if(!px) return;
+      this._div.style.left = px.x + 'px';
+      this._div.style.top  = px.y + 'px';
+      this._div.style.display = 'block';
+      var r = this._radius;
+      var radStr = r<1000?Math.round(r)+' m':(r/1000).toFixed(2)+' km';
+      var areaKm2 = Math.PI*(r/1000)*(r/1000);
+      var areaStr = areaKm2<1?(areaKm2*1e6).toFixed(0)+' m²':areaKm2.toFixed(2)+' km²';
+      this._div.innerHTML = radStr + ' <span style="color:#86868b;font-size:11px;font-weight:500">' + areaStr + '</span>';
+    };
+    RadiusLabel.prototype.onRemove = function(){
+      if(this._div && this._div.parentNode) this._div.parentNode.removeChild(this._div);
+    };
+    RadiusLabel.prototype.update = function(latLng, radiusM){
+      this._center = latLng;
+      this._radius = radiusM || 0;
+      this.draw();
+    };
+    RadiusLabel.prototype.hide = function(){
+      this._center = null;
+      if(this._div) this._div.style.display = 'none';
+    };
+    window._r22RadiusClass = RadiusLabel;
+    return true;
+  }
+  function ensureOverlay(){
+    if(!defineRadiusClassIfNeeded()) return null;
+    if(!window._r22RadiusInstance){
+      try{
+        window._r22RadiusInstance = new window._r22RadiusClass();
+        window._r22RadiusInstance.setMap(window.map);
+      }catch(e){ return null; }
+    }
+    return window._r22RadiusInstance;
+  }
+
+  // Hook al drawing manager para listeners en círculos
+  function hookDrawingManager(){
+    if(typeof google === 'undefined' || !google.maps) return false;
+    if(typeof window.drawingManager === 'undefined' || !window.drawingManager) return false;
+    if(window._r22DmHooked) return true;
+    window._r22DmHooked = true;
+
+    google.maps.event.addListener(window.drawingManager, 'overlaycomplete', function(ev){
+      if(ev.type !== google.maps.drawing.OverlayType.CIRCLE) return;
+      var circle = ev.overlay;
+      var ov = ensureOverlay();
+      if(!ov) return;
+      ov.update(circle.getCenter(), circle.getRadius());
+      circle.addListener('radius_changed', function(){
+        ov.update(circle.getCenter(), circle.getRadius());
+      });
+      circle.addListener('center_changed', function(){
+        ov.update(circle.getCenter(), circle.getRadius());
+      });
+    });
+
+    // Live track durante draw inicial
+    var mapEl = document.getElementById('map');
+    if(mapEl && !mapEl._r22Hooked){
+      mapEl._r22Hooked = true;
+      var liveCenter = null;
+      function inCircleMode(){
+        try{ return window.drawingManager.getDrawingMode() === google.maps.drawing.OverlayType.CIRCLE; }catch(_){ return false; }
+      }
+      function start(x, y){
+        if(!inCircleMode()) return;
+        if(typeof window._pixelToLatLng !== 'function') return;
+        var ll = window._pixelToLatLng(x, y);
+        if(ll){
+          liveCenter = ll;
+          var ov = ensureOverlay();
+          if(ov) ov.update(ll, 0);
+        }
+      }
+      function move(x, y){
+        if(!liveCenter || !inCircleMode()) return;
+        var cur = window._pixelToLatLng(x, y);
+        if(!cur) return;
+        var dist = google.maps.geometry.spherical.computeDistanceBetween(liveCenter, cur);
+        var ov = ensureOverlay();
+        if(ov) ov.update(liveCenter, dist);
+      }
+      function end(){ setTimeout(function(){ liveCenter = null; }, 100); }
+      mapEl.addEventListener('mousedown', function(e){ start(e.clientX, e.clientY); }, true);
+      mapEl.addEventListener('mousemove', function(e){ move(e.clientX, e.clientY); }, true);
+      mapEl.addEventListener('mouseup',   function(){ end(); }, true);
+      mapEl.addEventListener('touchstart', function(e){
+        if(e.touches && e.touches[0]) start(e.touches[0].clientX, e.touches[0].clientY);
+      }, {capture:true, passive:true});
+      mapEl.addEventListener('touchmove', function(e){
+        if(e.touches && e.touches[0]) move(e.touches[0].clientX, e.touches[0].clientY);
+      }, {capture:true, passive:true});
+      mapEl.addEventListener('touchend', function(){ end(); }, true);
+    }
+
+    // Si ya hay un currentOverlay tipo círculo, asegurar overlay
+    if(window.currentOverlay && typeof window.currentOverlay.getRadius === 'function'){
+      try{
+        var ov = ensureOverlay();
+        if(ov) ov.update(window.currentOverlay.getCenter(), window.currentOverlay.getRadius());
+        if(!window.currentOverlay._r22Listeners){
+          window.currentOverlay._r22Listeners = true;
+          window.currentOverlay.addListener('radius_changed', function(){
+            var c = window.currentOverlay;
+            ov.update(c.getCenter(), c.getRadius());
+          });
+          window.currentOverlay.addListener('center_changed', function(){
+            var c = window.currentOverlay;
+            ov.update(c.getCenter(), c.getRadius());
+          });
+        }
+      }catch(_){}
+    }
+    return true;
+  }
+
+  function start(){
+    moveHeatmapsToToolbar();
+    hookDrawingManager();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  // Reintentos: hookDrawingManager depende de google.maps cargado
+  [600, 2500, 5000, 10000, 20000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
