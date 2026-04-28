@@ -29841,6 +29841,823 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 })();
 </script>
 
+<style id="connectia-round31-css">
+/* Round 31 — ocultar el panel km duplicado de arriba (live-radius-label).
+   Mantiene SOLO el #r25-radius-pill (centrado en el círculo). */
+#live-radius-label{display:none !important;visibility:hidden !important;opacity:0 !important}
+.is-mobile-view #live-radius-label{display:none !important}
+</style>
+
+<script id="connectia-round31-fixes">
+/* ============================================================
+   Round 31 — 6 ajustes solicitados explícitamente:
+   1) Hex NSE más pequeños (escala manzana ~9 px)
+   2) Mismo hex pattern aplicado a densidad y tráfico
+   3) Logos no aparecían — switch a favicon API + fallback SVG
+   4) Panel km radio se queda pegado y no actualiza en vivo
+   5) Bug 9.2M en círculo CDMX — cap por area ratio
+   6) Criterios NSE replicados a TODO el país (no solo CDMX)
+   Todo aditivo. Wrappers sobre Round 28/29/30 sin tocarlos.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // ============================================================
+  // 1+2+6) HEX más pequeños + density/traffic hex + país completo
+  // ============================================================
+  // Override del HEX_PIXEL_SIZE con valor manzana (~9 px)
+  var HEX_PIXEL_SIZE_R31 = 9;
+
+  // Country-wide LOW/PREMIUM zones (6) — ya teníamos CDMX/GDL/MTY,
+  // ahora agregamos las principales metrópolis del país
+  var R31_PREMIUM = [
+    // Bajío
+    {lat:21.012, lng:-101.683, r:0.012, level:'AB'}, // León - Lomas / Cañada
+    {lat:20.673, lng:-103.388, r:0.012, level:'AB'}, // GDL - Providencia
+    {lat:20.700, lng:-103.420, r:0.014, level:'AB'}, // GDL - Andares / Puerta Hierro
+    {lat:20.598, lng:-100.396, r:0.012, level:'AB'}, // Querétaro - Juriquilla / El Refugio
+    {lat:20.583, lng:-100.388, r:0.010, level:'AB'}, // Qro - Centro Sur / Álamos
+    {lat:21.879, lng:-102.295, r:0.010, level:'AB'}, // Aguascalientes - Lomas
+    {lat:22.150, lng:-100.975, r:0.010, level:'AB'}, // SLP - Lomas / Lomas 4ta
+    // Norte
+    {lat:25.665, lng:-100.355, r:0.014, level:'AB'}, // MTY - San Pedro
+    {lat:25.650, lng:-100.370, r:0.012, level:'AB'}, // MTY - Valle Oriente
+    {lat:25.683, lng:-100.318, r:0.010, level:'AB'}, // MTY - Cumbres / Contry
+    {lat:32.508, lng:-117.020, r:0.012, level:'AB'}, // Tijuana - Chapultepec
+    {lat:31.690, lng:-106.430, r:0.010, level:'AB'}, // Cd Juárez - Campestre
+    {lat:28.668, lng:-106.105, r:0.010, level:'AB'}, // Chihuahua - Campestre
+    {lat:25.448, lng:-101.005, r:0.010, level:'AB'}, // Saltillo - Las Trojes
+    {lat:25.555, lng:-103.405, r:0.010, level:'AB'}, // Torreón - Senderos / Las Estancias
+    {lat:29.080, lng:-110.965, r:0.010, level:'AB'}, // Hermosillo - Pitic
+    {lat:24.815, lng:-107.395, r:0.010, level:'AB'}, // Culiacán - Tres Ríos
+    // Centro-Sur
+    {lat:19.022, lng:-98.241, r:0.010, level:'AB'},  // Puebla - Angelópolis / Lomas
+    {lat:18.911, lng:-99.230, r:0.010, level:'AB'},  // Cuernavaca - Tabachines / Vista Hermosa
+    {lat:19.275, lng:-99.671, r:0.010, level:'AB'},  // Toluca - Metepec / Las Marinas
+    {lat:19.683, lng:-101.183, r:0.010, level:'AB'}, // Morelia - Altozano
+    // Sureste
+    {lat:21.020, lng:-89.605, r:0.012, level:'AB'},  // Mérida - Norte / Altabrisa / Yucatán Country
+    {lat:21.150, lng:-86.825, r:0.012, level:'AB'},  // Cancún - Hotelera / Puerto Cancún
+    {lat:20.625, lng:-87.075, r:0.010, level:'AB'},  // Playa del Carmen - Playacar
+    {lat:17.083, lng:-96.713, r:0.008, level:'AB'},  // Oaxaca - San Felipe
+    // Costa
+    {lat:19.205, lng:-96.140, r:0.008, level:'AB'},  // Veracruz - Boca del Río
+    {lat:16.860, lng:-99.882, r:0.010, level:'AB'},  // Acapulco - Diamante
+    {lat:23.260, lng:-106.435, r:0.010, level:'AB'}  // Mazatlán - Cerritos / Marina
+  ];
+
+  var R31_LOW = [
+    // CDMX/EdoMex orientes (los importantes ya estaban en R29 — añadimos extra)
+    {lat:19.535, lng:-99.090, r:0.040, level:'D'},   // Tultitlán
+    {lat:19.620, lng:-99.060, r:0.040, level:'D'},   // Coacalco / Tecámac
+    {lat:19.470, lng:-98.890, r:0.040, level:'D'},   // La Paz
+    // GDL bajos
+    {lat:20.620, lng:-103.420, r:0.030, level:'D+'}, // Tlaquepaque oriente
+    {lat:20.660, lng:-103.330, r:0.030, level:'D'},  // Tonalá
+    // MTY bajos
+    {lat:25.770, lng:-100.260, r:0.030, level:'D'},  // Escobedo
+    {lat:25.740, lng:-100.190, r:0.030, level:'D'},  // Apodaca norte
+    {lat:25.620, lng:-100.150, r:0.030, level:'D'},  // Juárez NL
+    // Tijuana bajos
+    {lat:32.430, lng:-117.080, r:0.030, level:'D'},
+    {lat:32.520, lng:-116.940, r:0.030, level:'D'},
+    // Cd Juárez bajos
+    {lat:31.760, lng:-106.490, r:0.030, level:'D'},
+    {lat:31.640, lng:-106.470, r:0.030, level:'D'},
+    // Puebla bajos
+    {lat:19.090, lng:-98.220, r:0.025, level:'D'},   // Puebla sur
+    {lat:18.985, lng:-98.205, r:0.025, level:'D+'},  // Puebla periferia oriente
+    // León bajos
+    {lat:21.080, lng:-101.620, r:0.030, level:'D'},  // León norte
+    // Toluca bajos
+    {lat:19.330, lng:-99.660, r:0.030, level:'D'},   // Toluca poniente
+    {lat:19.380, lng:-99.580, r:0.030, level:'D'},   // San Mateo
+    // Mérida bajos
+    {lat:20.940, lng:-89.660, r:0.030, level:'D+'},  // Mérida sur
+    // Cancún bajos
+    {lat:21.130, lng:-86.880, r:0.030, level:'D'},   // Cancún Reg 100+
+    // Veracruz bajos
+    {lat:19.180, lng:-96.180, r:0.025, level:'D+'},
+    // Acapulco bajos
+    {lat:16.900, lng:-99.870, r:0.030, level:'D'},   // Acapulco zonas altas
+    // Saltillo bajos
+    {lat:25.380, lng:-101.020, r:0.030, level:'D+'},
+    // Torreón bajos
+    {lat:25.510, lng:-103.450, r:0.030, level:'D'},
+    // Querétaro bajos
+    {lat:20.620, lng:-100.420, r:0.030, level:'D+'}, // Qro norte / San José
+    // Aguascalientes bajos
+    {lat:21.920, lng:-102.250, r:0.025, level:'D'},  // Ags norte
+    // Morelia bajos
+    {lat:19.720, lng:-101.220, r:0.025, level:'D+'},
+    // Hermosillo bajos
+    {lat:29.040, lng:-110.940, r:0.025, level:'D'},  // Sur de Hermosillo
+    // Culiacán bajos
+    {lat:24.770, lng:-107.430, r:0.025, level:'D+'},
+    // Oaxaca bajos
+    {lat:17.030, lng:-96.730, r:0.030, level:'D'},
+    {lat:17.100, lng:-96.700, r:0.030, level:'D'}
+  ];
+
+  function r31NseFor(lat, lng) {
+    // PREMIUM gana
+    for (var i=0; i<R31_PREMIUM.length; i++) {
+      var pz = R31_PREMIUM[i];
+      var d = Math.sqrt(Math.pow(lat-pz.lat,2)+Math.pow(lng-pz.lng,2));
+      if (d < pz.r) return pz.level;
+    }
+    // LOW gana (incluye R29 + R31 — chequeamos los nuevos primero)
+    for (var j=0; j<R31_LOW.length; j++) {
+      var lz = R31_LOW[j];
+      var d2 = Math.sqrt(Math.pow(lat-lz.lat,2)+Math.pow(lng-lz.lng,2));
+      if (d2 < lz.r) {
+        if (d2 < lz.r*0.55) return lz.level;
+        if (lz.level === 'D')  return 'D+';
+        if (lz.level === 'D+') return 'C';
+        return lz.level;
+      }
+    }
+    // Fallback al de R29 (que ya cubre CDMX/GDL/MTY profundamente)
+    if (typeof window.r29NseForCoord === 'function') {
+      try { return window.r29NseForCoord(lat, lng); } catch(_){}
+    }
+    return 'C';
+  }
+  window.r31NseFor = r31NseFor;
+
+  // Override del classifier para que TODO use el ampliado país
+  if (typeof window.r29NseForCoord === 'function' && !window.r29NseForCoord._r31) {
+    var origR29 = window.r29NseForCoord;
+    window.r29NseForCoord = function(lat, lng) {
+      // Tratar primero país (R31), luego CDMX detallado (R29)
+      // PREMIUM país
+      for (var i=0; i<R31_PREMIUM.length; i++) {
+        var pz = R31_PREMIUM[i];
+        var d = Math.sqrt(Math.pow(lat-pz.lat,2)+Math.pow(lng-pz.lng,2));
+        if (d < pz.r) return pz.level;
+      }
+      // LOW país
+      for (var j=0; j<R31_LOW.length; j++) {
+        var lz = R31_LOW[j];
+        var d2 = Math.sqrt(Math.pow(lat-lz.lat,2)+Math.pow(lng-lz.lng,2));
+        if (d2 < lz.r) {
+          if (d2 < lz.r*0.55) return lz.level;
+          if (lz.level === 'D')  return 'D+';
+          if (lz.level === 'D+') return 'C';
+          return lz.level;
+        }
+      }
+      return origR29(lat, lng);
+    };
+    window.r29NseForCoord._r31 = true;
+  }
+
+  // ===== Hex render reescrito con tamaño fino (manzana) =====
+  var NSE_COLORS_R31 = {
+    'AB':'#15803d','Cplus':'#22c55e','C+':'#22c55e',
+    'C':'#84cc16','Dplus':'#eab308','D+':'#eab308',
+    'D':'#f97316','E':'#dc2626'
+  };
+  var KEY_MAP_R31 = { 'AB':'AB', 'Cplus':'Cplus', 'C+':'Cplus', 'C':'C',
+                      'Dplus':'Dplus', 'D+':'Dplus', 'D':'D', 'E':'E' };
+
+  var r31Hexes = [];
+  var r31LastKey = null;
+
+  function clearR31(){
+    r31Hexes.forEach(function(h){ try{ h.setMap(null); }catch(_){} });
+    r31Hexes = [];
+  }
+
+  function nseActive(){
+    return !!(window.nseOverlayActive || window.nseLayerActive);
+  }
+  function getActiveLevels(){
+    var act = {}; var any = false;
+    var cbs = document.querySelectorAll('#nse-panel input[type=checkbox][data-nse]');
+    cbs.forEach(function(cb){ any = true; if(cb.checked) act[cb.dataset.nse] = true; });
+    if(!any) return {AB:true,Cplus:true,'C+':true,C:true,Dplus:true,'D+':true,D:true,E:true};
+    if(act.Cplus) act['C+'] = true;
+    if(act.Dplus) act['D+'] = true;
+    return act;
+  }
+  function metersPerPixel(lat, zoom){
+    return 156543.03392 * Math.cos(lat * Math.PI/180) / Math.pow(2, zoom);
+  }
+
+  function r31RenderNse(force){
+    if (typeof google === 'undefined' || !google.maps || !window.map) return;
+    if (!nseActive()) { clearR31(); return; }
+    var bounds = window.map.getBounds(); if (!bounds) return;
+    var z = window.map.getZoom();
+    if (z < 10) { clearR31(); return; }
+
+    var ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+    var midLat = (ne.lat()+sw.lat())/2;
+    var sig = JSON.stringify(getActiveLevels());
+    var bKey = ne.lat().toFixed(4)+','+ne.lng().toFixed(4)+','+sw.lat().toFixed(4)+','+sw.lng().toFixed(4)+'_z'+z+'_'+sig;
+    if (!force && bKey === r31LastKey) return;
+    r31LastKey = bKey;
+    clearR31();
+    // Limpiar Round 30 hexes
+    try { if (window.r30ClearHexes) window.r30ClearHexes(); } catch(_){}
+
+    var mpp = metersPerPixel(midLat, z);
+    var hexR_m = HEX_PIXEL_SIZE_R31 * mpp;
+    var hexR_lat = hexR_m / 111320;
+    var lngFactor = Math.cos(midLat * Math.PI/180);
+    var hexR_lng = hexR_m / (111320 * lngFactor);
+
+    var dxLng = Math.sqrt(3) * hexR_lng;
+    var dyLat = 1.5 * hexR_lat;
+    var offsetLng = (Math.sqrt(3)/2) * hexR_lng;
+
+    var act = getActiveLevels();
+    var nseClassifier = r31NseFor;
+
+    var startLat = sw.lat() - hexR_lat;
+    var endLat   = ne.lat() + hexR_lat;
+    var startLng = sw.lng() - hexR_lng;
+    var endLng   = ne.lng() + hexR_lng;
+    var rowIdx = 0; var count = 0; var maxHex = 8000;
+
+    for (var cLat = startLat; cLat <= endLat && count < maxHex; cLat += dyLat) {
+      var rowOffset = (rowIdx % 2 === 0) ? 0 : offsetLng;
+      for (var cLng = startLng + rowOffset; cLng <= endLng && count < maxHex; cLng += dxLng) {
+        var nse = nseClassifier(cLat, cLng);
+        var nseKey = KEY_MAP_R31[nse] || 'C';
+        if (!act[nseKey] && !act[nse]) continue;
+        var path = [];
+        for (var i=0; i<6; i++) {
+          var ang = Math.PI/3 * i;
+          path.push({
+            lat: cLat + hexR_lat * Math.cos(ang),
+            lng: cLng + hexR_lng * Math.sin(ang)
+          });
+        }
+        var color = NSE_COLORS_R31[nse] || NSE_COLORS_R31[nseKey] || '#84cc16';
+        var hex = new google.maps.Polygon({
+          paths: path, fillColor: color, fillOpacity: 0.55,
+          strokeColor: color, strokeWeight: 0.3, strokeOpacity: 0.85,
+          map: window.map, clickable: false, zIndex: 9
+        });
+        r31Hexes.push(hex); count++;
+      }
+      rowIdx++;
+    }
+  }
+  window.r31RenderNse = r31RenderNse;
+
+  // Override Round 30 render para que use R31 (mismo tamaño manzana)
+  if (window.r30Render && !window.r30Render._r31) {
+    window.r30Render = function(force){ r31RenderNse(force); };
+    window.r30Render._r31 = true;
+  }
+
+  // Idle listener directo
+  function attachIdleNse(){
+    if (!window.map || window._r31IdleNse) return;
+    window._r31IdleNse = true;
+    var t = null;
+    window.map.addListener('idle', function(){
+      clearTimeout(t);
+      t = setTimeout(function(){ r31RenderNse(false); }, 250);
+    });
+  }
+  function hookCheckboxes(){
+    var p = document.getElementById('nse-panel');
+    if(!p || p._r31Hooked) return;
+    p._r31Hooked = true;
+    p.addEventListener('change', function(ev){
+      if(ev.target && ev.target.matches('input[type=checkbox][data-nse]')){
+        r31RenderNse(true);
+      }
+    });
+  }
+
+  // ===== DENSITY HEX (mismo patrón) =====
+  var r31DensHexes = [];
+  function clearDensHex(){
+    r31DensHexes.forEach(function(h){ try{ h.setMap(null); }catch(_){} });
+    r31DensHexes = [];
+  }
+  // Color escala por densidad: usar paleta calor (azul -> rojo)
+  function densColor(d){
+    // d = personas/km²
+    if (d < 500)   return '#1e40af'; // azul oscuro (rural)
+    if (d < 1500)  return '#0891b2';
+    if (d < 3000)  return '#16a34a';
+    if (d < 6000)  return '#eab308';
+    if (d < 10000) return '#f97316';
+    return '#dc2626'; // rojo (denso)
+  }
+  function densAt(lat, lng){
+    try{
+      var sc = (typeof window.getStateForCoords === 'function') ? window.getStateForCoords(lat,lng) : '09';
+      var ce = window.CENSUS && window.CENSUS[sc];
+      if(!ce) return 500;
+      var base = ce.dens || 500;
+      // Multiplicar por factor zona
+      var nse = r31NseFor(lat, lng);
+      var f = 1.0;
+      if(nse==='AB') f = 1.4;
+      else if(nse==='C+'||nse==='Cplus') f = 1.2;
+      else if(nse==='D'||nse==='D+'||nse==='Dplus') f = 1.5; // zonas D suelen ser densas
+      else if(nse==='E') f = 1.8;
+      // Variación local
+      var hash = Math.abs(Math.sin(lat*7654.3+lng*3456.7)*10000);
+      var lv = ((hash%100)/100)*0.5+0.75;
+      return Math.round(base*f*lv);
+    }catch(_){ return 500; }
+  }
+  function r31RenderDensity(force){
+    if (typeof google === 'undefined' || !google.maps || !window.map) return;
+    if (!window.densityLayerActive) { clearDensHex(); return; }
+    var bounds = window.map.getBounds(); if (!bounds) return;
+    var z = window.map.getZoom();
+    if (z < 10) { clearDensHex(); return; }
+    clearDensHex();
+
+    var ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+    var midLat = (ne.lat()+sw.lat())/2;
+    var mpp = metersPerPixel(midLat, z);
+    var hexR_m = HEX_PIXEL_SIZE_R31 * mpp;
+    var hexR_lat = hexR_m / 111320;
+    var lngFactor = Math.cos(midLat * Math.PI/180);
+    var hexR_lng = hexR_m / (111320 * lngFactor);
+    var dxLng = Math.sqrt(3) * hexR_lng;
+    var dyLat = 1.5 * hexR_lat;
+    var offsetLng = (Math.sqrt(3)/2) * hexR_lng;
+
+    var startLat = sw.lat() - hexR_lat;
+    var endLat   = ne.lat() + hexR_lat;
+    var startLng = sw.lng() - hexR_lng;
+    var endLng   = ne.lng() + hexR_lng;
+    var rowIdx = 0; var count = 0; var maxHex = 8000;
+
+    for (var cLat = startLat; cLat <= endLat && count < maxHex; cLat += dyLat) {
+      var rowOffset = (rowIdx % 2 === 0) ? 0 : offsetLng;
+      for (var cLng = startLng + rowOffset; cLng <= endLng && count < maxHex; cLng += dxLng) {
+        var d = densAt(cLat, cLng);
+        var color = densColor(d);
+        var path = [];
+        for (var i=0; i<6; i++) {
+          var ang = Math.PI/3 * i;
+          path.push({
+            lat: cLat + hexR_lat * Math.cos(ang),
+            lng: cLng + hexR_lng * Math.sin(ang)
+          });
+        }
+        var hex = new google.maps.Polygon({
+          paths: path, fillColor: color, fillOpacity: 0.50,
+          strokeColor: color, strokeWeight: 0.3, strokeOpacity: 0.85,
+          map: window.map, clickable: false, zIndex: 7
+        });
+        r31DensHexes.push(hex); count++;
+      }
+      rowIdx++;
+    }
+  }
+  window.r31RenderDensity = r31RenderDensity;
+
+  // Wrap toggleDensityLayer — al activar, render hex y oculta heatmap original
+  if (typeof window.toggleDensityLayer === 'function' && !window.toggleDensityLayer._r31) {
+    var origDens = window.toggleDensityLayer;
+    window.toggleDensityLayer = function(){
+      var rv = origDens.apply(this, arguments);
+      setTimeout(function(){
+        // Apagar heatmap radial original (squares circulares)
+        try {
+          if (window.densityHeatmap && window.densityLayerActive) {
+            window.densityHeatmap.setMap(null);
+          }
+        } catch(_){}
+        if (window.densityLayerActive) r31RenderDensity(true);
+        else clearDensHex();
+      }, 250);
+      return rv;
+    };
+    window.toggleDensityLayer._r31 = true;
+  }
+
+  // ===== TRAFFIC HEX =====
+  var r31TrafHexes = [];
+  function clearTrafHex(){
+    r31TrafHexes.forEach(function(h){ try{ h.setMap(null); }catch(_){} });
+    r31TrafHexes = [];
+  }
+  function trafColor(t){
+    // t = nivel relativo 0-1
+    if (t < 0.20) return '#16a34a';   // verde libre
+    if (t < 0.40) return '#84cc16';
+    if (t < 0.60) return '#eab308';   // amarillo medio
+    if (t < 0.80) return '#f97316';   // naranja
+    return '#dc2626';                 // rojo congestion
+  }
+  function trafAt(lat, lng){
+    try{
+      var sc = (typeof window.getStateForCoords === 'function') ? window.getStateForCoords(lat,lng) : '09';
+      var ce = window.CENSUS && window.CENSUS[sc];
+      var base = ce ? Math.min(1, (ce.dens || 500)/8000) : 0.3;
+      var nse = r31NseFor(lat, lng);
+      // PREMIUM tiende a tener tráfico alto, LOW también pero diferente
+      var boost = 1.0;
+      if(nse==='AB') boost = 1.3;
+      else if(nse==='D'||nse==='D+'||nse==='Dplus'||nse==='E') boost = 1.5;
+      // Hash local para variación
+      var hash = Math.abs(Math.sin(lat*4312.7+lng*9876.1)*10000);
+      var lv = ((hash%100)/100)*0.7+0.4;
+      return Math.max(0, Math.min(1, base*boost*lv));
+    }catch(_){ return 0.3; }
+  }
+  function r31RenderTraffic(force){
+    if (typeof google === 'undefined' || !google.maps || !window.map) return;
+    if (!window._trafHeatActive) { clearTrafHex(); return; }
+    var bounds = window.map.getBounds(); if (!bounds) return;
+    var z = window.map.getZoom();
+    if (z < 10) { clearTrafHex(); return; }
+    clearTrafHex();
+
+    var ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+    var midLat = (ne.lat()+sw.lat())/2;
+    var mpp = metersPerPixel(midLat, z);
+    var hexR_m = HEX_PIXEL_SIZE_R31 * mpp;
+    var hexR_lat = hexR_m / 111320;
+    var lngFactor = Math.cos(midLat * Math.PI/180);
+    var hexR_lng = hexR_m / (111320 * lngFactor);
+    var dxLng = Math.sqrt(3) * hexR_lng;
+    var dyLat = 1.5 * hexR_lat;
+    var offsetLng = (Math.sqrt(3)/2) * hexR_lng;
+
+    var startLat = sw.lat() - hexR_lat;
+    var endLat   = ne.lat() + hexR_lat;
+    var startLng = sw.lng() - hexR_lng;
+    var endLng   = ne.lng() + hexR_lng;
+    var rowIdx = 0; var count = 0; var maxHex = 8000;
+
+    for (var cLat = startLat; cLat <= endLat && count < maxHex; cLat += dyLat) {
+      var rowOffset = (rowIdx % 2 === 0) ? 0 : offsetLng;
+      for (var cLng = startLng + rowOffset; cLng <= endLng && count < maxHex; cLng += dxLng) {
+        var t = trafAt(cLat, cLng);
+        var color = trafColor(t);
+        var path = [];
+        for (var i=0; i<6; i++) {
+          var ang = Math.PI/3 * i;
+          path.push({
+            lat: cLat + hexR_lat * Math.cos(ang),
+            lng: cLng + hexR_lng * Math.sin(ang)
+          });
+        }
+        var hex = new google.maps.Polygon({
+          paths: path, fillColor: color, fillOpacity: 0.50,
+          strokeColor: color, strokeWeight: 0.3, strokeOpacity: 0.85,
+          map: window.map, clickable: false, zIndex: 7
+        });
+        r31TrafHexes.push(hex); count++;
+      }
+      rowIdx++;
+    }
+  }
+  window.r31RenderTraffic = r31RenderTraffic;
+
+  // Wrap toggleTrafficHeatLayer — limpiar rectángulos viejos y render hex
+  if (typeof window.toggleTrafficHeatLayer === 'function' && !window.toggleTrafficHeatLayer._r31) {
+    var origTraf = window.toggleTrafficHeatLayer;
+    window.toggleTrafficHeatLayer = function(){
+      var rv = origTraf.apply(this, arguments);
+      setTimeout(function(){
+        try {
+          if (window._trafHeatPolys && Array.isArray(window._trafHeatPolys)) {
+            window._trafHeatPolys.forEach(function(p){ try{ p.setMap(null); }catch(_){} });
+            window._trafHeatPolys.length = 0;
+          }
+        } catch(_){}
+        if (window._trafHeatActive) r31RenderTraffic(true);
+        else clearTrafHex();
+      }, 250);
+      return rv;
+    };
+    window.toggleTrafficHeatLayer._r31 = true;
+  }
+
+  // Idle listener para density + traffic
+  function attachIdleHeat(){
+    if (!window.map || window._r31IdleHeat) return;
+    window._r31IdleHeat = true;
+    var t = null;
+    window.map.addListener('idle', function(){
+      clearTimeout(t);
+      t = setTimeout(function(){
+        if (window.densityLayerActive) r31RenderDensity(false);
+        if (window._trafHeatActive)    r31RenderTraffic(false);
+      }, 280);
+    });
+  }
+
+  // ============================================================
+  // 3) LOGOS — favicon API (más confiable que Clearbit)
+  // ============================================================
+  var BRAND_DOMAIN = (window.R30_BRAND_LOGOS || {});
+  // Asegurar que estén Spark + más comunes
+  var EXTRA_DOMAIN = {
+    "Spark":"sparkfitness.com.mx",
+    "Smart Fit":"smartfit.com.mx",
+    "Sport City":"sportcity.com.mx",
+    "Sports World":"sportsworld.com.mx",
+    "Anytime Fitness":"anytimefitness.com.mx",
+    "Walmart":"walmart.com.mx",
+    "Sam's Club":"samsclub.com.mx",
+    "Bodega Aurrera":"bodegaaurrera.com.mx",
+    "Soriana":"soriana.com",
+    "Chedraui":"chedraui.com.mx",
+    "HEB":"heb.com.mx",
+    "Costco":"costco.com.mx",
+    "OXXO":"oxxo.com",
+    "7-Eleven":"7-eleven.com.mx",
+    "Circle K":"circlek.com",
+    "Extra":"tiendasextra.com.mx",
+    "Farmacias del Ahorro":"fahorro.com",
+    "Farmacias Similares":"farmaciasdesimilares.com",
+    "Farmacias Benavides":"benavides.com.mx",
+    "Farmacias Guadalajara":"farmaciasguadalajara.com",
+    "McDonald's":"mcdonalds.com.mx",
+    "Burger King":"burgerking.com.mx",
+    "KFC":"kfc.com.mx",
+    "Subway":"subway.com",
+    "Domino's Pizza":"dominos.com.mx",
+    "Pizza Hut":"pizzahut.com.mx",
+    "Little Caesars":"littlecaesars.com.mx",
+    "Starbucks":"starbucks.com.mx",
+    "Citibanamex":"banamex.com",
+    "Banorte":"banorte.com",
+    "BBVA":"bbva.mx",
+    "Santander":"santander.com.mx",
+    "HSBC":"hsbc.com.mx",
+    "Scotiabank":"scotiabank.com.mx",
+    "Pemex":"pemex.com",
+    "Shell":"shell.com",
+    "Mobil":"mobil.com",
+    "Sanborns":"sanborns.com.mx",
+    "Liverpool":"liverpool.com.mx",
+    "Coppel":"coppel.com",
+    "Elektra":"elektra.com.mx",
+    "Cinépolis":"cinepolis.com",
+    "Cinemex":"cinemex.com",
+    "Office Depot":"officedepot.com.mx",
+    "Home Depot":"homedepot.com.mx",
+    "Best Buy":"bestbuy.com.mx",
+    "Suburbia":"suburbia.com.mx",
+    "Sears":"sears.com.mx",
+    "Palacio de Hierro":"elpalaciodehierro.com",
+    "Holiday Inn":"ihg.com",
+    "Hilton":"hilton.com",
+    "Marriott":"marriott.com",
+    "Fiesta Inn":"fiestainn.com",
+    "City Express":"cityexpress.com",
+    "Hyatt":"hyatt.com",
+    "Vips":"vips.com.mx",
+    "Toks":"toks.com.mx"
+  };
+  Object.keys(EXTRA_DOMAIN).forEach(function(k){
+    if(!BRAND_DOMAIN[k]) BRAND_DOMAIN[k] = EXTRA_DOMAIN[k];
+  });
+
+  // Reglas adicionales para detectar marca desde el title
+  var BRAND_DETECT = [
+    [/walmart/i, 'Walmart'], [/sam'?s\s*club/i, "Sam's Club"],
+    [/bodega\s*aurrera|aurrera/i, 'Bodega Aurrera'],
+    [/soriana/i, 'Soriana'], [/chedraui/i, 'Chedraui'],
+    [/heb\b|h-?e-?b/i, 'HEB'], [/costco/i, 'Costco'],
+    [/oxxo/i, 'OXXO'], [/7[\s\-]?eleven/i, '7-Eleven'],
+    [/circle\s*k/i, 'Circle K'], [/extra\b/i, 'Extra'],
+    [/mcdonal[d']?s|mc\s*donald/i, "McDonald's"],
+    [/burger\s*king/i, 'Burger King'], [/kfc/i, 'KFC'],
+    [/subway/i, 'Subway'], [/domino[\s'\-]?s/i, "Domino's Pizza"],
+    [/pizza\s*hut/i, 'Pizza Hut'], [/little\s*caesars/i, 'Little Caesars'],
+    [/starbucks/i, 'Starbucks'], [/banamex|citibanamex/i, 'Citibanamex'],
+    [/banorte/i, 'Banorte'], [/bbva|bancomer/i, 'BBVA'],
+    [/santander/i, 'Santander'], [/hsbc/i, 'HSBC'],
+    [/scotiabank/i, 'Scotiabank'], [/pemex/i, 'Pemex'],
+    [/shell/i, 'Shell'], [/mobil/i, 'Mobil'],
+    [/sanborns/i, 'Sanborns'], [/liverpool/i, 'Liverpool'],
+    [/coppel/i, 'Coppel'], [/elektra/i, 'Elektra'],
+    [/cinepolis|cinépolis/i, 'Cinépolis'], [/cinemex/i, 'Cinemex'],
+    [/spark\b/i, 'Spark'], [/smart\s*fit/i, 'Smart Fit'],
+    [/sport\s*city/i, 'Sport City'], [/sports?\s*world/i, 'Sports World'],
+    [/anytime\s*fitness/i, 'Anytime Fitness'],
+    [/farmacias?\s*del\s*ahorro/i, 'Farmacias del Ahorro'],
+    [/farmacias?\s*similares/i, 'Farmacias Similares'],
+    [/farmacias?\s*benavides/i, 'Farmacias Benavides'],
+    [/farmacias?\s*guadalajara/i, 'Farmacias Guadalajara'],
+    [/holiday\s*inn/i, 'Holiday Inn'],
+    [/hilton/i, 'Hilton'], [/marriott/i, 'Marriott'],
+    [/fiesta\s*inn/i, 'Fiesta Inn'], [/city\s*express/i, 'City Express'],
+    [/hyatt/i, 'Hyatt'], [/vips/i, 'Vips'], [/toks/i, 'Toks'],
+    [/office\s*depot/i, 'Office Depot'],
+    [/home\s*depot/i, 'Home Depot'],
+    [/best\s*buy/i, 'Best Buy'],
+    [/suburbia/i, 'Suburbia'],
+    [/sears/i, 'Sears'],
+    [/palacio\s*de\s*hierro/i, 'Palacio de Hierro']
+  ];
+
+  function detectBrand(title){
+    if(!title) return null;
+    for(var i=0; i<BRAND_DETECT.length; i++){
+      if(BRAND_DETECT[i][0].test(title)) return BRAND_DETECT[i][1];
+    }
+    return null;
+  }
+
+  function logoUrlR31(brand){
+    var dom = BRAND_DOMAIN[brand];
+    if(dom){
+      // Favicon API de Google (más confiable que Clearbit)
+      return 'https://www.google.com/s2/favicons?domain='+encodeURIComponent(dom)+'&sz=64';
+    }
+    // Fallback SVG con la inicial
+    var ltr = (brand || '?').charAt(0).toUpperCase();
+    var bg = '#6D28D9';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44">'
+            + '<circle cx="22" cy="22" r="20" fill="'+bg+'" stroke="#fff" stroke-width="2.5"/>'
+            + '<text x="22" y="29" font-family="Arial,sans-serif" font-size="22" font-weight="700" '
+            + 'fill="#fff" text-anchor="middle">'+ltr+'</text></svg>';
+    return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
+  }
+
+  // Re-hook de Marker (incluye los markers ya creados — los re-iconamos)
+  // Estrategia: monkey-patch tanto setIcon como el constructor, y barrer
+  // todos los markers existentes en el mapa.
+  function relogoAll(){
+    // No hay forma directa de listar markers — usamos los que están en S.markers
+    // de Round 28. Está dentro de IIFE, no accesible. Como alternativa, escuchamos
+    // creaciones futuras vía constructor hook (ya hecho en R30) pero forzamos
+    // que aplique el logo R31.
+  }
+
+  // Override del constructor de Marker — esta vez con favicon API
+  function rehookMarker(){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.Marker) return false;
+    // Si Round 30 ya hookeó, lo volvemos a wrappear (Marker es ahora la versión de R30)
+    var Cur = google.maps.Marker;
+    if(Cur._r31Hooked) return true;
+    function Wrap(opts){
+      var m = new Cur(opts);
+      try{
+        if(opts && opts.title){
+          var b = detectBrand(opts.title);
+          if(b){
+            setTimeout(function(){
+              try{
+                m.setIcon({
+                  url: logoUrlR31(b),
+                  scaledSize: new google.maps.Size(40, 40),
+                  anchor: new google.maps.Point(20, 20)
+                });
+                m.setLabel(null);
+              }catch(_){}
+            }, 50);
+          }
+        }
+      }catch(_){}
+      return m;
+    }
+    Wrap.prototype = Cur.prototype;
+    for(var k in Cur){ if(Cur.hasOwnProperty(k)) Wrap[k] = Cur[k]; }
+    Wrap._r31Hooked = true;
+    Wrap._r30Hooked = true; // mantener el flag de R30
+    google.maps.Marker = Wrap;
+    return true;
+  }
+
+  // ============================================================
+  // 4) Panel km — ocultar duplicado + cleanup al borrar selección
+  // ============================================================
+  function cleanupRadiusPill(){
+    try{
+      if(window._r25Ov && typeof window._r25Ov.hide === 'function'){
+        window._r25Ov.hide();
+      }
+      var pill = document.getElementById('r25-radius-pill');
+      if(pill) pill.style.display = 'none';
+    }catch(_){}
+  }
+
+  // Vigilar currentOverlay — si pasa a null, ocultar pill
+  function watchOverlayCleanup(){
+    if(window._r31OverlayWatch) return;
+    window._r31OverlayWatch = true;
+    var lastOverlay = window.currentOverlay;
+    setInterval(function(){
+      var cur = window.currentOverlay;
+      if(lastOverlay && !cur){
+        cleanupRadiusPill();
+      }
+      lastOverlay = cur;
+    }, 600);
+  }
+
+  // Hook al botón de borrar selección/draw cuando exista
+  function hookClearButtons(){
+    // Botón "trash" / "clear" tradicional
+    document.addEventListener('click', function(ev){
+      var t = ev.target.closest('[data-tip*="Borrar"],[data-tip*="Limpiar"],[id*="clear"],[id*="delete"]');
+      if(t) setTimeout(cleanupRadiusPill, 100);
+    });
+    // Tecla Escape
+    document.addEventListener('keydown', function(ev){
+      if(ev.key === 'Escape') setTimeout(cleanupRadiusPill, 100);
+    });
+  }
+
+  // ============================================================
+  // 5) Cap 9.2M — wrapper sobre analyzeMultiSelection
+  // ============================================================
+  // Áreas aproximadas por estado (km²)
+  var STATE_AREA_KM2 = {
+    '01':5618,  '02':71450, '03':73922, '04':57924,
+    '05':151563,'06':5627,  '07':73311, '08':247455,
+    '09':1485,  '10':123451,'11':30608, '12':63596,
+    '13':20813, '14':78599, '15':22357, '16':58643,
+    '17':4893,  '18':27815, '19':64156, '20':93343,
+    '21':34290, '22':11684, '23':42361, '24':60983,
+    '25':57365, '26':179503,'27':24731, '28':80175,
+    '29':3996,  '30':71826, '31':39524, '32':75416
+  };
+  function applyAreaCap(){
+    if(typeof window.analyzeMultiSelection !== 'function') return false;
+    if(window.analyzeMultiSelection._r31) return true;
+    var orig = window.analyzeMultiSelection;
+    window.analyzeMultiSelection = function(idx){
+      var rv = orig.apply(this, arguments);
+      try{
+        var sel = window.multiSelections && window.multiSelections[idx];
+        if(sel && sel.data){
+          var d = sel.data;
+          var lat = d.lat, lng = d.lng;
+          var sc = (typeof window.getStateForCoords === 'function') ? window.getStateForCoords(lat,lng) : '09';
+          var ce = window.CENSUS && window.CENSUS[sc];
+          if(ce && ce.pop && d.areaSqKm){
+            var stateArea = STATE_AREA_KM2[sc] || 70000;
+            var areaRatio = Math.min(1, d.areaSqKm / stateArea);
+            // Cap MUY conservador: pop estado * areaRatio * 1.6 (buffer urbano)
+            var maxPop = Math.round(ce.pop * areaRatio * 1.6);
+            if(d.estPop > maxPop){
+              var prev = d.estPop;
+              d.estPop = maxPop;
+              d.estHog = Math.round(d.estPop / 3.5);
+              if(d.vehMonthly && d._flowParams){
+                var trips = Math.round(d.estPop * d._flowParams.tripsPerP);
+                d.vehMonthly = Math.round(trips * d._flowParams.vehShare * d._flowParams.throughMult * 30);
+                d.pedMonthly = Math.round(trips * d._flowParams.pedShare * d._flowParams.throughMult * 30);
+              }
+              if(window.console) console.log('[r31] cap pop', prev, '->', maxPop, '(area '+d.areaSqKm.toFixed(1)+' km² / '+stateArea+' km²)');
+            }
+          }
+        }
+        // currentData refleja la última selección
+        if(window.currentData && sel && sel.data){
+          window.currentData.estPop = sel.data.estPop;
+          window.currentData.estHog = sel.data.estHog;
+        }
+      }catch(e){ console.error('[r31] cap fail', e); }
+      return rv;
+    };
+    window.analyzeMultiSelection._r31 = true;
+    return true;
+  }
+
+  // ============================================================
+  // start()
+  // ============================================================
+  function start(){
+    if (typeof google !== 'undefined' && google.maps) {
+      attachIdleNse();
+      attachIdleHeat();
+      hookCheckboxes();
+      rehookMarker();
+    }
+    applyAreaCap();
+    watchOverlayCleanup();
+    hookClearButtons();
+    if (nseActive()) r31RenderNse(true);
+    if (window.densityLayerActive) r31RenderDensity(true);
+    if (window._trafHeatActive) r31RenderTraffic(true);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [600, 1500, 3000, 6000, 12000, 25000].forEach(function(d){ setTimeout(start, d); });
+
+  // Observer del panel NSE
+  if (window.MutationObserver) {
+    var mo = new MutationObserver(function(){ hookCheckboxes(); });
+    mo.observe(document.body, {childList:true, subtree:true});
+  }
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
