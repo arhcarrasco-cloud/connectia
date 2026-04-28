@@ -28413,6 +28413,73 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 })();
 </script>
 
+<script id="connectia-round26-nse-polygons">
+/* Round 26 — NSE polígonos manzana INEGI siempre que se active NSE.
+   Aditivo. No toca drawNSEGrid ni _renderNSEFilterManzana. */
+(function(){
+
+  function fixZoomAndRedraw(){
+    if(!window.map) return;
+    var z = window.map.getZoom();
+    if(z < 15){
+      window.map.setZoom(15);
+      // Esperar a que termine el setZoom y luego forzar drawNSEGrid
+      setTimeout(function(){
+        if(window.nseLayerActive && typeof window.drawNSEGrid === 'function'){
+          window.drawNSEGrid();
+        }
+      }, 600);
+    } else {
+      if(window.nseLayerActive && typeof window.drawNSEGrid === 'function'){
+        window.drawNSEGrid();
+      }
+    }
+  }
+
+  function patchNSEToggle(){
+    var orig = window.toggleNSEOverlay;
+    if(typeof orig !== 'function' || orig._r26) return false;
+    window.toggleNSEOverlay = function(){
+      var r = orig.apply(this, arguments);
+      try{
+        if(window.nseLayerActive){
+          // Auto-zoom a 15 si es necesario y forzar manzanas
+          fixZoomAndRedraw();
+          if(typeof window.connectiaToast === 'function'){
+            window.connectiaToast('NSE por manzana INEGI Censo 2020 — polígonos finos', 2500);
+          }
+        }
+      }catch(e){ console.warn('[r26 nse]', e); }
+      return r;
+    };
+    window.toggleNSEOverlay._r26 = true;
+
+    // También enganchar al map idle para que cuando el user pannee, se redibuje
+    if(window.map && !window._r26IdleHook){
+      window._r26IdleHook = true;
+      var idleTimer = null;
+      window.map.addListener('idle', function(){
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(function(){
+          if(window.nseLayerActive && window.map.getZoom() >= 14){
+            if(typeof window.drawNSEGrid === 'function'){
+              window.drawNSEGrid();
+            }
+          }
+        }, 400);
+      });
+    }
+    return true;
+  }
+
+  function start(){ patchNSEToggle(); }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [600, 2500, 6000, 12000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
