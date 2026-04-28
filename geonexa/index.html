@@ -28480,6 +28480,187 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 })();
 </script>
 
+<style id="connectia-round27-css">
+/* FAB Comparar — siempre visible, esquina inferior izquierda */
+#cn-cmp-fab-fixed{
+  position:fixed; bottom:200px; left:18px; z-index:9000;
+  width:48px; height:48px; border-radius:50%; border:none;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F); color:#fff;
+  box-shadow:0 6px 18px rgba(109,40,217,.32);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-family:'Material Icons Outlined'; font-size:22px;
+  transition:transform .15s ease;
+}
+#cn-cmp-fab-fixed:hover{ transform:scale(1.05); }
+.is-mobile-view #cn-cmp-fab-fixed{
+  bottom:calc(120px + env(safe-area-inset-bottom,0px));
+  left:18px; width:44px; height:44px;
+}
+</style>
+<script id="connectia-round27-nse-hex-cmp">
+/* Round 27 — Hexágonos NSE + FAB Comparar siempre disponible */
+(function(){
+
+  // ============================================================
+  // 1) Hexágonos NSE — independiente del INEGI fetcher
+  //    Cuando el INEGI endpoint cae a "fallback cuadrados", usamos
+  //    una grilla hexagonal generada en runtime con getNSEForCell.
+  // ============================================================
+  var NSE_COLORS = {
+    'AB':'#15803d','Cplus':'#22c55e','C+':'#22c55e',
+    'C':'#84cc16','Dplus':'#eab308','D+':'#eab308',
+    'D':'#f97316','E':'#dc2626'
+  };
+  var hexes = [];
+  var hexBoundsLast = null;
+
+  function clearHexes(){
+    hexes.forEach(function(h){ try{ h.setMap(null); }catch(_){} });
+    hexes = [];
+  }
+
+  function renderHexes(){
+    if(typeof google === 'undefined' || !google.maps) return;
+    if(!window.map || !window.nseLayerActive) { clearHexes(); return; }
+    var bounds = window.map.getBounds();
+    if(!bounds) return;
+    var z = window.map.getZoom();
+    if(z < 11){ clearHexes(); return; }
+
+    var ne = bounds.getNorthEast();
+    var sw = bounds.getSouthWest();
+    var bKey = ne.lat().toFixed(3)+','+ne.lng().toFixed(3)+','+sw.lat().toFixed(3)+','+sw.lng().toFixed(3)+'_z'+z;
+    if(bKey === hexBoundsLast) return; // mismo viewport, no re-render
+    hexBoundsLast = bKey;
+    clearHexes();
+
+    // Resolución por zoom (más zoom = más hexágonos)
+    var nRows = z >= 15 ? 22 : (z >= 13 ? 16 : 12);
+    var nCols = z >= 15 ? 16 : (z >= 13 ? 12 : 9);
+    var dLat = (ne.lat() - sw.lat()) / nRows;
+    var dLng = (ne.lng() - sw.lng()) / nCols;
+    var hexRadius = dLat * 0.62;
+    var lngFactor = Math.cos((ne.lat() + sw.lat()) / 2 * Math.PI / 180);
+
+    var stateCode = window.currentStateCode || '09';
+
+    for(var r=0; r<nRows; r++){
+      for(var c=0; c<nCols; c++){
+        var offset = (r % 2 === 0) ? 0 : 0.5;
+        var cLat = sw.lat() + dLat * (r + 0.5);
+        var cLng = sw.lng() + dLng * (c + offset + 0.5);
+        // 6 vértices hex (flat-top)
+        var path = [];
+        for(var i=0; i<6; i++){
+          var ang = Math.PI/3 * i + Math.PI/6;
+          path.push({
+            lat: cLat + hexRadius * Math.sin(ang),
+            lng: cLng + (hexRadius * Math.cos(ang)) / lngFactor
+          });
+        }
+        var nse = 'C';
+        try{
+          if(typeof window.getNSEForCell === 'function'){
+            // Inferir state code por lat/lng si está disponible
+            var sc = stateCode;
+            if(typeof window.getStateForCoords === 'function'){
+              sc = window.getStateForCoords(cLat, cLng) || sc;
+            }
+            nse = window.getNSEForCell(sc, cLat, cLng) || 'C';
+          }
+        }catch(_){}
+        var color = NSE_COLORS[nse] || '#888';
+        var hex = new google.maps.Polygon({
+          paths: path,
+          fillColor: color,
+          fillOpacity: 0.42,
+          strokeColor: '#ffffff',
+          strokeWeight: 0.5,
+          strokeOpacity: 0.65,
+          map: window.map,
+          clickable: false,
+          zIndex: 4
+        });
+        hexes.push(hex);
+      }
+    }
+  }
+
+  function attachNseHex(){
+    if(typeof google === 'undefined' || !google.maps) return false;
+    if(!window.map) return false;
+    if(window._r27Hex) return true;
+    window._r27Hex = true;
+
+    var idleTimer = null;
+    window.map.addListener('idle', function(){
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(renderHexes, 350);
+    });
+
+    // Hook al toggle NSE
+    var origToggle = window.toggleNSEOverlay;
+    if(typeof origToggle === 'function' && !origToggle._r27Hex){
+      window.toggleNSEOverlay = function(){
+        var r = origToggle.apply(this, arguments);
+        setTimeout(function(){
+          if(window.nseLayerActive) renderHexes();
+          else clearHexes();
+        }, 200);
+        return r;
+      };
+      window.toggleNSEOverlay._r27Hex = true;
+    }
+    return true;
+  }
+
+  // ============================================================
+  // 2) FAB Comparar — botón flotante siempre disponible
+  // ============================================================
+  function buildCmpFab(){
+    if(document.getElementById('cn-cmp-fab-fixed')) return;
+    var fab = document.createElement('button');
+    fab.id = 'cn-cmp-fab-fixed';
+    fab.title = 'Comparativa de marcas';
+    fab.setAttribute('data-tip', 'Comparativa de marcas');
+    fab.textContent = 'compare_arrows';
+    fab.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      // Abrir el panel cn-cmp-v3 (Round 24)
+      var panel = document.getElementById('cn-cmp-v3');
+      if(!panel){
+        // No existe — construir manualmente disparando el flujo
+        // Buscar trigger existente y simular click
+        var existing = document.querySelector('[data-cmp-entry="1"]');
+        if(existing) existing.click();
+        return;
+      }
+      panel.classList.add('show');
+      panel.style.display = 'flex';
+      // Posicionar como dropdown sobre el FAB
+      var r = fab.getBoundingClientRect();
+      panel.style.position = 'fixed';
+      panel.style.bottom = (window.innerHeight - r.top + 8) + 'px';
+      panel.style.left = r.left + 'px';
+      panel.style.top = 'auto';
+      panel.style.right = 'auto';
+      panel.style.transform = 'none';
+      panel.style.zIndex = '99999';
+    });
+    document.body.appendChild(fab);
+  }
+
+  function start(){
+    attachNseHex();
+    buildCmpFab();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [600, 2500, 6000, 12000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
