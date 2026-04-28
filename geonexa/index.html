@@ -28249,6 +28249,170 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 })();
 </script>
 
+<script id="connectia-round25-radius-live">
+/* Round 25 — restaurar el panel de km del círculo en tiempo real
+   Aislado, bullet-proof, no toca nada más. */
+(function(){
+  function defineClass(){
+    if(typeof google === 'undefined' || !google.maps) return null;
+    if(window._r25Class) return window._r25Class;
+    function L(){ this._d = null; this._c = null; this._r = 0; }
+    L.prototype = new google.maps.OverlayView();
+    L.prototype.onAdd = function(){
+      var d = document.createElement('div');
+      d.id = 'r25-radius-pill';
+      d.style.cssText = [
+        'position:absolute',
+        'transform:translate(-50%,-50%)',
+        'pointer-events:none',
+        'background:#ffffff',
+        'border:1.5px solid rgba(109,40,217,.55)',
+        'border-radius:8px',
+        'padding:6px 12px',
+        'box-shadow:0 2px 10px rgba(109,40,217,.18)',
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif',
+        'font-size:13px',
+        'font-weight:700',
+        'color:#5B21B6',
+        'white-space:nowrap',
+        'z-index:1000',
+        'display:none'
+      ].join(';');
+      this._d = d;
+      this.getPanes().floatPane.appendChild(d);
+    };
+    L.prototype.draw = function(){
+      if(!this._d) return;
+      if(!this._c){ this._d.style.display = 'none'; return; }
+      var p = this.getProjection();
+      if(!p) return;
+      var px = p.fromLatLngToDivPixel(this._c);
+      if(!px) return;
+      this._d.style.left = px.x + 'px';
+      this._d.style.top  = px.y + 'px';
+      this._d.style.display = 'block';
+      var r = this._r || 0;
+      var radStr = r<1000?Math.round(r)+' m':(r/1000).toFixed(2)+' km';
+      var aKm2 = Math.PI*(r/1000)*(r/1000);
+      var aStr = aKm2<1?(aKm2*1e6).toFixed(0)+' m²':aKm2.toFixed(2)+' km²';
+      this._d.innerHTML = radStr + ' <span style="color:#86868b;font-size:11px;font-weight:500">' + aStr + '</span>';
+    };
+    L.prototype.update = function(c, r){
+      this._c = c; this._r = r || 0;
+      this.draw();
+    };
+    L.prototype.hide = function(){
+      this._c = null;
+      if(this._d) this._d.style.display = 'none';
+    };
+    window._r25Class = L;
+    return L;
+  }
+
+  function getOv(){
+    var Cls = defineClass();
+    if(!Cls) return null;
+    if(!window._r25Ov){
+      try{
+        window._r25Ov = new Cls();
+        window._r25Ov.setMap(window.map);
+      }catch(e){ return null; }
+    }
+    return window._r25Ov;
+  }
+
+  function inCircleMode(){
+    try{
+      return window.drawingManager
+        && window.drawingManager.getDrawingMode() === google.maps.drawing.OverlayType.CIRCLE;
+    }catch(_){ return false; }
+  }
+
+  function attach(){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.geometry) return false;
+    if(!window.drawingManager) return false;
+    if(typeof window._pixelToLatLng !== 'function') return false;
+    if(window._r25Attached) return true;
+    window._r25Attached = true;
+
+    // overlaycomplete: cuando el círculo se crea, mostrar y mantener listeners
+    google.maps.event.addListener(window.drawingManager, 'overlaycomplete', function(ev){
+      if(ev.type !== google.maps.drawing.OverlayType.CIRCLE) return;
+      var circle = ev.overlay;
+      var ov = getOv();
+      if(!ov) return;
+      ov.update(circle.getCenter(), circle.getRadius());
+      circle.addListener('radius_changed', function(){
+        ov.update(circle.getCenter(), circle.getRadius());
+      });
+      circle.addListener('center_changed', function(){
+        ov.update(circle.getCenter(), circle.getRadius());
+      });
+    });
+
+    // Live tracking durante draw inicial
+    var mapEl = document.getElementById('map');
+    if(!mapEl) return true;
+    var live = null;
+    function onDown(x, y){
+      if(!inCircleMode()) return;
+      var ll = window._pixelToLatLng(x, y);
+      if(ll){
+        live = ll;
+        var ov = getOv();
+        if(ov) ov.update(ll, 0);
+      }
+    }
+    function onMove(x, y){
+      if(!live || !inCircleMode()) return;
+      var cur = window._pixelToLatLng(x, y);
+      if(!cur) return;
+      var d = google.maps.geometry.spherical.computeDistanceBetween(live, cur);
+      var ov = getOv();
+      if(ov) ov.update(live, d);
+    }
+    function onUp(){ setTimeout(function(){ live = null; }, 100); }
+    mapEl.addEventListener('mousedown', function(e){ onDown(e.clientX, e.clientY); }, true);
+    mapEl.addEventListener('mousemove', function(e){ onMove(e.clientX, e.clientY); }, true);
+    mapEl.addEventListener('mouseup',   function(){ onUp(); }, true);
+    mapEl.addEventListener('touchstart', function(e){
+      if(e.touches && e.touches[0]) onDown(e.touches[0].clientX, e.touches[0].clientY);
+    }, {capture:true, passive:true});
+    mapEl.addEventListener('touchmove', function(e){
+      if(e.touches && e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY);
+    }, {capture:true, passive:true});
+    mapEl.addEventListener('touchend', function(){ onUp(); }, true);
+
+    // Si ya hay un círculo creado al cargar, attachar listeners
+    if(window.currentOverlay && typeof window.currentOverlay.getRadius === 'function'){
+      try{
+        var ov = getOv();
+        if(ov) ov.update(window.currentOverlay.getCenter(), window.currentOverlay.getRadius());
+        if(!window.currentOverlay._r25){
+          window.currentOverlay._r25 = true;
+          window.currentOverlay.addListener('radius_changed', function(){
+            var c = window.currentOverlay;
+            if(ov) ov.update(c.getCenter(), c.getRadius());
+          });
+          window.currentOverlay.addListener('center_changed', function(){
+            var c = window.currentOverlay;
+            if(ov) ov.update(c.getCenter(), c.getRadius());
+          });
+        }
+      }catch(_){}
+    }
+    return true;
+  }
+
+  function start(){ attach(); }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  // Reintentos: depende de google.maps + drawingManager + _pixelToLatLng cargados
+  [600, 2000, 5000, 10000, 20000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
