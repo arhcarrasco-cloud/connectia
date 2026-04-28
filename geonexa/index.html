@@ -28661,6 +28661,457 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 })();
 </script>
 
+<style id="connectia-round28-css">
+/* Comparativa v4 — autocontenida, siempre operacional */
+#cn28-fab{
+  position:fixed; bottom:200px; left:18px; z-index:99000;
+  width:48px; height:48px; border-radius:50%; border:none;
+  background:linear-gradient(135deg,#6D28D9,#8B3A9F); color:#fff;
+  box-shadow:0 6px 18px rgba(109,40,217,.32);
+  cursor:pointer; display:flex !important;
+  align-items:center; justify-content:center;
+  font-family:'Material Icons Outlined' !important; font-size:22px;
+}
+.is-mobile-view #cn28-fab{
+  bottom:calc(120px + env(safe-area-inset-bottom,0px));
+  width:44px; height:44px; font-size:20px;
+}
+#cn28{
+  position:fixed; bottom:80px; left:18px; z-index:99500;
+  width:380px; max-height:540px; overflow:hidden;
+  background:#fff; border-radius:14px;
+  border:1px solid rgba(60,60,67,.12);
+  box-shadow:0 16px 40px rgba(0,0,0,.18);
+  display:none; flex-direction:column;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+#cn28.show{ display:flex !important; }
+#cn28 .h{
+  padding:12px 14px; display:flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid rgba(109,40,217,.18);
+  position:relative; cursor:grab;
+}
+#cn28 .h::after{
+  content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px;
+  background:linear-gradient(90deg, rgba(109,40,217,.7) 0%, rgba(236,72,153,.45) 70%, transparent 100%);
+}
+#cn28 .h h3{ margin:0; font-size:13px; font-weight:700; color:#1d1d1f; flex:1; }
+#cn28 .h button{
+  border:none; background:rgba(0,0,0,.06); width:26px; height:26px;
+  border-radius:50%; cursor:pointer; color:#1d1d1f; font-size:14px;
+}
+#cn28 .b{ padding:12px; overflow-y:auto; flex:1; }
+#cn28 .st{
+  padding:6px 10px; border-radius:6px; font-size:11px;
+  background:#fef3c7; color:#92400e; margin-bottom:10px;
+}
+#cn28 .st.ok{ background:#dcfce7; color:#166534; }
+#cn28 input{
+  width:100%; padding:8px 12px; border:1px solid #e2e8f0;
+  border-radius:8px; font-size:12px; background:#fafafa;
+  font-family:inherit; box-sizing:border-box; margin-bottom:8px;
+}
+#cn28 input:focus{
+  outline:none; border-color:#6D28D9; background:#fff;
+  box-shadow:0 0 0 3px rgba(109,40,217,.12);
+}
+#cn28 .cats{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+#cn28 .cat{
+  padding:5px 10px; border:1px solid #e9d5ff; border-radius:14px;
+  background:#fff; color:#1d1d1f; font-size:11px; cursor:pointer;
+  font-family:inherit;
+}
+#cn28 .cat.on{
+  background:linear-gradient(135deg,#EDE9FE,#C4B5FD);
+  color:#5B21B6; border-color:rgba(109,40,217,.35);
+}
+#cn28 .lst{
+  border:1px solid #e2e8f0; border-radius:10px;
+  max-height:240px; overflow-y:auto; margin-bottom:10px;
+}
+#cn28 .lst:empty::before{
+  content:'Selecciona una categoría o busca un comercio';
+  display:block; padding:20px; text-align:center;
+  color:#94a3b8; font-size:11px;
+}
+#cn28 .row{
+  display:flex; align-items:center; gap:8px; padding:8px 10px;
+  border-bottom:1px solid #f1f5f9; font-size:12px; cursor:pointer;
+}
+#cn28 .row:last-child{ border-bottom:none; }
+#cn28 .row:hover{ background:#fafafa; }
+#cn28 .row .sw{
+  width:14px; height:14px; border-radius:50%; flex-shrink:0;
+  border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.15);
+}
+#cn28 .row .nm{ flex:1; color:#1d1d1f; }
+#cn28 .row .cnt{ color:#6e6e73; font-size:10px; }
+#cn28 .row .tg{
+  position:relative; width:36px; height:20px;
+  background:#e2e8f0; border-radius:10px; transition:background .15s;
+  flex-shrink:0;
+}
+#cn28 .row .tg::after{
+  content:''; position:absolute; top:2px; left:2px;
+  width:16px; height:16px; background:#fff; border-radius:50%;
+  transition:left .15s; box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+#cn28 .row.on .tg{ background:#6D28D9; }
+#cn28 .row.on .tg::after{ left:18px; }
+#cn28 .acts{ display:flex; gap:6px; }
+#cn28 .acts button{
+  padding:8px 12px; border:none; border-radius:8px; cursor:pointer;
+  font-size:11px; font-weight:600; font-family:inherit;
+}
+#cn28 .acts .p{
+  flex:1; background:linear-gradient(135deg,#6D28D9,#8B3A9F); color:#fff;
+}
+#cn28 .acts .a{ background:#fff; color:#6D28D9; border:1px solid #e9d5ff; }
+.is-mobile-view #cn28{
+  left:8px; right:8px; width:auto;
+  bottom:calc(56px + env(safe-area-inset-bottom,0px));
+  max-height:65vh;
+}
+</style>
+<script id="connectia-round28-cmp">
+/* Round 28 — Comparativa v4 autocontenida y bullet-proof */
+(function(){
+
+  var CATS = [
+    {id:'retail',     label:'Retail',        types:['supermarket','department_store','shopping_mall','convenience_store']},
+    {id:'food_fast',  label:'Comida rápida', types:['meal_takeaway','meal_delivery']},
+    {id:'restaurant', label:'Restaurantes',  types:['restaurant']},
+    {id:'cafe',       label:'Cafeterías',    types:['cafe','bakery']},
+    {id:'gas',        label:'Gasolineras',   types:['gas_station']},
+    {id:'bank',       label:'Bancos',        types:['bank','atm']},
+    {id:'pharmacy',   label:'Farmacias',     types:['pharmacy']},
+    {id:'gym',        label:'Gimnasios',     types:['gym']},
+    {id:'hotel',      label:'Hoteles',       types:['lodging']}
+  ];
+  var COLORS = ['#6D28D9','#8B3A9F','#dc2626','#ea580c','#eab308','#16a34a','#0891b2','#1e40af','#9333ea','#db2777','#7c2d12','#737373'];
+  var BRAND_RULES = [
+    [/walmart/i, 'Walmart'], [/sam'?s\s*club/i, "Sam's Club"],
+    [/bodega\s*aurrera|aurrera/i, 'Bodega Aurrera'],
+    [/soriana/i, 'Soriana'], [/chedraui/i, 'Chedraui'],
+    [/heb\b|h-?e-?b/i, 'HEB'], [/costco/i, 'Costco'],
+    [/oxxo/i, 'OXXO'], [/7[\s\-]?eleven/i, '7-Eleven'],
+    [/circle\s*k/i, 'Circle K'], [/extra\b/i, 'Extra'],
+    [/farmacias\s*del\s*ahorro/i, 'Farmacias del Ahorro'],
+    [/farmacias\s*similares/i, 'Farmacias Similares'],
+    [/farmacias?\s*benavides/i, 'Farmacias Benavides'],
+    [/farmacias?\s*guadalajara/i, 'Farmacias Guadalajara'],
+    [/mcdonal[d']?s|mc\s*donald/i, "McDonald's"],
+    [/burger\s*king/i, 'Burger King'], [/kfc/i, 'KFC'],
+    [/subway/i, 'Subway'], [/domino[\s'\-]?s/i, "Domino's Pizza"],
+    [/pizza\s*hut/i, 'Pizza Hut'], [/little\s*caesars/i, 'Little Caesars'],
+    [/starbucks/i, 'Starbucks'], [/banamex/i, 'Citibanamex'],
+    [/banorte/i, 'Banorte'], [/bbva|bancomer/i, 'BBVA'],
+    [/santander/i, 'Santander'], [/hsbc/i, 'HSBC'],
+    [/scotiabank/i, 'Scotiabank'], [/pemex/i, 'Pemex'],
+    [/shell/i, 'Shell'], [/mobil/i, 'Mobil'],
+    [/sanborns/i, 'Sanborns'], [/liverpool/i, 'Liverpool'],
+    [/coppel/i, 'Coppel'], [/elektra/i, 'Elektra'],
+    [/cinepolis|cinépolis/i, 'Cinépolis'], [/cinemex/i, 'Cinemex']
+  ];
+
+  var S = { brands:{}, active:{}, markers:{}, colorMap:{} };
+
+  function escHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function normalize(name){
+    if(!name) return 'Otro';
+    for(var i=0; i<BRAND_RULES.length; i++){
+      if(BRAND_RULES[i][0].test(name)) return BRAND_RULES[i][1];
+    }
+    return name.replace(/\s+(suc(ursal)?|store|tienda|#?\d+).*$/i, '').replace(/\s+/g,' ').trim();
+  }
+  function colorFor(brand){
+    if(S.colorMap[brand]) return S.colorMap[brand];
+    var idx = Object.keys(S.colorMap).length % COLORS.length;
+    var c = COLORS[idx];
+    S.colorMap[brand] = c;
+    return c;
+  }
+
+  function getArea(){
+    if(window.currentOverlay){
+      var o = window.currentOverlay;
+      try{
+        if(typeof o.getBounds === 'function') return {bounds:o.getBounds()};
+        if(typeof o.getCenter === 'function' && typeof o.getRadius === 'function'){
+          return {center:o.getCenter(), radius:o.getRadius()};
+        }
+      }catch(_){}
+    }
+    try{ var b = window.map && window.map.getBounds(); if(b) return {bounds:b}; }catch(_){}
+    return null;
+  }
+
+  function search(cat, query, cb){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.places){
+      console.warn('[r28] Places API no cargada'); cb([], 'no-api'); return;
+    }
+    var area = getArea();
+    if(!area){ cb([], 'no-area'); return; }
+    var svc = new google.maps.places.PlacesService(window.map);
+    var req = {};
+    if(area.bounds) req.bounds = area.bounds;
+    else if(area.center && area.radius){ req.location = area.center; req.radius = area.radius; }
+    if(cat && cat.types && cat.types.length) req.type = cat.types[0];
+    if(query) req.keyword = query;
+    console.log('[r28] Places query:', req);
+    svc.nearbySearch(req, function(results, status){
+      console.log('[r28] Places result:', status, (results||[]).length);
+      cb((status === google.maps.places.PlacesServiceStatus.OK && results) ? results : [], status);
+    });
+  }
+
+  function group(places){
+    var m = {};
+    places.forEach(function(p){
+      var b = normalize(p.name);
+      if(!m[b]) m[b] = [];
+      m[b].push(p);
+    });
+    return m;
+  }
+
+  function placePin(brand){
+    if(S.markers[brand]) return;
+    var places = S.brands[brand] || [];
+    var color = colorFor(brand);
+    var arr = [];
+    places.forEach(function(p){
+      try{
+        var pos = p.geometry && p.geometry.location;
+        if(!pos) return;
+        var m = new google.maps.Marker({
+          position: pos,
+          map: window.map,
+          title: brand + ' — ' + (p.name || ''),
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 11,
+            fillColor: color,
+            fillOpacity: 0.96,
+            strokeColor: '#ffffff',
+            strokeWeight: 2.5
+          },
+          label: {
+            text: brand.length > 14 ? brand.substring(0,14) : brand,
+            color: '#1d1d1f',
+            fontSize: '10px',
+            fontWeight: '700'
+          },
+          zIndex: 10000,
+          optimized: false
+        });
+        arr.push(m);
+      }catch(e){ console.error('[r28] marker fail', e); }
+    });
+    S.markers[brand] = arr;
+    console.log('[r28] '+brand+': '+arr.length+' pines en mapa');
+  }
+  function rmPin(brand){
+    var arr = S.markers[brand];
+    if(!arr) return;
+    arr.forEach(function(m){ try{ m.setMap(null); }catch(_){} });
+    delete S.markers[brand];
+  }
+  function rmAllPins(){
+    Object.keys(S.markers).forEach(rmPin);
+  }
+
+  var panel = null;
+
+  function renderList(){
+    var lst = panel.querySelector('.lst');
+    lst.innerHTML = '';
+    var brands = Object.keys(S.brands).sort(function(a,b){
+      return S.brands[b].length - S.brands[a].length;
+    });
+    brands.forEach(function(b){
+      var n = S.brands[b].length;
+      var on = !!S.active[b];
+      var color = colorFor(b);
+      var row = document.createElement('div');
+      row.className = 'row' + (on?' on':'');
+      row.innerHTML = '<span class="sw" style="background:'+color+'"></span>'
+                    + '<span class="nm">'+escHtml(b)+'</span>'
+                    + '<span class="cnt">'+n+'</span>'
+                    + '<div class="tg"></div>';
+      row.addEventListener('click', function(ev){
+        if(S.active[b]){
+          delete S.active[b];
+          row.classList.remove('on');
+          rmPin(b);
+        } else {
+          S.active[b] = S.brands[b];
+          row.classList.add('on');
+          placePin(b);
+        }
+      });
+      lst.appendChild(row);
+    });
+  }
+  function setStatus(text, ok){
+    var st = panel.querySelector('.st');
+    st.textContent = text;
+    st.classList.toggle('ok', !!ok);
+  }
+
+  function build(){
+    if(panel) return panel;
+    panel = document.createElement('div');
+    panel.id = 'cn28';
+    var html = '<div class="h"><h3>Comparativa de comercios</h3>'
+             + '<button class="cl" data-tip="Cerrar">×</button></div>'
+             + '<div class="b">'
+             + '<div class="st">Verificando área…</div>'
+             + '<input type="text" placeholder="Buscar comercio (Walmart, Starbucks, OXXO…)">'
+             + '<div class="cats">';
+    CATS.forEach(function(c){
+      html += '<button class="cat" data-cat="'+c.id+'">'+c.label+'</button>';
+    });
+    html += '</div><div class="lst"></div>'
+          + '<div class="acts">'
+          + '<button class="p">Limpiar selección</button>'
+          + '</div></div>';
+    panel.innerHTML = html;
+    document.body.appendChild(panel);
+
+    panel.querySelector('.cl').addEventListener('click', function(){
+      panel.classList.remove('show');
+      panel.style.display = 'none';
+    });
+
+    // Drag from header
+    var head = panel.querySelector('.h');
+    var drag = null;
+    head.addEventListener('pointerdown', function(ev){
+      if(ev.target.closest('button')) return;
+      var r = panel.getBoundingClientRect();
+      drag = {x:ev.clientX, y:ev.clientY, l:r.left, t:r.top};
+      try{ head.setPointerCapture(ev.pointerId); }catch(_){}
+    });
+    head.addEventListener('pointermove', function(ev){
+      if(!drag) return;
+      panel.style.left = Math.max(0, Math.min(window.innerWidth-100, drag.l + ev.clientX - drag.x)) + 'px';
+      panel.style.top  = Math.max(0, Math.min(window.innerHeight-60, drag.t + ev.clientY - drag.y)) + 'px';
+      panel.style.bottom = 'auto';
+      panel.style.right = 'auto';
+    });
+    head.addEventListener('pointerup', function(ev){
+      try{ head.releasePointerCapture(ev.pointerId); }catch(_){}
+      drag = null;
+    });
+
+    // Search
+    var inp = panel.querySelector('input');
+    var t = null;
+    inp.addEventListener('input', function(){
+      var q = inp.value.trim();
+      clearTimeout(t);
+      if(q.length < 2) return;
+      t = setTimeout(function(){
+        panel.querySelectorAll('.cat').forEach(function(c){c.classList.remove('on');});
+        setStatus('Buscando "'+q+'"…');
+        search(null, q, function(places, st){
+          if(places.length === 0){
+            setStatus('Sin resultados en el área ('+st+')'); return;
+          }
+          S.brands = group(places); S.active = {}; S.colorMap = {};
+          rmAllPins(); renderList();
+          setStatus(places.length+' resultados — '+Object.keys(S.brands).length+' marcas. Toca un toggle para ver pines.', true);
+        });
+      }, 400);
+    });
+
+    // Categorías
+    panel.querySelectorAll('.cat').forEach(function(c){
+      c.addEventListener('click', function(){
+        var catId = c.dataset.cat;
+        var cat = CATS.find(function(x){return x.id===catId;});
+        panel.querySelectorAll('.cat').forEach(function(x){x.classList.remove('on');});
+        c.classList.add('on');
+        inp.value = '';
+        setStatus('Cargando '+cat.label+'…');
+        search(cat, '', function(places, st){
+          if(places.length === 0){
+            setStatus('Sin resultados ('+st+'). Selecciona área diferente.'); return;
+          }
+          S.brands = group(places); S.active = {}; S.colorMap = {};
+          rmAllPins(); renderList();
+          setStatus(places.length+' lugares — '+Object.keys(S.brands).length+' marcas. Toca un toggle para ver pines.', true);
+        });
+      });
+    });
+
+    // Limpiar
+    panel.querySelector('.acts .p').addEventListener('click', function(){
+      S.active = {};
+      rmAllPins();
+      panel.querySelectorAll('.row').forEach(function(r){r.classList.remove('on');});
+    });
+
+    return panel;
+  }
+
+  function open(triggerEl){
+    var p = build();
+    p.classList.add('show');
+    p.style.display = 'flex';
+    var area = getArea();
+    if(area && (area.bounds || area.center)){
+      setStatus(area.center ? 'Área: círculo de '+Math.round(area.radius)+' m' : 'Área: viewport actual', true);
+    } else {
+      setStatus('Selecciona área (círculo, polígono) o haz zoom al lugar de interés', false);
+    }
+    if(document.body.classList.contains('is-mobile-view')) return;
+    if(triggerEl){
+      var r = triggerEl.getBoundingClientRect();
+      var pw = 380;
+      p.style.position = 'fixed';
+      p.style.bottom = (window.innerHeight - r.top + 8) + 'px';
+      p.style.left = Math.max(10, r.left) + 'px';
+      p.style.top = 'auto';
+      p.style.right = 'auto';
+      p.style.transform = 'none';
+    }
+  }
+
+  function buildFab(){
+    if(document.getElementById('cn28-fab')) return;
+    var fab = document.createElement('button');
+    fab.id = 'cn28-fab';
+    fab.title = 'Comparar comercios';
+    fab.setAttribute('data-tip', 'Comparar comercios (Google Places)');
+    fab.textContent = 'compare_arrows';
+    fab.addEventListener('click', function(){ open(fab); });
+    document.body.appendChild(fab);
+  }
+
+  // Quitar FAB anterior duplicado de Round 27
+  function removeOldFab(){
+    var old = document.getElementById('cn-cmp-fab-fixed');
+    if(old) old.remove();
+  }
+
+  function start(){
+    removeOldFab();
+    buildFab();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [600, 2500, 6000, 12000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
