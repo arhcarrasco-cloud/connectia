@@ -29405,6 +29405,442 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 })();
 </script>
 
+<style id="connectia-round30-css">
+/* Round 30 — pin con logo + chip overlay */
+.r30-logo-pin{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
+</style>
+
+<script id="connectia-round30-fixes">
+/* ============================================================
+   Round 30 — Hex tamaño fijo + filtro NSE + logos comparativa
+   - Pedido explícito: hexes pequeños y pegados, mismo tamaño
+     sin importar el zoom; checkboxes del panel filtran;
+     logos de marcas en pines (Spark, McDonalds M, etc.)
+   - SOLO wrappers aditivos. No toca Round 28 ni Round 29.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // ============================================================
+  // 1) HEX NSE — tamaño fijo en pixeles + pointy-top pegado
+  //    Override de window.r29RenderHexes que viene de Round 29
+  // ============================================================
+  var NSE_COLORS_R30 = {
+    'AB':'#15803d','Cplus':'#22c55e','C+':'#22c55e',
+    'C':'#84cc16','Dplus':'#eab308','D+':'#eab308',
+    'D':'#f97316','E':'#dc2626'
+  };
+  var KEY_MAP = { 'AB':'AB', 'Cplus':'Cplus', 'C+':'Cplus', 'C':'C',
+                  'Dplus':'Dplus', 'D+':'Dplus', 'D':'D', 'E':'E' };
+
+  // Tamaño FIJO en pixels — siempre pequeño, no escala con zoom out
+  var HEX_PIXEL_SIZE = 16;  // radio en pixels (centro a vértice)
+
+  var r30Hexes = [];
+  var r30LastKey = null;
+  var r30FilterKey = '';
+
+  function r30ClearHexes(){
+    r30Hexes.forEach(function(h){ try{ h.setMap(null); }catch(_){} });
+    r30Hexes = [];
+  }
+  window.r30ClearHexes = r30ClearHexes;
+
+  function r30NseActive(){
+    return !!(window.nseOverlayActive || window.nseLayerActive);
+  }
+
+  // Lee checkboxes del panel #nse-panel; si no existe, todos activos.
+  function r30GetActiveLevels(){
+    var act = {};
+    var any = false;
+    var cbs = document.querySelectorAll('#nse-panel input[type=checkbox][data-nse]');
+    cbs.forEach(function(cb){
+      any = true;
+      if(cb.checked) act[cb.dataset.nse] = true;
+    });
+    if(!any){
+      // Sin panel — todos activos
+      return {AB:true,Cplus:true,'C+':true,C:true,Dplus:true,'D+':true,D:true,E:true};
+    }
+    // Normalizar: si tiene Cplus también acepta C+
+    if(act.Cplus) act['C+'] = true;
+    if(act.Dplus) act['D+'] = true;
+    return act;
+  }
+
+  function r30FilterSignature(){
+    var act = r30GetActiveLevels();
+    return ['AB','Cplus','C','Dplus','D','E'].map(function(k){
+      return act[k] ? '1' : '0';
+    }).join('');
+  }
+
+  // Web Mercator: meters per pixel a una latitud y zoom dados
+  function metersPerPixel(lat, zoom){
+    return 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom);
+  }
+
+  function r30Render(force){
+    if(typeof google === 'undefined' || !google.maps) return;
+    if(!window.map) return;
+    if(!r30NseActive()){ r30ClearHexes(); return; }
+    var bounds = window.map.getBounds();
+    if(!bounds) return;
+    var z = window.map.getZoom();
+    if(z < 10){ r30ClearHexes(); return; }
+
+    var ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+    var midLat = (ne.lat() + sw.lat()) / 2;
+    var filtSig = r30FilterSignature();
+    var bKey = ne.lat().toFixed(4)+','+ne.lng().toFixed(4)+','+
+               sw.lat().toFixed(4)+','+sw.lng().toFixed(4)+'_z'+z+'_f'+filtSig;
+    if(!force && bKey === r30LastKey) return;
+    r30LastKey = bKey;
+    r30ClearHexes();
+
+    // 1) Limpia overlays viejos (cuadrados de Round 29 hexes)
+    try{
+      if(window.r29ClearHexes) window.r29ClearHexes();
+      if(window.nseOverlays && Array.isArray(window.nseOverlays)){
+        window.nseOverlays.forEach(function(o){ try{ o.setMap(null); }catch(_){} });
+        window.nseOverlays.length = 0;
+      }
+    }catch(_){}
+
+    // 2) Tamaño hex en metros = HEX_PIXEL_SIZE * meters_per_pixel
+    var mpp = metersPerPixel(midLat, z);
+    var hexR_m = HEX_PIXEL_SIZE * mpp;
+    // Pointy-top hex: width = sqrt(3)*size, height = 2*size
+    // Spacing horiz = sqrt(3)*size, vert = 1.5*size, offset col = sqrt(3)/2*size
+    var hexR_lat = hexR_m / 111320;
+    var lngFactor = Math.cos(midLat * Math.PI / 180);
+    var hexR_lng = hexR_m / (111320 * lngFactor);
+
+    var dxLng = Math.sqrt(3) * hexR_lng;       // spacing horizontal entre centros
+    var dyLat = 1.5 * hexR_lat;                // spacing vertical entre centros
+    var offsetLng = (Math.sqrt(3)/2) * hexR_lng; // offset cada otra fila
+
+    var act = r30GetActiveLevels();
+
+    // Iterar grid pegado dentro del viewport
+    var startLat = sw.lat() - hexR_lat;
+    var endLat   = ne.lat() + hexR_lat;
+    var startLng = sw.lng() - hexR_lng;
+    var endLng   = ne.lng() + hexR_lng;
+
+    var nseClassifier = window.r29NseForCoord || function(lat,lng){
+      try{
+        if(typeof window.getNSEForCell === 'function'){
+          var sc = (typeof window.getStateForCoords === 'function')
+                    ? window.getStateForCoords(lat,lng) : '09';
+          return window.getNSEForCell(sc, lat, lng) || 'C';
+        }
+      }catch(_){}
+      return 'C';
+    };
+
+    var rowIdx = 0;
+    var maxHex = 5000; // safeguard
+    var count = 0;
+    for(var cLat = startLat; cLat <= endLat && count < maxHex; cLat += dyLat){
+      var rowOffset = (rowIdx % 2 === 0) ? 0 : offsetLng;
+      for(var cLng = startLng + rowOffset; cLng <= endLng && count < maxHex; cLng += dxLng){
+        var nse = nseClassifier(cLat, cLng);
+        var nseKey = KEY_MAP[nse] || 'C';
+        // Filtro: si no está activo este nivel, salta
+        if(!act[nseKey] && !act[nse]) continue;
+
+        // Pointy-top: 6 vertices con angulo = 60° * i + 30°
+        var path = [];
+        for(var i = 0; i < 6; i++){
+          var ang = Math.PI/3 * i + Math.PI/6;
+          // Pointy-top: x = size*cos(ang+30), y = size*sin(ang+30)
+          // Pero queremos pointy hacia arriba: usar ang = i*60
+          var ang2 = Math.PI/3 * i;
+          path.push({
+            lat: cLat + hexR_lat * Math.cos(ang2),
+            lng: cLng + hexR_lng * Math.sin(ang2)
+          });
+        }
+        var color = NSE_COLORS_R30[nse] || NSE_COLORS_R30[nseKey] || '#84cc16';
+        var hex = new google.maps.Polygon({
+          paths: path,
+          fillColor: color,
+          fillOpacity: 0.55,
+          strokeColor: color,
+          strokeWeight: 0.4,
+          strokeOpacity: 0.85,
+          map: window.map,
+          clickable: false,
+          zIndex: 9
+        });
+        r30Hexes.push(hex);
+        count++;
+      }
+      rowIdx++;
+    }
+  }
+  window.r30Render = r30Render;
+
+  // Suprime Round 29 render (que escalaba con viewport) y usa Round 30
+  function suppressR29(){
+    if(window.r29RenderHexes && !window.r29RenderHexes._r30){
+      var noop = function(force){
+        // Redirige a Round 30 fixed-size
+        r30Render(force);
+      };
+      noop._r30 = true;
+      window.r29RenderHexes = noop;
+    }
+  }
+
+  // Hook listener al panel NSE para re-render cuando cambian checkboxes
+  function hookFilterCheckboxes(){
+    var panel = document.getElementById('nse-panel');
+    if(!panel || panel._r30Hooked) return;
+    panel._r30Hooked = true;
+    panel.addEventListener('change', function(ev){
+      if(ev.target && ev.target.matches('input[type=checkbox][data-nse]')){
+        r30Render(true);
+      }
+    });
+  }
+
+  function attachIdleR30(){
+    if(!window.map || window._r30Idle) return;
+    window._r30Idle = true;
+    var t = null;
+    window.map.addListener('idle', function(){
+      clearTimeout(t);
+      t = setTimeout(function(){ r30Render(false); }, 250);
+    });
+  }
+
+  // ============================================================
+  // 2) LOGOS de marcas — hook a google.maps.Marker
+  //    Cuando el title sigue el patron "Brand — name" (Round 28),
+  //    sustituimos el icono CIRCLE por el logo de la marca.
+  // ============================================================
+  // Mapa marca -> dominio para logo.clearbit.com
+  var BRAND_LOGOS = {
+    "Walmart":"walmart.com.mx",
+    "Sam's Club":"samsclub.com.mx",
+    "Bodega Aurrera":"bodegaaurrera.com.mx",
+    "Soriana":"soriana.com",
+    "Chedraui":"chedraui.com.mx",
+    "HEB":"heb.com.mx",
+    "Costco":"costco.com.mx",
+    "OXXO":"oxxo.com",
+    "7-Eleven":"7-eleven.com.mx",
+    "Circle K":"circlek.com",
+    "Extra":"tiendasextra.com.mx",
+    "Farmacias del Ahorro":"fahorro.com",
+    "Farmacias Similares":"farmaciasdesimilares.com",
+    "Farmacias Benavides":"benavides.com.mx",
+    "Farmacias Guadalajara":"farmaciasguadalajara.com",
+    "McDonald's":"mcdonalds.com.mx",
+    "Burger King":"burgerking.com.mx",
+    "KFC":"kfc.com.mx",
+    "Subway":"subway.com",
+    "Domino's Pizza":"dominos.com.mx",
+    "Pizza Hut":"pizzahut.com.mx",
+    "Little Caesars":"littlecaesars.com.mx",
+    "Starbucks":"starbucks.com.mx",
+    "Citibanamex":"banamex.com",
+    "Banorte":"banorte.com",
+    "BBVA":"bbva.mx",
+    "Santander":"santander.com.mx",
+    "HSBC":"hsbc.com.mx",
+    "Scotiabank":"scotiabank.com.mx",
+    "Pemex":"pemex.com",
+    "Shell":"shell.com",
+    "Mobil":"mobil.com",
+    "Sanborns":"sanborns.com.mx",
+    "Liverpool":"liverpool.com.mx",
+    "Coppel":"coppel.com",
+    "Elektra":"elektra.com.mx",
+    "Cinépolis":"cinepolis.com",
+    "Cinemex":"cinemex.com",
+    // Gimnasios
+    "Sports World":"sportsworld.com.mx",
+    "Smart Fit":"smartfit.com.mx",
+    "Sport City":"sportcity.com.mx",
+    "Spark":"sparkfitness.com.mx",
+    "Anytime Fitness":"anytimefitness.com.mx",
+    // Hoteles
+    "Holiday Inn":"ihg.com",
+    "Hampton":"hilton.com",
+    "Hilton":"hilton.com",
+    "Marriott":"marriott.com",
+    "Fiesta Inn":"fiestainn.com",
+    "City Express":"cityexpress.com",
+    "Hyatt":"hyatt.com",
+    "NH":"nh-hoteles.com.mx",
+    "Camino Real":"caminoreal.com",
+    // Cafés / pan
+    "Vips":"vips.com.mx",
+    "Toks":"toks.com.mx",
+    "Cielito Querido":"cielitoqueridocafe.com",
+    "Italian Coffee":"italiancoffee.com",
+    "The Italian Coffee":"italiancoffee.com",
+    // Sushi / asiática
+    "Sushi Itto":"sushi-itto.com.mx",
+    "P.F. Chang's":"pfchangs.com",
+    // Otros comunes
+    "Office Depot":"officedepot.com.mx",
+    "Home Depot":"homedepot.com.mx",
+    "Office Max":"officemax.com.mx",
+    "RadioShack":"radioshack.com.mx",
+    "Best Buy":"bestbuy.com.mx",
+    "Suburbia":"suburbia.com.mx",
+    "Sears":"sears.com.mx",
+    "Palacio de Hierro":"elpalaciodehierro.com",
+    "El Palacio de Hierro":"elpalaciodehierro.com"
+  };
+  // Reglas regex extra para normalizar marcas que Round 28 podría no detectar
+  var EXTRA_BRAND_RULES = [
+    [/sports?\s*world/i, 'Sports World'],
+    [/smart\s*fit/i, 'Smart Fit'],
+    [/sport\s*city/i, 'Sport City'],
+    [/spark\b/i, 'Spark'],
+    [/anytime\s*fitness/i, 'Anytime Fitness'],
+    [/holiday\s*inn/i, 'Holiday Inn'],
+    [/hampton/i, 'Hampton'],
+    [/hilton/i, 'Hilton'],
+    [/marriott/i, 'Marriott'],
+    [/fiesta\s*inn/i, 'Fiesta Inn'],
+    [/city\s*express/i, 'City Express'],
+    [/hyatt/i, 'Hyatt'],
+    [/vips/i, 'Vips'],
+    [/toks/i, 'Toks'],
+    [/cielito\s*querido/i, 'Cielito Querido'],
+    [/italian\s*coffee/i, 'The Italian Coffee'],
+    [/sushi\s*itto/i, 'Sushi Itto'],
+    [/p\.?\s*f\.?\s*chang/i, "P.F. Chang's"],
+    [/office\s*depot/i, 'Office Depot'],
+    [/home\s*depot/i, 'Home Depot'],
+    [/office\s*max/i, 'Office Max'],
+    [/best\s*buy/i, 'Best Buy'],
+    [/suburbia/i, 'Suburbia'],
+    [/sears/i, 'Sears'],
+    [/palacio\s*de\s*hierro/i, 'El Palacio de Hierro']
+  ];
+  window.R30_BRAND_LOGOS = BRAND_LOGOS;
+
+  function logoUrlFor(brand){
+    var dom = BRAND_LOGOS[brand];
+    if(dom) return 'https://logo.clearbit.com/'+dom+'?size=64';
+    // Fallback: SVG circle con la inicial
+    var ltr = (brand || '?').charAt(0).toUpperCase();
+    var bg = '#6D28D9';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44">'
+            + '<circle cx="22" cy="22" r="20" fill="'+bg+'" stroke="#fff" stroke-width="2.5"/>'
+            + '<text x="22" y="28" font-family="Arial,sans-serif" font-size="20" font-weight="700" '
+            + 'fill="#fff" text-anchor="middle">'+ltr+'</text></svg>';
+    return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
+  }
+
+  function applyLogoIcon(marker, brand){
+    try{
+      marker.setIcon({
+        url: logoUrlFor(brand),
+        scaledSize: new google.maps.Size(40, 40),
+        anchor: new google.maps.Point(20, 20)
+      });
+      marker.setLabel(null); // quitar la "M" textual de Round 28
+    }catch(_){}
+  }
+
+  // Hook al constructor de Marker — cuando title contiene " — ", buscar marca
+  function hookMarker(){
+    if(!google || !google.maps || !google.maps.Marker) return false;
+    if(google.maps.Marker._r30Hooked) return true;
+    var Orig = google.maps.Marker;
+    function Wrap(opts){
+      var m = new Orig(opts);
+      try{
+        if(opts && opts.title && opts.title.indexOf(' — ') > -1){
+          var brand = opts.title.split(' — ')[0].trim();
+          // Re-normalizar con EXTRA_BRAND_RULES
+          for(var i = 0; i < EXTRA_BRAND_RULES.length; i++){
+            if(EXTRA_BRAND_RULES[i][0].test(opts.title)){
+              brand = EXTRA_BRAND_RULES[i][1];
+              break;
+            }
+          }
+          // Aplicar logo asincrono (después de creación)
+          setTimeout(function(){ applyLogoIcon(m, brand); }, 0);
+        }
+      }catch(_){}
+      return m;
+    }
+    Wrap.prototype = Orig.prototype;
+    // Copiar propiedades estaticas (MAX_ZINDEX, etc.)
+    for(var k in Orig){ if(Orig.hasOwnProperty(k)) Wrap[k] = Orig[k]; }
+    google.maps.Marker = Wrap;
+    google.maps.Marker._r30Hooked = true;
+    return true;
+  }
+
+  // ============================================================
+  // 3) PAGINACIÓN nearbySearch — devolver hasta 60 resultados
+  // ============================================================
+  function hookNearby(){
+    if(!google || !google.maps || !google.maps.places || !google.maps.places.PlacesService) return false;
+    var proto = google.maps.places.PlacesService.prototype;
+    if(proto._r30Paginated) return true;
+    proto._r30Paginated = true;
+    var origNearby = proto.nearbySearch;
+    proto.nearbySearch = function(req, cb){
+      var allResults = [];
+      var pageCount = 0;
+      var maxPages = 3; // 60 resultados máx
+      function handle(results, status, pagination){
+        if(results && results.length) allResults = allResults.concat(results);
+        pageCount++;
+        if(pagination && pagination.hasNextPage && pageCount < maxPages){
+          // Google requiere espera ~2s entre páginas
+          setTimeout(function(){ pagination.nextPage(); }, 2200);
+        } else {
+          // Llamada original al callback con todos los resultados
+          try{ cb(allResults, status, pagination); }catch(e){ console.error('[r30] cb fail', e); }
+        }
+      }
+      try{ origNearby.call(this, req, handle); }
+      catch(e){ console.error('[r30] nearby fail', e); cb([], 'ERROR', null); }
+    };
+    return true;
+  }
+
+  function start(){
+    suppressR29();
+    hookFilterCheckboxes();
+    attachIdleR30();
+    if(typeof google !== 'undefined' && google.maps){
+      hookMarker();
+      hookNearby();
+    }
+    // Si NSE esta activo, re-render con tamaño nuevo
+    if(r30NseActive()) r30Render(true);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [600, 1500, 3000, 6000, 12000, 25000].forEach(function(d){ setTimeout(start, d); });
+
+  // Observer del panel NSE — se construye dinámicamente, hookea cuando aparece
+  var moTarget = document.body;
+  if(moTarget && window.MutationObserver){
+    var mo = new MutationObserver(function(){
+      hookFilterCheckboxes();
+    });
+    mo.observe(moTarget, {childList:true, subtree:true});
+  }
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
