@@ -29112,6 +29112,299 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 })();
 </script>
 
+<style id="connectia-round29-css">
+/* Round 29 — NSE polígonos definitivo: legend chip polish */
+#nse-panel{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif !important}
+.r29-nse-source{font-size:8px;color:#94a3b8;padding:6px 14px 8px;text-align:center}
+</style>
+
+<script id="connectia-round29-nse-definitivo">
+/* ============================================================
+   Round 29 — NSE polígonos definitivo (zone-aware, no cuadrados)
+   - Wrapper sobre getNSEForCell aplicando LOW_ZONES extendido
+     (Iztapalapa, Tláhuac, Milpa Alta, GAM oriente, EdoMex oriente)
+     y PREMIUM_ZONES detalladas (Polanco, Lomas, Santa Fe, Pedregal)
+   - Hex render hookeado a nseOverlayActive Y nseLayerActive
+   - Suprime _applyNSEColoniaFallback (el que pintaba cuadrados)
+   - Limpia nseOverlays viejos para que solo queden los hex
+   - zIndex 8 para garantizar visibilidad arriba de density/heat
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // ---- 1) Zonas BAJAS extendidas (oriente CDMX / EdoMex) ----
+  var R29_LOW_ZONES = [
+    // CDMX — Iztapalapa
+    {lat:19.358, lng:-99.087, r:0.040, level:'D'},
+    {lat:19.345, lng:-99.045, r:0.035, level:'D'},
+    {lat:19.380, lng:-99.080, r:0.025, level:'D+'},
+    {lat:19.330, lng:-99.075, r:0.030, level:'D'},
+    // CDMX — Tláhuac, Milpa Alta, Xochimilco oriente
+    {lat:19.290, lng:-99.005, r:0.040, level:'D'},
+    {lat:19.190, lng:-99.025, r:0.040, level:'D'},
+    {lat:19.265, lng:-99.080, r:0.030, level:'D+'},
+    // CDMX — GAM oriente, Venustiano Carranza, Iztacalco
+    {lat:19.480, lng:-99.110, r:0.025, level:'D+'},
+    {lat:19.430, lng:-99.080, r:0.020, level:'D+'},
+    {lat:19.395, lng:-99.110, r:0.018, level:'D+'},
+    // EdoMex oriente
+    {lat:19.500, lng:-99.060, r:0.045, level:'D'},  // Ecatepec
+    {lat:19.405, lng:-98.995, r:0.040, level:'D'},  // Neza
+    {lat:19.430, lng:-98.945, r:0.035, level:'D'},  // Chimalhuacán
+    {lat:19.530, lng:-99.020, r:0.045, level:'D'},  // EdoMex norte
+    {lat:19.290, lng:-98.910, r:0.040, level:'D'},  // Chalco / Valle Chalco
+    // EdoMex poniente bajo
+    {lat:19.555, lng:-99.205, r:0.022, level:'D+'}
+  ];
+
+  // ---- 2) Zonas PREMIUM detalladas ----
+  var R29_PREMIUM_ZONES = [
+    {lat:19.432, lng:-99.198, r:0.012, level:'AB'}, // Polanco
+    {lat:19.420, lng:-99.210, r:0.010, level:'AB'}, // Lomas Chapultepec
+    {lat:19.413, lng:-99.175, r:0.008, level:'C+'}, // Anzures
+    {lat:19.418, lng:-99.165, r:0.010, level:'C+'}, // Cuauhtémoc
+    {lat:19.412, lng:-99.170, r:0.010, level:'AB'}, // Roma / Condesa
+    {lat:19.388, lng:-99.165, r:0.012, level:'AB'}, // Del Valle / Nápoles
+    {lat:19.358, lng:-99.262, r:0.018, level:'AB'}, // Santa Fe
+    {lat:19.340, lng:-99.193, r:0.012, level:'AB'}, // Pedregal / San Ángel
+    {lat:19.350, lng:-99.165, r:0.010, level:'AB'}, // Coyoacán Country Club
+    {lat:19.422, lng:-99.262, r:0.012, level:'AB'}, // Interlomas / Bosques
+    {lat:19.300, lng:-99.180, r:0.012, level:'AB'}, // Jardines de la Montaña
+    // GDL
+    {lat:20.700, lng:-103.390, r:0.012, level:'AB'},
+    {lat:20.690, lng:-103.420, r:0.010, level:'AB'},
+    // MTY
+    {lat:25.650, lng:-100.370, r:0.012, level:'AB'},
+    {lat:25.665, lng:-100.355, r:0.010, level:'AB'}
+  ];
+
+  function r29NseForCoord(lat, lng) {
+    // PREMIUM gana
+    for (var i = 0; i < R29_PREMIUM_ZONES.length; i++) {
+      var pz = R29_PREMIUM_ZONES[i];
+      var d = Math.sqrt(Math.pow(lat - pz.lat, 2) + Math.pow(lng - pz.lng, 2));
+      if (d < pz.r) return pz.level;
+    }
+    // LOW gana
+    for (var j = 0; j < R29_LOW_ZONES.length; j++) {
+      var lz = R29_LOW_ZONES[j];
+      var d2 = Math.sqrt(Math.pow(lat - lz.lat, 2) + Math.pow(lng - lz.lng, 2));
+      if (d2 < lz.r) {
+        // Núcleo: nivel base. Borde exterior: subir un escalón.
+        if (d2 < lz.r * 0.55) return lz.level;
+        if (lz.level === 'D')  return 'D+';
+        if (lz.level === 'D+') return 'C';
+        return lz.level;
+      }
+    }
+    // Fallback al original
+    if (typeof window._origGetNSEForCell === 'function') {
+      try {
+        var sc = (typeof window.getStateForCoords === 'function')
+                  ? window.getStateForCoords(lat, lng) : '09';
+        return window._origGetNSEForCell(sc, lat, lng) || 'C';
+      } catch(_) {}
+    }
+    return 'C';
+  }
+  window.r29NseForCoord = r29NseForCoord;
+
+  function wrapGetNSE() {
+    if (typeof window.getNSEForCell !== 'function') return false;
+    if (window.getNSEForCell._r29) return true;
+    window._origGetNSEForCell = window.getNSEForCell;
+    var wrapped = function(stateCode, lat, lng) {
+      try {
+        var lvl = r29NseForCoord(lat, lng);
+        if (lvl) return lvl;
+      } catch(_) {}
+      return window._origGetNSEForCell.apply(this, arguments);
+    };
+    wrapped._r29 = true;
+    window.getNSEForCell = wrapped;
+    return true;
+  }
+
+  // ---- 3) Hex render zone-aware ----
+  var NSE_COLORS_R29 = {
+    'AB':'#15803d','Cplus':'#22c55e','C+':'#22c55e',
+    'C':'#84cc16','Dplus':'#eab308','D+':'#eab308',
+    'D':'#f97316','E':'#dc2626'
+  };
+  var r29Hexes = [];
+  var r29LastKey = null;
+
+  function r29ClearHexes() {
+    r29Hexes.forEach(function(h){ try{ h.setMap(null); }catch(_){} });
+    r29Hexes = [];
+  }
+
+  function r29ClearOldSquares() {
+    // Limpiar el array nseOverlays viejo (los rectangulos que pintaba applyNSEToMap)
+    try {
+      if (window.nseOverlays && Array.isArray(window.nseOverlays)) {
+        window.nseOverlays.forEach(function(o){ try{ o.setMap(null); }catch(_){} });
+        window.nseOverlays.length = 0;
+      }
+    } catch(_) {}
+  }
+
+  function r29NseActive() {
+    return !!(window.nseOverlayActive || window.nseLayerActive);
+  }
+
+  function r29RenderHexes(force) {
+    if (typeof google === 'undefined' || !google.maps) return;
+    if (!window.map) return;
+    if (!r29NseActive()) { r29ClearHexes(); return; }
+    var bounds = window.map.getBounds();
+    if (!bounds) return;
+    var z = window.map.getZoom();
+    if (z < 11) { r29ClearHexes(); return; }
+
+    var ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+    var bKey = ne.lat().toFixed(3)+','+ne.lng().toFixed(3)+','+
+               sw.lat().toFixed(3)+','+sw.lng().toFixed(3)+'_z'+z;
+    if (!force && bKey === r29LastKey) return;
+    r29LastKey = bKey;
+    r29ClearHexes();
+    r29ClearOldSquares();
+
+    var nRows = z >= 16 ? 26 : (z >= 14 ? 20 : (z >= 12 ? 14 : 10));
+    var nCols = z >= 16 ? 20 : (z >= 14 ? 15 : (z >= 12 ? 11 : 8));
+    var dLat = (ne.lat() - sw.lat()) / nRows;
+    var dLng = (ne.lng() - sw.lng()) / nCols;
+    var hexR = dLat * 0.62;
+    var lngFactor = Math.cos((ne.lat() + sw.lat()) / 2 * Math.PI / 180);
+
+    for (var r = 0; r < nRows; r++) {
+      for (var c = 0; c < nCols; c++) {
+        var offset = (r % 2 === 0) ? 0 : 0.5;
+        var cLat = sw.lat() + dLat * (r + 0.5);
+        var cLng = sw.lng() + dLng * (c + offset + 0.5);
+        var path = [];
+        for (var i = 0; i < 6; i++) {
+          var ang = Math.PI/3 * i + Math.PI/6;
+          path.push({
+            lat: cLat + hexR * Math.sin(ang),
+            lng: cLng + (hexR * Math.cos(ang)) / lngFactor
+          });
+        }
+        var nse = r29NseForCoord(cLat, cLng);
+        var color = NSE_COLORS_R29[nse] || '#84cc16';
+        var hex = new google.maps.Polygon({
+          paths: path,
+          fillColor: color,
+          fillOpacity: 0.46,
+          strokeColor: '#ffffff',
+          strokeWeight: 0.6,
+          strokeOpacity: 0.7,
+          map: window.map,
+          clickable: false,
+          zIndex: 8
+        });
+        r29Hexes.push(hex);
+      }
+    }
+  }
+  window.r29RenderHexes = r29RenderHexes;
+  window.r29ClearHexes = r29ClearHexes;
+
+  // ---- 4) Suprimir _applyNSEColoniaFallback (cuadrados) ----
+  function suppressSquareFallback() {
+    if (typeof window._applyNSEColoniaFallback === 'function' &&
+        !window._applyNSEColoniaFallback._r29) {
+      window._origApplyNSEColoniaFallback = window._applyNSEColoniaFallback;
+      var wrap = function() {
+        // En lugar de pintar cuadrados, render hex zone-aware
+        r29RenderHexes(true);
+        if (typeof setStatus === 'function') {
+          try { setStatus('NSE: hexágonos zone-aware (oriente CDMX = D, premium = AB)'); }
+          catch(_){}
+        }
+      };
+      wrap._r29 = true;
+      window._applyNSEColoniaFallback = wrap;
+    }
+  }
+
+  // ---- 5) Hook a los toggles NSE ----
+  function hookToggle() {
+    if (typeof window.toggleNSEOverlay === 'function' &&
+        !window.toggleNSEOverlay._r29) {
+      var orig = window.toggleNSEOverlay;
+      var wrapped = function() {
+        var rv = orig.apply(this, arguments);
+        setTimeout(function() {
+          if (r29NseActive()) r29RenderHexes(true);
+          else r29ClearHexes();
+        }, 250);
+        return rv;
+      };
+      wrapped._r29 = true;
+      window.toggleNSEOverlay = wrapped;
+    }
+    if (typeof window.toggleNSELayer === 'function' &&
+        !window.toggleNSELayer._r29) {
+      var orig2 = window.toggleNSELayer;
+      var wrapped2 = function() {
+        var rv = orig2.apply(this, arguments);
+        setTimeout(function() {
+          if (r29NseActive()) r29RenderHexes(true);
+          else r29ClearHexes();
+        }, 250);
+        return rv;
+      };
+      wrapped2._r29 = true;
+      window.toggleNSELayer = wrapped2;
+    }
+  }
+
+  // ---- 6) Idle listener para re-render al pan/zoom ----
+  function attachIdle() {
+    if (!window.map || window._r29Idle) return;
+    window._r29Idle = true;
+    var t = null;
+    window.map.addListener('idle', function() {
+      clearTimeout(t);
+      t = setTimeout(function(){ r29RenderHexes(false); }, 350);
+    });
+  }
+
+  // ---- 7) Aplicar NSEToMap wrapper: limpia squares y dispara hex ----
+  function hookApply() {
+    if (typeof window.applyNSEToMap === 'function' &&
+        !window.applyNSEToMap._r29) {
+      var orig = window.applyNSEToMap;
+      var wrapped = function() {
+        var rv = orig.apply(this, arguments);
+        // Después del flujo original, asegurar hex render y limpiar squares vacíos
+        setTimeout(function(){
+          r29ClearOldSquares();
+          r29RenderHexes(true);
+        }, 1500);
+        return rv;
+      };
+      wrapped._r29 = true;
+      window.applyNSEToMap = wrapped;
+    }
+  }
+
+  function start() {
+    wrapGetNSE();
+    suppressSquareFallback();
+    hookToggle();
+    hookApply();
+    attachIdle();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  [800, 2500, 5000, 10000, 18000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
 <script id="connectia-session-html-export">
 /* ============================================================
    SESSION EXPORT como HTML standalone
