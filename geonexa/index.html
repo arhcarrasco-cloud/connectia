@@ -30972,6 +30972,117 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
      poder mover el pin con otro clic. El pin anterior ya se quita
      automáticamente en onOverlayComplete (single replace logic).
 ============================================================ -->
+<!-- ============================================================
+     UX fixes pack — aditivo. Resuelve hallazgos de testing:
+     1. Coords del topbar se actualizan con idle/center_changed
+     2. Autocomplete del geo selector con fallback robusto
+     3. Chevron en botones de selección con sub-menú
+     4. Mini-mapa SV reubicado a bottom-LEFT (evita Reporte)
+     5. Header doble del Reporte: ocultar título de chrome bar
+     8. Status pill se desvanece después de 5s
+     9. Labels del toolbar más anchos para evitar truncado
+============================================================ -->
+<style id="ux-fixes-style">
+/* 9. Toolbar: labels con más espacio */
+#toolbar .tb .tb-lbl{ max-width:60px !important; font-size:7px !important; }
+/* 5. Reporte: la chrome bar no duplica título (queda min/close) */
+#report-panel .panel-chrome-bar .pcb-title{ display:none !important; }
+/* 4. Mini-mapa SV: bottom-LEFT para no chocar con paneles a la derecha */
+#sv-minimap-wrap{ right:auto !important; left:14px !important; bottom:14px !important; }
+@media (max-width:520px){
+  #sv-minimap-wrap{ right:auto !important; left:10px !important; bottom:10px !important; }
+}
+/* 3. Chevron indicador en botones que abren sub-menú Una/Varias selecciones */
+#btn-marker, #btn-circle, #btn-rect, #btn-polygon, #btn-freehand{ position:relative; }
+#btn-marker::after, #btn-circle::after, #btn-rect::after,
+#btn-polygon::after, #btn-freehand::after{
+  content:''; position:absolute; right:3px; bottom:3px;
+  width:0; height:0;
+  border-left:3px solid transparent; border-right:3px solid transparent;
+  border-top:3px solid rgba(0,0,0,.32); pointer-events:none;
+}
+#btn-marker.active::after, #btn-circle.active::after, #btn-rect.active::after,
+#btn-polygon.active::after, #btn-freehand.active::after{ border-top-color:rgba(255,255,255,.9); }
+/* 8. Status pill: clase cn-fading para fade out */
+#status.cn-fading{ opacity:0; transition:opacity .8s ease; pointer-events:none; }
+#status{ transition:opacity .25s ease; }
+</style>
+<script id="ux-fixes-script">
+(function(){
+  function ready(cb){
+    if(window.google&&google.maps&&window.map)return cb();
+    setTimeout(function(){ready(cb);},250);
+  }
+  ready(function(){
+    try{
+      // === 1. Coordenadas del topbar reactivas ===
+      function _updCoords(latlng){
+        var c=document.getElementById('coords');
+        if(!c||!latlng)return;
+        c.textContent='lat: '+latlng.lat().toFixed(5)+', lng: '+latlng.lng().toFixed(5);
+      }
+      map.addListener('idle',function(){ _updCoords(map.getCenter()); });
+      map.addListener('center_changed',function(){ _updCoords(map.getCenter()); });
+      _updCoords(map.getCenter());
+
+      // === 2. Autocomplete del geo selector con fallback ===
+      var gi=document.getElementById('geo-selector-input');
+      var gs=document.getElementById('geo-suggestions');
+      if(gi&&gs){
+        var _gdbn=null;
+        gi.addEventListener('input',function(){
+          clearTimeout(_gdbn);
+          var val=gi.value.trim();
+          var current=val.split(',').pop().trim();
+          if(current.length<2){gs.classList.remove('open');return;}
+          _gdbn=setTimeout(function(){
+            if(!window.placesService && google.maps.places && map){
+              try{ window.placesService=new google.maps.places.PlacesService(map); }catch(e){}
+            }
+            if(typeof fetchGeoSuggestions==='function'){
+              try{ fetchGeoSuggestions(current); return; }catch(e){}
+            }
+            // Fallback directo
+            try{
+              var ac=new google.maps.places.AutocompleteService();
+              ac.getPlacePredictions({input:current+', Mexico',componentRestrictions:{country:'mx'}},function(preds,st){
+                if(st!==google.maps.places.PlacesServiceStatus.OK||!preds){gs.classList.remove('open');return;}
+                gs.innerHTML='';
+                preds.forEach(function(p){
+                  var it=document.createElement('div');
+                  it.className='geo-sug-item';
+                  it.textContent=p.description;
+                  it.addEventListener('click',function(){
+                    if(typeof selectGeoArea==='function')selectGeoArea(p.place_id,p.description);
+                    else{ gi.value=p.description; gs.classList.remove('open'); }
+                  });
+                  gs.appendChild(it);
+                });
+                gs.classList.add('open');
+              });
+            }catch(e){}
+          },300);
+        });
+      }
+
+      // === 8. Status pill fade-out 5s tras último cambio ===
+      var st=document.getElementById('status');
+      if(st){
+        var _fadeTm=null;
+        var _arm=function(){
+          st.classList.remove('cn-fading');
+          clearTimeout(_fadeTm);
+          _fadeTm=setTimeout(function(){ st.classList.add('cn-fading'); }, 5000);
+        };
+        var _obs=new MutationObserver(_arm);
+        _obs.observe(st,{characterData:true,subtree:true,childList:true});
+        _arm();
+      }
+    }catch(e){console.warn('[connectia] ux-fixes init failed',e);}
+  });
+})();
+</script>
+
 <script id="single-pin-rearm-script">
 (function(){
   function ready(cb){
