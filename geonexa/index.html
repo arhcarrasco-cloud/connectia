@@ -26096,7 +26096,8 @@ small,.sub,.subtitle,
 
 /* === Reporte: ocultar × duplicado (la chrome bar tiene una propia, dejar solo esa) === */
 #auto-report .ar-header > button.ar-close,
-#auto-report > button[onclick*="display"][onclick*="none"]:not(.pcb-close){
+#auto-report > button[onclick*="display"][onclick*="none"]:not(.pcb-close),
+#report-panel #report-title-bar button[onclick*="report-panel"][onclick*="display"][onclick*="none"]:not(.pcb-close){
   display:none !important;
 }
 
