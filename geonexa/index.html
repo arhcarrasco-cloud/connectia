@@ -30965,5 +30965,48 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   });
 })();
 </script>
+<!-- ============================================================
+     Single-pin re-arm (aditivo): en modo selección sencilla, tras
+     colocar un pin la herramienta de marcador queda activa para
+     poder mover el pin con otro clic. El pin anterior ya se quita
+     automáticamente en onOverlayComplete (single replace logic).
+============================================================ -->
+<script id="single-pin-rearm-script">
+(function(){
+  function ready(cb){
+    if(window.google&&google.maps&&window.drawingManager&&window.map)return cb();
+    setTimeout(function(){ready(cb);},250);
+  }
+  ready(function(){
+    try{
+      google.maps.event.addListener(drawingManager,'markercomplete',function(){
+        // Sólo en modo selección sencilla
+        if(window.multiSelectMode)return;
+        // Diferimos para que onOverlayComplete termine su limpieza primero,
+        // luego reactivamos el marcador para permitir reposicionarlo.
+        setTimeout(function(){
+          try{drawingManager.setDrawingMode(google.maps.drawing.OverlayType.MARKER);}catch(e){}
+          try{map.setOptions({draggableCursor:'crosshair'});}catch(e){}
+          var btn=document.getElementById('btn-marker');
+          if(btn)btn.classList.add('active');
+          if(typeof setStatus==='function')setStatus('Haz clic en otro punto para mover el pin (Esc para terminar)');
+        },0);
+      });
+      // Permitir salir del modo con Esc
+      document.addEventListener('keydown',function(ev){
+        if(ev.key!=='Escape')return;
+        if(window.multiSelectMode)return;
+        if(!drawingManager)return;
+        if(drawingManager.getDrawingMode()!==google.maps.drawing.OverlayType.MARKER)return;
+        try{drawingManager.setDrawingMode(null);}catch(e){}
+        try{map.setOptions({draggableCursor:''});}catch(e){}
+        var btn=document.getElementById('btn-marker');
+        if(btn)btn.classList.remove('active');
+        if(typeof setStatus==='function')setStatus('Modo marcador desactivado');
+      });
+    }catch(e){console.warn('[connectia] single-pin-rearm init failed',e);}
+  });
+})();
+</script>
 </body>
 </html>
