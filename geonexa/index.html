@@ -31120,5 +31120,401 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   });
 })();
 </script>
+<script id="connectia-r32-logo-and-radius">
+/* ============================================================
+   Round 32 — 4 fixes pedidos explícitamente por el usuario:
+   A) Logo SIEMPRE dentro del círculo blanco del landmark
+      (centrado, tamaño fijo 16x16, anclaje exacto)
+   B) Eliminar duplicado de logo (Starbucks y cualquier marca)
+      mediante deduplicación por marker + URL
+   C) Km/área en tiempo real cuando el usuario hace
+      grande/pequeño un círculo ya creado (durante el drag,
+      no solo al soltar) — SOLO actualiza el pill r25,
+      nunca reactiva el #live-radius-label
+   D) Si R30/R31 reemplazaron el pin con un logo plano
+      (40x40 anchor 20,20), interceptar y restaurar:
+      pin landmark + logo overlay dentro del circulo.
+   Todo aditivo — wrappers sobre funciones existentes.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // ============================================================
+  // A + B) Wrap trySetBrandLogo para:
+  //   - dedupe por (marker, url)
+  //   - tamaño/anclaje correcto SIEMPRE (16x16 dentro del circulo)
+  //   - garantizar que solo exista UN _logoOverlay por marker
+  // ============================================================
+  function patchLogoOverlay(){
+    if(typeof window.trySetBrandLogo !== 'function') return false;
+    if(window.trySetBrandLogo._r32) return true;
+    var origTrySet = window.trySetBrandLogo;
+
+    window.trySetBrandLogo = function(marker, logoUrl, borderColor){
+      if(!marker || !logoUrl) return;
+      try{
+        // Dedupe: si el mismo logo ya fue puesto en este marker, salir
+        if(marker._r32LogoUrl === logoUrl && marker._logoOverlay){
+          // Asegurarse que sigue en el mismo mapa que el padre
+          try{
+            var pm = marker.getMap();
+            if(pm && marker._logoOverlay.getMap() !== pm){
+              marker._logoOverlay.setMap(pm);
+            }
+          }catch(_){}
+          return;
+        }
+        marker._r32LogoUrl = logoUrl;
+
+        // Cargar imagen
+        var img = new Image();
+        img.onload = function(){
+          try{
+            if(!(img.naturalWidth > 1 && img.naturalHeight > 1)) return;
+
+            // QUITAR cualquier overlay previo de logo
+            if(marker._logoOverlay){
+              try{ marker._logoOverlay.setMap(null); }catch(_){}
+              marker._logoOverlay = null;
+            }
+            // Limpiar también un set de overlays históricos por si quedaron huérfanos
+            if(Array.isArray(marker._r32LogoHistory)){
+              marker._r32LogoHistory.forEach(function(om){
+                try{ om.setMap(null); }catch(_){}
+              });
+            }
+            marker._r32LogoHistory = [];
+
+            // Crear overlay nuevo — tamaño 16x16 garantiza que QUEPA
+            // dentro del círculo blanco del pin (radio 13 → diámetro 26)
+            // El pin landmark estándar mide 36x50 con anchor (18,48) y
+            // círculo blanco centrado en SVG-(18,18) → 30 px arriba del anchor.
+            // Con anchor (8, 8+30) = (8, 38) sobre imagen 16x16, el centro
+            // visual del logo cae exactamente en el centro del círculo.
+            var logoMarker = new google.maps.Marker({
+              position: marker.getPosition(),
+              map: marker.getMap(),
+              icon: {
+                url: logoUrl,
+                scaledSize: new google.maps.Size(16, 16),
+                anchor: new google.maps.Point(8, 38)
+              },
+              clickable: false,
+              zIndex: (marker.getZIndex() || 9999) + 1
+            });
+            marker._logoOverlay = logoMarker;
+            marker._r32LogoHistory.push(logoMarker);
+
+            // Quitar cualquier label que pudiera dibujar un caracter sobre el pin
+            try{ marker.setLabel(null); }catch(_){}
+
+            // Sincronizar lifecycle (setMap del padre afecta al overlay)
+            if(!marker._r32SetMapWrapped){
+              marker._r32SetMapWrapped = true;
+              var origSetMap = marker.setMap.bind(marker);
+              marker.setMap = function(m){
+                origSetMap(m);
+                try{
+                  if(marker._logoOverlay) marker._logoOverlay.setMap(m);
+                }catch(_){}
+              };
+            }
+            // Si position cambia, mover overlay
+            if(!marker._r32PosListener){
+              marker._r32PosListener = true;
+              try{
+                marker.addListener('position_changed', function(){
+                  if(marker._logoOverlay){
+                    try{ marker._logoOverlay.setPosition(marker.getPosition()); }catch(_){}
+                  }
+                });
+              }catch(_){}
+            }
+          }catch(e){}
+        };
+        img.onerror = function(){};
+        img.src = logoUrl;
+      }catch(e){
+        // Fallback al original si algo explota
+        try{ origTrySet.apply(this, arguments); }catch(_){}
+      }
+    };
+    window.trySetBrandLogo._r32 = true;
+    window.trySetBrandLogo._r32Orig = origTrySet;
+    return true;
+  }
+
+  // ============================================================
+  // C) Km/área en tiempo real al redimensionar círculo existente
+  //    El evento radius_changed de Google Maps a veces solo
+  //    dispara al final del drag. Forzamos updates por
+  //    requestAnimationFrame mientras el usuario está
+  //    arrastrando un handle de un círculo editable.
+  // ============================================================
+  function patchLiveResize(){
+    if(window._r32LiveResize) return;
+    window._r32LiveResize = true;
+
+    function pillUpdate(c, r){
+      // SOLO el pill r25 (centrado en circulo). NO tocar #live-radius-label
+      // — el panel de arriba se queda oculto por Round 31.
+      try{
+        if(window._r25Ov && typeof window._r25Ov.update === 'function'){
+          window._r25Ov.update(c, r);
+        }
+      }catch(_){}
+      // Como cinturón extra: si algún wrapper antiguo reactivó el label
+      // de arriba, lo forzamos oculto en cada update.
+      try{
+        var lbl = document.getElementById('live-radius-label');
+        if(lbl){
+          lbl.style.setProperty('display','none','important');
+          lbl.style.setProperty('visibility','hidden','important');
+        }
+      }catch(_){}
+    }
+
+    function attachLive(circle){
+      if(!circle || circle._r32Live) return;
+      circle._r32Live = true;
+
+      // Update inmediato + cada radius_changed/center_changed
+      try{ pillUpdate(circle.getCenter(), circle.getRadius()); }catch(_){}
+      try{
+        circle.addListener('radius_changed', function(){
+          pillUpdate(circle.getCenter(), circle.getRadius());
+        });
+        circle.addListener('center_changed', function(){
+          pillUpdate(circle.getCenter(), circle.getRadius());
+        });
+      }catch(_){}
+
+      // Live polling durante drag — Google a veces solo dispara
+      // radius_changed al soltar en algunos navegadores. Mientras
+      // el usuario tiene el mouse abajo sobre el mapa y el círculo
+      // es editable, forzamos updates en cada animation frame.
+      var mapEl = document.getElementById('map');
+      if(!mapEl) return;
+      var dragging = false;
+      var rafId = null;
+      var lastR = circle.getRadius();
+      var lastLat = 0, lastLng = 0;
+      try{ var c0 = circle.getCenter(); lastLat = c0.lat(); lastLng = c0.lng(); }catch(_){}
+
+      function tick(){
+        rafId = null;
+        if(!dragging) return;
+        try{
+          if(circle.getMap() == null) return;
+          var rNow = circle.getRadius();
+          var cNow = circle.getCenter();
+          var lat = cNow.lat(), lng = cNow.lng();
+          if(rNow !== lastR || lat !== lastLat || lng !== lastLng){
+            lastR = rNow; lastLat = lat; lastLng = lng;
+            pillUpdate(cNow, rNow);
+          }
+        }catch(_){}
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function onDown(){
+        // Solo activar si el círculo es editable y está visible
+        try{
+          if(circle.getMap() == null) return;
+          if(circle.getEditable && !circle.getEditable()) return;
+        }catch(_){ return; }
+        dragging = true;
+        if(rafId == null) rafId = requestAnimationFrame(tick);
+      }
+      function onUp(){
+        dragging = false;
+        if(rafId != null){ cancelAnimationFrame(rafId); rafId = null; }
+        // Update final
+        try{ pillUpdate(circle.getCenter(), circle.getRadius()); }catch(_){}
+      }
+
+      // Document-level listeners — los handles del círculo capturan
+      // el mouse en sí, así que escuchamos en document para no
+      // depender de eventos del mapa.
+      document.addEventListener('mousedown', onDown, true);
+      document.addEventListener('mouseup',   onUp,   true);
+      document.addEventListener('touchstart', onDown, true);
+      document.addEventListener('touchend',   onUp,   true);
+      document.addEventListener('touchcancel',onUp,   true);
+    }
+
+    // Hook overlaycomplete para attachar a círculos nuevos
+    function hookDM(){
+      if(!window.drawingManager) return false;
+      if(window._r32DmHooked) return true;
+      window._r32DmHooked = true;
+      google.maps.event.addListener(window.drawingManager, 'overlaycomplete', function(ev){
+        try{
+          if(ev.type === google.maps.drawing.OverlayType.CIRCLE){
+            attachLive(ev.overlay);
+          }
+        }catch(_){}
+      });
+      return true;
+    }
+
+    // Periodicamente revisar currentOverlay y multiSelections
+    function scanCircles(){
+      try{
+        if(window.currentOverlay && typeof window.currentOverlay.getRadius === 'function'){
+          attachLive(window.currentOverlay);
+        }
+      }catch(_){}
+      try{
+        if(Array.isArray(window.multiSelections)){
+          window.multiSelections.forEach(function(s){
+            try{
+              if(s && s.overlay && typeof s.overlay.getRadius === 'function'){
+                attachLive(s.overlay);
+              }
+            }catch(_){}
+          });
+        }
+      }catch(_){}
+    }
+
+    function start(){
+      if(typeof google === 'undefined' || !google.maps) return;
+      hookDM();
+      scanCircles();
+    }
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', start);
+    } else { start(); }
+    [600, 1500, 3000, 6000, 12000, 25000].forEach(function(d){ setTimeout(start, d); });
+    setInterval(scanCircles, 1500);
+  }
+
+  // ============================================================
+  // D) Interceptar setIcon para restaurar pin landmark + logo overlay
+  //    Round 30 y 31 reemplazan el pin con un icono plano 40x40
+  //    (favicon de Clearbit / Google). Aquí lo detectamos y
+  //    sustituimos por el pin landmark con el logo dentro del
+  //    circulo blanco.
+  // ============================================================
+  function patchSetIcon(){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.Marker) return false;
+    var proto = google.maps.Marker.prototype;
+    if(!proto || proto._r32SetIconPatched) return true;
+    proto._r32SetIconPatched = true;
+    var origSetIcon = proto.setIcon;
+
+    function isFlatLogoIcon(icon){
+      if(!icon || typeof icon !== 'object') return false;
+      if(!icon.url) return false;
+      // Firma R30/R31: scaledSize 40x40 + anchor (20,20)
+      try{
+        var ss = icon.scaledSize, an = icon.anchor;
+        if(!ss || !an) return false;
+        var w = (typeof ss.width === 'number') ? ss.width : (ss.width && ss.width.valueOf && ss.width.valueOf());
+        var h = (typeof ss.height === 'number') ? ss.height : (ss.height && ss.height.valueOf && ss.height.valueOf());
+        var ax = (typeof an.x === 'number') ? an.x : (an.x && an.x.valueOf && an.x.valueOf());
+        var ay = (typeof an.y === 'number') ? an.y : (an.y && an.y.valueOf && an.y.valueOf());
+        return (w === 40 && h === 40 && ax === 20 && ay === 20);
+      }catch(_){ return false; }
+    }
+
+    function detectColorFor(marker){
+      try{
+        if(marker._r32BrandColor) return marker._r32BrandColor;
+        var t = (typeof marker.getTitle === 'function') ? marker.getTitle() : null;
+        if(t && typeof window._getBrandColor === 'function'){
+          var c = window._getBrandColor(t);
+          if(c){ marker._r32BrandColor = c; return c; }
+        }
+      }catch(_){}
+      return '#6D28D9';
+    }
+
+    proto.setIcon = function(icon){
+      try{
+        if(isFlatLogoIcon(icon) && typeof window._pinIcon === 'function'){
+          var color = detectColorFor(this);
+          // 1) Aplicar pin landmark con color de marca
+          origSetIcon.call(this, window._pinIcon(color));
+          // 2) Quitar label que dibuje texto encima
+          try{ this.setLabel(null); }catch(_){}
+          // 3) Logo overlay DENTRO del circulo blanco
+          if(typeof window.trySetBrandLogo === 'function'){
+            window.trySetBrandLogo(this, icon.url, color);
+          }
+          return;
+        }
+      }catch(e){}
+      return origSetIcon.apply(this, arguments);
+    };
+    return true;
+  }
+
+  // Reparar markers ya creados antes de que patchSetIcon se instalara.
+  // Recorremos arrays globales conocidos y, si tienen icono "flat logo",
+  // los re-iconamos via setIcon (que ahora ya está hookeado).
+  function repairExistingMarkers(){
+    var pools = ['placesMarkers','denueMarkers','landmarkMarkers'];
+    pools.forEach(function(name){
+      var arr = window[name];
+      if(!Array.isArray(arr)) return;
+      arr.forEach(function(m){
+        try{
+          if(!m || typeof m.getIcon !== 'function') return;
+          var ic = m.getIcon();
+          if(!ic || typeof ic !== 'object' || !ic.url) return;
+          // Detectar firma flat logo
+          var ss = ic.scaledSize, an = ic.anchor;
+          if(!ss || !an) return;
+          var w = ss.width || (ss.width && ss.width.valueOf && ss.width.valueOf());
+          var h = ss.height || (ss.height && ss.height.valueOf && ss.height.valueOf());
+          var ax = an.x, ay = an.y;
+          if(w === 40 && h === 40 && ax === 20 && ay === 20){
+            // Re-aplicar — el wrap de setIcon hará pin + overlay
+            m.setIcon(ic);
+          }
+        }catch(_){}
+      });
+    });
+    // multiSelections
+    try{
+      if(Array.isArray(window.multiSelections)){
+        window.multiSelections.forEach(function(s){
+          try{
+            if(!s || !s.overlay || typeof s.overlay.getIcon !== 'function') return;
+            var ic = s.overlay.getIcon();
+            if(!ic || typeof ic !== 'object' || !ic.url) return;
+            var ss = ic.scaledSize, an = ic.anchor;
+            if(!ss || !an) return;
+            var w = ss.width, h = ss.height, ax = an.x, ay = an.y;
+            if(w === 40 && h === 40 && ax === 20 && ay === 20){
+              s.overlay.setIcon(ic);
+            }
+          }catch(_){}
+        });
+      }
+    }catch(_){}
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function init(){
+    patchLogoOverlay();
+    patchSetIcon();
+    patchLiveResize();
+    repairExistingMarkers();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  // Reintentos por si trySetBrandLogo / google.maps aún no existen,
+  // y para reparar markers creados en oleadas posteriores.
+  [200, 600, 1500, 3000, 6000, 12000, 25000].forEach(function(d){ setTimeout(init, d); });
+  // Re-scan periódico para markers que aparecen tarde (placesService async)
+  setInterval(repairExistingMarkers, 2500);
+})();
+</script>
 </body>
 </html>
