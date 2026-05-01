@@ -31875,5 +31875,436 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   setInterval(r34ApplyColors, 600);
 })();
 </script>
+<style id="connectia-r35-css">
+/* Round 35 — botón Home en toolbar y arreglo de Deshacer.
+   Usa Material Icons Outlined (ya cargado en R4). */
+#btn-home .mi{
+  font-family:'Material Icons Outlined';
+  font-size:22px;
+  line-height:1;
+  display:inline-block;
+}
+</style>
+
+<script id="connectia-r35-home-undo">
+/* ============================================================
+   Round 35 — 2 pedidos explícitos:
+   1) Botón HOME en la toolbar para regresar al inicio
+      (geolocalización del usuario, o México centro como fallback).
+   2) DESHACER funciona ahora para CUALQUIER tipo de elemento
+      (multi-selección, currentOverlay simple, landmarkMarkers,
+      placesMarkers, denueMarkers) en orden de "más reciente
+      primero".
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // ============================================================
+  // 1) Botón HOME — insertar antes de btn-undo en la toolbar
+  // ============================================================
+  function r35InjectHomeButton(){
+    if(document.getElementById('btn-home')) return; // ya existe
+    var undoBtn = document.getElementById('btn-undo');
+    if(!undoBtn || !undoBtn.parentNode) return;
+
+    var btn = document.createElement('button');
+    btn.className = 'tb';
+    btn.id = 'btn-home';
+    btn.setAttribute('data-tip', 'Inicio — regresar al mapa base');
+    btn.innerHTML = '<span class="mi">home</span><span class="tb-lbl">Inicio</span>';
+    btn.onclick = r35GoHome;
+
+    // Insertar el botón JUSTO antes del de deshacer
+    undoBtn.parentNode.insertBefore(btn, undoBtn);
+  }
+
+  // Recordamos el centro inicial del usuario (geolocalización).
+  // Lo capturamos del map al primer chance.
+  window._r35HomeCenter = window._r35HomeCenter || null;
+  window._r35HomeZoom   = window._r35HomeZoom   || null;
+
+  function r35CaptureInitialView(){
+    if(window._r35HomeCenter) return;
+    if(!window.map || typeof window.map.getCenter !== 'function') return;
+    try{
+      var c = window.map.getCenter();
+      var z = window.map.getZoom();
+      // Solo capturar cuando ya hay un centro razonable (zoom >= 8 = ya hizo
+      // recenter post geolocation; zoom 5 inicial México completo lo dejamos
+      // pasar para tomar la siguiente captura cuando el usuario aparezca).
+      if(c && typeof z === 'number' && z >= 8){
+        window._r35HomeCenter = { lat: c.lat(), lng: c.lng() };
+        window._r35HomeZoom = z;
+      }
+    }catch(_){}
+  }
+
+  function r35GoHome(){
+    if(typeof google === 'undefined' || !google.maps || !window.map) return;
+    var center = window._r35HomeCenter;
+    var zoom   = window._r35HomeZoom || 14;
+
+    // Si nunca tuvimos geolocalización válida, intentar pedirla ahora
+    if(!center && navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(function(pos){
+        center = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        window._r35HomeCenter = center;
+        window._r35HomeZoom = 14;
+        try{
+          window.map.panTo(center);
+          window.map.setZoom(14);
+        }catch(_){}
+      }, function(){
+        // Fallback: México centro
+        try{
+          window.map.panTo({lat:23.6345, lng:-102.5528});
+          window.map.setZoom(5);
+        }catch(_){}
+      }, { timeout: 4000 });
+      return;
+    }
+
+    if(center){
+      try{
+        window.map.panTo(center);
+        window.map.setZoom(zoom);
+      }catch(_){}
+    } else {
+      // Última red: México centro
+      try{
+        window.map.panTo({lat:23.6345, lng:-102.5528});
+        window.map.setZoom(5);
+      }catch(_){}
+    }
+    if(typeof window.setStatus === 'function'){
+      window.setStatus('Mapa centrado en inicio');
+    }
+  }
+  window.r35GoHome = r35GoHome;
+
+  // ============================================================
+  // 2) DESHACER — fallback chain para todos los tipos
+  //    Orden de prioridad (más reciente primero):
+  //      a) multi-selecciones (modo multi-select activo)
+  //      b) currentOverlay (forma única dibujada)
+  //      c) landmarkMarkers (negocios seleccionados de places list)
+  //      d) placesMarkers (resultados de búsqueda Places)
+  //      e) denueMarkers (resultados DENUE)
+  //      f) _cmpBrandMarkers (pins de comparativa)
+  // ============================================================
+  function r35RemoveMarker(m){
+    if(!m) return;
+    try{
+      if(m._logoOverlay && typeof m._logoOverlay.setMap === 'function'){
+        m._logoOverlay.setMap(null);
+      }
+    }catch(_){}
+    try{
+      if(typeof m.setMap === 'function') m.setMap(null);
+    }catch(_){}
+  }
+
+  function r35Undo(){
+    // a) multi-selecciones
+    if(Array.isArray(window.multiSelections) && window.multiSelections.length > 0){
+      var s = window.multiSelections.pop();
+      try{
+        if(s && s.overlay && typeof s.overlay.setMap === 'function'){
+          s.overlay.setMap(null);
+          if(s.overlay._logoOverlay) s.overlay._logoOverlay.setMap(null);
+        }
+      }catch(_){}
+      try{ if(typeof window.showMultiSelectPanel === 'function') window.showMultiSelectPanel(); }catch(_){}
+      try{ if(typeof window.showMultiSelectReport === 'function') window.showMultiSelectReport(); }catch(_){}
+      if(typeof window.setStatus === 'function'){
+        window.setStatus('Selección eliminada. Total: ' + window.multiSelections.length);
+      }
+      return true;
+    }
+
+    // b) currentOverlay (forma simple)
+    if(window.currentOverlay){
+      try{
+        if(typeof window.currentOverlay.setMap === 'function'){
+          window.currentOverlay.setMap(null);
+        }
+      }catch(_){}
+      window.currentOverlay = null;
+      try{ window.currentData = null; }catch(_){}
+      // Cerrar reporte automático si está abierto
+      try{
+        var ar = document.getElementById('auto-report');
+        if(ar && (ar.style.display === '' || ar.style.display === 'block')){
+          ar.style.display = 'none';
+        }
+      }catch(_){}
+      if(typeof window.setStatus === 'function'){
+        window.setStatus('Selección eliminada');
+      }
+      return true;
+    }
+
+    // c) landmarkMarkers (clicks en places list)
+    if(Array.isArray(window.landmarkMarkers) && window.landmarkMarkers.length > 0){
+      var lm = window.landmarkMarkers.pop();
+      r35RemoveMarker(lm);
+      if(Array.isArray(window.landmarkInfos) && window.landmarkInfos.length > 0){
+        try{
+          var iw = window.landmarkInfos.pop();
+          if(iw && typeof iw.close === 'function') iw.close();
+        }catch(_){}
+      }
+      if(typeof window.setStatus === 'function'){
+        window.setStatus(window.landmarkMarkers.length + ' negocios seleccionados en el mapa');
+      }
+      return true;
+    }
+
+    // d) placesMarkers (resultados de Places nearbySearch)
+    if(Array.isArray(window.placesMarkers) && window.placesMarkers.length > 0){
+      var pm = window.placesMarkers.pop();
+      r35RemoveMarker(pm);
+      if(typeof window.setStatus === 'function'){
+        window.setStatus('Resultado de búsqueda eliminado');
+      }
+      return true;
+    }
+
+    // e) denueMarkers
+    if(Array.isArray(window.denueMarkers) && window.denueMarkers.length > 0){
+      var dm = window.denueMarkers.pop();
+      r35RemoveMarker(dm);
+      if(typeof window.setStatus === 'function'){
+        window.setStatus('Resultado DENUE eliminado');
+      }
+      return true;
+    }
+
+    // f) _cmpBrandMarkers (comparativa) — quitar la última marca activa
+    try{
+      if(window._cmpBrandMarkers && typeof window._cmpBrandMarkers === 'object'){
+        var brands = Object.keys(window._cmpBrandMarkers);
+        if(brands.length > 0){
+          var lastBrand = brands[brands.length - 1];
+          var arr = window._cmpBrandMarkers[lastBrand];
+          if(Array.isArray(arr)){
+            arr.forEach(r35RemoveMarker);
+          }
+          delete window._cmpBrandMarkers[lastBrand];
+          if(typeof window.setStatus === 'function'){
+            window.setStatus('Comparativa: ' + lastBrand + ' eliminado');
+          }
+          return true;
+        }
+      }
+    }catch(_){}
+
+    // Nada que deshacer
+    if(typeof window.setStatus === 'function'){
+      window.setStatus('Nada que deshacer');
+    }
+    return false;
+  }
+
+  // Reemplazar el handler global. La toolbar tiene
+  // onclick="undoLastSelection()" — al sobreescribir
+  // window.undoLastSelection, nuestro handler se ejecuta.
+  function r35WireUndo(){
+    if(window.undoLastSelection && window.undoLastSelection._r35) return;
+    var orig = window.undoLastSelection;
+    window.undoLastSelection = function(){
+      try{ return r35Undo(); }
+      catch(e){
+        try{ if(typeof orig === 'function') return orig.apply(this, arguments); }catch(_){}
+      }
+    };
+    window.undoLastSelection._r35 = true;
+    window.undoLastSelection._origFn = orig;
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function init(){
+    r35InjectHomeButton();
+    r35WireUndo();
+    r35CaptureInitialView();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  // Reintentos: el botón depende de que la toolbar exista; el wrap
+  // depende de que undoLastSelection esté definido; la captura del
+  // home depende de geolocalización terminando.
+  [200, 600, 1500, 3000, 6000, 12000, 25000].forEach(function(d){ setTimeout(init, d); });
+  // Captura del home cuando el usuario haga el primer pan/zoom
+  // tras geolocalización
+  setInterval(r35CaptureInitialView, 1500);
+})();
+</script>
+
+<script id="connectia-r36-hex-layers">
+/* ============================================================
+   Round 36 — pedido EXPLÍCITO del usuario:
+   "no está arrojando los poligonos de NSE, recuerda que debe
+    de ser hexagonos lo mas pequeño posible y que no cambien
+    de tamaño si haces o quitas zoom, utiliza los mismos
+    criterios para densidad poblacional y tráfico"
+
+   FIX:
+   - Forzar render de hexágonos R31 inmediato al togglear (no
+     esperar al idle listener)
+   - Sincronizar _popHeatActive ↔ densityLayerActive (R31 leía
+     el flag equivocado y por eso no rendereaba)
+   - Ocultar los polígonos viejos por colonia (tamaño variable)
+     cuando POB/VEH están activos para que solo se vean los
+     hexes R31 (mismo tamaño en pixel, NO cambian con zoom)
+   - HEX_PIXEL_SIZE de R31 ya es 6 px → diámetro ~12 px, "lo
+     más pequeño posible legible"; al ser px-based, NO cambia
+     visualmente con zoom (cambia hexR_m por mpp inversamente)
+   ============================================================ */
+(function(){
+  'use strict';
+
+  function clearLegacyColoniaPolys(arrName){
+    try{
+      var arr = window[arrName];
+      if(Array.isArray(arr)){
+        arr.forEach(function(p){
+          try{ p.setMap(null); }catch(_){}
+        });
+        // Vaciamos también para evitar que reaparezcan al pan
+        window[arrName] = [];
+      }
+    }catch(_){}
+  }
+
+  function r36ForceRenderAll(){
+    try{
+      // NSE
+      if((window.nseOverlayActive || window.nseLayerActive) &&
+         typeof window.r31RenderNse === 'function'){
+        window.r31RenderNse(true);
+      }
+      // Densidad poblacional
+      if(window._popHeatActive){
+        window.densityLayerActive = true; // R31 lee este flag
+        clearLegacyColoniaPolys('_popHeatPolys');
+        if(typeof window.r31RenderDensity === 'function'){
+          window.r31RenderDensity(true);
+        }
+      }
+      // Tráfico
+      if(window._trafHeatActive){
+        clearLegacyColoniaPolys('_trafHeatPolys');
+        if(typeof window.r31RenderTraffic === 'function'){
+          window.r31RenderTraffic(true);
+        }
+      }
+    }catch(_){}
+  }
+
+  // Wrap toggleNSEOverlay
+  function r36WrapNSE(){
+    if(typeof window.toggleNSEOverlay !== 'function') return;
+    if(window.toggleNSEOverlay._r36) return;
+    var orig = window.toggleNSEOverlay;
+    window.toggleNSEOverlay = function(){
+      var rv = orig.apply(this, arguments);
+      // Render inmediato + reintentos por si el panel/idle
+      // aún no está listo
+      [80, 250, 600, 1500].forEach(function(d){
+        setTimeout(function(){
+          if((window.nseOverlayActive || window.nseLayerActive) &&
+             typeof window.r31RenderNse === 'function'){
+            window.r31RenderNse(true);
+          }
+        }, d);
+      });
+      return rv;
+    };
+    window.toggleNSEOverlay._r36 = true;
+  }
+
+  // Wrap togglePopHeatmapLayer (POB)
+  function r36WrapPop(){
+    if(typeof window.togglePopHeatmapLayer !== 'function') return;
+    if(window.togglePopHeatmapLayer._r36) return;
+    var orig = window.togglePopHeatmapLayer;
+    window.togglePopHeatmapLayer = function(){
+      var rv = orig.apply(this, arguments);
+      [80, 250, 600, 1500].forEach(function(d){
+        setTimeout(function(){
+          if(window._popHeatActive){
+            // Sincronizar flag para que R31 reaccione
+            window.densityLayerActive = true;
+            clearLegacyColoniaPolys('_popHeatPolys');
+            if(typeof window.r31RenderDensity === 'function'){
+              window.r31RenderDensity(true);
+            }
+          } else {
+            window.densityLayerActive = false;
+          }
+        }, d);
+      });
+      return rv;
+    };
+    window.togglePopHeatmapLayer._r36 = true;
+  }
+
+  // Wrap toggleTrafficHeatLayer (VEH)
+  function r36WrapTraf(){
+    if(typeof window.toggleTrafficHeatLayer !== 'function') return;
+    if(window.toggleTrafficHeatLayer._r36) return;
+    var orig = window.toggleTrafficHeatLayer;
+    window.toggleTrafficHeatLayer = function(){
+      var rv = orig.apply(this, arguments);
+      [80, 250, 600, 1500].forEach(function(d){
+        setTimeout(function(){
+          if(window._trafHeatActive){
+            clearLegacyColoniaPolys('_trafHeatPolys');
+            if(typeof window.r31RenderTraffic === 'function'){
+              window.r31RenderTraffic(true);
+            }
+          }
+        }, d);
+      });
+      return rv;
+    };
+    window.toggleTrafficHeatLayer._r36 = true;
+  }
+
+  // Re-aplicar limpieza de colonia polys cada cierto tiempo —
+  // _drawPopGrid se ejecuta async cuando _fetchColonias resuelve,
+  // entonces los polys pueden re-aparecer; los re-quitamos.
+  function r36KeepColoniaPolysHidden(){
+    if(window._popHeatActive){
+      // Colonia polys de POB ya no se quieren — solo R31 hexes
+      clearLegacyColoniaPolys('_popHeatPolys');
+    }
+    if(window._trafHeatActive){
+      clearLegacyColoniaPolys('_trafHeatPolys');
+    }
+  }
+
+  function init(){
+    r36WrapNSE();
+    r36WrapPop();
+    r36WrapTraf();
+    r36ForceRenderAll();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  [200, 600, 1500, 3000, 6000, 12000, 25000].forEach(function(d){ setTimeout(init, d); });
+  // Cleanup periódico de polys legacy (cada 1.5 s) y re-render
+  // de hexes para mantener cobertura tras pan/zoom
+  setInterval(function(){
+    r36KeepColoniaPolysHidden();
+    r36ForceRenderAll();
+  }, 1500);
+})();
+</script>
 </body>
 </html>
