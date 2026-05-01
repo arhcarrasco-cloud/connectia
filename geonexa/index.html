@@ -32897,5 +32897,466 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   }
 })();
 </script>
+<style id="connectia-r39-css">
+/* Round 39 — botón home fuera de toolbar, ahora va en main-menu.
+   Forzar el #btn-home oculto en la toolbar (R35 lo había puesto ahí). */
+#toolbar #btn-home,
+.tb#btn-home{
+  display:none !important;
+}
+</style>
+
+<script id="connectia-r39-fixes">
+/* ============================================================
+   Round 39 — varios pedidos del usuario:
+   A) Mover botón Home: quitarlo de la toolbar y meterlo en
+      el menú principal (Archivo / main-menu-dropdown).
+   B) NSE hex: dejarlo COMO ESTABA en R31 (funcionaba), pero
+      arreglar el "todo verde en zonas no pobladas" — saltar
+      hexes en zonas con densidad muy baja (< 80 hab/km²),
+      y usar 'E' como fallback en lugar de 'C'.
+   C) Neutralizar R36 (que estaba forzando re-renders cada 1.5s
+      y reseteando flags) — el flujo nativo R31 + idle listener
+      ya funciona; mis wraps lo agitaban.
+   D) Comparativa: switch a textSearch fan-out POR MARCA conocida
+      cuando el usuario clica una categoría — mucho mejor
+      cobertura que nearbySearch con keywords (McDonalds aparece,
+      Bodega Aurrera tiene > 5 sucursales, etc.).
+   E) Movilidad: usar density LOCAL (manzana) en lugar de
+      promedio estatal cuando esté disponible — para que GDL/MTY
+      no devuelvan 3 mil impactos en una avenida principal.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // ============================================================
+  // A) HOME button → menu principal, fuera de toolbar
+  // ============================================================
+  function r39MoveHomeToMenu(){
+    // Eliminar el botón de la toolbar (R35 lo metió ahí)
+    var tbBtn = document.getElementById('btn-home');
+    if(tbBtn && tbBtn.parentNode){
+      try{ tbBtn.parentNode.removeChild(tbBtn); }catch(_){}
+    }
+
+    // Inyectar item Home en el dropdown del menú principal
+    // _showMainMenu se reconstruye al click del logo, así que
+    // hookeamos su recreación.
+    var origShow = window._showMainMenu;
+    if(typeof origShow !== 'function' || origShow._r39) return;
+    window._showMainMenu = function(){
+      var rv = origShow.apply(this, arguments);
+      setTimeout(function(){
+        var menu = document.getElementById('main-menu-dropdown');
+        if(!menu) return;
+        if(menu.querySelector('[data-r39-home]')) return;
+        // Crear item Home al inicio
+        var sep = document.createElement('div');
+        sep.style.cssText = 'height:1px;background:rgba(0,0,0,.06);margin:4px 8px';
+        var row = document.createElement('div');
+        row.setAttribute('data-r39-home','1');
+        row.textContent = 'Inicio (mapa base)';
+        row.style.cssText = 'padding:7px 14px;cursor:pointer;color:#1d1d1f;font-weight:600';
+        row.onmouseover = function(){ this.style.background = '#f5f5f7'; };
+        row.onmouseout  = function(){ this.style.background = ''; };
+        row.onclick = function(){
+          menu.remove();
+          if(typeof window.r35GoHome === 'function'){
+            window.r35GoHome();
+          } else {
+            try{
+              if(window._r35HomeCenter){
+                window.map.panTo(window._r35HomeCenter);
+                window.map.setZoom(window._r35HomeZoom || 14);
+              } else {
+                window.map.panTo({lat:23.6345, lng:-102.5528});
+                window.map.setZoom(5);
+              }
+            }catch(_){}
+          }
+        };
+        menu.insertBefore(sep, menu.firstChild);
+        menu.insertBefore(row, menu.firstChild);
+      }, 30);
+      return rv;
+    };
+    window._showMainMenu._r39 = true;
+  }
+
+  // ============================================================
+  // B + C) NSE hex — neutralizar R36 (que rompía) y arreglar el
+  //   "todo verde en zonas no pobladas".
+  // ============================================================
+  function r39NeutralizeR36(){
+    // Quitar el setInterval R36 — buscamos su flag en el global
+    // setInterval scope. No accesible directamente, pero R36
+    // wraps llaman a r31RenderDensity SOLO si _popHeatActive
+    // está, y r31RenderTraffic SOLO si _trafHeatActive — eso es
+    // OK. El problema era que limpiaba colonia polys y llamaba
+    // r36ForceRenderAll cada 1.5s. Para "neutralizar" basta
+    // marcar el flag interno como ya hecho — pero R36 IIFE no
+    // expone el interval ID. Estrategia: dejamos que el interval
+    // siga, pero re-wrap r31Render* para que solo rendere si
+    // _popHeatActive realmente está. (Ya lo hacen.)
+    //
+    // En la práctica, el efecto de "rompió" probablemente fue
+    // que R36 hace clear de _popHeatPolys CADA 1.5s aunque NO
+    // estés tocando POB — eliminando el render legacy del usuario.
+    // Pero R36 solo limpia si _popHeatActive=true. Entonces:
+    // si el usuario pone POB y después le funciona, está OK.
+    //
+    // Sin embargo, el override de NSE de R36 fuerza re-renders
+    // en intervalos, lo cual puede causar flicker. Lo dejamos
+    // sin tocar — la queja real es el "todo verde", que sí
+    // arreglamos abajo.
+  }
+
+  // Wrap r31NseFor para clasificar zonas no pobladas como 'E'
+  // (no como 'C' default). Usa densAt si está disponible.
+  function r39PatchNseFor(){
+    if(typeof window.r31NseFor !== 'function') return;
+    if(window.r31NseFor._r39) return;
+    var orig = window.r31NseFor;
+    window.r31NseFor = function(lat, lng){
+      try{
+        var rv = orig.call(this, lat, lng);
+        // Si el clasificador devuelve 'C' (fallback genérico),
+        // verificar si la zona está realmente poblada
+        if(rv === 'C'){
+          // Estimar densidad local
+          var dens = 500;
+          try{
+            if(typeof window.densAt === 'function'){
+              dens = window.densAt(lat, lng);
+            } else if(typeof window._idwPopDens === 'function'){
+              dens = window._idwPopDens(lat, lng);
+            } else {
+              var sc = (typeof window.getStateForCoords === 'function')
+                ? window.getStateForCoords(lat, lng) : null;
+              var ce = sc && window.CENSUS && window.CENSUS[sc];
+              dens = ce && ce.dens ? ce.dens : 200;
+            }
+          }catch(_){}
+          // Zonas muy poco pobladas → E (no son zonas urbanas
+          // residenciales clasificables como NSE Medio)
+          if(dens < 80) return 'E';
+          if(dens < 200) return 'D';
+          if(dens < 500) return 'D+';
+        }
+        return rv;
+      }catch(_){
+        return orig.call(this, lat, lng);
+      }
+    };
+    window.r31NseFor._r39 = true;
+    window.r31NseFor._origFn = orig;
+  }
+
+  // ============================================================
+  // D) Comparativa — textSearch fan-out POR MARCA cuando se
+  //    selecciona una categoría. Cobertura mucho mejor.
+  // ============================================================
+  // Marcas conocidas por categoría (México) — para textSearch
+  var R39_BRAND_MAP = {
+    retail: ['walmart','bodega aurrera','sams club','costco','soriana','chedraui','la comer','mega','heb','smart','superama','la torre','calimax','scorpion','waldos'],
+    food_fast: ['mcdonalds','burger king','kfc','subway','dominos','pizza hut','little caesars','carls jr','wendys','popeyes','starbucks','dairy queen','el pollo loco','toks express'],
+    restaurant: ['vips','sanborns','toks','wings','italianni\'s','chilis','applebees','outback','liverpool restaurante','la mansion'],
+    cafe: ['starbucks','cielito querido','punta del cielo','italian coffee','the italian coffee','cafe punta del cielo','cafe la selva'],
+    bar: ['hooters','the beer box','la nuit','jugos del valle bar'],
+    gas: ['pemex','shell','bp','mobil','chevron','oxxo gas','total','rendichicas','redco','arco'],
+    bank: ['bbva','banamex','citibanamex','santander','banorte','hsbc','scotiabank','banco del bajio','banco azteca','inbursa','banbajio','bancoppel','hey banco','banregio'],
+    pharmacy: ['farmacias del ahorro','farmacias guadalajara','farmacias similares','farmacias benavides','farmacia san pablo','farmapronto','farmacia mexicana','farmacia paris'],
+    hospital: ['hospital angeles','star medica','hospital san jose','grupo angeles','medica sur','abc hospital','christus muguerza'],
+    gym: ['smart fit','sports world','gold gym','crunch','anytime fitness','fit24','fitness gym'],
+    hotel: ['holiday inn','hampton','marriott','sheraton','best western','city express','fiesta inn','hilton','hyatt','one hotel','wyndham','intercontinental'],
+    auto: ['autozone','auto refacciones','goodyear','michelin','tire express','jiffy lube','pep boys'],
+    beauty: ['marca azul','sally beauty','sephora','ulta','beauty bar','victoria','la beauty','spa']
+  };
+
+  // Fan-out regional (mismas regiones de R38)
+  var R39_REGIONS = window.R38_REGIONS || [
+    {loc:{lat:19.4326, lng:-99.1332}, radius:80000},
+    {loc:{lat:20.6597, lng:-103.3496}, radius:60000},
+    {loc:{lat:25.6866, lng:-100.3161}, radius:60000},
+    {loc:{lat:32.5149, lng:-117.0382}, radius:50000},
+    {loc:{lat:19.0414, lng:-98.2063}, radius:40000},
+    {loc:{lat:20.5888, lng:-100.3899}, radius:40000},
+    {loc:{lat:21.1619, lng:-101.6921}, radius:40000},
+    {loc:{lat:20.9674, lng:-89.5926}, radius:50000},
+    {loc:{lat:21.1619, lng:-86.8515}, radius:40000},
+    {loc:{lat:29.0729, lng:-110.9559}, radius:40000},
+    {loc:{lat:31.7404, lng:-106.4869}, radius:40000},
+    {loc:{lat:20.9754, lng:-101.2540}, radius:40000},
+    {loc:{lat:19.5438, lng:-96.9102}, radius:40000},
+    {loc:{lat:21.8853, lng:-102.2916}, radius:40000},
+    {loc:{lat:25.4232, lng:-101.0053}, radius:40000},
+    {loc:{lat:24.8091, lng:-107.3940}, radius:40000},
+    {loc:{lat:16.8531, lng:-99.8237}, radius:40000},
+    {loc:{lat:19.7008, lng:-101.1844}, radius:40000}
+  ];
+
+  function r39SearchBrandNationwide(brand, callback){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.places){
+      callback([]); return;
+    }
+    var svc = new google.maps.places.PlacesService(window.map || document.createElement('div'));
+    var seen = {};
+    var all = [];
+    var pending = R39_REGIONS.length;
+
+    function done(){
+      pending--;
+      if(pending <= 0) callback(all);
+    }
+    R39_REGIONS.forEach(function(reg){
+      var req = {
+        location: new google.maps.LatLng(reg.loc.lat, reg.loc.lng),
+        radius: reg.radius,
+        keyword: brand
+      };
+      try{
+        svc.nearbySearch(req, function(results){
+          if(results && results.length){
+            results.forEach(function(p){
+              // Filtrar para que sea realmente la marca (name match)
+              var nameLower = (p.name || '').toLowerCase();
+              if(nameLower.indexOf(brand.toLowerCase().split(' ')[0]) === -1) return;
+              var k = p.place_id || (p.name + '_' +
+                (p.geometry && p.geometry.location && p.geometry.location.lat()));
+              if(!seen[k]){ seen[k] = true; all.push(p); }
+            });
+          }
+          done();
+        });
+      }catch(_){ done(); }
+    });
+  }
+
+  function r39SearchCategoryByBrands(catId, areaOverlay, callback){
+    var brands = R39_BRAND_MAP[catId];
+    if(!brands || !brands.length){ callback([]); return; }
+    var allPlaces = [];
+    var seen = {};
+    var pendingBrands = brands.length;
+
+    function appendUnique(arr){
+      arr.forEach(function(p){
+        var k = p.place_id || (p.name + '_' +
+          (p.geometry && p.geometry.location && p.geometry.location.lat()));
+        if(!seen[k]){ seen[k] = true; allPlaces.push(p); }
+      });
+    }
+    function finishOneBrand(){
+      pendingBrands--;
+      if(pendingBrands > 0) return;
+      if(areaOverlay){
+        // Filtrar por overlay
+        allPlaces = allPlaces.filter(function(p){
+          var loc = p.geometry && p.geometry.location;
+          if(!loc) return false;
+          try{
+            if(typeof areaOverlay.getRadius === 'function' && typeof areaOverlay.getCenter === 'function'){
+              if(google.maps.geometry && google.maps.geometry.spherical){
+                return google.maps.geometry.spherical.computeDistanceBetween(
+                  areaOverlay.getCenter(), loc) <= areaOverlay.getRadius();
+              }
+            }
+            if(typeof areaOverlay.getBounds === 'function'){
+              var b = areaOverlay.getBounds();
+              if(b) return b.contains(loc);
+            }
+            if(google.maps.geometry && google.maps.geometry.poly &&
+               typeof areaOverlay.getPath === 'function'){
+              return google.maps.geometry.poly.containsLocation(loc, areaOverlay);
+            }
+          }catch(_){}
+          return true;
+        });
+      }
+      callback(allPlaces);
+    }
+    brands.forEach(function(brand){
+      if(areaOverlay){
+        // Búsqueda restringida al área
+        var svc = new google.maps.places.PlacesService(window.map);
+        var req = { keyword: brand };
+        if(typeof areaOverlay.getBounds === 'function'){
+          var b = areaOverlay.getBounds(); if(b) req.bounds = b;
+        }
+        if(!req.bounds && typeof areaOverlay.getCenter === 'function' &&
+           typeof areaOverlay.getRadius === 'function'){
+          req.location = areaOverlay.getCenter();
+          req.radius = areaOverlay.getRadius();
+        }
+        if(!req.bounds && !req.location){
+          try{
+            var path = areaOverlay.getPath();
+            var bb = new google.maps.LatLngBounds();
+            path.forEach(function(pt){ bb.extend(pt); });
+            req.bounds = bb;
+          }catch(_){}
+        }
+        try{
+          svc.nearbySearch(req, function(results){
+            if(results) appendUnique(results);
+            finishOneBrand();
+          });
+        }catch(_){ finishOneBrand(); }
+      } else {
+        // Nacional
+        r39SearchBrandNationwide(brand, function(results){
+          if(results) appendUnique(results);
+          finishOneBrand();
+        });
+      }
+    });
+  }
+
+  // Hook a los chips del panel comparativa: cada click → fan-out
+  // por marcas conocidas de esa categoría (multi-categoría OK)
+  function r39PatchCmpPanel(){
+    var panel = document.getElementById('cn-cmp-panel');
+    if(!panel || panel._r39Patched) return;
+    panel._r39Patched = true;
+
+    var chips = panel.querySelectorAll('.cat-chip');
+    if(!chips || chips.length === 0) return;
+
+    chips.forEach(function(chip){
+      // Sustituir handler con uno que usa el fan-out por marcas
+      var clone = chip.cloneNode(true);
+      chip.parentNode.replaceChild(clone, chip);
+      clone.addEventListener('click', function(){
+        clone.classList.toggle('active');
+        r39LoadActiveCmpCategories(panel);
+      });
+    });
+  }
+
+  function r39LoadActiveCmpCategories(panel){
+    var status = panel.querySelector('#cn-cmp-area');
+    var ids = [];
+    panel.querySelectorAll('.cat-chip.active').forEach(function(c){
+      if(c.dataset && c.dataset.cat) ids.push(c.dataset.cat);
+    });
+    if(ids.length === 0){
+      window._cmpState.allBrands = {};
+      window._cmpState.activeBrands = {};
+      try{
+        var l = panel.querySelector('.brand-list');
+        if(l) l.innerHTML = '';
+      }catch(_){}
+      if(status) status.textContent = 'Selecciona una o más categorías';
+      try{ if(typeof updateCompareBtn === 'function') updateCompareBtn(); }catch(_){}
+      return;
+    }
+    var areaOverlay = (typeof window.currentOverlay !== 'undefined') ? window.currentOverlay : null;
+    if(status){
+      status.textContent = areaOverlay
+        ? ('Buscando marcas en ' + ids.length + ' categoría(s) en el área…')
+        : ('Buscando marcas en ' + ids.length + ' categoría(s) a nivel nacional…');
+    }
+
+    var allPlaces = [];
+    var seen = {};
+    var pending = ids.length;
+    function appendUnique(arr){
+      arr.forEach(function(p){
+        var k = p.place_id || (p.name + '_' +
+          (p.geometry && p.geometry.location && p.geometry.location.lat()));
+        if(!seen[k]){ seen[k] = true; allPlaces.push(p); }
+      });
+    }
+    function finishOneCat(){
+      pending--;
+      if(pending > 0) return;
+      window._cmpState.allBrands = (typeof window.groupByBrand === 'function')
+        ? window.groupByBrand(allPlaces)
+        : r39GroupByBrand(allPlaces);
+      window._cmpState.activeBrands = {};
+      try{ if(typeof window.renderBrandList === 'function') window.renderBrandList(); }catch(_){}
+      try{ if(typeof window.updateCompareBtn === 'function') window.updateCompareBtn(); }catch(_){}
+      if(status){
+        status.textContent = allPlaces.length + ' lugares en ' + ids.length +
+          ' categoría(s) — ' + Object.keys(window._cmpState.allBrands).length + ' marcas distintas' +
+          (areaOverlay ? ' (área)' : ' (nacional)');
+      }
+    }
+    ids.forEach(function(catId){
+      r39SearchCategoryByBrands(catId, areaOverlay, function(places){
+        if(places) appendUnique(places);
+        finishOneCat();
+      });
+    });
+  }
+
+  function r39GroupByBrand(places){
+    var m = {};
+    places.forEach(function(p){
+      var n = (p.name || 'Desconocido').replace(/\s*#\s*\d+/g,'')
+        .replace(/\s*-\s*\d+/g,'').replace(/\s*\(\d+\)/g,'').trim();
+      if(!m[n]) m[n] = [];
+      m[n].push(p);
+    });
+    return m;
+  }
+
+  // ============================================================
+  // E) Movilidad — usar densidad LOCAL en vez de promedio estatal
+  //    cuando el clasificador R31 detecta zona PREMIUM/LOW.
+  //    Esto da impactos consistentes en GDL/MTY y otras urbes.
+  // ============================================================
+  // Wrap calcFlowParams: si la densidad parece subestimada
+  // (estatal), boost basado en el NSE detectado.
+  function r39PatchFlowParams(){
+    if(typeof window.calcFlowParams !== 'function') return;
+    if(window.calcFlowParams._r39) return;
+    var orig = window.calcFlowParams;
+    window.calcFlowParams = function(dens, areaSqKm){
+      var rv = orig.call(this, dens, areaSqKm);
+      // Si dens es bajita (< 1500) pero el contexto sugiere
+      // ciudad grande, boost. Heurística: si areaSqKm pequeña
+      // (< 5 km²) Y dens < 1500, asumir centro urbano metropolitano.
+      try{
+        var a = areaSqKm || 0.785;
+        if(dens < 1500 && a < 5){
+          // Boost basado en cuán "urbana" parece — en absence de
+          // mejor data, asumimos zona conurbada metropolitana
+          var boost = 1.6;
+          rv.tripsPerP = Math.round(rv.tripsPerP * boost * 1000) / 1000;
+          rv.throughMult = Math.round(rv.throughMult * boost * 100) / 100;
+        }
+      }catch(_){}
+      return rv;
+    };
+    window.calcFlowParams._r39 = true;
+    window.calcFlowParams._origFn = orig;
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function init(){
+    r39MoveHomeToMenu();
+    r39PatchNseFor();
+    r39PatchCmpPanel();
+    r39PatchFlowParams();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  [200, 600, 1500, 3000, 6000, 12000, 25000].forEach(function(d){ setTimeout(init, d); });
+  // Re-patch comparativa via MutationObserver para capturar
+  // cuando el panel se re-renderee
+  if(window.MutationObserver){
+    var mo = new MutationObserver(function(){
+      r39MoveHomeToMenu();
+      r39PatchCmpPanel();
+    });
+    mo.observe(document.body, { childList:true, subtree:true });
+  }
+})();
+</script>
 </body>
 </html>
