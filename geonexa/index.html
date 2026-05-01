@@ -31516,5 +31516,250 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   setInterval(repairExistingMarkers, 2500);
 })();
 </script>
+<style id="connectia-r33-css">
+/* Round 33 — ocultar el segundo botón × del reporte cuando el panel
+   ya tiene una chrome bar con su propio .pcb-close. */
+.panel-chrome-host .panel-close,
+#auto-report > .panel-close,
+#auto-report .panel-close{
+  display:none !important;
+}
+/* Garantizar que el .pcb-close del chrome es visible y clickeable */
+.panel-chrome-host > .panel-chrome-bar .pcb-close{
+  display:inline-flex !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+}
+</style>
+
+<script id="connectia-r33-fixes">
+/* ============================================================
+   Round 33 — 2 fixes adicionales pedidos por el usuario:
+   1) Km/área en tiempo real al redimensionar círculo — rAF
+      continuo (no condicionado a mousedown) que escribe
+      directamente en #r25-radius-pill (bypass del draw()
+      perezoso del OverlayView).
+   2) Reporte: dejar SOLO un botón × y garantizar que cierra
+      de verdad (track explicit close + impedir que el
+      MasterWatcher lo reabra al cambiar data).
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // ============================================================
+  // 1) Km/área en tiempo real — rAF continuo + escritura DOM
+  //    directa al pill #r25-radius-pill
+  // ============================================================
+  function r33EnsurePill(){
+    // Forzar init de _r25Ov si la R25 expuso la clase pero aún
+    // no se llamó a getOv() (p.ej. círculo restaurado de sesión).
+    try{
+      if(!window._r25Ov && typeof window._r25Class === 'function' && window.map){
+        window._r25Ov = new window._r25Class();
+        window._r25Ov.setMap(window.map);
+      }
+    }catch(_){}
+    return document.getElementById('r25-radius-pill');
+  }
+
+  function r33FormatRad(r){
+    return (r < 1000) ? Math.round(r) + ' m' : (r/1000).toFixed(2) + ' km';
+  }
+  function r33FormatArea(r){
+    var aKm2 = Math.PI * (r/1000) * (r/1000);
+    return (aKm2 < 1) ? (aKm2 * 1e6).toFixed(0) + ' m²' : aKm2.toFixed(2) + ' km²';
+  }
+
+  function r33ActiveCircle(){
+    // Prioridad: currentOverlay si es círculo, luego primer multi-selection
+    try{
+      var co = window.currentOverlay;
+      if(co && typeof co.getRadius === 'function' && typeof co.getCenter === 'function'){
+        if(co.getMap && co.getMap() != null) return co;
+      }
+    }catch(_){}
+    try{
+      var ms = window.multiSelections;
+      if(Array.isArray(ms)){
+        for(var i = 0; i < ms.length; i++){
+          var o = ms[i] && ms[i].overlay;
+          if(o && typeof o.getRadius === 'function' && typeof o.getCenter === 'function'){
+            if(o.getMap && o.getMap() != null) return o;
+          }
+        }
+      }
+    }catch(_){}
+    return null;
+  }
+
+  var _r33LastR = -1, _r33LastLat = -999, _r33LastLng = -999;
+  var _r33LoopStarted = false;
+
+  function r33Tick(){
+    try{
+      var circle = r33ActiveCircle();
+      var pill = document.getElementById('r25-radius-pill');
+      if(!circle){
+        if(pill) pill.style.display = 'none';
+        _r33LastR = -1; _r33LastLat = -999; _r33LastLng = -999;
+        requestAnimationFrame(r33Tick);
+        return;
+      }
+      var r = circle.getRadius();
+      var c = circle.getCenter();
+      var lat = c.lat(), lng = c.lng();
+      var changed = (r !== _r33LastR) || (lat !== _r33LastLat) || (lng !== _r33LastLng);
+
+      if(changed || !pill || pill.style.display === 'none'){
+        _r33LastR = r; _r33LastLat = lat; _r33LastLng = lng;
+
+        // 1) Re-posicionar via _r25Ov (centra sobre el círculo)
+        try{
+          if(window._r25Ov && typeof window._r25Ov.update === 'function'){
+            window._r25Ov.update(c, r);
+          } else {
+            r33EnsurePill();
+            if(window._r25Ov && typeof window._r25Ov.update === 'function'){
+              window._r25Ov.update(c, r);
+            }
+          }
+        }catch(_){}
+
+        // 2) ESCRITURA DIRECTA del innerHTML por si draw() del
+        //    OverlayView no se ejecuta (proyección no lista).
+        pill = document.getElementById('r25-radius-pill') || r33EnsurePill();
+        if(pill){
+          pill.innerHTML = r33FormatRad(r) +
+            ' <span style="color:#86868b;font-size:11px;font-weight:500">' +
+            r33FormatArea(r) + '</span>';
+          // Forzar visibilidad
+          pill.style.display = 'block';
+        }
+      }
+
+      // Cinturón extra: ocultar el panel de arriba si algo lo reactivó
+      try{
+        var lbl = document.getElementById('live-radius-label');
+        if(lbl){
+          lbl.style.setProperty('display','none','important');
+          lbl.style.setProperty('visibility','hidden','important');
+        }
+      }catch(_){}
+    }catch(_){}
+    requestAnimationFrame(r33Tick);
+  }
+
+  function r33StartLoop(){
+    if(_r33LoopStarted) return;
+    if(typeof google === 'undefined' || !google.maps) return;
+    _r33LoopStarted = true;
+    requestAnimationFrame(r33Tick);
+  }
+
+  // ============================================================
+  // 2) Reporte: un solo botón × + cierre garantizado
+  // ============================================================
+  function r33CleanupCloseButtons(){
+    // Si el panel auto-report tiene chrome (.panel-chrome-host) con
+    // .pcb-close, eliminar cualquier .panel-close duplicado.
+    var ar = document.getElementById('auto-report');
+    if(!ar) return;
+    var hasChrome = ar.querySelector('.panel-chrome-bar .pcb-close');
+    if(hasChrome){
+      ar.querySelectorAll('.panel-close').forEach(function(b){
+        try{ b.remove(); }catch(_){}
+      });
+    }
+  }
+
+  // Track explicit user-close — cuando el usuario cierra el reporte,
+  // el MasterWatcher (setInterval cada 800ms) NO debe reabrirlo.
+  window._r33UserClosedAR = false;
+
+  function r33HookCloseClicks(){
+    // Delegación global: cualquier click en el .pcb-close del
+    // auto-report marca el flag.
+    document.addEventListener('click', function(ev){
+      var btn = ev.target;
+      if(!btn) return;
+      var pcb = btn.closest && btn.closest('.pcb-close');
+      if(!pcb) return;
+      var host = pcb.closest('.panel-chrome-host');
+      if(!host) return;
+      if(host.id === 'auto-report'){
+        window._r33UserClosedAR = true;
+        // Asegurar cierre real
+        try{ host.style.display = 'none'; }catch(_){}
+        try{ host.classList.remove('snap-half','snap-full','minimized'); }catch(_){}
+      }
+    }, true);
+  }
+
+  function r33WrapRefresh(){
+    if(window.refreshAutoReport && !window.refreshAutoReport._r33){
+      var orig = window.refreshAutoReport;
+      window.refreshAutoReport = function(){
+        // Si el usuario cerró explícitamente, no reabrir desde watchers.
+        // Detectamos llamada desde el MasterWatcher porque viene de un
+        // setInterval de fondo — heurística simple: si el panel está
+        // oculto Y el flag está activo, sólo refrescar el contenido
+        // sin re-mostrar.
+        var ar = document.getElementById('auto-report');
+        var wasHidden = ar && (ar.style.display === 'none' || getComputedStyle(ar).display === 'none');
+        if(wasHidden && window._r33UserClosedAR){
+          // Refrescar contenido pero MANTENER cerrado
+          try{
+            // Llamar al original con un flag que marca: no abrir
+            ar.style.display = 'none'; // pin closed
+            var rv = orig.apply(this, arguments);
+            ar.style.display = 'none'; // re-pin closed
+            return rv;
+          }catch(e){ return orig.apply(this, arguments); }
+        }
+        // Si el panel está oculto pero el usuario NO lo cerró, abrir
+        // normalmente y resetear flag.
+        if(wasHidden){ window._r33UserClosedAR = false; }
+        return orig.apply(this, arguments);
+      };
+      window.refreshAutoReport._r33 = true;
+    }
+  }
+
+  // Cuando el usuario abre el reporte por una acción nueva
+  // (p.ej. click en una herramienta), resetear el flag.
+  function r33ResetFlagOnExplicitOpen(){
+    document.addEventListener('click', function(ev){
+      var t = ev.target;
+      if(!t) return;
+      // Botón de tool que abre reporte: heurística por id/data/onclick
+      var oc = t.getAttribute && (t.getAttribute('onclick') || '');
+      var id = t.id || '';
+      var combined = (id + ' ' + (oc || '')).toLowerCase();
+      if(combined.indexOf('refreshautoreport') > -1 ||
+         combined.indexOf('reporte') > -1 ||
+         id === 'btn-report' || id === 'ar-toggle'){
+        window._r33UserClosedAR = false;
+      }
+    }, true);
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  function init(){
+    r33StartLoop();
+    r33CleanupCloseButtons();
+    r33HookCloseClicks();
+    r33WrapRefresh();
+    r33ResetFlagOnExplicitOpen();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  [200, 600, 1500, 3000, 6000, 12000, 25000].forEach(function(d){ setTimeout(init, d); });
+  // Re-cleanup periódico por si MutationObserver añade botones tarde
+  setInterval(r33CleanupCloseButtons, 1500);
+})();
+</script>
 </body>
 </html>
