@@ -33830,5 +33830,221 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   }
 })();
 </script>
+<script id="connectia-r41-mobility-citywide">
+/* ============================================================
+   Round 41 — Movilidad / impactos consistente NACIONALMENTE.
+
+   PROBLEMA RAÍZ: En CDMX, ce.dens (CENSUS estatal) ~6000 hab/km²
+   porque la "Ciudad de México" es 99% urbana. Para Jalisco,
+   ce.dens ~365 hab/km² (promedio estatal incluyendo zonas
+   rurales gigantes). Pin en Periférico GDL → estPop calculado
+   contra 365 → impactos 17× menores que CDMX equivalente.
+
+   FIX: cuando un pin pequeño cae cerca de una ciudad conocida
+   en CITY_POPULATIONS, usar la densidad URBANA de esa ciudad
+   (city.pop / city.areaSqKm) en lugar del promedio estatal.
+   La fórmula calcFlowParams es la misma — solo arreglamos el
+   input de densidad para que sea local-urbano, no estatal.
+
+   Aditivo: post-process de selecciones después de
+   analyzeMultiSelection / analyzeOverlay, recalcula
+   estPop/dens/vehMonthly/pedMonthly/impactos con la densidad
+   corregida si aplica.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // Detectar ciudad más cercana al pin (radio de match ~25 km
+  // para metropolitanas, ~12 km para ciudades medianas)
+  function r41NearestCity(lat, lng){
+    if(typeof window.CITY_POPULATIONS === 'undefined') return null;
+    var best = null;
+    var bestDist = Infinity;
+    var keys = Object.keys(window.CITY_POPULATIONS);
+    for(var i = 0; i < keys.length; i++){
+      var c = window.CITY_POPULATIONS[keys[i]];
+      if(!c.lat || !c.lng) continue;
+      // Distancia en km usando aproximación
+      var dLat = (lat - c.lat) * 111;
+      var dLng = (lng - c.lng) * 111 * Math.cos(lat * Math.PI / 180);
+      var distKm = Math.sqrt(dLat * dLat + dLng * dLng);
+      // Radio de match basado en área de la ciudad
+      var matchRadiusKm = Math.min(35, Math.max(8, Math.sqrt(c.areaSqKm / Math.PI) * 2.0));
+      if(distKm < matchRadiusKm && distKm < bestDist){
+        bestDist = distKm;
+        best = { key: keys[i], data: c, distKm: distKm };
+      }
+    }
+    return best;
+  }
+
+  // Densidad urbana realista para una ubicación
+  function r41LocalUrbanDensity(lat, lng){
+    var nearest = r41NearestCity(lat, lng);
+    if(!nearest) return null;
+    var c = nearest.data;
+    var cityDens = c.pop / Math.max(c.areaSqKm, 1);
+    // Modular por R31 NSE: PREMIUM zona alta tiende a menor densidad
+    // residencial pero alto tránsito; LOW zona baja tiende a mayor
+    // densidad residencial.
+    if(typeof window.r31NseFor === 'function'){
+      try{
+        var nse = window.r31NseFor(lat, lng);
+        // AB / C+ → menor densidad residencial pero MISMO tránsito
+        // (boost vía throughMult de calcFlowParams)
+        if(nse === 'AB') return cityDens * 0.85;
+        if(nse === 'C+' || nse === 'Cplus') return cityDens * 0.95;
+        if(nse === 'C') return cityDens * 1.0;
+        if(nse === 'D+' || nse === 'Dplus') return cityDens * 1.20;
+        if(nse === 'D') return cityDens * 1.40;
+        if(nse === 'E') return cityDens * 1.55;
+      }catch(_){}
+    }
+    return cityDens;
+  }
+
+  // Recalcular toda la cadena de impactos para una selección
+  // con la densidad corregida.
+  function r41RecalculateData(d){
+    if(!d || !d.lat || !d.lng) return d;
+    if(d._r41Adjusted) return d; // idempotente
+    var areaSqKm = d.areaSqKm || 1;
+
+    // Solo aplica para áreas pequeñas (pin / círculo / pequeño polígono)
+    // Para áreas grandes (>100 km²) ya se usa proporción de pob estatal,
+    // que es correcto.
+    if(areaSqKm > 100) return d;
+
+    var localDens = r41LocalUrbanDensity(d.lat, d.lng);
+    if(localDens === null) return d; // No es ciudad conocida
+
+    // Si la densidad actual ya es razonable (ej. CDMX que ya tenía
+    // ce.dens correcto), no cambiar
+    var currentDens = d.dens || 0;
+    if(currentDens >= localDens * 0.85) return d; // Ya es OK
+
+    // Recalcular con densidad urbana
+    var newDens = Math.round(localDens);
+    var newPop = Math.round(newDens * areaSqKm);
+    // Cap por la población real de la ciudad
+    var nearest = r41NearestCity(d.lat, d.lng);
+    if(nearest){
+      var maxPop = Math.round(nearest.data.pop * Math.min(areaSqKm / nearest.data.areaSqKm, 1.0));
+      if(newPop > maxPop * 1.1) newPop = maxPop;
+    }
+    var newHog = Math.round(newPop / 3.3);
+
+    // Nueva fórmula de movilidad — MISMA que CDMX
+    var fp;
+    try{
+      fp = (typeof window.calcFlowParams === 'function')
+        ? window.calcFlowParams(newDens, areaSqKm)
+        : { tripsPerP: 2.0, vehShare: 0.24, pedShare: 0.32, throughMult: 2.5 };
+    }catch(_){
+      fp = { tripsPerP: 2.0, vehShare: 0.24, pedShare: 0.32, throughMult: 2.5 };
+    }
+
+    var totalTrips = Math.round(newPop * fp.tripsPerP);
+    var vehMonthly = Math.round(totalTrips * fp.vehShare * fp.throughMult * 30);
+    var pedMonthly = Math.round(totalTrips * fp.pedShare * fp.throughMult * 30);
+    var vehDaily = Math.round(vehMonthly / 30);
+    var pedDaily = Math.round(pedMonthly / 30);
+
+    d.estPop = newPop;
+    d.estHog = newHog;
+    d.dens = newDens;
+    d._flowParams = fp;
+    d.vehMonthly = vehMonthly;
+    d.pedMonthly = pedMonthly;
+    d.vehDaily = vehDaily;
+    d.pedDaily = pedDaily;
+    d.totalTrips = totalTrips;
+    // Impactos: vehicular = vehMonthly, peatonal/multiplicador 1.44
+    d.impVeh = vehMonthly;
+    d.impPer = Math.round(vehMonthly * 1.44);
+    d.impTotal = (d.impVeh || 0) + (d.impPer || 0);
+    d._r41Adjusted = true;
+    d._r41City = nearest ? nearest.key : null;
+    return d;
+  }
+
+  // Wrap analyzeMultiSelection: post-process la selección
+  function r41WrapMS(){
+    if(typeof window.analyzeMultiSelection !== 'function') return;
+    if(window.analyzeMultiSelection._r41) return;
+    var orig = window.analyzeMultiSelection;
+    window.analyzeMultiSelection = function(idx){
+      var rv = orig.apply(this, arguments);
+      try{
+        var sel = window.multiSelections && window.multiSelections[idx];
+        if(sel && sel.data){
+          r41RecalculateData(sel.data);
+        }
+        // currentData refleja la última selección
+        if(window.currentData && sel && sel.data){
+          window.currentData.estPop = sel.data.estPop;
+          window.currentData.estHog = sel.data.estHog;
+          window.currentData.dens = sel.data.dens;
+          window.currentData.vehMonthly = sel.data.vehMonthly;
+          window.currentData.pedMonthly = sel.data.pedMonthly;
+        }
+      }catch(_){}
+      return rv;
+    };
+    window.analyzeMultiSelection._r41 = true;
+  }
+
+  // Wrap analyzeOverlay similar — para selecciones single
+  function r41WrapAO(){
+    if(typeof window.analyzeOverlay !== 'function') return;
+    if(window.analyzeOverlay._r41) return;
+    var orig = window.analyzeOverlay;
+    window.analyzeOverlay = function(overlay, type){
+      var rv = orig.apply(this, arguments);
+      try{
+        if(window.currentData){
+          // En analyzeOverlay, currentData se construye con
+          // `lat, lng, estPop, dens, areaSqKm, ...`. Lo
+          // post-procesamos.
+          // Asegurar que tiene lat/lng — si no, intentar derivar
+          if(!window.currentData.lat || !window.currentData.lng){
+            try{
+              if(overlay && typeof overlay.getCenter === 'function'){
+                var c = overlay.getCenter();
+                window.currentData.lat = c.lat();
+                window.currentData.lng = c.lng();
+              } else if(overlay && typeof overlay.getBounds === 'function'){
+                var b = overlay.getBounds();
+                if(b){
+                  var c2 = b.getCenter();
+                  window.currentData.lat = c2.lat();
+                  window.currentData.lng = c2.lng();
+                }
+              }
+            }catch(_){}
+          }
+          r41RecalculateData(window.currentData);
+        }
+      }catch(_){}
+      return rv;
+    };
+    window.analyzeOverlay._r41 = true;
+  }
+
+  function init(){
+    r41WrapMS();
+    r41WrapAO();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  [400, 1000, 2500, 5000, 10000, 20000].forEach(function(d){ setTimeout(init, d); });
+
+  // Exponer para debug
+  window.r41NearestCity = r41NearestCity;
+  window.r41LocalUrbanDensity = r41LocalUrbanDensity;
+  window.r41RecalculateData = r41RecalculateData;
+})();
+</script>
 </body>
 </html>
