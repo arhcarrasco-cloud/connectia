@@ -31761,5 +31761,119 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   setInterval(r33CleanupCloseButtons, 1500);
 })();
 </script>
+<script id="connectia-r34-cmp-colors">
+/* ============================================================
+   Round 34 — Pedido EXPLÍCITO del usuario:
+   En el panel de comparativa, los landmarks de cada marca
+   activa deben tener colores DISTINTOS para diferenciarse
+   visualmente en el mapa. NO mover nada más.
+
+   Solo afecta a markers en window._cmpBrandMarkers (los
+   que crea addBrandPins desde el panel de comparativa).
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // Paleta de 12 colores bien diferenciados (no se repiten hasta
+  // pasar de 12 marcas activas — improbable en una comparativa).
+  var R34_PALETTE = [
+    '#DC2626', // rojo
+    '#16A34A', // verde
+    '#0891B2', // cyan
+    '#F59E0B', // ámbar
+    '#DB2777', // rosa
+    '#2563EB', // azul
+    '#EA580C', // naranja
+    '#84CC16', // lima
+    '#9333EA', // violeta
+    '#14B8A6', // teal
+    '#F43F5E', // rosa fuerte
+    '#6D28D9'  // púrpura connectia (reservado al final)
+  ];
+
+  // Mapa persistente brand → color asignado. Sobrevive toggles
+  // off/on de la misma marca para mantener consistencia visual.
+  if(!window._cmpBrandColors) window._cmpBrandColors = {};
+  var _r34Idx = 0;
+
+  function r34AssignColor(brand){
+    if(window._cmpBrandColors[brand]) return window._cmpBrandColors[brand];
+    var color = R34_PALETTE[_r34Idx % R34_PALETTE.length];
+    _r34Idx++;
+    window._cmpBrandColors[brand] = color;
+    return color;
+  }
+
+  function r34ApplyColors(){
+    if(typeof google === 'undefined' || !google.maps) return;
+    if(typeof window._pinIcon !== 'function') return;
+    var bm = window._cmpBrandMarkers;
+    if(!bm || typeof bm !== 'object') return;
+
+    Object.keys(bm).forEach(function(brand){
+      var color = r34AssignColor(brand);
+      var markers = bm[brand];
+      if(!Array.isArray(markers)) return;
+
+      markers.forEach(function(m){
+        if(!m || typeof m.setIcon !== 'function') return;
+        // Idempotente: si ya aplicamos este color a este marker, salir
+        if(m._r34Applied === color) return;
+        m._r34Applied = color;
+
+        // 1) Dejar guardado el color de marca para que el wrap de
+        //    setIcon de R32 lo use cuando R30/R31 disparen su
+        //    setTimeout de aplicar logo.
+        m._r32BrandColor = color;
+
+        // 2) Aplicar el pin landmark con el color asignado.
+        //    setIcon entra al wrap de R32 — como _pinIcon devuelve
+        //    36x50 anchor (18,48) NO matchea la firma "flat logo
+        //    40x40 (20,20)", por lo que el wrap lo deja pasar y
+        //    el pin queda con nuestro color.
+        try{
+          m.setIcon(window._pinIcon(color));
+          m.setLabel(null);
+        }catch(_){}
+
+        // 3) Si el logo overlay aún no fue agregado (race con R30/R31),
+        //    forzarlo aquí con la URL de marca o lookup por título.
+        try{
+          if(!m._logoOverlay && typeof window.trySetBrandLogo === 'function'){
+            var t = (typeof m.getTitle === 'function') ? m.getTitle() : '';
+            var brandFromTitle = t ? t.split(' — ')[0].trim() : brand;
+            var lookup = brandFromTitle || brand;
+            var logoUrl = null;
+            if(typeof window.getBrandLogoUrl === 'function'){
+              logoUrl = window.getBrandLogoUrl(lookup);
+            }
+            if(!logoUrl){
+              // Fallback: favicon de Google
+              var dom = lookup.toLowerCase().replace(/\s+/g,'') + '.com';
+              logoUrl = 'https://www.google.com/s2/favicons?domain=' + dom + '&sz=64';
+            }
+            window.trySetBrandLogo(m, logoUrl, color);
+          }
+        }catch(_){}
+      });
+    });
+  }
+
+  // Limpieza: cuando una marca sale de _cmpBrandMarkers (toggle off),
+  // mantenemos su color en _cmpBrandColors para reusarlo si vuelve.
+
+  function init(){
+    r34ApplyColors();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  [400, 1000, 2500, 5000, 10000].forEach(function(d){ setTimeout(init, d); });
+  // Polling continuo: cuando el usuario toggle marcas, se crean
+  // markers nuevos y addBrandPins los mete en _cmpBrandMarkers.
+  // Aquí los detectamos y aplicamos el color en ~600ms.
+  setInterval(r34ApplyColors, 600);
+})();
+</script>
 </body>
 </html>
