@@ -32306,5 +32306,596 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   }, 1500);
 })();
 </script>
+
+<style id="connectia-r37-pill-css">
+/* Round 37 — apagar el pill r25 viejo (su draw() falla a veces)
+   y dejar solo el pill propio de R37, siempre actualizado
+   por rAF independiente. */
+#r25-radius-pill{ display:none !important; visibility:hidden !important; }
+#r37-km-pill{
+  position:fixed;
+  pointer-events:none;
+  z-index:99999;
+  background:#ffffff;
+  border:1.5px solid rgba(109,40,217,.55);
+  border-radius:10px;
+  padding:7px 14px;
+  box-shadow:0 4px 16px rgba(109,40,217,.30);
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:14px;
+  font-weight:700;
+  color:#5B21B6;
+  white-space:nowrap;
+  transform:translate(-50%,-50%);
+  display:none;
+}
+</style>
+
+<script id="connectia-r37-radius-pill">
+/* ============================================================
+   Round 37 — PILL DE KMS EN TIEMPO REAL
+   El usuario ya pidió este fix MUCHAS veces. R33 dependía del
+   _r25Ov (OverlayView de R25) cuyo draw() a veces no se ejecuta
+   porque getProjection() devuelve null en escenarios concretos
+   (sesión restaurada, render previo a setMap, etc.).
+
+   R37 es completamente independiente:
+   - Pill DOM propio (#r37-km-pill) en document.body
+   - Loop rAF que SIEMPRE corre (no gate de google.maps)
+   - Posición vía OverlayView propio que devuelve píxel real
+   - Durante mousedown + cursor sobre el mapa: usa distancia
+     center→cursor como radio LIVE (porque circle.getRadius()
+     no siempre actualiza durante el drag de un handle editable)
+   ============================================================ */
+(function(){
+  'use strict';
+
+  var R37 = {
+    pill: null,
+    proj: null,        // OverlayView propio para fromLatLngToContainerPixel
+    cur: { x:0, y:0, ok:false },
+    isDown: false,
+    started: false
+  };
+
+  // ---------- Pill DOM ----------
+  function ensurePill(){
+    if(R37.pill && document.body.contains(R37.pill)) return R37.pill;
+    var d = document.createElement('div');
+    d.id = 'r37-km-pill';
+    document.body.appendChild(d);
+    R37.pill = d;
+    return d;
+  }
+
+  // ---------- OverlayView para conversión latLng → pixel ----------
+  function ensureProj(){
+    if(R37.proj) return R37.proj;
+    if(typeof google === 'undefined' || !google.maps) return null;
+    if(!window.map) return null;
+    try{
+      var ov = new google.maps.OverlayView();
+      ov.draw = function(){};
+      ov.onAdd = function(){};
+      ov.setMap(window.map);
+      R37.proj = ov;
+      return ov;
+    }catch(_){ return null; }
+  }
+
+  function latLngToScreenPx(latLng){
+    var ov = ensureProj();
+    if(!ov) return null;
+    var p = ov.getProjection();
+    if(!p || !window.map) return null;
+    var divPx = p.fromLatLngToContainerPixel(latLng);
+    if(!divPx) return null;
+    var mapDiv = window.map.getDiv();
+    if(!mapDiv) return null;
+    var rect = mapDiv.getBoundingClientRect();
+    return { x: rect.left + divPx.x, y: rect.top + divPx.y };
+  }
+
+  // ---------- Trackers de cursor (siempre activos) ----------
+  function attachTrackers(){
+    if(R37._tracksAttached) return;
+    R37._tracksAttached = true;
+
+    document.addEventListener('mousemove', function(e){
+      R37.cur.x = e.clientX; R37.cur.y = e.clientY; R37.cur.ok = true;
+    }, true);
+    document.addEventListener('mousedown', function(){ R37.isDown = true; }, true);
+    document.addEventListener('mouseup',   function(){ R37.isDown = false; }, true);
+    document.addEventListener('touchstart', function(e){
+      R37.isDown = true;
+      if(e.touches && e.touches[0]){
+        R37.cur.x = e.touches[0].clientX; R37.cur.y = e.touches[0].clientY; R37.cur.ok = true;
+      }
+    }, {capture:true, passive:true});
+    document.addEventListener('touchmove', function(e){
+      if(e.touches && e.touches[0]){
+        R37.cur.x = e.touches[0].clientX; R37.cur.y = e.touches[0].clientY; R37.cur.ok = true;
+      }
+    }, {capture:true, passive:true});
+    document.addEventListener('touchend',    function(){ R37.isDown = false; }, true);
+    document.addEventListener('touchcancel', function(){ R37.isDown = false; }, true);
+  }
+
+  // ---------- Encontrar el círculo activo ----------
+  function findActiveCircle(){
+    try{
+      var co = window.currentOverlay;
+      if(co && typeof co.getRadius === 'function' && typeof co.getCenter === 'function'){
+        if(co.getMap && co.getMap() != null) return co;
+      }
+    }catch(_){}
+    // Multi-selecciones — preferir el último en la lista (más reciente)
+    try{
+      var ms = window.multiSelections;
+      if(Array.isArray(ms) && ms.length > 0){
+        for(var i = ms.length - 1; i >= 0; i--){
+          var o = ms[i] && ms[i].overlay;
+          if(o && typeof o.getRadius === 'function' && typeof o.getCenter === 'function'){
+            if(o.getMap && o.getMap() != null) return o;
+          }
+        }
+      }
+    }catch(_){}
+    return null;
+  }
+
+  // ---------- Format ----------
+  function fmtRad(r){
+    return (r < 1000) ? Math.round(r) + ' m' : (r/1000).toFixed(2) + ' km';
+  }
+  function fmtArea(r){
+    var a = Math.PI * (r/1000) * (r/1000);
+    return (a < 1) ? (a*1e6).toFixed(0) + ' m²' : a.toFixed(2) + ' km²';
+  }
+
+  // ---------- Loop principal ----------
+  function tick(){
+    try{
+      // Si google.maps aún no carga, simplemente reintentar
+      if(typeof google === 'undefined' || !google.maps || !window.map){
+        requestAnimationFrame(tick);
+        return;
+      }
+
+      var circle = findActiveCircle();
+      var pill = ensurePill();
+
+      if(!circle){
+        pill.style.display = 'none';
+        requestAnimationFrame(tick);
+        return;
+      }
+
+      var center = circle.getCenter();
+      var rCommitted = circle.getRadius();
+      var rDisplay = rCommitted;
+
+      // Si el usuario está arrastrando (mouse down), computar
+      // distancia center→cursor y usarla como radio LIVE.
+      // Heurística: solo aceptar si el cursor cae en una banda
+      // razonable (5%-1000% del radio actual) — evita falsos
+      // positivos cuando el usuario hace drag del centro.
+      if(R37.isDown && R37.cur.ok &&
+         typeof window._pixelToLatLng === 'function' &&
+         google.maps.geometry && google.maps.geometry.spherical){
+        try{
+          var cursorLatLng = window._pixelToLatLng(R37.cur.x, R37.cur.y);
+          if(cursorLatLng){
+            var distFromCenter = google.maps.geometry.spherical.computeDistanceBetween(center, cursorLatLng);
+            // Si el círculo es muy chico (<50m), aceptar cualquier
+            // distancia plausible. Si es mediano/grande, exigir
+            // que el cursor esté en la banda esperada del handle.
+            var lo = (rCommitted < 50) ? 1 : rCommitted * 0.05;
+            var hi = (rCommitted < 50) ? 50000 : rCommitted * 10;
+            if(distFromCenter >= lo && distFromCenter <= hi){
+              rDisplay = distFromCenter;
+            }
+          }
+        }catch(_){}
+      }
+
+      // Update pill content + posición
+      pill.innerHTML = fmtRad(rDisplay) +
+        ' <span style="color:#86868b;font-size:12px;font-weight:500;margin-left:4px">' +
+        fmtArea(rDisplay) + '</span>';
+
+      var px = latLngToScreenPx(center);
+      if(px){
+        pill.style.left = px.x + 'px';
+        pill.style.top  = px.y + 'px';
+        pill.style.display = 'block';
+      }
+
+      // Cinturón: mantener oculto el pill viejo de R25 y el
+      // panel #live-radius-label
+      try{
+        var oldPill = document.getElementById('r25-radius-pill');
+        if(oldPill && oldPill.style.display !== 'none'){
+          oldPill.style.setProperty('display','none','important');
+        }
+        var oldLbl = document.getElementById('live-radius-label');
+        if(oldLbl){
+          oldLbl.style.setProperty('display','none','important');
+        }
+      }catch(_){}
+    }catch(_){}
+    requestAnimationFrame(tick);
+  }
+
+  function start(){
+    if(R37.started) return;
+    R37.started = true;
+    attachTrackers();
+    requestAnimationFrame(tick);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+  // Backup: arrancar de cualquier modo en intervalos (idempotente)
+  [100, 400, 1000, 2500, 5000].forEach(function(d){ setTimeout(start, d); });
+})();
+</script>
+
+<script id="connectia-r38-cmp-multi">
+/* ============================================================
+   Round 38 — pedido EXPLÍCITO del usuario:
+   1) En el panel de comparativa, permitir comparar comercios
+      de DIFERENTES categorías (chips toggleables, no radio).
+   2) Mejorar la información: si NO hay área seleccionada,
+      arrojar TODOS los comercios de la marca a nivel general
+      (México), no solo los del viewport actual.
+   3) Si HAY área seleccionada, restringir los resultados
+      EXCLUSIVAMENTE a esa área.
+
+   Estrategia:
+   - Cambiar el comportamiento de los cat-chips: cada click
+     toggle (no exclusivo) y acumular brands de cada categoría.
+   - Si no hay overlay activo, usar textSearch nacional
+     ("<keyword> México") con paginación R30 (hasta 60 results
+     por query, mucho más cobertura que un nearbySearch en
+     viewport).
+   - Si hay overlay activo, restringir filtrado por contains.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  function r38GetActiveOverlay(){
+    try{
+      var co = window.currentOverlay;
+      if(!co) return null;
+      // Verificar que tiene método de contención
+      if(typeof co.getBounds === 'function') return co;
+      if(typeof co.getCenter === 'function' && typeof co.getRadius === 'function') return co;
+      if(typeof co.getPath === 'function') return co;
+      return null;
+    }catch(_){ return null; }
+  }
+
+  function r38InsideOverlay(latLng, overlay){
+    if(!overlay || !latLng) return true;
+    try{
+      // Círculo
+      if(typeof overlay.getRadius === 'function' && typeof overlay.getCenter === 'function'){
+        if(google.maps.geometry && google.maps.geometry.spherical){
+          var d = google.maps.geometry.spherical.computeDistanceBetween(overlay.getCenter(), latLng);
+          return d <= overlay.getRadius();
+        }
+      }
+      // Rectángulo
+      if(typeof overlay.getBounds === 'function'){
+        var b = overlay.getBounds();
+        if(b) return b.contains(latLng);
+      }
+      // Polígono
+      if(google.maps.geometry && google.maps.geometry.poly && typeof overlay.getPath === 'function'){
+        return google.maps.geometry.poly.containsLocation(latLng, overlay);
+      }
+    }catch(_){}
+    return true;
+  }
+
+  // textSearch fan-out por regiones de México para conseguir
+  // cobertura nacional (Places nearbySearch limita a 60/req).
+  var R38_REGIONS = [
+    {name:'CDMX/EdoMex',  loc:{lat:19.4326, lng:-99.1332}, radius:80000},
+    {name:'Guadalajara',  loc:{lat:20.6597, lng:-103.3496}, radius:60000},
+    {name:'Monterrey',    loc:{lat:25.6866, lng:-100.3161}, radius:60000},
+    {name:'Tijuana',      loc:{lat:32.5149, lng:-117.0382}, radius:50000},
+    {name:'Puebla',       loc:{lat:19.0414, lng:-98.2063}, radius:40000},
+    {name:'Querétaro',    loc:{lat:20.5888, lng:-100.3899}, radius:40000},
+    {name:'León',         loc:{lat:21.1619, lng:-101.6921}, radius:40000},
+    {name:'Mérida',       loc:{lat:20.9674, lng:-89.5926}, radius:50000},
+    {name:'Cancún',       loc:{lat:21.1619, lng:-86.8515}, radius:40000},
+    {name:'Hermosillo',   loc:{lat:29.0729, lng:-110.9559}, radius:40000},
+    {name:'Cd. Juárez',   loc:{lat:31.7404, lng:-106.4869}, radius:40000},
+    {name:'Toluca',       loc:{lat:19.2826, lng:-99.6557}, radius:40000},
+    {name:'Veracruz',     loc:{lat:19.1738, lng:-96.1342}, radius:40000},
+    {name:'Aguascalientes',loc:{lat:21.8853, lng:-102.2916},radius:40000},
+    {name:'Saltillo',     loc:{lat:25.4232, lng:-101.0053},radius:40000},
+    {name:'Culiacán',     loc:{lat:24.8091, lng:-107.3940},radius:40000},
+    {name:'Acapulco',     loc:{lat:16.8531, lng:-99.8237},radius:40000},
+    {name:'Morelia',      loc:{lat:19.7008, lng:-101.1844},radius:40000}
+  ];
+
+  function r38SearchNationwide(keyword, type, callback){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.places){
+      callback([]); return;
+    }
+    var svc = new google.maps.places.PlacesService(window.map || document.createElement('div'));
+    var seen = {};
+    var all = [];
+    var pending = R38_REGIONS.length;
+
+    function done(){
+      pending--;
+      if(pending <= 0) callback(all);
+    }
+
+    R38_REGIONS.forEach(function(reg){
+      var req = {
+        location: new google.maps.LatLng(reg.loc.lat, reg.loc.lng),
+        radius: reg.radius,
+        keyword: keyword
+      };
+      if(type) req.type = type;
+      try{
+        svc.nearbySearch(req, function(results, status){
+          try{
+            if(results && results.length){
+              results.forEach(function(p){
+                var k = p.place_id || (p.name + '_' + (p.geometry && p.geometry.location && p.geometry.location.lat()));
+                if(!seen[k]){ seen[k] = true; all.push(p); }
+              });
+            }
+          }catch(_){}
+          done();
+        });
+      }catch(_){ done(); }
+    });
+  }
+
+  // Hook al panel de comparativa: al click de cat-chip, en lugar
+  // de RESET activeBrands, acumular. Y permitir multi-toggle.
+  function r38PatchPanel(){
+    var panel = document.getElementById('cn-cmp-panel');
+    if(!panel || panel._r38Patched) return;
+    panel._r38Patched = true;
+
+    var chips = panel.querySelectorAll('.cat-chip');
+    if(!chips || chips.length === 0) return;
+
+    chips.forEach(function(chip){
+      // Quitar listeners anteriores clonando el chip
+      var clone = chip.cloneNode(true);
+      chip.parentNode.replaceChild(clone, chip);
+
+      clone.addEventListener('click', function(){
+        // TOGGLE en vez de exclusivo
+        var wasActive = clone.classList.contains('active');
+        if(wasActive){
+          clone.classList.remove('active');
+        } else {
+          clone.classList.add('active');
+        }
+        r38LoadActiveCategories(panel);
+      });
+    });
+
+    // Hook al input de búsqueda — si hay texto, buscar nacionalmente
+    // si NO hay overlay, sino restringir al overlay.
+    var inp = panel.querySelector('#cn-cmp-search');
+    if(inp && !inp._r38Patched){
+      inp._r38Patched = true;
+      // Reemplazar handler input
+      var clone = inp.cloneNode(true);
+      inp.parentNode.replaceChild(clone, inp);
+      var t = null;
+      clone.addEventListener('input', function(){
+        var q = clone.value.trim();
+        clearTimeout(t);
+        if(q.length < 2) return;
+        t = setTimeout(function(){
+          r38LoadByKeyword(panel, q);
+        }, 450);
+      });
+    }
+  }
+
+  function r38ActiveCategoryIds(panel){
+    var ids = [];
+    panel.querySelectorAll('.cat-chip.active').forEach(function(c){
+      if(c.dataset && c.dataset.cat) ids.push(c.dataset.cat);
+    });
+    return ids;
+  }
+
+  function r38LoadActiveCategories(panel){
+    if(typeof window.COMPARE_CATEGORIES === 'undefined') return;
+    var status = panel.querySelector('#cn-cmp-area');
+    var ids = r38ActiveCategoryIds(panel);
+
+    if(ids.length === 0){
+      // Vacío: limpiar lista
+      window._cmpState.allBrands = {};
+      window._cmpState.activeBrands = {};
+      window._cmpState.lastCategory = null;
+      try{
+        var l = panel.querySelector('.brand-list');
+        if(l) l.innerHTML = '';
+      }catch(_){}
+      if(status) status.textContent = 'Selecciona una o más categorías';
+      try{ if(typeof updateCompareBtn === 'function') updateCompareBtn(); }catch(_){}
+      return;
+    }
+
+    var overlay = r38GetActiveOverlay();
+    if(status){
+      status.textContent = overlay
+        ? ('Cargando ' + ids.length + ' categoría(s) en el área…')
+        : ('Cargando ' + ids.length + ' categoría(s) a nivel nacional…');
+    }
+
+    var cats = ids.map(function(id){
+      return window.COMPARE_CATEGORIES.find(function(x){ return x.id === id; });
+    }).filter(Boolean);
+
+    var allPlaces = [];
+    var seen = {};
+    var pending = cats.length;
+
+    function appendUnique(arr){
+      arr.forEach(function(p){
+        var k = p.place_id || (p.name + '_' + (p.geometry && p.geometry.location && p.geometry.location.lat()));
+        if(!seen[k]){ seen[k] = true; allPlaces.push(p); }
+      });
+    }
+
+    function finishCategory(){
+      pending--;
+      if(pending > 0) return;
+      // Filtrar por overlay si existe
+      if(overlay){
+        allPlaces = allPlaces.filter(function(p){
+          var loc = p.geometry && p.geometry.location;
+          return loc && r38InsideOverlay(loc, overlay);
+        });
+      }
+      window._cmpState.allBrands = (typeof groupByBrand === 'function')
+        ? groupByBrand(allPlaces)
+        : r38GroupByBrand(allPlaces);
+      window._cmpState.activeBrands = {};
+      try{ if(typeof renderBrandList === 'function') renderBrandList(); }catch(_){}
+      try{ if(typeof updateCompareBtn === 'function') updateCompareBtn(); }catch(_){}
+      if(status){
+        status.textContent = allPlaces.length + ' lugares en ' + ids.length +
+          ' categoría(s) — ' + Object.keys(window._cmpState.allBrands).length + ' marcas distintas' +
+          (overlay ? ' (área)' : ' (nacional)');
+      }
+    }
+
+    cats.forEach(function(cat){
+      var keyword = (cat.keywords && cat.keywords.length) ? cat.keywords.join(' ') : '';
+      var type = (cat.types && cat.types.length) ? cat.types[0] : null;
+      if(overlay){
+        // Restringido: nearbySearch sobre el overlay
+        var svc = new google.maps.places.PlacesService(window.map);
+        var req = {};
+        if(typeof overlay.getBounds === 'function'){
+          var b = overlay.getBounds(); if(b) req.bounds = b;
+        }
+        if(!req.bounds && typeof overlay.getCenter === 'function' && typeof overlay.getRadius === 'function'){
+          req.location = overlay.getCenter();
+          req.radius = overlay.getRadius();
+        }
+        if(!req.bounds && !req.location){
+          // Polígono: usar bounds calculados
+          try{
+            var path = overlay.getPath();
+            var bb = new google.maps.LatLngBounds();
+            path.forEach(function(pt){ bb.extend(pt); });
+            req.bounds = bb;
+          }catch(_){}
+        }
+        if(type) req.type = type;
+        if(keyword) req.keyword = keyword;
+        try{
+          svc.nearbySearch(req, function(results){
+            if(results) appendUnique(results);
+            finishCategory();
+          });
+        }catch(_){ finishCategory(); }
+      } else {
+        // Nacional: fan-out por regiones
+        r38SearchNationwide(keyword, type, function(results){
+          if(results) appendUnique(results);
+          finishCategory();
+        });
+      }
+    });
+  }
+
+  function r38LoadByKeyword(panel, q){
+    var status = panel.querySelector('#cn-cmp-area');
+    var overlay = r38GetActiveOverlay();
+    if(status){
+      status.textContent = overlay
+        ? ('Buscando "' + q + '" en el área…')
+        : ('Buscando "' + q + '" a nivel nacional…');
+    }
+    if(overlay){
+      // Restringir
+      var svc = new google.maps.places.PlacesService(window.map);
+      var req = { keyword: q };
+      if(typeof overlay.getBounds === 'function'){
+        var b = overlay.getBounds(); if(b) req.bounds = b;
+      }
+      if(!req.bounds && typeof overlay.getCenter === 'function' && typeof overlay.getRadius === 'function'){
+        req.location = overlay.getCenter();
+        req.radius = overlay.getRadius();
+      }
+      try{
+        svc.nearbySearch(req, function(results){
+          var arr = results || [];
+          var filtered = arr.filter(function(p){
+            var loc = p.geometry && p.geometry.location;
+            return loc && r38InsideOverlay(loc, overlay);
+          });
+          window._cmpState.allBrands = (typeof groupByBrand === 'function')
+            ? groupByBrand(filtered) : r38GroupByBrand(filtered);
+          window._cmpState.activeBrands = {};
+          try{ if(typeof renderBrandList === 'function') renderBrandList(); }catch(_){}
+          if(status){
+            status.textContent = filtered.length + ' resultados — ' +
+              Object.keys(window._cmpState.allBrands).length + ' marcas (área)';
+          }
+        });
+      }catch(_){}
+    } else {
+      // Nacional
+      r38SearchNationwide(q, null, function(results){
+        window._cmpState.allBrands = (typeof groupByBrand === 'function')
+          ? groupByBrand(results) : r38GroupByBrand(results);
+        window._cmpState.activeBrands = {};
+        try{ if(typeof renderBrandList === 'function') renderBrandList(); }catch(_){}
+        if(status){
+          status.textContent = results.length + ' resultados nacionales — ' +
+            Object.keys(window._cmpState.allBrands).length + ' marcas';
+        }
+      });
+    }
+  }
+
+  function r38GroupByBrand(places){
+    var m = {};
+    places.forEach(function(p){
+      var n = (p.name || 'Desconocido').replace(/\s*#\s*\d+/g,'')
+        .replace(/\s*-\s*\d+/g,'').replace(/\s*\(\d+\)/g,'').trim();
+      if(!m[n]) m[n] = [];
+      m[n].push(p);
+    });
+    return m;
+  }
+
+  function init(){
+    r38PatchPanel();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  [400, 1000, 2500, 5000, 10000, 20000].forEach(function(d){ setTimeout(init, d); });
+  // Re-patch en MutationObserver para cuando el panel se cree después
+  if(window.MutationObserver){
+    var mo = new MutationObserver(function(){ r38PatchPanel(); });
+    mo.observe(document.body, { childList:true, subtree:true });
+  }
+})();
+</script>
 </body>
 </html>
