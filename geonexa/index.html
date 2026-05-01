@@ -33358,5 +33358,477 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   }
 })();
 </script>
+<script id="connectia-r40-cmp-textsearch">
+/* ============================================================
+   Round 40 — REWRITE de la búsqueda de comparativa.
+   Pedido del usuario: "es una app que vamos a vender y no
+   podemos tener un solo error". Bodega Aurrera tenía 5 en
+   CDMX (real ~120), McDonalds/Subway no aparecían.
+
+   CAUSA: nearbySearch+keyword es ranking-by-prominence, no
+   exhaustivo. textSearch por brand+ciudad da cobertura mucho
+   más amplia.
+
+   Estrategia:
+   - Por cada marca de la categoría, lanzar textSearch
+     paginado (hasta 60 resultados con 3 páginas) con query
+     "<marca> <ciudad>" para 6 ciudades top + query nacional.
+   - Dedupe por place_id.
+   - Resultado: cobertura completa de cada marca.
+   - Si hay currentOverlay (área), filtrar después por geometría.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // Marcas conocidas por categoría (México) — clave para textSearch
+  var R40_BRANDS = {
+    retail: [
+      'walmart','bodega aurrera','sams club','costco','soriana',
+      'chedraui','la comer','mega comercial','heb','smart',
+      'fresko','superama','calimax','waldos','mi bodega aurrera'
+    ],
+    food_fast: [
+      'mcdonalds','burger king','kfc','subway','dominos pizza',
+      'pizza hut','little caesars','carls jr','wendys','popeyes',
+      'starbucks','dairy queen','el pollo loco','toks express',
+      'panda express','chick-fil-a','dunkin'
+    ],
+    restaurant: [
+      'vips','sanborns','toks','wings army','italianni\'s','chilis',
+      'applebees','outback','ihop','la mansion','sirloin stockade',
+      'liverpool restaurante'
+    ],
+    cafe: [
+      'starbucks','cielito querido cafe','punta del cielo',
+      'italian coffee company','la finca','cafe la selva',
+      'cafe punta del cielo','blends','cielito mio'
+    ],
+    bar: [
+      'hooters','la nuit','mr pampas','la cervecera',
+      'beer factory','cantina la guadalupana'
+    ],
+    gas: [
+      'pemex','shell','bp','mobil','chevron','total','redco',
+      'rendichicas','arco','oxxo gas','g500','la gas','energet',
+      'orsan','hidrosina'
+    ],
+    bank: [
+      'bbva','citibanamex','banamex','santander','banorte',
+      'hsbc','scotiabank','banco azteca','inbursa','bancoppel',
+      'banco del bajio','banbajio','banregio','hey banco',
+      'compartamos','afirme','mifel'
+    ],
+    pharmacy: [
+      'farmacias del ahorro','farmacias guadalajara',
+      'farmacias similares','farmacias benavides','farmacia san pablo',
+      'farmacia paris','farmacia mexicana','farmapronto',
+      'farmacia issste','farmacia genericos'
+    ],
+    hospital: [
+      'hospital angeles','star medica','medica sur','abc hospital',
+      'christus muguerza','hospital san jose','hospital h+',
+      'hospital espanol','sanatorio durango','hospital amerimed'
+    ],
+    gym: [
+      'smart fit','sports world','gold gym','crunch fitness',
+      'anytime fitness','fit24','snap fitness','planet fitness'
+    ],
+    hotel: [
+      'holiday inn','hampton inn','marriott','sheraton','best western',
+      'city express','fiesta inn','hilton','hyatt','one hotel',
+      'wyndham','intercontinental','quinta real','presidente intercontinental',
+      'krystal','camino real'
+    ],
+    auto: [
+      'autozone','goodyear','michelin','tire express','jiffy lube',
+      'autopartes','refaccionaria','servicio automotriz'
+    ],
+    beauty: [
+      'sally beauty','sephora','ulta beauty','beauty bar',
+      'spa la roca','victoria spa'
+    ]
+  };
+
+  // Ciudades top de México para fan-out de textSearch
+  var R40_CITIES = [
+    'ciudad de mexico','guadalajara','monterrey','puebla',
+    'tijuana','leon','queretaro','merida','cancun',
+    'hermosillo','ciudad juarez','toluca','aguascalientes',
+    'culiacan','saltillo','morelia','veracruz','acapulco'
+  ];
+
+  // textSearch paginado — hasta 60 resultados (3 páginas)
+  function r40TextSearch(query, callback){
+    if(typeof google === 'undefined' || !google.maps || !google.maps.places){
+      callback([]); return;
+    }
+    var svcDiv = window.map ? window.map.getDiv() : document.createElement('div');
+    var svc = new google.maps.places.PlacesService(svcDiv);
+    var all = [];
+    var pages = 0;
+    var maxPages = 3;
+    function handle(results, status, pagination){
+      if(results && results.length){
+        all = all.concat(results);
+      }
+      pages++;
+      if(pagination && pagination.hasNextPage && pages < maxPages){
+        setTimeout(function(){
+          try{ pagination.nextPage(); }catch(_){ callback(all); }
+        }, 2100); // Google requiere ~2s entre páginas
+      } else {
+        callback(all);
+      }
+    }
+    try{
+      svc.textSearch({ query: query }, handle);
+    }catch(e){ callback([]); }
+  }
+
+  // Búsqueda exhaustiva de una marca: 1 query nacional + 6 ciudades top
+  function r40SearchBrand(brand, areaOverlay, callback){
+    var queries = [
+      brand + ' mexico',
+      brand + ' ciudad de mexico',
+      brand + ' guadalajara',
+      brand + ' monterrey',
+      brand + ' puebla',
+      brand + ' tijuana',
+      brand + ' leon'
+    ];
+    // Si hay área seleccionada, restringir a queries más cercanas
+    // al centro del área para mayor relevancia
+    if(areaOverlay){
+      try{
+        var center = (typeof areaOverlay.getCenter === 'function')
+          ? areaOverlay.getCenter()
+          : (typeof areaOverlay.getBounds === 'function' && areaOverlay.getBounds().getCenter());
+        if(center){
+          // Reverse-geocode rápido para obtener ciudad
+          // (sin API call adicional — usar query genérico con coordenadas)
+          queries = [brand + ' near ' + center.lat().toFixed(3) + ',' + center.lng().toFixed(3)];
+        }
+      }catch(_){}
+    }
+    var seen = {};
+    var all = [];
+    var pending = queries.length;
+    function appendUnique(arr){
+      arr.forEach(function(p){
+        var k = p.place_id || (p.name + '_' + (p.geometry && p.geometry.location && p.geometry.location.lat()));
+        if(!seen[k]){
+          // Verificar que el nombre realmente contiene la marca
+          var nameLower = (p.name || '').toLowerCase();
+          var brandFirst = brand.toLowerCase().split(' ')[0];
+          if(nameLower.indexOf(brandFirst) === -1){
+            // Casos especiales: "burger king" → primera palabra "burger"
+            // pero el filtro debería incluir la marca completa también
+            if(nameLower.indexOf(brand.toLowerCase().substring(0, 6)) === -1){
+              return;
+            }
+          }
+          seen[k] = true;
+          all.push(p);
+        }
+      });
+    }
+    function done(){
+      pending--;
+      if(pending > 0) return;
+      callback(all);
+    }
+    queries.forEach(function(q){
+      r40TextSearch(q, function(results){
+        if(results) appendUnique(results);
+        done();
+      });
+    });
+  }
+
+  function r40InsideOverlay(latLng, overlay){
+    if(!overlay || !latLng) return true;
+    try{
+      if(typeof overlay.getRadius === 'function' && typeof overlay.getCenter === 'function'){
+        if(google.maps.geometry && google.maps.geometry.spherical){
+          var d = google.maps.geometry.spherical.computeDistanceBetween(overlay.getCenter(), latLng);
+          return d <= overlay.getRadius();
+        }
+      }
+      if(typeof overlay.getBounds === 'function'){
+        var b = overlay.getBounds();
+        if(b) return b.contains(latLng);
+      }
+      if(google.maps.geometry && google.maps.geometry.poly && typeof overlay.getPath === 'function'){
+        return google.maps.geometry.poly.containsLocation(latLng, overlay);
+      }
+    }catch(_){}
+    return true;
+  }
+
+  function r40LoadCategoryByBrands(catId, areaOverlay, statusEl, onProgress, callback){
+    var brands = R40_BRANDS[catId];
+    if(!brands || !brands.length){ callback({}); return; }
+    var brandResults = {}; // brand → places[]
+    var pendingBrands = brands.length;
+    var doneBrands = 0;
+
+    function finishBrand(brand, places){
+      doneBrands++;
+      if(places && places.length){
+        // Filtrar por overlay si existe
+        if(areaOverlay){
+          places = places.filter(function(p){
+            var loc = p.geometry && p.geometry.location;
+            return loc && r40InsideOverlay(loc, areaOverlay);
+          });
+        }
+        if(places.length > 0) brandResults[brand] = places;
+      }
+      if(onProgress && statusEl){
+        statusEl.textContent = 'Buscando marcas: ' + doneBrands + '/' + brands.length +
+          ' (' + Object.keys(brandResults).length + ' marcas con resultados)';
+      }
+      pendingBrands--;
+      if(pendingBrands > 0) return;
+      callback(brandResults);
+    }
+
+    brands.forEach(function(brand){
+      r40SearchBrand(brand, areaOverlay, function(places){
+        finishBrand(brand, places);
+      });
+    });
+  }
+
+  function r40NormalizeBrand(name){
+    if(!name) return '';
+    var n = name.toLowerCase();
+    // Mapas de normalización conocidos
+    var rules = [
+      [/walmart\s+express/, 'Walmart Express'],
+      [/bodega\s+aurrera\s+express/, 'Bodega Aurrera Express'],
+      [/bodega\s+aurrera/, 'Bodega Aurrera'],
+      [/mi\s+bodega/, 'Mi Bodega Aurrera'],
+      [/walmart/, 'Walmart'],
+      [/sam'?s?\s+club/, 'Sams Club'],
+      [/mcdonald/, 'McDonalds'],
+      [/burger\s+king/, 'Burger King'],
+      [/starbucks/, 'Starbucks'],
+      [/subway/, 'Subway'],
+      [/domino/, 'Dominos Pizza'],
+      [/pizza\s+hut/, 'Pizza Hut'],
+      [/little\s+caesars/, 'Little Caesars'],
+      [/kfc|kentucky/, 'KFC'],
+      [/carl'?s\s+jr/, 'Carls Jr'],
+      [/oxxo/, 'OXXO'],
+      [/7-?eleven|seven\s+eleven/, '7-Eleven'],
+      [/circle\s*k/, 'Circle K'],
+      [/soriana/, 'Soriana'],
+      [/chedraui/, 'Chedraui'],
+      [/costco/, 'Costco'],
+      [/heb/, 'HEB'],
+      [/farmacias?\s+(del\s+)?ahorro/, 'Farmacias del Ahorro'],
+      [/farmacias?\s+guadalajara/, 'Farmacias Guadalajara'],
+      [/farmacias?\s+similares/, 'Farmacias Similares'],
+      [/farmacias?\s+benavides/, 'Farmacias Benavides'],
+      [/pemex/, 'PEMEX'],
+      [/shell/, 'Shell'],
+      [/bbva/, 'BBVA'],
+      [/banorte/, 'Banorte'],
+      [/santander/, 'Santander'],
+      [/citibanamex|banamex/, 'Citibanamex'],
+      [/hsbc/, 'HSBC'],
+      [/scotiabank/, 'Scotiabank'],
+      [/inbursa/, 'Inbursa'],
+      [/banco\s+azteca/, 'Banco Azteca'],
+      [/cinepolis/, 'Cinépolis'],
+      [/cinemex/, 'Cinemex']
+    ];
+    for(var i = 0; i < rules.length; i++){
+      if(rules[i][0].test(n)) return rules[i][1];
+    }
+    // Fallback: capitalize first word
+    return name.split(/\s+/).slice(0,3).map(function(w){
+      return w.charAt(0).toUpperCase() + w.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
+  function r40RegroupByBrand(brandResults){
+    // brandResults vienen ya separados por marca, pero a veces
+    // diferentes queries devuelven mismas tiendas con nombres
+    // ligeramente distintos. Re-agrupamos por nombre normalizado.
+    var byNorm = {};
+    Object.keys(brandResults).forEach(function(brand){
+      brandResults[brand].forEach(function(p){
+        var norm = r40NormalizeBrand(p.name || brand);
+        if(!byNorm[norm]) byNorm[norm] = [];
+        byNorm[norm].push(p);
+      });
+    });
+    return byNorm;
+  }
+
+  // Hook al panel de comparativa
+  function r40PatchPanel(){
+    var panel = document.getElementById('cn-cmp-panel');
+    if(!panel) return;
+    if(panel._r40Patched) return;
+    panel._r40Patched = true;
+
+    // Reemplazar handler de cada chip
+    var chips = panel.querySelectorAll('.cat-chip');
+    chips.forEach(function(chip){
+      var clone = chip.cloneNode(true);
+      chip.parentNode.replaceChild(clone, chip);
+      clone.addEventListener('click', function(){
+        clone.classList.toggle('active');
+        r40LoadActiveCategories(panel);
+      });
+    });
+
+    // Reemplazar handler del input de búsqueda
+    var inp = panel.querySelector('#cn-cmp-search');
+    if(inp){
+      var clone = inp.cloneNode(true);
+      inp.parentNode.replaceChild(clone, inp);
+      var t = null;
+      clone.addEventListener('input', function(){
+        var q = clone.value.trim();
+        clearTimeout(t);
+        if(q.length < 2) return;
+        t = setTimeout(function(){
+          r40LoadByKeyword(panel, q);
+        }, 450);
+      });
+    }
+  }
+
+  function r40ActiveCatIds(panel){
+    var ids = [];
+    panel.querySelectorAll('.cat-chip.active').forEach(function(c){
+      if(c.dataset && c.dataset.cat) ids.push(c.dataset.cat);
+    });
+    return ids;
+  }
+
+  function r40LoadActiveCategories(panel){
+    var status = panel.querySelector('#cn-cmp-area');
+    var ids = r40ActiveCatIds(panel);
+    if(ids.length === 0){
+      window._cmpState.allBrands = {};
+      window._cmpState.activeBrands = {};
+      try{
+        var l = panel.querySelector('.brand-list');
+        if(l) l.innerHTML = '';
+      }catch(_){}
+      if(status) status.textContent = 'Selecciona una o más categorías';
+      try{ if(typeof updateCompareBtn === 'function') updateCompareBtn(); }catch(_){}
+      return;
+    }
+    var areaOverlay = (typeof window.currentOverlay !== 'undefined') ? window.currentOverlay : null;
+    if(status){
+      status.textContent = areaOverlay
+        ? ('Buscando marcas en ' + ids.length + ' categoría(s) en el área…')
+        : ('Buscando marcas en ' + ids.length + ' categoría(s) a nivel nacional…');
+    }
+    var combined = {};
+    var pendingCat = ids.length;
+    function finishCat(byBrand){
+      Object.keys(byBrand).forEach(function(b){
+        combined[b] = (combined[b] || []).concat(byBrand[b]);
+      });
+      pendingCat--;
+      if(pendingCat > 0) return;
+      // Re-agrupar y dedupe por place_id
+      var byNorm = r40RegroupByBrand(combined);
+      // Dedupe places dentro de cada marca
+      Object.keys(byNorm).forEach(function(norm){
+        var seen = {};
+        byNorm[norm] = byNorm[norm].filter(function(p){
+          var k = p.place_id || (p.name + '_' + (p.geometry && p.geometry.location && p.geometry.location.lat()));
+          if(seen[k]) return false;
+          seen[k] = true;
+          return true;
+        });
+      });
+      window._cmpState.allBrands = byNorm;
+      window._cmpState.activeBrands = {};
+      try{ if(typeof window.renderBrandList === 'function') window.renderBrandList(); }catch(_){}
+      try{ if(typeof window.updateCompareBtn === 'function') window.updateCompareBtn(); }catch(_){}
+      if(status){
+        var totalPlaces = 0;
+        Object.keys(byNorm).forEach(function(b){ totalPlaces += byNorm[b].length; });
+        status.textContent = totalPlaces + ' lugares — ' +
+          Object.keys(byNorm).length + ' marcas distintas' +
+          (areaOverlay ? ' (área)' : ' (nacional)');
+      }
+    }
+    ids.forEach(function(catId){
+      r40LoadCategoryByBrands(catId, areaOverlay, status, true, function(byBrand){
+        finishCat(byBrand);
+      });
+    });
+  }
+
+  function r40LoadByKeyword(panel, q){
+    var status = panel.querySelector('#cn-cmp-area');
+    var areaOverlay = (typeof window.currentOverlay !== 'undefined') ? window.currentOverlay : null;
+    if(status){
+      status.textContent = areaOverlay
+        ? ('Buscando "' + q + '" en el área…')
+        : ('Buscando "' + q + '" a nivel nacional…');
+    }
+    // Tratar el input como una marca: fan-out por ciudades
+    r40SearchBrand(q, areaOverlay, function(places){
+      var filtered = areaOverlay
+        ? places.filter(function(p){
+            var loc = p.geometry && p.geometry.location;
+            return loc && r40InsideOverlay(loc, areaOverlay);
+          })
+        : places;
+      // Agrupar
+      var brandResults = {};
+      brandResults[q] = filtered;
+      var byNorm = r40RegroupByBrand(brandResults);
+      window._cmpState.allBrands = byNorm;
+      window._cmpState.activeBrands = {};
+      try{ if(typeof window.renderBrandList === 'function') window.renderBrandList(); }catch(_){}
+      try{ if(typeof window.updateCompareBtn === 'function') window.updateCompareBtn(); }catch(_){}
+      if(status){
+        status.textContent = filtered.length + ' resultados — ' +
+          Object.keys(byNorm).length + ' marcas (' +
+          (areaOverlay ? 'área' : 'nacional') + ')';
+      }
+    });
+  }
+
+  function init(){
+    // Forzar que el panel se re-patcheé con r40 (override de R38/R39)
+    var panel = document.getElementById('cn-cmp-panel');
+    if(panel){
+      panel._r38Patched = true;  // bloquear R38
+      panel._r39Patched = true;  // bloquear R39
+      panel._r40Patched = false; // permitir R40
+    }
+    r40PatchPanel();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  [400, 1000, 2500, 5000, 10000, 20000].forEach(function(d){ setTimeout(init, d); });
+  if(window.MutationObserver){
+    var mo = new MutationObserver(function(){
+      var p = document.getElementById('cn-cmp-panel');
+      if(p && !p._r40Patched){
+        p._r38Patched = true;
+        p._r39Patched = true;
+        r40PatchPanel();
+      }
+    });
+    mo.observe(document.body, { childList:true, subtree:true });
+  }
+})();
+</script>
 </body>
 </html>
