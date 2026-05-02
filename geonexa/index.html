@@ -34521,5 +34521,198 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   window.R42_BRANDS = R42_BRANDS;
 })();
 </script>
+<script id="connectia-r43-denue-landmark-format">
+/* ============================================================
+   Round 43 — Pedido EXPLÍCITO del usuario:
+   "es importante que, aunque sea DENUE, permanezcan el formato
+    de landmark en pines, con los logos de los comercios"
+
+   PROBLEMA: r42DenueToPlace devuelve geometry.location como
+   `{lat: fn, lng: fn}` lite. Google Maps Marker puede aceptarlo
+   pero la pipeline R30/R31 detecta marca por title y luego R32
+   aplica pin landmark + logo overlay, R34 le pone color único.
+   Con DENUE algunos markers podrían:
+   - fallar la creación si la conversión LatLng no funciona
+   - perder el match de R30/R31 si el title no tiene formato
+     "Marca — Sucursal" exacto
+   - quedar como marker default rojo de Google sin logo
+
+   R43 garantiza:
+   1) geometry.location se convierte a real google.maps.LatLng
+      antes de que addBrandPins lo use.
+   2) Cada marker DENUE recibe explícitamente _pinIcon(color)
+      + trySetBrandLogo con el favicon de la marca.
+   3) Color único por marca (R34 ya lo hace, lo reforzamos
+      por seguridad).
+   ============================================================ */
+(function(){
+  'use strict';
+
+  function r43ToRealLatLng(loc){
+    if(!loc) return null;
+    if(typeof google === 'undefined' || !google.maps || !google.maps.LatLng) return loc;
+    // Si ya es LatLng real (instanceof o tiene método toJSON)
+    try{
+      if(loc instanceof google.maps.LatLng) return loc;
+    }catch(_){}
+    var lat, lng;
+    try{
+      if(typeof loc.lat === 'function') lat = loc.lat();
+      else if(typeof loc.lat === 'number') lat = loc.lat;
+      if(typeof loc.lng === 'function') lng = loc.lng();
+      else if(typeof loc.lng === 'number') lng = loc.lng;
+    }catch(_){}
+    if(typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return loc;
+    try{
+      return new google.maps.LatLng(lat, lng);
+    }catch(_){ return loc; }
+  }
+
+  // Normaliza TODOS los places de _cmpState (allBrands + activeBrands)
+  // Para que cuando addBrandPins consuma p.geometry.location, sea
+  // un LatLng real.
+  function r43NormalizeAllPlaces(){
+    if(!window._cmpState) return;
+    ['allBrands','activeBrands'].forEach(function(key){
+      var bag = window._cmpState[key];
+      if(!bag) return;
+      Object.keys(bag).forEach(function(brand){
+        var arr = bag[brand];
+        if(!Array.isArray(arr)) return;
+        arr.forEach(function(p){
+          if(!p || !p.geometry || !p.geometry.location) return;
+          if(p._r43LocFixed) return;
+          var newLoc = r43ToRealLatLng(p.geometry.location);
+          if(newLoc !== p.geometry.location){
+            p.geometry.location = newLoc;
+          }
+          p._r43LocFixed = true;
+        });
+      });
+    });
+  }
+
+  // Reforzar el formato landmark + logo en cualquier marker
+  // que esté en _cmpBrandMarkers — independiente de R30/R31/R32/R34.
+  function r43EnforceLandmarkFormat(){
+    if(typeof google === 'undefined' || !google.maps) return;
+    if(typeof window._pinIcon !== 'function') return;
+    if(typeof window.trySetBrandLogo !== 'function') return;
+    var bm = window._cmpBrandMarkers;
+    if(!bm || typeof bm !== 'object') return;
+
+    Object.keys(bm).forEach(function(brand){
+      var arr = bm[brand];
+      if(!Array.isArray(arr)) return;
+
+      // Determinar color para esta marca (R34 lo asigna, lo
+      // reusamos; si no, usamos uno por hash del brand name)
+      var color = (window._cmpBrandColors && window._cmpBrandColors[brand]) || null;
+      if(!color){
+        // Hash determinista del nombre
+        var palette = ['#DC2626','#16A34A','#0891B2','#F59E0B','#DB2777',
+                       '#2563EB','#EA580C','#84CC16','#9333EA','#14B8A6',
+                       '#F43F5E','#6D28D9'];
+        var h = 0;
+        for(var c = 0; c < brand.length; c++) h = (h * 31 + brand.charCodeAt(c)) | 0;
+        color = palette[Math.abs(h) % palette.length];
+        if(window._cmpBrandColors) window._cmpBrandColors[brand] = color;
+      }
+
+      arr.forEach(function(m){
+        if(!m || typeof m.setIcon !== 'function') return;
+        if(m._r43Done === color) return;
+        m._r43Done = color;
+
+        // 1) Pin landmark con color de marca
+        try{
+          m.setIcon(window._pinIcon(color));
+        }catch(_){}
+        try{ m.setLabel(null); }catch(_){}
+
+        // 2) Logo overlay dentro del círculo blanco
+        if(!m._logoOverlay){
+          var logoUrl = null;
+          try{
+            if(typeof window.getBrandLogoUrl === 'function'){
+              logoUrl = window.getBrandLogoUrl(brand);
+            }
+          }catch(_){}
+          if(!logoUrl){
+            // Fallback: favicon de Google con dominio inferido
+            var dom = brand.toLowerCase()
+              .replace(/[^a-z0-9 ]/g,'')
+              .trim()
+              .replace(/\s+/g,'') + '.com';
+            logoUrl = 'https://www.google.com/s2/favicons?domain=' + dom + '&sz=64';
+          }
+          try{
+            window.trySetBrandLogo(m, logoUrl, color);
+          }catch(_){}
+        }
+
+        // 3) Marcar para R32 setIcon wrap (por si R30/R31 disparan después)
+        m._r32BrandColor = color;
+      });
+    });
+  }
+
+  // Wrap addBrandPins (si está expuesto) para garantizar la
+  // normalización de location ANTES de crear markers.
+  function r43HookAddBrandPins(){
+    if(typeof window.addBrandPins !== 'function') return false;
+    if(window.addBrandPins._r43) return true;
+    var orig = window.addBrandPins;
+    window.addBrandPins = function(brand){
+      try{
+        var places = (window._cmpState && window._cmpState.activeBrands &&
+                      window._cmpState.activeBrands[brand]) || [];
+        places.forEach(function(p){
+          if(p && p.geometry && p.geometry.location && !p._r43LocFixed){
+            var newLoc = r43ToRealLatLng(p.geometry.location);
+            if(newLoc !== p.geometry.location){
+              p.geometry.location = newLoc;
+            }
+            p._r43LocFixed = true;
+          }
+        });
+      }catch(_){}
+      var rv = orig.apply(this, arguments);
+      // Después de que addBrandPins creó markers, forzar landmark format
+      setTimeout(r43EnforceLandmarkFormat, 50);
+      setTimeout(r43EnforceLandmarkFormat, 500);
+      setTimeout(r43EnforceLandmarkFormat, 1500);
+      return rv;
+    };
+    window.addBrandPins._r43 = true;
+    return true;
+  }
+
+  // Loop de mantenimiento: normaliza places y refuerza landmark
+  // periódicamente. Cubre el caso donde addBrandPins no está
+  // expuesto en window (está en IIFE).
+  function r43Tick(){
+    try{
+      r43NormalizeAllPlaces();
+      r43EnforceLandmarkFormat();
+    }catch(_){}
+  }
+
+  function init(){
+    r43HookAddBrandPins();
+    r43Tick();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  [200, 600, 1500, 3000, 6000, 12000, 25000].forEach(function(d){ setTimeout(init, d); });
+  // Polling continuo: cada 700ms revisa nuevos markers DENUE
+  setInterval(r43Tick, 700);
+
+  // Exponer para debug
+  window.r43ToRealLatLng = r43ToRealLatLng;
+  window.r43EnforceLandmarkFormat = r43EnforceLandmarkFormat;
+})();
+</script>
 </body>
 </html>
