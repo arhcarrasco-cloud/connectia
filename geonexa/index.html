@@ -34714,5 +34714,294 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   window.r43EnforceLandmarkFormat = r43EnforceLandmarkFormat;
 })();
 </script>
+<script id="connectia-r44-denue-fix">
+/* ============================================================
+   Round 44 — FIX CRÍTICO de R42.
+
+   BUG VERIFICADO con curl real contra INEGI:
+   - URL R42: /Nombre/{nombre}/1/5000/{token} → HTTP 501
+     "Consulta incorrecta" — el parámetro entidad es OBLIGATORIO.
+   - URL CORRECTA: /Nombre/{nombre}/00/1/5000/{token}
+     donde "00" = nacional (todos los estados).
+   - Bodega Aurrera nacional → 508 registros (no 0).
+   - "mcdonalds" → solo 26 registros, pero "mc donalds"
+     (con espacio) → 308 registros. McDonald's está
+     registrado en DENUE como "MC DONALDS".
+   - OXXO → 5000+ registros (capped).
+
+   R44 corrige la URL Y mapea variantes conocidas de marcas
+   para que cada marca devuelva TODOS los registros DENUE.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  var DENUE_BASE = window.DENUE_BASE || 'https://www.inegi.org.mx/app/api/denue/v1/consulta';
+  var DENUE_TOKEN = window.INEGI_TOKEN || 'e47b874d-5785-4f4d-b68b-aa8fe81287fd';
+
+  // Map de variantes: muchas marcas tienen ortografía distinta
+  // en DENUE vs el nombre comercial. Si no hay variantes, se
+  // usa el nombre tal cual.
+  var R44_BRAND_VARIANTS = {
+    'mcdonalds': ['mc donalds','mcdonalds','mc donald','mcdonald'],
+    'burger king': ['burger king','burguer king'],
+    'kfc': ['kfc','kentucky fried chicken','kentuky'],
+    'starbucks': ['starbucks','starbuck'],
+    'subway': ['subway'],
+    'dominos pizza': ['dominos','domino\'s','dominos pizza','domino pizza'],
+    'dominos': ['dominos','domino\'s','dominos pizza'],
+    'pizza hut': ['pizza hut','pizza-hut'],
+    'little caesars': ['little caesars','little caesar'],
+    'carls jr': ['carls jr','carl\'s jr','carls junior'],
+    'wendys': ['wendys','wendy\'s'],
+    'popeyes': ['popeyes','popeye\'s'],
+    'el pollo loco': ['el pollo loco'],
+    'dairy queen': ['dairy queen'],
+    'panda express': ['panda express'],
+    'dunkin': ['dunkin','dunkin donuts','dunkin\'s'],
+    'krispy kreme': ['krispy kreme'],
+    'cinnabon': ['cinnabon'],
+    'walmart': ['walmart','wal-mart','wal mart'],
+    'walmart express': ['walmart express','wal-mart express'],
+    'bodega aurrera': ['bodega aurrera'],
+    'mi bodega aurrera': ['mi bodega aurrera','mi bodega'],
+    'aurrera express': ['aurrera express','bodega aurrera express'],
+    'sams club': ['sams club','sam\'s club','sams','sam club'],
+    'costco': ['costco'],
+    'soriana': ['soriana'],
+    'chedraui': ['chedraui'],
+    'la comer': ['la comer'],
+    'mega comercial': ['mega comercial','mega comercial mexicana','comercial mexicana','mega'],
+    'heb': ['heb','h-e-b','h e b'],
+    'smart': ['smart and final','smart','smart final'],
+    'fresko': ['fresko'],
+    'superama': ['superama'],
+    'calimax': ['calimax'],
+    'waldos': ['waldos','waldo\'s'],
+    'oxxo': ['oxxo'],
+    '7-eleven': ['7 eleven','seven eleven','7-eleven','seven-eleven'],
+    'circle k': ['circle k','circulo k'],
+    'farmacias del ahorro': ['farmacias del ahorro','farmacia del ahorro','del ahorro'],
+    'farmacias guadalajara': ['farmacias guadalajara','farmacia guadalajara'],
+    'farmacias similares': ['farmacias similares','farmacia similares','dr simi','similares'],
+    'farmacias benavides': ['farmacias benavides','farmacia benavides','benavides'],
+    'farmacia san pablo': ['farmacia san pablo','san pablo','farmacias san pablo'],
+    'farmacia paris': ['farmacia paris','farmacias paris'],
+    'pemex': ['pemex','petroleos mexicanos'],
+    'shell': ['shell','shell mexico'],
+    'bp': ['bp gasolinera','bp gasolinera mexico','bp'],
+    'mobil': ['mobil','mobil oil'],
+    'chevron': ['chevron'],
+    'redco': ['redco'],
+    'hidrosina': ['hidrosina'],
+    'g500': ['g500','g 500'],
+    'orsan': ['orsan'],
+    'corpogas': ['corpogas','corpo gas'],
+    'rendichicas': ['rendichicas'],
+    'bbva': ['bbva','bbva bancomer','bancomer'],
+    'banorte': ['banorte','banco mercantil'],
+    'santander': ['santander','santander mexico','banco santander'],
+    'citibanamex': ['citibanamex','banamex','banco nacional de mexico','citibank'],
+    'banamex': ['banamex','citibanamex','banco nacional de mexico'],
+    'hsbc': ['hsbc'],
+    'scotiabank': ['scotiabank','scotia bank'],
+    'inbursa': ['inbursa','banco inbursa'],
+    'banco azteca': ['banco azteca','azteca'],
+    'bancoppel': ['bancoppel','banco coppel'],
+    'banco del bajio': ['banco del bajio','banbajio','banco bajio'],
+    'banbajio': ['banbajio','banco del bajio'],
+    'banregio': ['banregio','banco regional'],
+    'compartamos': ['compartamos','banco compartamos'],
+    'afirme': ['afirme','banca afirme'],
+    'mifel': ['mifel','banco mifel'],
+    'liverpool': ['liverpool'],
+    'sears': ['sears'],
+    'coppel': ['coppel'],
+    'elektra': ['elektra','grupo elektra'],
+    'sanborns': ['sanborns'],
+    'vips': ['vips'],
+    'toks': ['toks'],
+    'cinepolis': ['cinepolis','cinépolis'],
+    'cinemex': ['cinemex'],
+    'home depot': ['home depot','the home depot'],
+    'office depot': ['office depot'],
+    'autozone': ['autozone','auto zone'],
+    'goodyear': ['goodyear','llantas goodyear'],
+    'michelin': ['michelin','llantas michelin'],
+    'smart fit': ['smart fit','smartfit'],
+    'sports world': ['sports world','sport world'],
+    'gold gym': ['gold gym','golds gym','gold\'s gym'],
+    'crunch fitness': ['crunch fitness','crunch'],
+    'anytime fitness': ['anytime fitness'],
+    'sephora': ['sephora'],
+    'sally beauty': ['sally beauty','sallys'],
+    'holiday inn': ['holiday inn'],
+    'hampton inn': ['hampton inn','hampton'],
+    'marriott': ['marriott','jw marriott'],
+    'sheraton': ['sheraton'],
+    'best western': ['best western'],
+    'city express': ['city express'],
+    'fiesta inn': ['fiesta inn'],
+    'hilton': ['hilton'],
+    'hyatt': ['hyatt'],
+    'one hotel': ['one hotel','one'],
+    'wyndham': ['wyndham'],
+    'intercontinental': ['intercontinental'],
+    'quinta real': ['quinta real'],
+    'krystal': ['krystal'],
+    'camino real': ['camino real']
+  };
+
+  function r44Variants(brand){
+    var key = brand.toLowerCase().trim();
+    if(R44_BRAND_VARIANTS[key]) return R44_BRAND_VARIANTS[key];
+    return [key];
+  }
+
+  // Cache: brand → places[] (TTL 1 hora)
+  var R44_CACHE = {};
+  var R44_CACHE_TTL = 60 * 60 * 1000;
+
+  function r44DenueToPlace(rec){
+    var lat = parseFloat(rec.Latitud || rec.latitud || rec.LATITUD);
+    var lng = parseFloat(rec.Longitud || rec.longitud || rec.LONGITUD);
+    if(isNaN(lat) || isNaN(lng)) return null;
+    var nombre = rec.Nombre || rec.nombre || rec.NOMBRE || rec.Nombre_Establecimiento || '';
+    if(!nombre) return null;
+    var calle = rec.Calle || rec.calle || '';
+    var num = rec.Num_Exterior || rec.numExterior || rec.num_exterior || '';
+    var col = rec.Colonia || rec.colonia || '';
+    var mun = rec.Municipio || rec.municipio || '';
+    var entidad = rec.Entidad || rec.entidad || '';
+    var address = [calle, num, col, mun, entidad]
+      .filter(Boolean).join(', ').replace(/\s+/g, ' ').trim();
+    var actividad = rec.Clase_actividad || rec.clase_actividad || '';
+    // LatLng real para que addBrandPins funcione bien
+    var loc;
+    try{
+      if(typeof google !== 'undefined' && google.maps && google.maps.LatLng){
+        loc = new google.maps.LatLng(lat, lng);
+      } else {
+        loc = { lat: function(){return lat;}, lng: function(){return lng;} };
+      }
+    }catch(_){
+      loc = { lat: function(){return lat;}, lng: function(){return lng;} };
+    }
+    return {
+      place_id: 'denue_' + (rec.Id || rec.CLEE || rec.id || (lat + '_' + lng)),
+      name: nombre,
+      geometry: { location: loc },
+      vicinity: address,
+      types: actividad ? [actividad] : [],
+      _denue: rec,
+      _source: 'denue',
+      _r43LocFixed: true // ya está en formato real LatLng
+    };
+  }
+
+  // Query DENUE con la URL CORRECTA (entidad=00 = nacional)
+  function r44QueryDenue(name, callback){
+    var url = DENUE_BASE + '/Nombre/' +
+      encodeURIComponent(name) + '/00/1/5000/' + DENUE_TOKEN;
+    fetch(url)
+      .then(function(r){
+        if(!r.ok) return [];
+        return r.json();
+      })
+      .catch(function(){ return []; })
+      .then(function(data){
+        var arr = [];
+        if(Array.isArray(data)) arr = data;
+        else if(data && Array.isArray(data.Datos)) arr = data.Datos;
+        else if(data && Array.isArray(data.datos)) arr = data.datos;
+        var places = [];
+        for(var i = 0; i < arr.length; i++){
+          var p = r44DenueToPlace(arr[i]);
+          if(p) places.push(p);
+        }
+        callback(places);
+      });
+  }
+
+  // Búsqueda por marca: prueba TODAS las variantes y mergea
+  function r44SearchBrandDenue(brand, callback){
+    // Cache check (canonical brand name)
+    var canonical = brand.toLowerCase().trim();
+    var cached = R44_CACHE[canonical];
+    if(cached && (Date.now() - cached.t) < R44_CACHE_TTL){
+      callback(cached.places);
+      return;
+    }
+
+    var variants = r44Variants(brand);
+    var allPlaces = [];
+    var seen = {};
+    var pending = variants.length;
+
+    function done(){
+      pending--;
+      if(pending > 0) return;
+
+      // Filtro de confianza: el nombre del establecimiento
+      // debe contener al menos UNA variante (case-insensitive)
+      var filtered = allPlaces.filter(function(p){
+        var n = (p.name || '').toLowerCase().replace(/[^a-z0-9 ]/g, '');
+        for(var i = 0; i < variants.length; i++){
+          var v = variants[i].toLowerCase().replace(/[^a-z0-9 ]/g, '');
+          if(v.length >= 3 && n.indexOf(v) !== -1) return true;
+        }
+        return false;
+      });
+
+      R44_CACHE[canonical] = { t: Date.now(), places: filtered };
+      callback(filtered);
+    }
+
+    variants.forEach(function(v){
+      r44QueryDenue(v, function(places){
+        places.forEach(function(p){
+          if(!seen[p.place_id]){
+            seen[p.place_id] = true;
+            allPlaces.push(p);
+          }
+        });
+        done();
+      });
+    });
+  }
+
+  // OVERRIDE de R42 — el wrapper de la búsqueda usa nuestra
+  // función corregida.
+  function r44Override(){
+    if(window.r42SearchBrandDenue && !window.r42SearchBrandDenue._r44){
+      var orig = window.r42SearchBrandDenue;
+      window.r42SearchBrandDenue = function(brand, callback){
+        return r44SearchBrandDenue(brand, callback);
+      };
+      window.r42SearchBrandDenue._r44 = true;
+      window.r42SearchBrandDenue._origR42 = orig;
+    }
+    // Por si R42 todavía no exportó la función, también la
+    // exponemos directamente
+    window.r42SearchBrandDenue = window.r42SearchBrandDenue || r44SearchBrandDenue;
+    if(!window.r42SearchBrandDenue._r44){
+      window.r42SearchBrandDenue = r44SearchBrandDenue;
+      window.r42SearchBrandDenue._r44 = true;
+    }
+  }
+
+  function init(){
+    r44Override();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  [100, 400, 1000, 2500, 5000, 10000, 20000].forEach(function(d){ setTimeout(init, d); });
+
+  // Exponer
+  window.r44SearchBrandDenue = r44SearchBrandDenue;
+  window.R44_BRAND_VARIANTS = R44_BRAND_VARIANTS;
+  window.r44Variants = r44Variants;
+})();
+</script>
 </body>
 </html>
