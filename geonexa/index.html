@@ -34046,5 +34046,480 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   window.r41RecalculateData = r41RecalculateData;
 })();
 </script>
+<script id="connectia-r42-denue-comparativa">
+/* ============================================================
+   Round 42 — REWRITE de comparativa usando DENUE INEGI.
+
+   PROBLEMA: Google Places textSearch cap a 60 resultados/query
+   y rankea por prominence, no es exhaustivo. Bodega Aurrera
+   tiene 193 sucursales en CDMX, Google devuelve 6.
+
+   FUENTE CONFIABLE: DENUE de INEGI — Directorio Estadístico
+   Nacional de Unidades Económicas. Tiene TODAS las empresas
+   formales registradas en México con nombre, dirección, lat/lng,
+   actividad económica.
+
+   Endpoint:
+     /v1/consulta/Nombre/{nombre}/{ini}/{fin}/{token}
+   Devuelve hasta 5000 registros por query, sin filtro de
+   prominence, oficial INEGI actualizado.
+
+   R42 reemplaza el handler de los chips para usar DENUE como
+   fuente primaria. Google Places se mantiene como fallback
+   visual (foto/rating) si se requiere.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  var DENUE_BASE = window.DENUE_BASE || 'https://www.inegi.org.mx/app/api/denue/v1/consulta';
+  var DENUE_TOKEN = window.INEGI_TOKEN || 'e47b874d-5785-4f4d-b68b-aa8fe81287fd';
+
+  // Cache: brand → places[] (TTL 1 hora por sesión)
+  var R42_CACHE = {};
+  var R42_CACHE_TTL = 60 * 60 * 1000;
+
+  // Marcas conocidas por categoría — más completas que R40
+  var R42_BRANDS = {
+    retail: [
+      'walmart','bodega aurrera','sams club','costco','soriana',
+      'chedraui','la comer','mega comercial','heb','smart',
+      'fresko','superama','calimax','waldos','mi bodega aurrera',
+      'walmart express','aurrera express','tiendas extra','farmatodo'
+    ],
+    food_fast: [
+      'mcdonalds','burger king','kfc','subway','dominos',
+      'pizza hut','little caesars','carls jr','wendys','popeyes',
+      'starbucks','dairy queen','el pollo loco','toks express',
+      'panda express','dunkin','krispy kreme','cinnabon'
+    ],
+    restaurant: [
+      'vips','sanborns','toks','wings army','italianni\'s','chilis',
+      'applebees','outback','ihop','la mansion','sirloin',
+      'liverpool restaurante','maggianos','el portón','el bajio',
+      'la casa de toño','los tacos de jovel'
+    ],
+    cafe: [
+      'starbucks','cielito querido','punta del cielo',
+      'italian coffee','la finca','cafe la selva',
+      'blends','cielito mio','globo','cafe punta del cielo'
+    ],
+    bar: [
+      'hooters','la nuit','mr pampas','la cervecera',
+      'beer factory','cantina la guadalupana','la cantina',
+      'el depa','la opera bar'
+    ],
+    gas: [
+      'pemex','shell','bp','mobil','chevron','total','redco',
+      'rendichicas','arco','oxxo gas','g500','la gas','energet',
+      'orsan','hidrosina','corpogas','combured','gulf','exxon'
+    ],
+    bank: [
+      'bbva','citibanamex','banamex','santander','banorte',
+      'hsbc','scotiabank','banco azteca','inbursa','bancoppel',
+      'banco del bajio','banbajio','banregio','hey banco',
+      'compartamos','afirme','mifel','intercam','multiva',
+      'banco multiva','vepormas','ve por mas','banco famsa'
+    ],
+    pharmacy: [
+      'farmacias del ahorro','farmacias guadalajara',
+      'farmacias similares','farmacias benavides','farmacia san pablo',
+      'farmacia paris','farmacia mexicana','farmapronto',
+      'farmacia issste','farmacia genericos','farmacia san jose',
+      'farmacia esteva','farmacia sanborns'
+    ],
+    hospital: [
+      'hospital angeles','star medica','medica sur','abc hospital',
+      'christus muguerza','hospital san jose','hospital h+',
+      'hospital espanol','sanatorio durango','hospital amerimed',
+      'hospital english','hospital san javier','hospital civil'
+    ],
+    gym: [
+      'smart fit','sports world','gold gym','crunch fitness',
+      'anytime fitness','fit24','snap fitness','planet fitness',
+      'fitness pro','sport city','sport gym','curves','shogun gym'
+    ],
+    hotel: [
+      'holiday inn','hampton inn','marriott','sheraton','best western',
+      'city express','fiesta inn','hilton','hyatt','one hotel',
+      'wyndham','intercontinental','quinta real','presidente',
+      'krystal','camino real','crowne plaza','radisson','novotel',
+      'fairfield','courtyard','riu','barcelo','iberostar','occidental'
+    ],
+    auto: [
+      'autozone','goodyear','michelin','tire express','jiffy lube',
+      'autopartes','refaccionaria','servicio automotriz',
+      'pepe boys','tlapaleria','tlapalería'
+    ],
+    beauty: [
+      'sally beauty','sephora','ulta beauty','beauty bar',
+      'spa la roca','victoria spa','la beauty','jafra',
+      'natura','avon','mary kay','spa villa'
+    ]
+  };
+
+  // Convertir un registro DENUE a estructura tipo Google Places
+  function r42DenueToPlace(rec){
+    var lat = parseFloat(rec.Latitud || rec.latitud || rec.LATITUD);
+    var lng = parseFloat(rec.Longitud || rec.longitud || rec.LONGITUD);
+    if(isNaN(lat) || isNaN(lng)) return null;
+    var nombre = rec.Nombre || rec.nombre || rec.NOMBRE || '';
+    if(!nombre) return null;
+    var calle = rec.Calle || rec.calle || '';
+    var num = rec.Num_Exterior || rec.numExterior || rec.num_exterior || '';
+    var col = rec.Colonia || rec.colonia || '';
+    var mun = rec.Municipio || rec.municipio || '';
+    var entidad = rec.Entidad || rec.entidad || '';
+    var address = [calle, num, col, mun, entidad].filter(Boolean).join(', ').replace(/\s+/g, ' ').trim();
+    var actividad = rec.Clase_actividad || rec.clase_actividad || '';
+    return {
+      place_id: 'denue_' + (rec.Id || rec.CLEE || rec.id || (lat + '_' + lng)),
+      name: nombre,
+      geometry: {
+        location: {
+          lat: function(){ return lat; },
+          lng: function(){ return lng; }
+        }
+      },
+      vicinity: address,
+      types: actividad ? [actividad] : [],
+      _denue: rec,
+      _source: 'denue'
+    };
+  }
+
+  // Query DENUE por nombre (nacional, hasta 5000 registros)
+  function r42SearchBrandDenue(brand, callback){
+    // Cache check
+    var cached = R42_CACHE[brand];
+    if(cached && (Date.now() - cached.t) < R42_CACHE_TTL){
+      callback(cached.places);
+      return;
+    }
+    var url = DENUE_BASE + '/Nombre/' +
+      encodeURIComponent(brand) + '/1/5000/' + DENUE_TOKEN;
+    fetch(url)
+      .then(function(r){ return r.json(); })
+      .catch(function(){ return []; })
+      .then(function(data){
+        var arr = [];
+        if(Array.isArray(data)) arr = data;
+        else if(data && Array.isArray(data.Datos)) arr = data.Datos;
+        else if(data && Array.isArray(data.datos)) arr = data.datos;
+        var places = [];
+        for(var i = 0; i < arr.length; i++){
+          var p = r42DenueToPlace(arr[i]);
+          if(p) places.push(p);
+        }
+        // Filtrar para que el nombre realmente coincida (DENUE
+        // a veces incluye matches parciales)
+        var brandLower = brand.toLowerCase().replace(/[^a-z0-9 ]/g, '');
+        var brandFirst = brandLower.split(/\s+/)[0];
+        places = places.filter(function(p){
+          var n = (p.name || '').toLowerCase().replace(/[^a-z0-9 ]/g, '');
+          // Match si contiene la marca completa o las primeras palabras
+          return n.indexOf(brandLower) !== -1 ||
+                 (brandFirst.length >= 5 && n.indexOf(brandFirst) !== -1);
+        });
+        R42_CACHE[brand] = { t: Date.now(), places: places };
+        callback(places);
+      });
+  }
+
+  // Filtrado por overlay (círculo / rectángulo / polígono)
+  function r42InsideOverlay(p, overlay){
+    if(!overlay || !p || !p.geometry || !p.geometry.location) return true;
+    try{
+      var lat = p.geometry.location.lat();
+      var lng = p.geometry.location.lng();
+      if(typeof overlay.getRadius === 'function' && typeof overlay.getCenter === 'function'){
+        if(google.maps.geometry && google.maps.geometry.spherical){
+          var center = overlay.getCenter();
+          var ll = new google.maps.LatLng(lat, lng);
+          var d = google.maps.geometry.spherical.computeDistanceBetween(center, ll);
+          return d <= overlay.getRadius();
+        }
+      }
+      if(typeof overlay.getBounds === 'function'){
+        var b = overlay.getBounds();
+        if(b) return b.contains(new google.maps.LatLng(lat, lng));
+      }
+      if(google.maps.geometry && google.maps.geometry.poly && typeof overlay.getPath === 'function'){
+        return google.maps.geometry.poly.containsLocation(new google.maps.LatLng(lat, lng), overlay);
+      }
+    }catch(_){}
+    return true;
+  }
+
+  // Normalización de nombres: agrupa "BODEGA AURRERA SUC X", "Bodega Aurrera Express", etc.
+  function r42NormalizeBrand(name){
+    if(!name) return 'Otros';
+    var n = name.toLowerCase();
+    var rules = [
+      [/bodega\s+aurrera\s+express/, 'Bodega Aurrera Express'],
+      [/mi\s+bodega\s+aurrera/, 'Mi Bodega Aurrera'],
+      [/bodega\s+aurrera/, 'Bodega Aurrera'],
+      [/walmart\s+express/, 'Walmart Express'],
+      [/aurrera\s+express/, 'Aurrera Express'],
+      [/walmart/, 'Walmart'],
+      [/sam'?s?\s+club/, 'Sams Club'],
+      [/costco/, 'Costco'],
+      [/soriana\s+hiper/, 'Soriana Hiper'],
+      [/soriana\s+super/, 'Soriana Super'],
+      [/soriana\s+express/, 'Soriana Express'],
+      [/soriana/, 'Soriana'],
+      [/chedraui\s+selecto/, 'Chedraui Selecto'],
+      [/chedraui/, 'Chedraui'],
+      [/la\s+comer/, 'La Comer'],
+      [/city\s+market/, 'City Market'],
+      [/fresko/, 'Fresko'],
+      [/heb/, 'HEB'],
+      [/superama/, 'Superama'],
+      [/smart/, 'Smart'],
+      [/calimax/, 'Calimax'],
+      [/waldos/, 'Waldos'],
+      [/mcdonald/, 'McDonalds'],
+      [/burger\s+king/, 'Burger King'],
+      [/starbucks/, 'Starbucks'],
+      [/subway/, 'Subway'],
+      [/domino'?s/, 'Dominos Pizza'],
+      [/pizza\s+hut/, 'Pizza Hut'],
+      [/little\s+caesars/, 'Little Caesars'],
+      [/kfc|kentucky/, 'KFC'],
+      [/carl'?s\s+jr/, 'Carls Jr'],
+      [/popeyes/, 'Popeyes'],
+      [/wendy'?s/, 'Wendys'],
+      [/dairy\s+queen/, 'Dairy Queen'],
+      [/el\s+pollo\s+loco/, 'El Pollo Loco'],
+      [/oxxo/, 'OXXO'],
+      [/7-?eleven|seven\s+eleven/, '7-Eleven'],
+      [/circle\s*k/, 'Circle K'],
+      [/pemex/, 'PEMEX'],
+      [/shell/, 'Shell'],
+      [/bbva/, 'BBVA'],
+      [/banorte/, 'Banorte'],
+      [/santander/, 'Santander'],
+      [/citibanamex|banamex/, 'Citibanamex'],
+      [/hsbc/, 'HSBC'],
+      [/scotiabank/, 'Scotiabank'],
+      [/inbursa/, 'Inbursa'],
+      [/banco\s+azteca/, 'Banco Azteca'],
+      [/farmacias?\s+(del\s+)?ahorro/, 'Farmacias del Ahorro'],
+      [/farmacias?\s+guadalajara/, 'Farmacias Guadalajara'],
+      [/farmacias?\s+similares/, 'Farmacias Similares'],
+      [/farmacias?\s+benavides/, 'Farmacias Benavides'],
+      [/farmacia\s+san\s+pablo/, 'Farmacia San Pablo'],
+      [/cinepolis/, 'Cinépolis'],
+      [/cinemex/, 'Cinemex'],
+      [/sanborns/, 'Sanborns'],
+      [/vips/, 'VIPS'],
+      [/toks/, 'Toks'],
+      [/liverpool/, 'Liverpool'],
+      [/sears/, 'Sears'],
+      [/coppel/, 'Coppel'],
+      [/elektra/, 'Elektra'],
+      [/holiday\s+inn/, 'Holiday Inn'],
+      [/hampton/, 'Hampton'],
+      [/marriott/, 'Marriott'],
+      [/sheraton/, 'Sheraton'],
+      [/hilton/, 'Hilton'],
+      [/city\s+express/, 'City Express'],
+      [/fiesta\s+inn/, 'Fiesta Inn'],
+      [/best\s+western/, 'Best Western'],
+      [/smart\s+fit/, 'Smart Fit'],
+      [/sports\s+world/, 'Sports World'],
+      [/gold'?s?\s+gym/, 'Golds Gym'],
+      [/anytime\s+fitness/, 'Anytime Fitness']
+    ];
+    for(var i = 0; i < rules.length; i++){
+      if(rules[i][0].test(n)) return rules[i][1];
+    }
+    // Capitalize first 3 words
+    return name.split(/\s+/).slice(0, 3).map(function(w){
+      return w.charAt(0).toUpperCase() + w.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
+  function r42GroupByBrand(places){
+    var byNorm = {};
+    var seenIds = {};
+    for(var i = 0; i < places.length; i++){
+      var p = places[i];
+      // Dedupe por place_id
+      if(seenIds[p.place_id]) continue;
+      seenIds[p.place_id] = true;
+      var norm = r42NormalizeBrand(p.name);
+      if(!byNorm[norm]) byNorm[norm] = [];
+      byNorm[norm].push(p);
+    }
+    return byNorm;
+  }
+
+  // Cargar todas las marcas activas de las categorías seleccionadas
+  function r42LoadActiveCategories(panel){
+    var status = panel.querySelector('#cn-cmp-area');
+    var ids = [];
+    panel.querySelectorAll('.cat-chip.active').forEach(function(c){
+      if(c.dataset && c.dataset.cat) ids.push(c.dataset.cat);
+    });
+    if(ids.length === 0){
+      window._cmpState.allBrands = {};
+      window._cmpState.activeBrands = {};
+      try{
+        var l = panel.querySelector('.brand-list');
+        if(l) l.innerHTML = '';
+      }catch(_){}
+      if(status) status.textContent = 'Selecciona una o más categorías';
+      try{ if(typeof updateCompareBtn === 'function') updateCompareBtn(); }catch(_){}
+      return;
+    }
+
+    var areaOverlay = (typeof window.currentOverlay !== 'undefined') ? window.currentOverlay : null;
+    if(status){
+      status.textContent = areaOverlay
+        ? ('Buscando en DENUE INEGI — ' + ids.length + ' categoría(s) en el área…')
+        : ('Buscando en DENUE INEGI — ' + ids.length + ' categoría(s) a nivel nacional…');
+    }
+
+    // Reunir todas las marcas a buscar (de todas las categorías activas)
+    var brandsToSearch = [];
+    var seenBrands = {};
+    ids.forEach(function(catId){
+      (R42_BRANDS[catId] || []).forEach(function(b){
+        if(!seenBrands[b]){
+          seenBrands[b] = true;
+          brandsToSearch.push(b);
+        }
+      });
+    });
+
+    if(brandsToSearch.length === 0){
+      if(status) status.textContent = 'Categorías sin marcas registradas en DENUE';
+      return;
+    }
+
+    var allPlaces = [];
+    var doneBrands = 0;
+    function progress(){
+      doneBrands++;
+      if(status){
+        status.textContent = 'DENUE: ' + doneBrands + '/' + brandsToSearch.length + ' marcas consultadas — ' +
+          allPlaces.length + ' establecimientos encontrados';
+      }
+    }
+    function finishOne(brand, places){
+      if(places && places.length){
+        // Filtrar por overlay
+        if(areaOverlay){
+          places = places.filter(function(p){ return r42InsideOverlay(p, areaOverlay); });
+        }
+        for(var i = 0; i < places.length; i++) allPlaces.push(places[i]);
+      }
+      progress();
+      if(doneBrands < brandsToSearch.length) return;
+      // Todos hechos: agrupar y mostrar
+      var byNorm = r42GroupByBrand(allPlaces);
+      window._cmpState.allBrands = byNorm;
+      window._cmpState.activeBrands = {};
+      try{ if(typeof window.renderBrandList === 'function') window.renderBrandList(); }catch(_){}
+      try{ if(typeof window.updateCompareBtn === 'function') window.updateCompareBtn(); }catch(_){}
+      if(status){
+        var totalPlaces = allPlaces.length;
+        status.textContent = totalPlaces.toLocaleString('es-MX') + ' establecimientos en ' +
+          Object.keys(byNorm).length + ' marcas (DENUE INEGI · ' +
+          (areaOverlay ? 'área' : 'nacional') + ')';
+      }
+    }
+
+    brandsToSearch.forEach(function(brand){
+      r42SearchBrandDenue(brand, function(places){
+        finishOne(brand, places);
+      });
+    });
+  }
+
+  // Búsqueda libre por keyword
+  function r42LoadByKeyword(panel, q){
+    var status = panel.querySelector('#cn-cmp-area');
+    var areaOverlay = (typeof window.currentOverlay !== 'undefined') ? window.currentOverlay : null;
+    if(status){
+      status.textContent = 'Buscando "' + q + '" en DENUE INEGI…';
+    }
+    r42SearchBrandDenue(q, function(places){
+      if(areaOverlay){
+        places = places.filter(function(p){ return r42InsideOverlay(p, areaOverlay); });
+      }
+      var byNorm = r42GroupByBrand(places);
+      window._cmpState.allBrands = byNorm;
+      window._cmpState.activeBrands = {};
+      try{ if(typeof window.renderBrandList === 'function') window.renderBrandList(); }catch(_){}
+      try{ if(typeof window.updateCompareBtn === 'function') window.updateCompareBtn(); }catch(_){}
+      if(status){
+        status.textContent = places.length.toLocaleString('es-MX') + ' establecimientos — ' +
+          Object.keys(byNorm).length + ' marcas (DENUE INEGI · ' +
+          (areaOverlay ? 'área' : 'nacional') + ')';
+      }
+    });
+  }
+
+  // Hookear el panel
+  function r42PatchPanel(){
+    var panel = document.getElementById('cn-cmp-panel');
+    if(!panel) return;
+    if(panel._r42Patched) return;
+    panel._r42Patched = true;
+    panel._r38Patched = true;
+    panel._r39Patched = true;
+    panel._r40Patched = true;
+
+    // Reemplazar handler de chips
+    var chips = panel.querySelectorAll('.cat-chip');
+    chips.forEach(function(chip){
+      var clone = chip.cloneNode(true);
+      chip.parentNode.replaceChild(clone, chip);
+      clone.addEventListener('click', function(){
+        clone.classList.toggle('active');
+        r42LoadActiveCategories(panel);
+      });
+    });
+
+    // Reemplazar handler del input
+    var inp = panel.querySelector('#cn-cmp-search');
+    if(inp){
+      var clone2 = inp.cloneNode(true);
+      inp.parentNode.replaceChild(clone2, inp);
+      var t = null;
+      clone2.addEventListener('input', function(){
+        var q = clone2.value.trim();
+        clearTimeout(t);
+        if(q.length < 3) return;
+        t = setTimeout(function(){
+          r42LoadByKeyword(panel, q);
+        }, 500);
+      });
+    }
+  }
+
+  function init(){
+    r42PatchPanel();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+  [400, 1000, 2500, 5000, 10000, 20000].forEach(function(d){ setTimeout(init, d); });
+  if(window.MutationObserver){
+    var mo = new MutationObserver(function(){
+      var p = document.getElementById('cn-cmp-panel');
+      if(p && !p._r42Patched){
+        r42PatchPanel();
+      }
+    });
+    mo.observe(document.body, { childList:true, subtree:true });
+  }
+
+  // Exponer para debug
+  window.r42SearchBrandDenue = r42SearchBrandDenue;
+  window.R42_BRANDS = R42_BRANDS;
+})();
+</script>
 </body>
 </html>
