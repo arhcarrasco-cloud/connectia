@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="es" data-lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connectia — La ciudad es el medio. La cultura es el mensaje.</title>
+  <meta name="description" content="Connectia es cultura urbana. Cultural Stack™: Media, UX, Creatividad y Producción." />
+  <meta property="og:title" content="Connectia — Out of Noise" />
+  <meta property="og:description" content="No hacemos Out of Home. Hacemos Out of Noise." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://logo.clearbit.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ============ CUSTOM CURSOR ============ -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <!-- ============ HEADER ============ -->
+  <header class="header" id="header">
+    <button class="header__menu" id="menuBtn" aria-label="Menu">
+      <span></span><span></span>
+      <em data-i18n="menu">Menú</em>
+    </button>
+    <a href="#top" class="header__logo" aria-label="Connectia">
+      <img src="../assets/logo/connectia-white.png" alt="Connectia" />
+    </a>
+    <div class="header__right">
+      <button class="lang-toggle" id="langToggle" aria-label="Language">
+        <span class="lang-toggle__opt is-active" data-lang-set="es">ES</span>
+        <span class="lang-toggle__sep">/</span>
+        <span class="lang-toggle__opt" data-lang-set="en">EN</span>
+      </button>
+      <a href="#contacto" class="btn-chat" data-magnetic>
+        <span data-i18n="lets_chat">Hablemos</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ============ NAV OVERLAY ============ -->
+  <nav class="nav" id="nav" aria-hidden="true">
+    <div class="nav__inner">
+      <ul class="nav__list">
+        <li><a href="#top" data-i18n="nav_home">Inicio<i class="dotcluster"><i></i><i></i><i></i></i></a></li>
+        <li><a href="#stack" data-i18n="nav_stack">Especialidades</a></li>
+        <li><a href="#manifesto" data-i18n="nav_manifesto">Manifiesto</a></li>
+        <li><a href="#work" data-i18n="nav_work">Casos</a></li>
+        <li><a href="#clientes" data-i18n="nav_clients">Clientes</a></li>
+        <li><a href="#contacto" data-i18n="nav_contact">Contacto</a></li>
+      </ul>
+      <div class="nav__bottom">
+        <div class="nav__contact">
+          <span data-i18n="get_in_touch">Hablemos —</span>
+          <a href="mailto:hola@connectia.mx">hola@connectia.mx</a>
+        </div>
+        <div class="nav__social">
+          <a href="#" aria-label="Instagram">IG</a>
+          <a href="#" aria-label="LinkedIn">LI</a>
+          <a href="#" aria-label="TikTok">TT</a>
+          <a href="#" aria-label="Vimeo">VM</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main id="top">
+
+    <!-- ============ HERO (Cosmic universe — split into two blocks) ============ -->
+    <section class="hero" id="hero">
+      <div class="hero__topline">
+        <div class="hero__tag">
+          <span class="dot"></span>
+          <span data-i18n="hero_tag">Cultural marketing · MX</span>
+        </div>
+        <div class="hero__cities">CDMX · MTY · GDL · MID</div>
+      </div>
+
+      <!-- BLOCK 1 (top): ONLY universe + cursor reveals connectia logo constellation -->
+      <div class="hero__block hero__block--1">
+        <canvas class="cosmos cosmos--inline" id="cosmosHero" aria-hidden="true"></canvas>
+        <span class="hero__hint" aria-hidden="true">Mueve el cursor para revelar</span>
+      </div>
+
+      <!-- BLOCK 2 (bottom): slideshow background + Somos rotator centered overlay -->
+      <div class="hero__block hero__block--2">
+        <div class="hero__slideshow" id="heroSlideshow" aria-hidden="true">
+          <img src="../assets/photos/photo-01.jpg" class="slide is-active" alt="">
+          <img src="../assets/photos/photo-02.jpg" class="slide" alt="">
+          <img src="../assets/photos/photo-03.jpg" class="slide" alt="">
+          <img src="../assets/photos/photo-04.jpg" class="slide" alt="">
+          <img src="../assets/photos/photo-05.jpg" class="slide" alt="">
+          <img src="../assets/photos/photo-06.jpg" class="slide" alt="">
+        </div>
+        <div class="hero__slideshow-veil"></div>
+        <div class="hero__big-intro">
+          <span class="hero__intro-we" data-i18n="hero_we_are">Somos</span>
+          <span class="rotator rotator--big" id="rotator">
+            <em class="is-active">esquites</em>
+            <em>elote en vaso</em>
+            <em>wey</em>
+            <em>güey</em>
+            <em>chido</em>
+            <em>órale</em>
+            <em>ándale</em>
+            <em>chilango</em>
+            <em>no manches</em>
+            <em>compadre</em>
+            <em>compa</em>
+            <em>raza</em>
+            <em>regio</em>
+            <em>norteño</em>
+            <em>jefa</em>
+            <em>jefe</em>
+            <em>vato</em>
+            <em>tapatío</em>
+            <em>mi rey</em>
+            <em>mi reina</em>
+            <em>carnal</em>
+            <em>compita</em>
+            <em>mero mero</em>
+            <em>mare</em>
+            <em>pana</em>
+            <em>yucateco</em>
+            <em>comadre</em>
+            <em>chamaco</em>
+            <em>morro</em>
+            <em>cabula</em>
+            <em>papá</em>
+            <em>cuate</em>
+            <em>chela</em>
+            <em>corazón</em>
+            <em>chamba</em>
+            <em>al tiro</em>
+            <em>cultura</em>
+          </span>
+        </div>
+      </div>
+
+      <a href="#stack" class="hero__scroll">
+        <span data-i18n="scroll">Scroll</span>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </section>
+
+    <!-- ============ 02 MANIFIESTO + CEREBRO CREATIVO ============ -->
+    <section class="section section--manifesto" id="manifesto">
+      <canvas class="cosmos cosmos--inline" id="cosmosManifesto" aria-hidden="true"></canvas>
+
+      <div class="section__chapter">
+        <span class="num">01</span>
+        <span class="lbl" data-i18n="ch_manifesto">Manifiesto · Cerebro creativo</span>
+        <b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b>
+      </div>
+
+      <h3 class="manifesto__big">
+        <span data-i18n="manifesto_l1">No hacemos</span>
+        <em data-i18n="manifesto_l2">Out of Home.</em>
+        <span data-i18n="manifesto_l3">Hacemos</span>
+        <em class="accent">
+          <span class="noise-text" data-text="Out of Noise.">Out of Noise.</span>
+        </em>
+      </h3>
+
+      <div class="brain brain--dust" id="brain">
+        <canvas class="brain__canvas" id="brainCanvas" aria-hidden="true"></canvas>
+
+        <div class="brain__core" id="brainCore">
+          <div class="brain__halo"></div>
+          <div class="brain__logo">
+            <img class="dust-text" src="../assets/logo/connectia-white.png" alt="Connectia" />
+          </div>
+        </div>
+
+        <article class="brain__node" data-node="01" style="--x:14%; --y:24%;">
+          <span class="brain__node-num">·01</span>
+          <h6 class="dust-text">Media</h6>
+        </article>
+        <article class="brain__node" data-node="02" style="--x:86%; --y:24%;">
+          <span class="brain__node-num">·02</span>
+          <h6 class="dust-text">UX</h6>
+        </article>
+        <article class="brain__node" data-node="03" style="--x:18%; --y:76%;">
+          <span class="brain__node-num">·03</span>
+          <h6 class="dust-text">Creatividad</h6>
+        </article>
+        <article class="brain__node" data-node="04" style="--x:82%; --y:76%;">
+          <span class="brain__node-num">·04</span>
+          <h6 class="dust-text">Producción</h6>
+        </article>
+
+        <div class="brain__hint">
+          <span data-i18n="brain_hint">Mueve el cursor para revelar</span>
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+
+      <p class="manifesto__sub" data-i18n="manifesto_sub">
+        Hacemos cultural marketing: marcas que <em>pertenecen</em> a la cultura, no que la rentan.
+        No interrumpimos conversaciones — las generamos. No buscamos audiencia — buscamos
+        comunidad. Conectamos marcas con la cultura, no con la métrica.
+      </p>
+    </section>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <!-- ============ 03 WORK ============ -->
+    <section class="section section--work" id="work">
+      <div class="section__chapter">
+        <span class="num">02</span>
+        <span class="lbl" data-i18n="ch_work">Casos</span>
+        <b class="dotcluster"><i></i><i></i><i></i></b>
+      </div>
+
+      <div class="work__carousel">
+        <div class="work__viewport" id="workViewport">
+          <article class="work-card is-active" data-case="01">
+            <div class="work-card__media">
+              <img src="../assets/photos/photo-01.jpg" alt="" loading="lazy">
+              <span class="work-card__badge">01 / 06</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Cliente · Lifestyle MX</span>
+              <h5>Esquinas con historia</h5>
+              <p data-i18n="case1_p">Mural curado en Roma Norte que convirtió una esquina en mantra de cultura urbana.</p>
+              <div class="work-card__tags"><span>Media</span><span>UX</span><span>Producción</span></div>
+            </div>
+          </article>
+
+          <article class="work-card" data-case="02">
+            <div class="work-card__media">
+              <img src="../assets/photos/photo-02.jpg" alt="" loading="lazy">
+              <span class="work-card__badge">02 / 06</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Cliente · Sportswear</span>
+              <h5>Tribu de barrio</h5>
+              <p data-i18n="case2_p">Patrocinio deportivo barrial convertido en serie documental UGC para social media.</p>
+              <div class="work-card__tags"><span>UX</span><span>Producción</span><span>Creatividad</span></div>
+            </div>
+          </article>
+
+          <article class="work-card" data-case="03">
+            <div class="work-card__media">
+              <img src="../assets/photos/photo-03.jpg" alt="" loading="lazy">
+              <span class="work-card__badge">03 / 06</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Cliente · Beverages</span>
+              <h5>Loop urbano MTY</h5>
+              <p data-i18n="case3_p">Activación phygital en Monterrey con QR oculto en muros: 1.4M de impresiones orgánicas.</p>
+              <div class="work-card__tags"><span>Media</span><span>UX</span></div>
+            </div>
+          </article>
+
+          <article class="work-card" data-case="04">
+            <div class="work-card__media">
+              <img src="../assets/photos/photo-04.jpg" alt="" loading="lazy">
+              <span class="work-card__badge">04 / 06</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Cliente · Tech</span>
+              <h5>Mensaje en la calle</h5>
+              <p data-i18n="case4_p">Campaña OOH cultural-first con copy hiperlocal por colonia, leída como editorial.</p>
+              <div class="work-card__tags"><span>Media</span><span>Creatividad</span></div>
+            </div>
+          </article>
+
+          <article class="work-card" data-case="05">
+            <div class="work-card__media">
+              <img src="../assets/photos/photo-05.jpg" alt="" loading="lazy">
+              <span class="work-card__badge">05 / 06</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Cliente · Fashion</span>
+              <h5>Pop-up con ritmo</h5>
+              <p data-i18n="case5_p">Pop-up en Mérida con curaduría sonora local que se volvió la fiesta de la temporada.</p>
+              <div class="work-card__tags"><span>UX</span><span>Creatividad</span><span>Producción</span></div>
+            </div>
+          </article>
+
+          <article class="work-card" data-case="06">
+            <div class="work-card__media">
+              <img src="../assets/photos/photo-06.jpg" alt="" loading="lazy">
+              <span class="work-card__badge">06 / 06</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Cliente · Auto</span>
+              <h5>Ciudad como showroom</h5>
+              <p data-i18n="case6_p">Lanzamiento sin showroom: la ciudad fue la pieza central. 8 ciudades, 1 narrativa.</p>
+              <div class="work-card__tags"><span>Media</span><span>UX</span><span>Creatividad</span><span>Producción</span></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="work__controls">
+          <button class="work__btn" id="workPrev" aria-label="Previous">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="work__counter"><i id="workCurrent">01</i> / <em id="workTotal">06</em></span>
+          <button class="work__btn" id="workNext" aria-label="Next">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <!-- ============ 01 CULTURAL STACK ============ -->
+    <section class="section section--stack" id="stack">
+      <div class="section__chapter">
+        <span class="num">03</span>
+        <span class="lbl" data-i18n="ch_stack">Cultural Stack™</span>
+        <b class="dotcluster"><i></i><i></i><i></i></b>
+      </div>
+
+      <h3 class="stack__title">
+        <span data-i18n="stack_t1">Cuatro especialidades.</span>
+        <em data-i18n="stack_t2">Un cerebro creativo.</em>
+      </h3>
+
+      <div class="stack__list">
+        <article class="pillar" data-pillar="01">
+          <header class="pillar__head">
+            <span class="pillar__num">01</span>
+            <h4>Media<b class="dotcluster"><i></i><i></i><i></i></b></h4>
+            <span class="pillar__tag" data-i18n="pillar1_tag">Amplificación con intención</span>
+          </header>
+          <div class="pillar__body">
+            <p data-i18n="pillar1_p">
+              No compramos inventario: <em>curamos presencia</em>. Somos expertos
+              en <em>landmarks icónicos</em> y placements signature que convierten
+              puntos de la ciudad en hitos de marca. OOH estratégico, programático
+              contextual y planning cultural que coloca a la marca donde la
+              conversación ya está sucediendo.
+            </p>
+            <ul class="pillar__list">
+              <li data-i18n="pillar1_s1">Landmarks icónicos · placements signature</li>
+              <li data-i18n="pillar1_s2">OOH estratégico y street media curado</li>
+              <li data-i18n="pillar1_s3">Planning y compra de medios masivos</li>
+              <li data-i18n="pillar1_s4">Programmatic contextual y behavioral</li>
+              <li data-i18n="pillar1_s5">Sponsorships y branded content</li>
+              <li data-i18n="pillar1_s6">Medición de impacto cultural</li>
+            </ul><span class="pillar__quote" data-i18n="pillar1_q">La marca aparece donde importa, no donde sobra.</span>
+          </div>
+        </article>
+
+        <article class="pillar" data-pillar="02">
+          <header class="pillar__head">
+            <span class="pillar__num">02</span>
+            <h4>UX <span class="pillar__sub">Experiences</span><b class="dotcluster"><i></i><i></i><i></i></b></h4>
+            <span class="pillar__tag" data-i18n="pillar2_tag">Wow factor en el espacio</span>
+          </header>
+          <div class="pillar__body">
+            <p data-i18n="pillar2_p">
+              El espacio como interfaz. Diseñamos <em>activaciones con wow factor</em>
+              que transforman lugares en momentos memorables. Instalaciones, eventos,
+              street performances, experiencias phygital, fabricación de stands,
+              montajes y patrocinios deportivos pensados para que la gente
+              participe, no solo observe.
+            </p>
+            <ul class="pillar__list">
+              <li data-i18n="pillar2_s1">Activaciones wow factor y street marketing</li>
+              <li data-i18n="pillar2_s2">Eventos experienciales y lanzamientos</li>
+              <li data-i18n="pillar2_s3">Fabricación de stands y montajes</li>
+              <li data-i18n="pillar2_s4">Patrocinios deportivos estratégicos</li>
+              <li data-i18n="pillar2_s5">Fan experiences y activaciones en venues</li>
+              <li data-i18n="pillar2_s6">Pop-ups, retail y experiencias phygital</li>
+            </ul><span class="pillar__quote" data-i18n="pillar2_q">La ciudad se convierte en el escenario de la marca.</span>
+          </div>
+        </article>
+
+        <article class="pillar" data-pillar="03">
+          <header class="pillar__head">
+            <span class="pillar__num">03</span>
+            <h4 data-i18n="pillar3_h">Creatividad<b class="dotcluster"><i></i><i></i><i></i></b></h4>
+            <span class="pillar__tag" data-i18n="pillar3_tag">Ideas que pertenecen</span>
+          </header>
+          <div class="pillar__body">
+            <p data-i18n="pillar3_p">
+              Conceptos que nacen <em>de la cultura</em>, no que intentan apropiársela.
+              Dirección creativa, estrategia de marca y narrativas diseñadas
+              para resonar genuinamente con comunidades específicas.
+            </p>
+            <ul class="pillar__list">
+              <li data-i18n="pillar3_s1">Estrategia creativa y conceptualización</li>
+              <li data-i18n="pillar3_s2">Dirección de arte y diseño</li>
+              <li data-i18n="pillar3_s3">Copywriting cultural y tonal</li>
+              <li data-i18n="pillar3_s4">Brand narrative y storytelling</li>
+              <li data-i18n="pillar3_s5">Identidad visual y verbal</li>
+              <li data-i18n="pillar3_s6">Campañas integradas</li>
+            </ul><span class="pillar__quote" data-i18n="pillar3_q">La marca habla el idioma de su audiencia.</span>
+          </div>
+        </article>
+
+        <article class="pillar" data-pillar="04">
+          <header class="pillar__head">
+            <span class="pillar__num">04</span>
+            <h4 data-i18n="pillar4_h">Producción<b class="dotcluster"><i></i><i></i><i></i></b></h4>
+            <span class="pillar__tag" data-i18n="pillar4_tag">Producción 360°</span>
+          </header>
+          <div class="pillar__body">
+            <p data-i18n="pillar4_p">
+              Producción integral del archivo digital a la calle. Tres frentes de
+              fabricación trabajando en paralelo: <em>contenido, estructura física,
+              y materiales gráficos</em>. La idea cobra forma en video, en stand,
+              en muro, en lona, en evento.
+            </p>
+
+            <div class="pillar__subgroup">
+              <h5>Producción de contenido</h5>
+              <ul class="pillar__list">
+                <li>UGC engineering y creator economy</li>
+                <li>Brand content y video de alta producción</li>
+                <li>Social media: nativo, always-on y trends</li>
+                <li>Fotografía y dirección visual</li>
+                <li>Post-producción y motion graphics</li>
+              </ul>
+            </div>
+
+            <div class="pillar__subgroup">
+              <h5>Producción de stands &amp; letreros 3D</h5>
+              <ul class="pillar__list">
+                <li>Diseño y fabricación de stands</li>
+                <li>Letreros 3D y signage volumétrico</li>
+                <li>Estructuras escenográficas y montajes</li>
+                <li>Activaciones in-store y retail builds</li>
+              </ul>
+            </div>
+
+            <div class="pillar__subgroup">
+              <h5>Producción de diseño e impresión</h5>
+              <ul class="pillar__list">
+                <li>Impresión de gran formato</li>
+                <li>Impresión de publicidad y POP</li>
+                <li>Diseño gráfico e ilustración</li>
+                <li>Vinil decorativo y wall graphics</li>
+              </ul>
+            </div><span class="pillar__quote" data-i18n="pillar4_q">La marca genera conversación, no solo mensajes.</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <!-- ============ 04 CLIENTES ============ -->
+    <section class="section section--clientes" id="clientes">
+      <div class="section__chapter">
+        <span class="num">04</span>
+        <span class="lbl" data-i18n="ch_clients">Confían en nosotros</span>
+        <b class="dotcluster"><i></i><i></i><i></i></b>
+      </div>
+
+      <h3 class="clientes__title">
+        <span data-i18n="clientes_t1">Marcas que entienden que la cultura</span>
+        <em data-i18n="clientes_t2">no se compra: se construye.</em>
+      </h3>
+
+      <div class="clientes__grid">
+        <a class="client-cell" href="#" data-brand="Tequila Patrón">
+          <img src="https://logo.clearbit.com/patrontequila.com?size=512" alt="Tequila Patrón" loading="lazy">
+          <span class="client-cell__name">Tequila Patrón</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Bacardí">
+          <img src="https://logo.clearbit.com/bacardi.com?size=512" alt="Bacardí" loading="lazy">
+          <span class="client-cell__name">Bacardí</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Banamex">
+          <img src="../assets/clients/banamex.svg" alt="Banamex" loading="lazy">
+          <span class="client-cell__name">Banamex</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Lala">
+          <img src="../assets/clients/lala.svg" alt="Lala" loading="lazy">
+          <span class="client-cell__name">Lala</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Total Play">
+          <img src="https://logo.clearbit.com/totalplay.com.mx?size=512" alt="Total Play" loading="lazy">
+          <span class="client-cell__name">Total Play</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Banco Azteca">
+          <img src="https://logo.clearbit.com/bancoazteca.com.mx?size=512" alt="Banco Azteca" loading="lazy">
+          <span class="client-cell__name">Banco Azteca</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Shoppealo">
+          <img src="https://logo.clearbit.com/shoppealo.com?size=512" alt="Shoppealo" loading="lazy">
+          <span class="client-cell__name">Shoppealo</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Walmart">
+          <img src="../assets/clients/walmart.svg" alt="Walmart" loading="lazy">
+          <span class="client-cell__name">Walmart</span>
+        </a>
+      </div>
+
+      <p class="clientes__note" data-i18n="clientes_note">
+        Y muchas marcas más que confían su cultura a Connectia.
+      </p>
+    </section>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <!-- ============ 05 CONTACTO ============ -->
+    <section class="section section--contact" id="contacto">
+      <canvas class="cosmos cosmos--inline" id="cosmosContact" aria-hidden="true"></canvas>
+
+      <div class="section__chapter">
+        <span class="num">05</span>
+        <span class="lbl" data-i18n="ch_contact">Hablemos</span>
+        <b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b>
+      </div>
+
+      <h3 class="contact__big">
+        <span data-i18n="contact_l1">¿Tienes una idea</span>
+        <em data-i18n="contact_l2">que merece la calle?</em>
+      </h3>
+
+      <div class="contact__grid">
+        <a class="contact__email" href="mailto:hola@connectia.mx">
+          <span data-i18n="write_us">Escríbenos —</span>
+          <strong>hola@connectia.mx</strong>
+        </a>
+
+        <div class="contact__offices">
+          <div class="office">
+            <h6>CDMX<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></h6>
+            <p>Roma Norte</p>
+            <span class="clock" data-tz="America/Mexico_City">--:--</span>
+          </div>
+          <div class="office">
+            <h6>MTY<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></h6>
+            <p>Centrito Valle</p>
+            <span class="clock" data-tz="America/Monterrey">--:--</span>
+          </div>
+          <div class="office">
+            <h6>GDL<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></h6>
+            <p>Providencia</p>
+            <span class="clock" data-tz="America/Mexico_City">--:--</span>
+          </div>
+          <div class="office">
+            <h6>MID<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></h6>
+            <p>Centro</p>
+            <span class="clock" data-tz="America/Merida">--:--</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+      <canvas class="cosmos cosmos--footer" id="cosmosFooter" aria-hidden="true"></canvas>
+
+      <div class="footer__top">
+        <div class="footer__col">
+          <span class="footer__lbl" data-i18n="ftr_navigate">Navega</span>
+          <a href="#stack">01 — Especialidades</a>
+          <a href="#manifesto">02 — Manifiesto</a>
+          <a href="#work">03 — Casos</a>
+          <a href="#clientes">04 — Clientes</a>
+          <a href="#contacto">05 — Hablemos</a>
+        </div>
+        <div class="footer__col">
+          <span class="footer__lbl" data-i18n="ftr_social">Social</span>
+          <a href="#">Instagram</a>
+          <a href="#">LinkedIn</a>
+          <a href="#">TikTok</a>
+          <a href="#">Vimeo</a>
+        </div>
+        <div class="footer__col">
+          <span class="footer__lbl" data-i18n="ftr_contact">Contacto</span>
+          <a href="mailto:hola@connectia.mx">hola@connectia.mx</a>
+          <a href="tel:+525500000000">+52 55 0000 0000</a>
+        </div>
+        <div class="footer__col footer__col--sign">
+          <span class="footer__sign">Out of Noise.<br>Since 2024.<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></span>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© 2026 Connectia · La ciudad es el medio. La cultura es el mensaje.</span>
+        <span class="footer__legal">
+          <a href="#" data-i18n="ftr_privacy">Privacidad</a>
+          <a href="#" data-i18n="ftr_terms">Términos</a>
+        </span>
+      </div>
+
+      <div class="footer__wordmark" aria-hidden="true">
+        <span class="bigword bigword--footer" id="footerWord">
+          <i>c</i><i>o</i><i>n</i><i>n</i><i>e</i><i>c</i><i>t</i><i>i</i><i>a</i><b class="bigword__cluster"><i></i><i></i><i></i></b>
+        </span>
+      </div>
+    </footer>
+  </main>
+
+  <script src="main.js"></script>
+</body>
+</html>
