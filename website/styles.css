@@ -50,6 +50,7 @@ img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; background: none; border: 0; color: inherit; cursor: pointer; }
 
+.hero__scroll-mobile { display: none; }
 @media (hover: hover) and (pointer: fine) {
   body { cursor: none; }
   a, button, input, textarea, [role="button"] { cursor: none; }
@@ -1757,9 +1758,9 @@ body.nav-open .nav { transform: translateY(0); }
     display: none;
   }
   .hero__block--1 {
-    flex: 0 0 88vh;
-    min-height: 88vh;
-    height: 88vh;
+    flex: 0 0 100vh;
+    min-height: 100vh;
+    height: 100vh;
   }
   .hero__block--2 {
     flex: 1 1 auto;
