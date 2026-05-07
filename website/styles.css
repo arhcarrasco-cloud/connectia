@@ -1052,7 +1052,7 @@ body.nav-open .nav { transform: translateY(0); }
 
 .brain__hint {
   position: absolute;
-  bottom: 24px; left: 50%;
+  bottom: 80px; left: 50%;
   transform: translateX(-50%);
   z-index: 5;
   font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500;
