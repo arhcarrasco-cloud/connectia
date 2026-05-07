@@ -1282,7 +1282,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.pillar').forEach((pillar) => {
     const head = pillar.querySelector('.pillar__head');
     head.addEventListener('click', () => pillar.classList.toggle('is-open'));
-    pillar.classList.add('is-open');
+    // pillar starts collapsed
   });
 
   // WORK CAROUSEL
