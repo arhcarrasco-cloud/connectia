@@ -313,6 +313,7 @@ body.nav-open .nav { transform: translateY(0); }
   margin-left: calc(-50vw + 50%);
   isolation: isolate;
   overflow: hidden;
+  background: var(--cosmic-bg);
 }
 .hero__block--1 #cosmosHero {
   position: absolute;
@@ -1710,6 +1711,8 @@ body.nav-open .nav { transform: translateY(0); }
 @media (hover: none) and (pointer: coarse) {
   .hero__block--1 #cosmosHero {
     pointer-events: auto;
+    touch-action: none;
+    z-index: 5;
   }
 }
 

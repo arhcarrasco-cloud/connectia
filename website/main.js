@@ -1069,21 +1069,46 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const cosmosHero = document.getElementById('cosmosHero');
-  if (cosmosHero) new Cosmos(cosmosHero, {
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const heroCosmosInstance = cosmosHero ? new Cosmos(cosmosHero, {
     ...darkCosmosOpts,
-    density: 0.00018, // denser starfield — universe feels alive around the rotator
+    density: 0.00018,
     cursorRadius: 280,
     maxLinkDist: 200,
-    // Hidden logo: stars seeded at logo pixel positions; cursor reveals them as a constellation
     logo: {
       src: '../assets/logo/connectia-white.png',
-      widthRatio: 0.42,    // smaller logo
-      maxWidth: 720,
-      step: 5,             // dense sampling for fine detail (no pixelation)
-      revealRadius: 220,
-      decay: 0.0085,       // slow fade so dissolve effect is visible
+      widthRatio: isTouchDevice ? 0.7 : 0.42,
+      maxWidth: isTouchDevice ? 500 : 720,
+      step: isTouchDevice ? 7 : 5,
+      revealRadius: isTouchDevice ? 300 : 220,
+      decay: isTouchDevice ? 0.005 : 0.0085,
     },
-  });
+  }) : null;
+
+  // Mobile auto-reveal: sweep a virtual cursor across the logo to reveal it
+  if (isTouchDevice && heroCosmosInstance) {
+    setTimeout(() => {
+      const c = heroCosmosInstance;
+      if (!c.logoStars.length) return;
+      const cx = c.w / 2, cy = c.h / 2;
+      const sweepW = c.w * 0.6;
+      let frame = 0;
+      const totalFrames = 90;
+      function autoReveal() {
+        const t = frame / totalFrames;
+        c.mouse.x = cx - sweepW / 2 + sweepW * t;
+        c.mouse.y = cy + Math.sin(t * Math.PI) * 40;
+        c.mouse.active = true;
+        frame++;
+        if (frame <= totalFrames) {
+          requestAnimationFrame(autoReveal);
+        } else {
+          c.mouse.active = false;
+        }
+      }
+      autoReveal();
+    }, 1800);
+  }
 
 
   // Block 2: white/paper universe — purple stars on light background, full-screen
