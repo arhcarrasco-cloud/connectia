@@ -1352,23 +1352,43 @@ document.addEventListener('DOMContentLoaded', () => {
   revealEls.forEach(el => io.observe(el));
 
 
-// Auto-play case videos when visible
+// Auto-play case videos
+function playAllCaseVideos() {
+  document.querySelectorAll(".work-card__media video").forEach(v => {
+    v.muted = true;
+    v.playsInline = true;
+    v.loop = true;
+    v.preload = "auto";
+    v.removeAttribute("controls");
+    v.setAttribute("webkit-playsinline", "");
+    v.play().catch(() => {});
+  });
+}
+// Play immediately
+playAllCaseVideos();
+// Also play after any user interaction (iOS requirement)
+document.addEventListener("touchstart", function once() {
+  playAllCaseVideos();
+  document.removeEventListener("touchstart", once);
+}, { once: true });
+document.addEventListener("click", function once() {
+  playAllCaseVideos();
+  document.removeEventListener("click", once);
+}, { once: true });
+// Re-play on scroll into view
 const videoObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     const video = entry.target;
     if (entry.isIntersecting) {
       video.play().catch(() => {});
-    } else {
-      video.pause();
     }
   });
-}, { threshold: 0.3 });
-document.querySelectorAll(".work-card__media video").forEach(v => {
-  v.muted = true;
-  v.playsInline = true;
-  v.loop = true;
-  v.removeAttribute("controls");
-  videoObserver.observe(v);
-});
+}, { threshold: 0.1 });
+document.querySelectorAll(".work-card__media video").forEach(v => videoObserver.observe(v));
+// Re-play on carousel slide change
+const workNext = document.getElementById("workNext");
+const workPrev = document.getElementById("workPrev");
+if (workNext) workNext.addEventListener("click", () => setTimeout(playAllCaseVideos, 300));
+if (workPrev) workPrev.addEventListener("click", () => setTimeout(playAllCaseVideos, 300));
 
 });
