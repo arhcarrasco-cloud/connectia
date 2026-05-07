@@ -1350,4 +1350,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
   revealEls.forEach(el => io.observe(el));
+
+
+// Auto-play case videos when visible
+const videoObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const video = entry.target;
+    if (entry.isIntersecting) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll(".work-card__media video").forEach(v => {
+  v.muted = true;
+  v.playsInline = true;
+  v.loop = true;
+  v.removeAttribute("controls");
+  videoObserver.observe(v);
+});
+
 });
