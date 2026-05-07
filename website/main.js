@@ -1391,4 +1391,13 @@ const workPrev = document.getElementById("workPrev");
 if (workNext) workNext.addEventListener("click", () => setTimeout(playAllCaseVideos, 300));
 if (workPrev) workPrev.addEventListener("click", () => setTimeout(playAllCaseVideos, 300));
 
+
+// Hide mobile scroll button after passing block 1
+const mobileScrollBtn = document.querySelector(".hero__scroll-mobile");
+if (mobileScrollBtn) {
+  window.addEventListener("scroll", () => {
+    mobileScrollBtn.style.opacity = window.scrollY > window.innerHeight * 0.5 ? "0" : "1";
+    mobileScrollBtn.style.pointerEvents = window.scrollY > window.innerHeight * 0.5 ? "none" : "auto";
+  });
+}
 });
