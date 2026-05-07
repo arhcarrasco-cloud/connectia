@@ -244,6 +244,38 @@ class Cosmos {
       this.mouse.active = (this.mouse.x >= 0 && this.mouse.x <= this.w && this.mouse.y >= 0 && this.mouse.y <= this.h);
     });
     window.addEventListener('mouseleave', () => { this.mouse.active = false; });
+
+    // Touch support for mobile/tablet
+    const handleTouch = (e) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      const r = this.canvas.getBoundingClientRect();
+      this.mouse.x = touch.clientX - r.left;
+      this.mouse.y = touch.clientY - r.top;
+      this.mouse.active = (this.mouse.x >= 0 && this.mouse.x <= this.w && this.mouse.y >= 0 && this.mouse.y <= this.h);
+    };
+    window.addEventListener('touchstart', handleTouch, { passive: true });
+    window.addEventListener('touchmove', handleTouch, { passive: true });
+    window.addEventListener('touchend', () => { this.mouse.active = false; });
+
+    // Direct touch listeners on canvas for mobile (canvas has pointer-events:none in CSS)
+    this.canvas.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      const r = this.canvas.getBoundingClientRect();
+      this.mouse.x = touch.clientX - r.left;
+      this.mouse.y = touch.clientY - r.top;
+      this.mouse.active = true;
+    }, { passive: true });
+    this.canvas.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      const r = this.canvas.getBoundingClientRect();
+      this.mouse.x = touch.clientX - r.left;
+      this.mouse.y = touch.clientY - r.top;
+      this.mouse.active = true;
+    }, { passive: true });
+    this.canvas.addEventListener('touchend', () => { this.mouse.active = false; });
   }
   loop() {
     const ctx = this.ctx;

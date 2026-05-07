@@ -1702,6 +1702,161 @@ body.nav-open .nav { transform: translateY(0); }
 .brain__node:hover .brain__node-num,
 .brain__node.is-active .brain__node-num { opacity: 1; }
 
+/* =====================
+   MOBILE & TABLET RESPONSIVE
+   ===================== */
+
+/* Touch devices: allow cosmos canvas to receive touch events */
+@media (hover: none) and (pointer: coarse) {
+  .hero__block--1 #cosmosHero {
+    pointer-events: auto;
+  }
+}
+
+/* Work section mobile */
+@media (max-width: 768px) {
+  .work-card {
+    flex: 0 0 85vw;
+  }
+  .work-card__media {
+    aspect-ratio: 3 / 4;
+  }
+  .work-card__media video,
+  .work-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .work-card {
+    flex: 0 0 55vw;
+  }
+}
+
+/* Hero section mobile */
+@media (max-width: 768px) {
+  .hero {
+    min-height: auto;
+    padding: 0;
+    gap: 0;
+  }
+  .hero__topline {
+    position: absolute;
+    top: 80px;
+    left: var(--pad);
+    right: var(--pad);
+    z-index: 10;
+    font-size: 10px;
+  }
+  .hero__cities {
+    display: none;
+  }
+  .hero__block--1 {
+    flex: 0 0 60vh;
+    min-height: 60vh;
+    height: 60vh;
+  }
+  .hero__block--2 {
+    flex: 1 1 auto;
+    min-height: 50vh;
+    padding: 40px var(--pad);
+  }
+  .hero__big-intro {
+    font-size: clamp(40px, 12vw, 80px) !important;
+    white-space: normal !important;
+    word-spacing: 0.05em;
+  }
+  .hero__tagline {
+    font-size: clamp(16px, 4.5vw, 24px) !important;
+    white-space: normal !important;
+    max-width: 100%;
+    padding: 0 16px;
+    line-height: 1.3;
+  }
+  .hero__scroll {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .hero__block--1 {
+    flex: 0 0 70vh;
+    min-height: 70vh;
+    height: 70vh;
+  }
+  .hero__block--2 {
+    min-height: 50vh;
+  }
+  .hero__big-intro {
+    font-size: clamp(48px, 8vw, 120px) !important;
+  }
+  .hero__tagline {
+    font-size: clamp(18px, 3vw, 30px) !important;
+  }
+}
+
+/* Stack/Pillars tablet */
+@media (min-width: 721px) and (max-width: 1024px) {
+  .pillar__head {
+    grid-template-columns: 60px 1fr auto;
+    gap: 20px;
+  }
+  .pillar__body {
+    padding: 0 20px 0 80px;
+  }
+  .pillar__list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Contact section small mobile */
+@media (max-width: 480px) {
+  .contact__offices {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .contact__big {
+    font-size: clamp(36px, 10vw, 56px);
+  }
+}
+
+/* Footer small mobile */
+@media (max-width: 480px) {
+  .footer__top {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .footer {
+    padding: 40px var(--pad) 0;
+  }
+}
+
+/* Header mobile touch improvements */
+@media (max-width: 768px) {
+  .header__menu {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .header__logo img {
+    height: 32px;
+  }
+}
+
+/* Nav overlay mobile */
+@media (max-width: 768px) {
+  .nav__inner {
+    padding: 100px var(--pad) 30px;
+  }
+  .nav__list a {
+    font-size: clamp(32px, 10vw, 48px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
