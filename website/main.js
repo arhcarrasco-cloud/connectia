@@ -187,9 +187,8 @@ class Cosmos {
         if (data[i + 3] > 160) points.push([x / scale, y / scale]);
       }
     }
-    // Right-aligned position with breathing room
-    const paddingRight = Math.max(40, this.w * 0.05);
-    const offsetX = this.w - targetW - paddingRight;
+    // Centered position so the logo is easy to discover
+    const offsetX = (this.w - targetW) / 2;
     const offsetY = (this.h - targetH) / 2;
     // Tiny crisp points with sub-pixel jitter (avoids visible sampling grid) +
     // per-star oscillator data for the dissolve/reform effect
@@ -352,7 +351,7 @@ class Cosmos {
           ctx.fill();
         }
       }
-      // Pass 2: sharp core + decay
+      // Pass 2: sharp core only for activated stars (logo invisible until cursor reveals)
       for (let i = 0; i < this.logoStars.length; i++) {
         const ls = this.logoStars[i];
         if (ls.t > 0.02) {
@@ -1055,6 +1054,25 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
+  // Block 2: white/paper universe — purple stars on light background, full-screen
+  const cosmosHeroLight = document.getElementById('cosmosHeroLight');
+  if (cosmosHeroLight) new Cosmos(cosmosHeroLight, {
+    starColor: 'rgba(110, 31, 161, 0.85)',
+    starColor2: 'rgba(40, 30, 60, 0.55)',
+    lineColor: '110, 31, 161',
+    cursorColor: '110, 31, 161',
+    maxLinkDist: 170,
+    cursorRadius: 240,
+    density: 0.00014,
+  });
+
+  // Casos section: cosmic universe with cursor-connecting stars
+  const cosmosWork = document.getElementById('cosmosWork');
+  if (cosmosWork) new Cosmos(cosmosWork, {
+    ...darkCosmosOpts,
+    density: 0.0001,
+  });
+
   const cosmosManifesto = document.getElementById('cosmosManifesto');
   if (cosmosManifesto) new Cosmos(cosmosManifesto, darkCosmosOpts);
 
@@ -1090,20 +1108,41 @@ document.addEventListener('DOMContentLoaded', () => {
     applyLang(next);
   });
 
-  // HERO MODISMOS ROTATOR — fast cycle
+  // Auto-scroll to ?goto=<id> after page settles (workaround for hash being clobbered by dynamic layout)
+  (function autoScrollFromQuery() {
+    try {
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+      const m = location.search.match(/[?&]goto=([^&]+)/);
+      if (!m) return;
+      const id = decodeURIComponent(m[1]);
+      const scrollIt = () => {
+        const target = document.getElementById(id);
+        if (target) {
+          const top = target.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo(0, top);
+        }
+      };
+      [50, 200, 500, 1200, 2400, 4000].forEach(t => setTimeout(scrollIt, t));
+    } catch (e) { /* noop */ }
+  })();
+
+  // HERO MODISMOS ROTATOR — single em, swap textContent
   const rotator = document.getElementById('rotator');
   if (rotator) {
-    const items = Array.from(rotator.querySelectorAll('em'));
+    const words = (rotator.dataset.words || '').split('|').filter(Boolean);
+    const em = rotator.querySelector('em');
     let idx = 0;
-    setInterval(() => {
-      const current = items[idx];
-      idx = (idx + 1) % items.length;
-      const next = items[idx];
-      current.classList.remove('is-active');
-      current.classList.add('is-out');
-      next.classList.add('is-active');
-      setTimeout(() => current.classList.remove('is-out'), 600);
-    }, 1300);
+    if (words.length && em) {
+      em.textContent = words[0];
+      setInterval(() => {
+        em.classList.add('is-out');
+        setTimeout(() => {
+          idx = (idx + 1) % words.length;
+          em.textContent = words[idx];
+          em.classList.remove('is-out');
+        }, 350);
+      }, 1300);
+    }
   }
 
   // HERO SLIDESHOW — fast cycling background images

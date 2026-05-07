@@ -306,8 +306,11 @@ body.nav-open .nav { transform: translateY(0); }
 }
 /* BLOCK 1 — only universe + cursor reveals logo constellation */
 .hero__block--1 {
-  flex: 1 1 50vh;
-  min-height: 50vh;
+  flex: 0 0 100vh;
+  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
   isolation: isolate;
   overflow: hidden;
 }
@@ -336,13 +339,17 @@ body.nav-open .nav { transform: translateY(0); }
 
 /* BLOCK 2 — white universe + Somos rotator centered */
 .hero__block--2 {
-  flex: 1 1 50vh;
-  min-height: 50vh;
+  flex: 1 1 70vh;
+  min-height: 70vh;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
   isolation: isolate;
   overflow: hidden;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 28px;
   background: var(--paper);
   position: relative;
 }
@@ -372,12 +379,38 @@ body.nav-open .nav { transform: translateY(0); }
   text-shadow: none !important;
 }
 
+/* Tagline below rotator in block 2 — only "las vuelve cultura" in bold */
+.hero__tagline {
+  position: relative;
+  z-index: 5;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 35px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-align: center;
+  white-space: nowrap;
+  margin: 0;
+  padding: 0 24px;
+}
+.hero__tagline em {
+  font-style: italic;
+  color: var(--purple);
+  font-weight: 700;
+}
+@media (max-width: 1200px) {
+  .hero__tagline {
+    font-size: clamp(16px, 2.5vw, 35px);
+    white-space: normal;
+    max-width: 90%;
+  }
+}
+
 .hero__big-intro {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.25em;
+  display: block;
+  margin: 0 auto;
   font-family: var(--serif);
   font-style: italic;
   font-size: clamp(56px, 10vw, 168px);
@@ -386,33 +419,28 @@ body.nav-open .nav { transform: translateY(0); }
   color: var(--paper);
   text-align: center;
   text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  word-spacing: 0.18em;
 }
 .hero__big-intro .hero__intro-we {
   color: var(--paper);
   font-weight: 400;
 }
 .rotator--big {
-  position: relative;
-  display: inline-block;
-  height: 1em;
-  min-width: 5em;
-  overflow: hidden;
-  vertical-align: bottom;
+  display: inline;
+  font-style: italic;
   color: var(--paper);
-  text-shadow: 0 0 1px rgba(255, 255, 255, 0.4);
   font-weight: 400;
 }
 .rotator--big em {
-  position: absolute;
-  inset: 0;
   font-style: italic;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateY(110%);
-  transition: opacity 0.7s var(--easing), transform 0.7s var(--easing);
+  display: inline-block;
+  transition: opacity 0.35s var(--easing), transform 0.35s var(--easing);
 }
-.rotator--big em.is-active { opacity: 1; transform: translateY(0); }
-.rotator--big em.is-out { opacity: 0; transform: translateY(-110%); }
+.rotator--big em.is-out {
+  opacity: 0;
+  transform: translateY(-30%);
+}
 
 /* HERO BLOCK 2: "somos" small lead positioned just above the giant logo, both inside overlay grid */
 .hero__lead {
@@ -511,28 +539,7 @@ body.nav-open .nav { transform: translateY(0); }
   letter-spacing: -0.01em;
   color: var(--paper);
 }
-.hero__intro-we { color: rgba(245, 243, 238, 0.55); }
-.rotator {
-  display: inline-block;
-  position: relative;
-  height: 1em;
-  min-width: 8em;
-  overflow: hidden;
-  vertical-align: bottom;
-  color: var(--purple-soft);
-  text-shadow: 0 0 32px var(--purple-glow);
-}
-.rotator em {
-  position: absolute;
-  inset: 0;
-  font-style: italic;
-  opacity: 0;
-  transform: translateY(110%);
-  transition: opacity 0.6s var(--easing), transform 0.6s var(--easing);
-  white-space: nowrap;
-}
-.rotator em.is-active { opacity: 1; transform: translateY(0); }
-.rotator em.is-out { opacity: 0; transform: translateY(-110%); }
+/* Old .rotator rules removed — handled by .rotator--big inline approach */
 
 /* GIANT WORDMARK with universe inside — cursor lights up letters */
 .hero__wordmark {
@@ -1253,11 +1260,32 @@ body.nav-open .nav { transform: translateY(0); }
    WORK CAROUSEL
    ===================== */
 .section--work {
-  background: var(--paper);
+  background: var(--cosmic-bg);
+  color: var(--paper);
+  border-top-color: var(--cosmic-bg);
   isolation: isolate;
   overflow: hidden;
+  padding-bottom: 60px;        /* tighter so no empty universe trails after */
 }
 .section--work > *:not(canvas) { position: relative; z-index: 2; }
+.section--work .section__chapter { color: rgba(245, 243, 238, 0.5); }
+.section--work .section__chapter .num { color: var(--purple-soft); }
+.section--work .work-card__meta h5 { color: var(--paper); }
+.section--work .work-card__meta p { color: rgba(245, 243, 238, 0.78); }
+.section--work .work-card__client { color: rgba(245, 243, 238, 0.6); }
+.section--work .work-card__tags span {
+  border-color: rgba(245, 243, 238, 0.25);
+  color: rgba(245, 243, 238, 0.85);
+}
+.section--work .work__btn {
+  border-color: rgba(245, 243, 238, 0.3);
+  color: var(--paper);
+}
+.section--work .work__btn:hover {
+  background: var(--purple);
+  border-color: var(--purple);
+}
+.section--work .work__counter { color: rgba(245, 243, 238, 0.7); }
 .work__carousel { position: relative; z-index: 2; }
 .work__viewport {
   display: flex; gap: 24px;
@@ -1284,12 +1312,15 @@ body.nav-open .nav { transform: translateY(0); }
   border-radius: 6px;
   background: var(--grey-5);
 }
-.work-card__media img {
+.work-card__media img,
+.work-card__media video {
   width: 100%; height: 100%;
   object-fit: cover;
   transition: transform 0.8s var(--easing);
+  display: block;
 }
-.work-card:hover .work-card__media img { transform: scale(1.05); }
+.work-card:hover .work-card__media img,
+.work-card:hover .work-card__media video { transform: scale(1.05); }
 .work-card__badge {
   position: absolute;
   top: 16px; left: 16px;
@@ -1351,12 +1382,26 @@ body.nav-open .nav { transform: translateY(0); }
 .section--clientes > *:not(canvas) { position: relative; z-index: 2; }
 .clientes__title {
   font-family: var(--serif); font-weight: 400;
-  font-size: clamp(36px, 5vw, 72px);
-  line-height: 1.05; letter-spacing: -0.02em;
-  margin-bottom: 40px;
-  max-width: 18ch;
+  font-size: clamp(28px, 3vw, 46px);
+  line-height: 1.4; letter-spacing: -0.01em;
+  margin: 0 0 24px;
+  max-width: none;
+  width: 100%;
+  text-align: left;
+  color: var(--ink);
 }
-.clientes__title em { color: var(--purple); font-style: italic; }
+.clientes__title span { display: inline; }
+.clientes__epilogue {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(28px, 3vw, 46px);
+  font-weight: 400;
+  color: var(--ink);
+  margin: 0 0 48px;
+  text-align: left;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
 
 .clientes__grid {
   display: grid;
@@ -1374,14 +1419,20 @@ body.nav-open .nav { transform: translateY(0); }
   overflow: hidden;
   transition: background 0.4s var(--easing);
 }
-.client-cell img {
-  max-width: 70%;
-  max-height: 60%;
+.client-cell img,
+.client-cell .client-logo {
+  max-width: 75%;
+  max-height: 65%;
   width: auto; height: auto;
   object-fit: contain;
-  filter: grayscale(1) brightness(0.4);
+  filter: grayscale(1) brightness(0.65) contrast(1.2);
   transition: filter 0.5s var(--easing), transform 0.5s var(--easing);
-  opacity: 0.85;
+  opacity: 0.92;
+}
+.client-cell .client-logo { display: block; }
+/* Banco Azteca tiene detalle fino — quitar grayscale agresivo para que se vea delineado */
+.client-cell[data-brand="Banco Azteca"] img {
+  filter: grayscale(0.4) brightness(0.95) contrast(1.1);
 }
 .client-cell__name {
   position: absolute;
@@ -1405,7 +1456,8 @@ body.nav-open .nav { transform: translateY(0); }
 .client-cell:hover {
   background: var(--paper-warm);
 }
-.client-cell:hover img {
+.client-cell:hover img,
+.client-cell:hover .client-logo {
   filter: grayscale(0) brightness(1);
   transform: scale(1.06);
   opacity: 1;

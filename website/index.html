@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://logo.clearbit.com">
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=15" />
 </head>
 <body>
 
@@ -48,7 +48,6 @@
       <ul class="nav__list">
         <li><a href="#top" data-i18n="nav_home">Inicio<i class="dotcluster"><i></i><i></i><i></i></i></a></li>
         <li><a href="#stack" data-i18n="nav_stack">Especialidades</a></li>
-        <li><a href="#manifesto" data-i18n="nav_manifesto">Manifiesto</a></li>
         <li><a href="#work" data-i18n="nav_work">Casos</a></li>
         <li><a href="#clientes" data-i18n="nav_clients">Clientes</a></li>
         <li><a href="#contacto" data-i18n="nav_contact">Contacto</a></li>
@@ -83,127 +82,23 @@
       <!-- BLOCK 1 (top): ONLY universe + cursor reveals connectia logo constellation -->
       <div class="hero__block hero__block--1">
         <canvas class="cosmos cosmos--inline" id="cosmosHero" aria-hidden="true"></canvas>
-        <span class="hero__hint" aria-hidden="true">Mueve el cursor para revelar</span>
       </div>
 
-      <!-- BLOCK 2 (bottom): slideshow background + Somos rotator centered overlay -->
+      <!-- BLOCK 2 (bottom): white universe full-screen + Somos rotator centered -->
       <div class="hero__block hero__block--2">
-        <div class="hero__slideshow" id="heroSlideshow" aria-hidden="true">
-          <img src="./assets/photos/photo-01.jpg" class="slide is-active" alt="">
-          <img src="./assets/photos/photo-02.jpg" class="slide" alt="">
-          <img src="./assets/photos/photo-03.jpg" class="slide" alt="">
-          <img src="./assets/photos/photo-04.jpg" class="slide" alt="">
-          <img src="./assets/photos/photo-05.jpg" class="slide" alt="">
-          <img src="./assets/photos/photo-06.jpg" class="slide" alt="">
-        </div>
-        <div class="hero__slideshow-veil"></div>
-        <div class="hero__big-intro">
-          <span class="hero__intro-we" data-i18n="hero_we_are">Somos</span>
-          <span class="rotator rotator--big" id="rotator">
-            <em class="is-active">esquites</em>
-            <em>elote en vaso</em>
-            <em>wey</em>
-            <em>güey</em>
-            <em>chido</em>
-            <em>órale</em>
-            <em>ándale</em>
-            <em>chilango</em>
-            <em>no manches</em>
-            <em>compadre</em>
-            <em>compa</em>
-            <em>raza</em>
-            <em>regio</em>
-            <em>norteño</em>
-            <em>jefa</em>
-            <em>jefe</em>
-            <em>vato</em>
-            <em>tapatío</em>
-            <em>mi rey</em>
-            <em>mi reina</em>
-            <em>carnal</em>
-            <em>compita</em>
-            <em>mero mero</em>
-            <em>mare</em>
-            <em>pana</em>
-            <em>yucateco</em>
-            <em>comadre</em>
-            <em>chamaco</em>
-            <em>morro</em>
-            <em>cabula</em>
-            <em>papá</em>
-            <em>cuate</em>
-            <em>chela</em>
-            <em>corazón</em>
-            <em>chamba</em>
-            <em>al tiro</em>
-            <em>cultura</em>
-          </span>
-        </div>
+        <canvas class="cosmos cosmos--inline" id="cosmosHeroLight" aria-hidden="true"></canvas>
+        <h1 class="hero__big-intro hero__big-intro--dark">
+          <span class="hero__intro-we" data-i18n="hero_we_are">Somos</span> <span class="rotator rotator--big" id="rotator" data-words="esquites|elote en vaso|taco|tortilla|chela|wey|güey|compa|compadre|carnal|cuate|vato|bro|broki|raza|pana|nave|carro|troca|ranfla|jefa|ma|madre|amá|mami|jefe|pa|padre|apá|papi|mi rey|mi reina|corazón|mi amor|chilango|regio|tapatío|yucateco|norteño|chido|órale|ándale|no manches|cultura"><em>esquites</em></span>
+        </h1>
+        <p class="hero__tagline">
+          Somos una agencia creativa que no amplifica marcas: <em>las vuelve cultura.</em>
+        </p>
       </div>
 
       <a href="#stack" class="hero__scroll">
         <span data-i18n="scroll">Scroll</span>
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
-    </section>
-
-    <!-- ============ 02 MANIFIESTO + CEREBRO CREATIVO ============ -->
-    <section class="section section--manifesto" id="manifesto">
-      <canvas class="cosmos cosmos--inline" id="cosmosManifesto" aria-hidden="true"></canvas>
-
-      <div class="section__chapter">
-        <span class="num">01</span>
-        <span class="lbl" data-i18n="ch_manifesto">Manifiesto · Cerebro creativo</span>
-        <b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b>
-      </div>
-
-      <h3 class="manifesto__big">
-        <span data-i18n="manifesto_l1">No hacemos</span>
-        <em data-i18n="manifesto_l2">Out of Home.</em>
-        <span data-i18n="manifesto_l3">Hacemos</span>
-        <em class="accent">
-          <span class="noise-text" data-text="Out of Noise.">Out of Noise.</span>
-        </em>
-      </h3>
-
-      <div class="brain brain--dust" id="brain">
-        <canvas class="brain__canvas" id="brainCanvas" aria-hidden="true"></canvas>
-
-        <div class="brain__core" id="brainCore">
-          <div class="brain__halo"></div>
-          <div class="brain__logo">
-            <img class="dust-text" src="./assets/logo/connectia-white.png" alt="Connectia" />
-          </div>
-        </div>
-
-        <article class="brain__node" data-node="01" style="--x:14%; --y:24%;">
-          <span class="brain__node-num">·01</span>
-          <h6 class="dust-text">Media</h6>
-        </article>
-        <article class="brain__node" data-node="02" style="--x:86%; --y:24%;">
-          <span class="brain__node-num">·02</span>
-          <h6 class="dust-text">UX</h6>
-        </article>
-        <article class="brain__node" data-node="03" style="--x:18%; --y:76%;">
-          <span class="brain__node-num">·03</span>
-          <h6 class="dust-text">Creatividad</h6>
-        </article>
-        <article class="brain__node" data-node="04" style="--x:82%; --y:76%;">
-          <span class="brain__node-num">·04</span>
-          <h6 class="dust-text">Producción</h6>
-        </article>
-
-        <div class="brain__hint">
-          <span data-i18n="brain_hint">Mueve el cursor para revelar</span>
-          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-      </div>
-
-      <p class="manifesto__sub" data-i18n="manifesto_sub">
-        Hacemos cultural marketing: marcas que <em>pertenecen</em> a la cultura, no que la rentan.
-        No interrumpimos conversaciones — las generamos. No buscamos audiencia — buscamos
-        comunidad. Conectamos marcas con la cultura, no con la métrica.
-      </p>
     </section>
 
     
@@ -222,8 +117,10 @@
 
     <!-- ============ 03 WORK ============ -->
     <section class="section section--work" id="work">
+      <canvas class="cosmos cosmos--inline" id="cosmosWork" aria-hidden="true"></canvas>
+
       <div class="section__chapter">
-        <span class="num">02</span>
+        <span class="num">01</span>
         <span class="lbl" data-i18n="ch_work">Casos</span>
         <b class="dotcluster"><i></i><i></i><i></i></b>
       </div>
@@ -232,27 +129,27 @@
         <div class="work__viewport" id="workViewport">
           <article class="work-card is-active" data-case="01">
             <div class="work-card__media">
-              <img src="./assets/photos/photo-01.jpg" alt="" loading="lazy">
+              <video src="./assets/videos/case-patron.mp4" autoplay muted loop playsinline preload="metadata"></video>
               <span class="work-card__badge">01 / 06</span>
             </div>
             <div class="work-card__meta">
-              <span class="work-card__client">Cliente · Lifestyle MX</span>
-              <h5>Esquinas con historia</h5>
-              <p data-i18n="case1_p">Mural curado en Roma Norte que convirtió una esquina en mantra de cultura urbana.</p>
-              <div class="work-card__tags"><span>Media</span><span>UX</span><span>Producción</span></div>
+              <span class="work-card__client">Tequila Patrón</span>
+              <h5>Doble muro Tequila Patrón</h5>
+              <p>Landmark cultural enfrente de Parque Toreo. Doble muro impactante en una de las arterias más transitadas de la ciudad.</p>
+              <div class="work-card__tags"><span>Media</span><span>OOH</span><span>Producción</span></div>
             </div>
           </article>
 
           <article class="work-card" data-case="02">
             <div class="work-card__media">
-              <img src="./assets/photos/photo-02.jpg" alt="" loading="lazy">
+              <video src="./assets/videos/case-banamex.mp4" autoplay muted loop playsinline preload="metadata"></video>
               <span class="work-card__badge">02 / 06</span>
             </div>
             <div class="work-card__meta">
-              <span class="work-card__client">Cliente · Sportswear</span>
-              <h5>Tribu de barrio</h5>
-              <p data-i18n="case2_p">Patrocinio deportivo barrial convertido en serie documental UGC para social media.</p>
-              <div class="work-card__tags"><span>UX</span><span>Producción</span><span>Creatividad</span></div>
+              <span class="work-card__client">Banamex</span>
+              <h5>Ad Truck Banamex + Micro Influencers</h5>
+              <p>Ruta por Paseo de la Reforma. Mobility OOH activado con creadores locales que amplifican la ruta en redes.</p>
+              <div class="work-card__tags"><span>Mobility</span><span>UX</span><span>Influencers</span></div>
             </div>
           </article>
 
@@ -262,10 +159,10 @@
               <span class="work-card__badge">03 / 06</span>
             </div>
             <div class="work-card__meta">
-              <span class="work-card__client">Cliente · Beverages</span>
-              <h5>Loop urbano MTY</h5>
-              <p data-i18n="case3_p">Activación phygital en Monterrey con QR oculto en muros: 1.4M de impresiones orgánicas.</p>
-              <div class="work-card__tags"><span>Media</span><span>UX</span></div>
+              <span class="work-card__client">Banco Azteca</span>
+              <h5>Campaña Metro CDMX</h5>
+              <p>Toma del Metro de la Ciudad de México con presencia masiva en estaciones, vagones y andenes.</p>
+              <div class="work-card__tags"><span>Media</span><span>OOH Indoor</span><span>Producción</span></div>
             </div>
           </article>
 
@@ -275,36 +172,36 @@
               <span class="work-card__badge">04 / 06</span>
             </div>
             <div class="work-card__meta">
-              <span class="work-card__client">Cliente · Tech</span>
-              <h5>Mensaje en la calle</h5>
-              <p data-i18n="case4_p">Campaña OOH cultural-first con copy hiperlocal por colonia, leída como editorial.</p>
-              <div class="work-card__tags"><span>Media</span><span>Creatividad</span></div>
+              <span class="work-card__client">Lala</span>
+              <h5>Landmark Reforma · Lala 100</h5>
+              <p>Celebración de los 100 años de Lala con activación landmark en Hamburgo, Reforma. Cultura, herencia y barrio.</p>
+              <div class="work-card__tags"><span>Landmark</span><span>OOH</span><span>Creatividad</span></div>
             </div>
           </article>
 
           <article class="work-card" data-case="05">
             <div class="work-card__media">
-              <img src="./assets/photos/photo-05.jpg" alt="" loading="lazy">
+              <video src="./assets/videos/case-sams.mp4" autoplay muted loop playsinline preload="metadata"></video>
               <span class="work-card__badge">05 / 06</span>
             </div>
             <div class="work-card__meta">
-              <span class="work-card__client">Cliente · Fashion</span>
-              <h5>Pop-up con ritmo</h5>
-              <p data-i18n="case5_p">Pop-up en Mérida con curaduría sonora local que se volvió la fiesta de la temporada.</p>
-              <div class="work-card__tags"><span>UX</span><span>Creatividad</span><span>Producción</span></div>
+              <span class="work-card__client">Sam's Club</span>
+              <h5>Apertura San Miguel</h5>
+              <p>Activación 360° para la apertura en San Miguel. OOH local + mobility con foco en tráfico al primer día.</p>
+              <div class="work-card__tags"><span>OOH Local</span><span>Mobility</span><span>Producción</span></div>
             </div>
           </article>
 
           <article class="work-card" data-case="06">
             <div class="work-card__media">
-              <img src="./assets/photos/photo-06.jpg" alt="" loading="lazy">
+              <video src="./assets/videos/case-walmart.mp4" autoplay muted loop playsinline preload="metadata"></video>
               <span class="work-card__badge">06 / 06</span>
             </div>
             <div class="work-card__meta">
-              <span class="work-card__client">Cliente · Auto</span>
-              <h5>Ciudad como showroom</h5>
-              <p data-i18n="case6_p">Lanzamiento sin showroom: la ciudad fue la pieza central. 8 ciudades, 1 narrativa.</p>
-              <div class="work-card__tags"><span>Media</span><span>UX</span><span>Creatividad</span><span>Producción</span></div>
+              <span class="work-card__client">Walmart</span>
+              <h5>Branding Fleet · Walmart</h5>
+              <p>Wrap completo de la flotilla Walmart. Cada camión convertido en un medio rodante de marca circulando todo México.</p>
+              <div class="work-card__tags"><span>Mobility</span><span>Branding</span><span>Producción</span></div>
             </div>
           </article>
         </div>
@@ -319,26 +216,10 @@
           </button>
         </div>
       </div>
-    </section>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    <!-- ============ 01 CULTURAL STACK ============ -->
+    </section><!-- ============ 01 CULTURAL STACK ============ -->
     <section class="section section--stack" id="stack">
       <div class="section__chapter">
-        <span class="num">03</span>
+        <span class="num">02</span>
         <span class="lbl" data-i18n="ch_stack">Cultural Stack™</span>
         <b class="dotcluster"><i></i><i></i><i></i></b>
       </div>
@@ -485,26 +366,49 @@
 
     
 
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <!-- ============ 04 CLIENTES ============ -->
     <section class="section section--clientes" id="clientes">
       <div class="section__chapter">
-        <span class="num">04</span>
+        <span class="num">03</span>
         <span class="lbl" data-i18n="ch_clients">Confían en nosotros</span>
         <b class="dotcluster"><i></i><i></i><i></i></b>
       </div>
 
-      <h3 class="clientes__title">
-        <span data-i18n="clientes_t1">Marcas que entienden que la cultura</span>
-        <em data-i18n="clientes_t2">no se compra: se construye.</em>
-      </h3>
+      <p class="clientes__title">
+        <span data-i18n="clientes_t1">Las marcas no necesitan gritar más fuerte. Necesitan decir algo que tenga sentido, en el lugar correcto, con la voz correcta y frente a la comunidad correcta.</span>
+      </p>
+      <p class="clientes__epilogue">
+        <span data-i18n="clientes_t2">Ellos ya lo hacen.</span>
+      </p>
 
       <div class="clientes__grid">
         <a class="client-cell" href="#" data-brand="Tequila Patrón">
-          <img src="https://logo.clearbit.com/patrontequila.com?size=512" alt="Tequila Patrón" loading="lazy">
+          <svg class="client-logo" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" aria-label="Tequila Patrón">
+            <text x="300" y="100" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="600" font-size="80" letter-spacing="12" fill="#1a1a1a">PATRÓN</text>
+            <text x="300" y="148" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="22" letter-spacing="22" fill="#1a1a1a">TEQUILA</text>
+          </svg>
           <span class="client-cell__name">Tequila Patrón</span>
         </a>
         <a class="client-cell" href="#" data-brand="Bacardí">
-          <img src="https://logo.clearbit.com/bacardi.com?size=512" alt="Bacardí" loading="lazy">
+          <svg class="client-logo" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" aria-label="Bacardí">
+            <text x="300" y="120" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="800" font-size="92" letter-spacing="6" fill="#1a1a1a">BACARDÍ</text>
+          </svg>
           <span class="client-cell__name">Bacardí</span>
         </a>
         <a class="client-cell" href="#" data-brand="Banamex">
@@ -516,15 +420,17 @@
           <span class="client-cell__name">Lala</span>
         </a>
         <a class="client-cell" href="#" data-brand="Total Play">
-          <img src="https://logo.clearbit.com/totalplay.com.mx?size=512" alt="Total Play" loading="lazy">
+          <img src="./assets/clients/totalplay-new.svg" alt="Total Play" loading="lazy">
           <span class="client-cell__name">Total Play</span>
         </a>
         <a class="client-cell" href="#" data-brand="Banco Azteca">
-          <img src="https://logo.clearbit.com/bancoazteca.com.mx?size=512" alt="Banco Azteca" loading="lazy">
+          <img src="./assets/clients/banco-azteca-new.svg" alt="Banco Azteca" loading="lazy">
           <span class="client-cell__name">Banco Azteca</span>
         </a>
         <a class="client-cell" href="#" data-brand="Shoppealo">
-          <img src="https://logo.clearbit.com/shoppealo.com?size=512" alt="Shoppealo" loading="lazy">
+          <svg class="client-logo" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" aria-label="Shoppealo">
+            <text x="300" y="125" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="800" font-size="74" letter-spacing="-3" fill="#1a1a1a">shoppealo<tspan fill="#6E1FA1">.</tspan></text>
+          </svg>
           <span class="client-cell__name">Shoppealo</span>
         </a>
         <a class="client-cell" href="#" data-brand="Walmart">
@@ -552,12 +458,28 @@
 
     
 
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <!-- ============ 05 CONTACTO ============ -->
     <section class="section section--contact" id="contacto">
       <canvas class="cosmos cosmos--inline" id="cosmosContact" aria-hidden="true"></canvas>
 
       <div class="section__chapter">
-        <span class="num">05</span>
+        <span class="num">04</span>
         <span class="lbl" data-i18n="ch_contact">Hablemos</span>
         <b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b>
       </div>
@@ -644,6 +566,6 @@
     </footer>
   </main>
 
-  <script src="main.js"></script>
+  <script src="main.js?v=10"></script>
 </body>
 </html>
