@@ -1415,7 +1415,7 @@ body.nav-open .nav { transform: translateY(0); }
 .client-cell {
   position: relative;
   background: var(--paper);
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 2 / 1;
   display: grid; place-items: center;
   padding: 32px;
   overflow: hidden;
@@ -1423,8 +1423,8 @@ body.nav-open .nav { transform: translateY(0); }
 }
 .client-cell img,
 .client-cell .client-logo {
-  max-width: 75%;
-  max-height: 65%;
+  max-width: 55%;
+  max-height: 45%;
   width: auto; height: auto;
   object-fit: contain;
   filter: grayscale(1) brightness(0.65) contrast(1.2);
