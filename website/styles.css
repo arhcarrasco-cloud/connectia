@@ -1719,6 +1719,35 @@ body.nav-open .nav { transform: translateY(0); }
 
 /* Work section mobile */
 @media (max-width: 768px) {
+  .hero__scroll-mobile {
+    display: flex !important;
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 24px;
+    border-radius: 50px;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    animation: pulseDown 2s ease-in-out infinite;
+  }
+  .hero__scroll-mobile svg { width: 14px; height: 14px; }
+  @keyframes pulseDown {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.8; }
+    50% { transform: translateX(-50%) translateY(6px); opacity: 1; }
+  }
+
   .work-card {
     flex: 0 0 85vw;
   }
