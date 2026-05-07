@@ -1757,9 +1757,9 @@ body.nav-open .nav { transform: translateY(0); }
     display: none;
   }
   .hero__block--1 {
-    flex: 0 0 100vh;
-    min-height: 100vh;
-    height: 100vh;
+    flex: 0 0 88vh;
+    min-height: 88vh;
+    height: 88vh;
   }
   .hero__block--2 {
     flex: 1 1 auto;
