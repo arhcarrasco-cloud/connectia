@@ -1,345 +1,572 @@
-é<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html>
+<html lang="es" data-lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Connectia</title>
-<meta property="og:title" content="Connectia">
-<meta property="og:description" content="Inteligencia geoespacial para México">
-<meta property="og:image" content="https://connectia.mx/logo.png">
-<meta property="og:url" content="https://connectia.mx">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;}
-canvas#scene{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;}
-
-/* Content */
-.overlay{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  z-index:3;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  pointer-events:none;
-}
-.logo-container{
-  display:flex;flex-direction:column;align-items:center;
-  animation:fadeInScale 3s ease-out 0.5s forwards;
-  opacity:0;transform:scale(0.9);
-}
-@keyframes fadeInScale{
-  0%{opacity:0;transform:scale(0.9);}
-  100%{opacity:1;transform:scale(1);}
-}
-.logo-img{
-  width:min(450px, 78vw);height:auto;
-  filter:drop-shadow(0 0 60px rgba(140,80,220,0.35));
-}
-.subtitle{
-  margin-top:40px;
-  font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-  font-size:clamp(0.75rem,1.6vw,1rem);
-  font-weight:300;
-  letter-spacing:0.25em;
-  color:rgba(255,255,255,0.5);
-  text-align:center;
-  text-transform:uppercase;
-  animation:fadeInSub 2.5s ease-out 2s forwards;
-  opacity:0;
-}
-@keyframes fadeInSub{
-  0%{opacity:0;transform:translateY(16px);}
-  100%{opacity:1;transform:translateY(0);}
-}
-
-/* Vignette */
-.vignette{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  z-index:2;pointer-events:none;
-  background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%);
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connectia — La ciudad es el medio. La cultura es el mensaje.</title>
+  <meta name="description" content="Connectia es cultura urbana. Cultural Stack™: Media, UX, Creatividad y Producción." />
+  <meta property="og:title" content="Connectia — Out of Noise" />
+  <meta property="og:description" content="No hacemos Out of Home. Hacemos Out of Noise." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://logo.clearbit.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=16" />
 </head>
 <body>
 
-<!-- Procedural night sky canvas -->
-<canvas id="scene"></canvas>
+  <!-- ============ CUSTOM CURSOR ============ -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-dot" id="cursorDot"></div>
 
-<!-- Vignette effect -->
-<div class="vignette"></div>
+  <!-- ============ HEADER ============ -->
+  <header class="header" id="header">
+    <button class="header__menu" id="menuBtn" aria-label="Menu">
+      <span></span><span></span>
+      <em data-i18n="menu">Menú</em>
+    </button>
+    <a href="#top" class="header__logo" aria-label="Connectia">
+      <img src="./assets/logo/connectia-white.png" alt="Connectia" />
+    </a>
+    <div class="header__right">
+      <button class="lang-toggle" id="langToggle" aria-label="Language">
+        <span class="lang-toggle__opt is-active" data-lang-set="es">ES</span>
+        <span class="lang-toggle__sep">/</span>
+        <span class="lang-toggle__opt" data-lang-set="en">EN</span>
+      </button>
+      <a href="#contacto" class="btn-chat" data-magnetic>
+        <span data-i18n="lets_chat">Hablemos</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </header>
 
-<!-- Content -->
-<div class="overlay">
-  <div class="logo-container">
-    <img class="logo-img" src="logo.png" alt="Connectia">
-    <p class="subtitle">estamos conectando los puntos, volvemos pronto</p>
-  </div>
-</div>
+  <!-- ============ NAV OVERLAY ============ -->
+  <nav class="nav" id="nav" aria-hidden="true">
+    <div class="nav__inner">
+      <ul class="nav__list">
+        <li><a href="#top" data-i18n="nav_home">Inicio<i class="dotcluster"><i></i><i></i><i></i></i></a></li>
+        <li><a href="#stack" data-i18n="nav_stack">Especialidades</a></li>
+        <li><a href="#work" data-i18n="nav_work">Casos</a></li>
+        <li><a href="#clientes" data-i18n="nav_clients">Clientes</a></li>
+        <li><a href="#contacto" data-i18n="nav_contact">Contacto</a></li>
+      </ul>
+      <div class="nav__bottom">
+        <div class="nav__contact">
+          <span data-i18n="get_in_touch">Hablemos —</span>
+          <a href="mailto:hola@connectia.mx">hola@connectia.mx</a>
+        </div>
+        <div class="nav__social">
+          <a href="#" aria-label="Instagram">IG</a>
+          <a href="#" aria-label="LinkedIn">LI</a>
+          <a href="#" aria-label="TikTok">TT</a>
+          <a href="#" aria-label="Vimeo">VM</a>
+        </div>
+      </div>
+    </div>
+  </nav>
 
-<script>
-(function(){
-  var c = document.getElementById('scene');
-  var ctx = c.getContext('2d');
-  var w, h, dpr;
-  var stars = [];
-  var milkyStars = [];
-  var shootingStars = [];
-  var t = 0;
+  <main id="top">
 
-  function resize(){
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    w = window.innerWidth;
-    h = window.innerHeight;
-    c.width = w * dpr;
-    c.height = h * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    generateStars();
-  }
+    <!-- ============ HERO (Cosmic universe — split into two blocks) ============ -->
+    <section class="hero" id="hero">
+      <div class="hero__topline">
+        <div class="hero__tag">
+          <span class="dot"></span>
+          <span data-i18n="hero_tag">Cultural marketing · MX</span>
+        </div>
+        <div class="hero__cities">CDMX · MTY · GDL · MID</div>
+      </div>
 
-  function generateStars(){
-    stars = [];
-    milkyStars = [];
-    // Regular stars
-    var count = Math.min(2000, Math.floor(w * h / 400));
-    for(var i = 0; i < count; i++){
-      stars.push({
-        x: Math.random() * w,
-        y: Math.random() * h * 0.72,
-        r: Math.random() < 0.92 ? Math.random() * 0.8 + 0.2 : Math.random() * 1.4 + 0.6,
-        a: Math.random() * 0.7 + 0.3,
-        twinkle: Math.random() * 0.015 + 0.003,
-        phase: Math.random() * Math.PI * 2
-      });
-    }
-    // Milky Way stars (denser band diagonal)
-    for(var i = 0; i < 800; i++){
-      var angle = -0.6;
-      var bandCenter = w * 0.45;
-      var bandY = h * 0.1;
-      var along = Math.random();
-      var spread = (Math.random() - 0.5) * w * 0.18;
-      var cx = bandCenter + along * w * 0.5 + Math.sin(angle) * along * h * 0.3 + spread;
-      var cy = bandY + along * h * 0.55 + Math.cos(angle) * along * w * 0.15 + (Math.random()-0.5) * h * 0.08;
-      if(cy > 0 && cy < h * 0.7){
-        milkyStars.push({
-          x: cx, y: cy,
-          r: Math.random() * 0.6 + 0.15,
-          a: Math.random() * 0.35 + 0.08,
-          twinkle: Math.random() * 0.01 + 0.002,
-          phase: Math.random() * Math.PI * 2
-        });
-      }
-    }
-  }
+      <!-- BLOCK 1 (top): ONLY universe + cursor reveals connectia logo constellation -->
+      <div class="hero__block hero__block--1">
+        <canvas class="cosmos cosmos--inline" id="cosmosHero" aria-hidden="true"></canvas>
+      </div>
 
-  function spawnShootingStar(){
-    if(shootingStars.length < 3 && Math.random() < 0.003){
-      var startX = Math.random() * w * 0.6 + w * 0.1;
-      var startY = Math.random() * h * 0.3;
-      var angle = Math.random() * 0.5 + 0.3;
-      shootingStars.push({
-        x: startX, y: startY,
-        dx: Math.cos(angle) * (2 + Math.random() * 2),
-        dy: Math.sin(angle) * (2 + Math.random() * 2),
-        life: 0,
-        maxLife: 80 + Math.random() * 120,
-        len: 60 + Math.random() * 80,
-        a: 0.4 + Math.random() * 0.4
-      });
-    }
-  }
+      <!-- BLOCK 2 (bottom): white universe full-screen + Somos rotator centered -->
+      <button class="hero__scroll-mobile" onclick="document.querySelector('.hero__block--2').scrollIntoView({behavior:'smooth'})">Scroll <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+      <div class="hero__block hero__block--2">
+        <canvas class="cosmos cosmos--inline" id="cosmosHeroLight" aria-hidden="true"></canvas>
+        <h1 class="hero__big-intro hero__big-intro--dark">
+          <span class="hero__intro-we" data-i18n="hero_we_are">Somos</span> <span class="rotator rotator--big" id="rotator" data-words="esquites|elote en vaso|taco|tortilla|chela|wey|güey|compa|compadre|carnal|cuate|vato|bro|broki|raza|pana|nave|carro|troca|ranfla|jefa|ma|madre|amá|mami|jefe|pa|padre|apá|papi|mi rey|mi reina|corazón|mi amor|chilango|regio|tapatío|yucateco|norteño|chido|órale|ándale|no manches|cultura"><em>esquites</em></span>
+        </h1>
+        <p class="hero__tagline">
+          Somos una agencia creativa que no amplifica marcas: <em>las vuelve cultura.</em>
+        </p>
+      </div>
 
-  // Sky gradient
-  function drawSky(){
-    var grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, '#0a0a2e');
-    grad.addColorStop(0.15, '#0d1040');
-    grad.addColorStop(0.35, '#141852');
-    grad.addColorStop(0.5, '#1e2260');
-    grad.addColorStop(0.62, '#2a2a6a');
-    grad.addColorStop(0.68, '#3d3070');
-    grad.addColorStop(0.72, '#5a3575');
-    grad.addColorStop(0.76, '#7a4080');
-    grad.addColorStop(0.78, '#904570');
-    grad.addColorStop(0.8, '#a04a65');
-    grad.addColorStop(0.82, '#805878');
-    grad.addColorStop(0.85, '#506080');
-    grad.addColorStop(1, '#0a0a12');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
-  }
+      <a href="#stack" class="hero__scroll">
+        <span data-i18n="scroll">Scroll</span>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </section>
 
-  // Atmospheric horizon glow
-  function drawHorizonGlow(){
-    var horizonY = h * 0.78;
-    // Left side warm glow
-    var g1 = ctx.createRadialGradient(w * 0.15, horizonY, 0, w * 0.15, horizonY, w * 0.35);
-    g1.addColorStop(0, 'rgba(180,200,255,0.12)');
-    g1.addColorStop(0.4, 'rgba(140,120,180,0.06)');
-    g1.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g1;
-    ctx.fillRect(0, horizonY - h * 0.15, w, h * 0.3);
+    
 
-    // Center subtle glow
-    var g2 = ctx.createRadialGradient(w * 0.5, horizonY, 0, w * 0.5, horizonY, w * 0.4);
-    g2.addColorStop(0, 'rgba(160,140,200,0.06)');
-    g2.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g2;
-    ctx.fillRect(0, horizonY - h * 0.1, w, h * 0.2);
-  }
+    
 
-  // Milky Way nebula band
-  function drawMilkyWayGlow(){
-    ctx.save();
-    ctx.globalAlpha = 0.08;
-    ctx.translate(w * 0.45, h * 0.1);
-    ctx.rotate(-0.5);
-    var g = ctx.createRadialGradient(0, h * 0.25, 0, 0, h * 0.25, h * 0.35);
-    g.addColorStop(0, 'rgba(200,180,255,1)');
-    g.addColorStop(0.5, 'rgba(150,130,200,0.5)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(-w * 0.15, -h * 0.1, w * 0.3, h * 0.7);
-    ctx.restore();
-  }
+    
 
-  // Ocean
-  function drawOcean(){
-    var oceanTop = h * 0.78;
-    var grad = ctx.createLinearGradient(0, oceanTop, 0, h);
-    grad.addColorStop(0, '#0c0c18');
-    grad.addColorStop(0.3, '#080812');
-    grad.addColorStop(1, '#050508');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, oceanTop, w, h - oceanTop);
+    
 
-    // Subtle horizon line
-    ctx.strokeStyle = 'rgba(120,100,160,0.12)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, oceanTop);
-    ctx.lineTo(w, oceanTop);
-    ctx.stroke();
+    
 
-    // Gentle water reflections
-    ctx.globalAlpha = 0.03;
-    for(var i = 0; i < 15; i++){
-      var ry = oceanTop + 5 + i * (h - oceanTop) / 15;
-      var rx = Math.random() * w;
-      var rw = Math.random() * 120 + 40;
-      ctx.fillStyle = 'rgba(140,130,180,1)';
-      ctx.fillRect(rx, ry + Math.sin(t * 0.005 + i) * 1.5, rw, 0.5);
-    }
-    ctx.globalAlpha = 1;
+    
 
-    // Dark rocks near shore
-    ctx.fillStyle = '#060608';
-    ctx.beginPath();
-    ctx.moveTo(w * 0.55, oceanTop + 2);
-    ctx.quadraticCurveTo(w * 0.58, oceanTop - 3, w * 0.62, oceanTop + 1);
-    ctx.quadraticCurveTo(w * 0.64, oceanTop + 4, w * 0.55, oceanTop + 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(w * 0.7, oceanTop + 3);
-    ctx.quadraticCurveTo(w * 0.73, oceanTop - 2, w * 0.76, oceanTop + 2);
-    ctx.quadraticCurveTo(w * 0.74, oceanTop + 5, w * 0.7, oceanTop + 3);
-    ctx.fill();
-  }
+    
 
-  // Cliff silhouette (left foreground)
-  function drawCliff(){
-    ctx.fillStyle = '#010102';
-    ctx.beginPath();
-    ctx.moveTo(0, h);
-    ctx.lineTo(0, h * 0.55);
-    ctx.quadraticCurveTo(w * 0.03, h * 0.5, w * 0.07, h * 0.52);
-    ctx.quadraticCurveTo(w * 0.1, h * 0.56, w * 0.13, h * 0.58);
-    ctx.quadraticCurveTo(w * 0.16, h * 0.6, w * 0.18, h * 0.64);
-    ctx.quadraticCurveTo(w * 0.2, h * 0.68, w * 0.22, h * 0.72);
-    ctx.quadraticCurveTo(w * 0.24, h * 0.75, w * 0.26, h * 0.78);
-    ctx.lineTo(w * 0.26, h);
-    ctx.closePath();
-    ctx.fill();
+    <!-- ============ 03 WORK ============ -->
+    <section class="section section--work" id="work">
+      <canvas class="cosmos cosmos--inline" id="cosmosWork" aria-hidden="true"></canvas>
 
-    // Vegetation texture on cliff top
-    ctx.fillStyle = '#020204';
-    for(var i = 0; i < 30; i++){
-      var bx = Math.random() * w * 0.24;
-      var by = h * 0.52 + bx * 0.95;
-      if(by < h * 0.78){
-        ctx.beginPath();
-        ctx.arc(bx, by - Math.random() * 8, Math.random() * 6 + 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  }
+      <div class="section__chapter">
+        <span class="num">01</span>
+        <span class="lbl" data-i18n="ch_work">Casos</span>
+        <b class="dotcluster"><i></i><i></i><i></i></b>
+      </div>
 
-  // Stars rendering
-  function drawStars(){
-    for(var i = 0; i < stars.length; i++){
-      var s = stars[i];
-      var alpha = s.a * (0.6 + 0.4 * Math.sin(t * s.twinkle + s.phase));
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(235,230,255,' + alpha + ')';
-      ctx.fill();
-    }
-    // Milky way stars
-    for(var i = 0; i < milkyStars.length; i++){
-      var s = milkyStars[i];
-      var alpha = s.a * (0.5 + 0.5 * Math.sin(t * s.twinkle + s.phase));
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(210,200,240,' + alpha + ')';
-      ctx.fill();
-    }
-  }
+      <div class="work__carousel">
+        <div class="work__viewport" id="workViewport">
+          <article class="work-card is-active" data-case="01">
+            <div class="work-card__media">
+              <video src="./assets/videos/case-patron.mp4" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="./assets/photos/photo-01.jpg"></video>
+              <span class="work-card__badge">01 / 06</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Tequila Patrón</span>
+              <h5>Doble muro Tequila Patrón</h5>
+              <p>Landmark cultural enfrente de Parque Toreo. Doble muro impactante en una de las arterias más transitadas de la ciudad.</p>
+              <div class="work-card__tags"><span>Media</span><span>OOH</span><span>Producción</span></div>
+            </div>
+          </article>
 
-  // Shooting stars / satellites
-  function drawShootingStars(){
-    spawnShootingStar();
-    for(var i = shootingStars.length - 1; i >= 0; i--){
-      var ss = shootingStars[i];
-      ss.x += ss.dx;
-      ss.y += ss.dy;
-      ss.life++;
-      if(ss.life > ss.maxLife){
-        shootingStars.splice(i, 1);
-        continue;
-      }
-      var progress = ss.life / ss.maxLife;
-      var fadeIn = Math.min(progress * 5, 1);
-      var fadeOut = progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1;
-      var alpha = ss.a * fadeIn * fadeOut;
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-      ctx.lineWidth = 0.8;
-      ctx.beginPath();
-      ctx.moveTo(ss.x, ss.y);
-      ctx.lineTo(ss.x - ss.dx * ss.len * 0.3, ss.y - ss.dy * ss.len * 0.3);
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
+          <article class="work-card" data-case="02">
+            <div class="work-card__media">
+              <video src="./assets/videos/case-banamex.mp4" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="./assets/photos/photo-02.jpg"></video>
+              <span class="work-card__badge">02 / 06</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Banamex</span>
+              <h5>Ad Truck Banamex + Micro Influencers</h5>
+              <p>Ruta por Paseo de la Reforma. Mobility OOH activado con creadores locales que amplifican la ruta en redes.</p>
+              <div class="work-card__tags"><span>Mobility</span><span>UX</span><span>Influencers</span></div>
+            </div>
+          </article>
 
-  function draw(){
-    t++;
-    drawSky();
-    drawMilkyWayGlow();
-    drawHorizonGlow();
-    drawStars();
-    drawShootingStars();
-    drawOcean();
-    drawCliff();
-    requestAnimationFrame(draw);
-  }
+          <article class="work-card" data-case="03">
+            <div class="work-card__media">
+              <video src="./assets/videos/case-metro.mp4" autoplay muted loop playsinline webkit-playsinline preload="auto"></video>
+              <span class="work-card__badge">03 / 07</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Banco Azteca</span>
+              <h5>Campaña Metro CDMX</h5>
+              <p>Toma del Metro de la Ciudad de México con presencia masiva en estaciones, vagones y andenes.</p>
+              <div class="work-card__tags"><span>Media</span><span>OOH Indoor</span><span>Producción</span></div>
+            </div>
+          </article>
 
-  window.addEventListener('resize', resize);
-  resize();
-  draw();
-})();
-</script>
+          <article class="work-card" data-case="04">
+            <div class="work-card__media">
+              <img src="./assets/photos/photo-04.jpg" alt="" loading="lazy">
+              <span class="work-card__badge">04 / 06</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Lala</span>
+              <h5>Landmark Reforma · Lala 100</h5>
+              <p>Celebración de los 100 años de Lala con activación landmark en Hamburgo, Reforma. Cultura, herencia y barrio.</p>
+              <div class="work-card__tags"><span>Landmark</span><span>OOH</span><span>Creatividad</span></div>
+            </div>
+          </article>
+
+          <article class="work-card" data-case="05">
+            <div class="work-card__media">
+              <video src="./assets/videos/case-sams.mp4" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="./assets/photos/photo-05.jpg"></video>
+              <span class="work-card__badge">05 / 06</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Sam's Club</span>
+              <h5>Apertura San Miguel</h5>
+              <p>Activación 360° para la apertura en San Miguel. OOH local + mobility con foco en tráfico al primer día.</p>
+              <div class="work-card__tags"><span>OOH Local</span><span>Mobility</span><span>Producción</span></div>
+            </div>
+          </article>
+
+          <article class="work-card" data-case="06">
+            <div class="work-card__media">
+              <video src="./assets/videos/case-walmart.mp4" autoplay muted loop playsinline webkit-playsinline preload="auto" poster="./assets/photos/photo-06.jpg"></video>
+              <span class="work-card__badge">06 / 07</span>
+            </div>
+            <div class="work-card__meta">
+              <span class="work-card__client">Walmart</span>
+              <h5>Branding Fleet · Walmart</h5>
+              <p>Wrap completo de la flotilla Walmart. Cada camión convertido en un medio rodante de marca circulando todo México.</p>
+              <div class="work-card__tags"><span>Mobility</span><span>Branding</span><span>Producción</span></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="work__controls">
+          <button class="work__btn" id="workPrev" aria-label="Previous">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="work__counter"><i id="workCurrent">01</i> / <em id="workTotal">07</em></span>
+          <button class="work__btn" id="workNext" aria-label="Next">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </section><!-- ============ 01 CULTURAL STACK ============ -->
+    <section class="section section--stack" id="stack">
+      <div class="section__chapter">
+        <span class="num">02</span>
+        <span class="lbl" data-i18n="ch_stack">Cultural Stack™</span>
+        <b class="dotcluster"><i></i><i></i><i></i></b>
+      </div>
+
+      <h3 class="stack__title">
+        <span data-i18n="stack_t1">Cuatro especialidades.</span>
+        <em data-i18n="stack_t2">Un cerebro creativo.</em>
+      </h3>
+
+      <div class="stack__list">
+        <article class="pillar" data-pillar="01">
+          <header class="pillar__head">
+            <span class="pillar__num">01</span>
+            <h4>Media<b class="dotcluster"><i></i><i></i><i></i></b></h4>
+            <span class="pillar__tag" data-i18n="pillar1_tag">Amplificación con intención</span>
+          </header>
+          <div class="pillar__body">
+            <p data-i18n="pillar1_p">
+              No compramos inventario: <em>curamos presencia</em>. Somos expertos
+              en <em>landmarks icónicos</em> y placements signature que convierten
+              puntos de la ciudad en hitos de marca. OOH estratégico, programático
+              contextual y planning cultural que coloca a la marca donde la
+              conversación ya está sucediendo.
+            </p>
+            <ul class="pillar__list">
+              <li data-i18n="pillar1_s1">Landmarks icónicos · placements signature</li>
+              <li data-i18n="pillar1_s2">OOH estratégico y street media curado</li>
+              <li data-i18n="pillar1_s3">Planning y compra de medios masivos</li>
+              <li data-i18n="pillar1_s4">Programmatic contextual y behavioral</li>
+              <li data-i18n="pillar1_s5">Sponsorships y branded content</li>
+              <li data-i18n="pillar1_s6">Medición de impacto cultural</li>
+            </ul><span class="pillar__quote" data-i18n="pillar1_q">La marca aparece donde importa, no donde sobra.</span>
+          </div>
+        </article>
+
+        <article class="pillar" data-pillar="02">
+          <header class="pillar__head">
+            <span class="pillar__num">02</span>
+            <h4>UX <span class="pillar__sub">Experiences</span><b class="dotcluster"><i></i><i></i><i></i></b></h4>
+            <span class="pillar__tag" data-i18n="pillar2_tag">Wow factor en el espacio</span>
+          </header>
+          <div class="pillar__body">
+            <p data-i18n="pillar2_p">
+              El espacio como interfaz. Diseñamos <em>activaciones con wow factor</em>
+              que transforman lugares en momentos memorables. Instalaciones, eventos,
+              street performances, experiencias phygital, fabricación de stands,
+              montajes y patrocinios deportivos pensados para que la gente
+              participe, no solo observe.
+            </p>
+            <ul class="pillar__list">
+              <li data-i18n="pillar2_s1">Activaciones wow factor y street marketing</li>
+              <li data-i18n="pillar2_s2">Eventos experienciales y lanzamientos</li>
+              <li data-i18n="pillar2_s3">Fabricación de stands y montajes</li>
+              <li data-i18n="pillar2_s4">Patrocinios deportivos estratégicos</li>
+              <li data-i18n="pillar2_s5">Fan experiences y activaciones en venues</li>
+              <li data-i18n="pillar2_s6">Pop-ups, retail y experiencias phygital</li>
+            </ul><span class="pillar__quote" data-i18n="pillar2_q">La ciudad se convierte en el escenario de la marca.</span>
+          </div>
+        </article>
+
+        <article class="pillar" data-pillar="03">
+          <header class="pillar__head">
+            <span class="pillar__num">03</span>
+            <h4 data-i18n="pillar3_h">Creatividad<b class="dotcluster"><i></i><i></i><i></i></b></h4>
+            <span class="pillar__tag" data-i18n="pillar3_tag">Ideas que pertenecen</span>
+          </header>
+          <div class="pillar__body">
+            <p data-i18n="pillar3_p">
+              Conceptos que nacen <em>de la cultura</em>, no que intentan apropiársela.
+              Dirección creativa, estrategia de marca y narrativas diseñadas
+              para resonar genuinamente con comunidades específicas.
+            </p>
+            <ul class="pillar__list">
+              <li data-i18n="pillar3_s1">Estrategia creativa y conceptualización</li>
+              <li data-i18n="pillar3_s2">Dirección de arte y diseño</li>
+              <li data-i18n="pillar3_s3">Copywriting cultural y tonal</li>
+              <li data-i18n="pillar3_s4">Brand narrative y storytelling</li>
+              <li data-i18n="pillar3_s5">Identidad visual y verbal</li>
+              <li data-i18n="pillar3_s6">Campañas integradas</li>
+            </ul><span class="pillar__quote" data-i18n="pillar3_q">La marca habla el idioma de su audiencia.</span>
+          </div>
+        </article>
+
+        <article class="pillar" data-pillar="04">
+          <header class="pillar__head">
+            <span class="pillar__num">04</span>
+            <h4 data-i18n="pillar4_h">Producción<b class="dotcluster"><i></i><i></i><i></i></b></h4>
+            <span class="pillar__tag" data-i18n="pillar4_tag">Producción 360°</span>
+          </header>
+          <div class="pillar__body">
+            <p data-i18n="pillar4_p">
+              Producción integral del archivo digital a la calle. Tres frentes de
+              fabricación trabajando en paralelo: <em>contenido, estructura física,
+              y materiales gráficos</em>. La idea cobra forma en video, en stand,
+              en muro, en lona, en evento.
+            </p>
+
+            <div class="pillar__subgroup">
+              <h5>Producción de contenido</h5>
+              <ul class="pillar__list">
+                <li>UGC engineering y creator economy</li>
+                <li>Brand content y video de alta producción</li>
+                <li>Social media: nativo, always-on y trends</li>
+                <li>Fotografía y dirección visual</li>
+                <li>Post-producción y motion graphics</li>
+              </ul>
+            </div>
+
+            <div class="pillar__subgroup">
+              <h5>Producción de stands &amp; letreros 3D</h5>
+              <ul class="pillar__list">
+                <li>Diseño y fabricación de stands</li>
+                <li>Letreros 3D y signage volumétrico</li>
+                <li>Estructuras escenográficas y montajes</li>
+                <li>Activaciones in-store y retail builds</li>
+              </ul>
+            </div>
+
+            <div class="pillar__subgroup">
+              <h5>Producción de diseño e impresión</h5>
+              <ul class="pillar__list">
+                <li>Impresión de gran formato</li>
+                <li>Impresión de publicidad y POP</li>
+                <li>Diseño gráfico e ilustración</li>
+                <li>Vinil decorativo y wall graphics</li>
+              </ul>
+            </div><span class="pillar__quote" data-i18n="pillar4_q">La marca genera conversación, no solo mensajes.</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <!-- ============ 04 CLIENTES ============ -->
+    <section class="section section--clientes" id="clientes">
+      <div class="section__chapter">
+        <span class="num">03</span>
+        <span class="lbl" data-i18n="ch_clients">Confían en nosotros</span>
+        <b class="dotcluster"><i></i><i></i><i></i></b>
+      </div>
+
+      <p class="clientes__title">
+        <span data-i18n="clientes_t1">Las marcas no necesitan gritar más fuerte. Necesitan decir algo que tenga sentido, en el lugar correcto, con la voz correcta y frente a la comunidad correcta.</span>
+      </p>
+      <p class="clientes__epilogue">
+        <span data-i18n="clientes_t2">Ellos ya lo hacen.</span>
+      </p>
+
+      <div class="clientes__grid">
+        <a class="client-cell" href="#" data-brand="Tequila Patrón">
+          <svg class="client-logo" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" aria-label="Tequila Patrón">
+            <text x="300" y="100" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="600" font-size="80" letter-spacing="12" fill="#1a1a1a">PATRÓN</text>
+            <text x="300" y="148" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="22" letter-spacing="22" fill="#1a1a1a">TEQUILA</text>
+          </svg>
+          <span class="client-cell__name">Tequila Patrón</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Bacardí">
+          <svg class="client-logo" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" aria-label="Bacardí">
+            <text x="300" y="120" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="800" font-size="92" letter-spacing="6" fill="#1a1a1a">BACARDÍ</text>
+          </svg>
+          <span class="client-cell__name">Bacardí</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Banamex">
+          <img src="./assets/clients/banamex.svg" alt="Banamex" loading="lazy">
+          <span class="client-cell__name">Banamex</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Lala">
+          <img src="./assets/clients/lala.svg" alt="Lala" loading="lazy">
+          <span class="client-cell__name">Lala</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Total Play">
+          <img src="./assets/clients/totalplay-new.svg" alt="Total Play" loading="lazy">
+          <span class="client-cell__name">Total Play</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Banco Azteca">
+          <img src="./assets/clients/banco-azteca-new.svg" alt="Banco Azteca" loading="lazy">
+          <span class="client-cell__name">Banco Azteca</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Shoppealo">
+          <svg class="client-logo" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" aria-label="Shoppealo">
+            <text x="300" y="125" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="800" font-size="74" letter-spacing="-3" fill="#1a1a1a">shoppealo<tspan fill="#6E1FA1">.</tspan></text>
+          </svg>
+          <span class="client-cell__name">Shoppealo</span>
+        </a>
+        <a class="client-cell" href="#" data-brand="Walmart">
+          <img src="./assets/clients/walmart.svg" alt="Walmart" loading="lazy">
+          <span class="client-cell__name">Walmart</span>
+        </a>
+      </div>
+
+      <p class="clientes__note" data-i18n="clientes_note">
+        Y muchas marcas más que confían su cultura a Connectia.
+      </p>
+    </section>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <!-- ============ 05 CONTACTO ============ -->
+    <section class="section section--contact" id="contacto">
+      <canvas class="cosmos cosmos--inline" id="cosmosContact" aria-hidden="true"></canvas>
+
+      <div class="section__chapter">
+        <span class="num">04</span>
+        <span class="lbl" data-i18n="ch_contact">Hablemos</span>
+        <b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b>
+      </div>
+
+      <h3 class="contact__big">
+        <span>
+        ¿Quieres que tu marca sea parte de la cultura?</span>
+      </h3>
+
+      <div class="contact__grid">
+        <a class="contact__email" href="mailto:hola@connectia.mx">
+          <span data-i18n="write_us">Escríbenos —</span>
+          <strong>hola@connectia.mx</strong>
+        </a>
+
+        <div class="contact__offices">
+          <div class="office">
+            <h6>CDMX<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></h6>
+            <p>Roma Norte</p>
+            <span class="clock" data-tz="America/Mexico_City">--:--</span>
+          </div>
+          <div class="office">
+            <h6>MTY<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></h6>
+            <p>Centrito Valle</p>
+            <span class="clock" data-tz="America/Monterrey">--:--</span>
+          </div>
+          <div class="office">
+            <h6>GDL<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></h6>
+            <p>Providencia</p>
+            <span class="clock" data-tz="America/Mexico_City">--:--</span>
+          </div>
+          <div class="office">
+            <h6>MID<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></h6>
+            <p>Centro</p>
+            <span class="clock" data-tz="America/Merida">--:--</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+      
+
+      <div class="footer__top">
+        <div class="footer__col">
+          <span class="footer__lbl" data-i18n="ftr_navigate">Navega</span>
+          <a href="#stack">01 — Especialidades</a>
+          <a href="#manifesto">02 — Manifiesto</a>
+          <a href="#work">03 — Casos</a>
+          <a href="#clientes">04 — Clientes</a>
+          <a href="#contacto">05 — Hablemos</a>
+        </div>
+        <div class="footer__col">
+          <span class="footer__lbl" data-i18n="ftr_social">Social</span>
+          <a href="#">Instagram</a>
+          <a href="#">LinkedIn</a>
+          <a href="#">TikTok</a>
+          <a href="#">Vimeo</a>
+        </div>
+        <div class="footer__col">
+          <span class="footer__lbl" data-i18n="ftr_contact">Contacto</span>
+          <a href="mailto:hola@connectia.mx">hola@connectia.mx</a>
+          <a href="tel:+525500000000">+52 55 0000 0000</a>
+        </div>
+        <div class="footer__col footer__col--sign">
+          <span class="footer__sign">Out of Noise.<br>Since 2024.<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></span>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© 2026 Connectia · La ciudad es el medio. La cultura es el mensaje.</span>
+        <span class="footer__legal">
+          <a href="#" data-i18n="ftr_privacy">Privacidad</a>
+          <a href="#" data-i18n="ftr_terms">Términos</a>
+        </span>
+      </div>
+
+      <div class="footer__wordmark" aria-hidden="true">
+        <span class="bigword bigword--footer" id="footerWord">
+          <i>c</i><i>o</i><i>n</i><i>n</i><i>e</i><i>c</i><i>t</i><i>i</i><i>a</i><b class="bigword__cluster"><i></i><i></i><i></i></b>
+        </span>
+      </div>
+    </footer>
+  </main>
+
+  <script src="main.js?v=11"></script>
 </body>
 </html>
