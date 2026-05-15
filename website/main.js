@@ -244,38 +244,6 @@ class Cosmos {
       this.mouse.active = (this.mouse.x >= 0 && this.mouse.x <= this.w && this.mouse.y >= 0 && this.mouse.y <= this.h);
     });
     window.addEventListener('mouseleave', () => { this.mouse.active = false; });
-
-    // Touch support for mobile/tablet
-    const handleTouch = (e) => {
-      const touch = e.touches[0];
-      if (!touch) return;
-      const r = this.canvas.getBoundingClientRect();
-      this.mouse.x = touch.clientX - r.left;
-      this.mouse.y = touch.clientY - r.top;
-      this.mouse.active = (this.mouse.x >= 0 && this.mouse.x <= this.w && this.mouse.y >= 0 && this.mouse.y <= this.h);
-    };
-    window.addEventListener('touchstart', handleTouch, { passive: true });
-    window.addEventListener('touchmove', handleTouch, { passive: true });
-    window.addEventListener('touchend', () => { this.mouse.active = false; });
-
-    // Direct touch listeners on canvas for mobile (canvas has pointer-events:none in CSS)
-    this.canvas.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
-      if (!touch) return;
-      const r = this.canvas.getBoundingClientRect();
-      this.mouse.x = touch.clientX - r.left;
-      this.mouse.y = touch.clientY - r.top;
-      this.mouse.active = true;
-    }, { passive: true });
-    this.canvas.addEventListener('touchmove', (e) => {
-      const touch = e.touches[0];
-      if (!touch) return;
-      const r = this.canvas.getBoundingClientRect();
-      this.mouse.x = touch.clientX - r.left;
-      this.mouse.y = touch.clientY - r.top;
-      this.mouse.active = true;
-    }, { passive: true });
-    this.canvas.addEventListener('touchend', () => { this.mouse.active = false; });
   }
   loop() {
     const ctx = this.ctx;
@@ -1069,46 +1037,21 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const cosmosHero = document.getElementById('cosmosHero');
-  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-  const heroCosmosInstance = cosmosHero ? new Cosmos(cosmosHero, {
+  if (cosmosHero) new Cosmos(cosmosHero, {
     ...darkCosmosOpts,
-    density: 0.00018,
+    density: 0.00018, // denser starfield — universe feels alive around the rotator
     cursorRadius: 280,
     maxLinkDist: 200,
+    // Hidden logo: stars seeded at logo pixel positions; cursor reveals them as a constellation
     logo: {
       src: '../assets/logo/connectia-white.png',
-      widthRatio: isTouchDevice ? 0.7 : 0.42,
-      maxWidth: isTouchDevice ? 500 : 720,
-      step: isTouchDevice ? 7 : 5,
-      revealRadius: isTouchDevice ? 300 : 220,
-      decay: isTouchDevice ? 0.005 : 0.0085,
+      widthRatio: 0.42,    // smaller logo
+      maxWidth: 720,
+      step: 5,             // dense sampling for fine detail (no pixelation)
+      revealRadius: 220,
+      decay: 0.0085,       // slow fade so dissolve effect is visible
     },
-  }) : null;
-
-  // Mobile auto-reveal: sweep a virtual cursor across the logo to reveal it
-  if (isTouchDevice && heroCosmosInstance) {
-    setTimeout(() => {
-      const c = heroCosmosInstance;
-      if (!c.logoStars.length) return;
-      const cx = c.w / 2, cy = c.h / 2;
-      const sweepW = c.w * 0.6;
-      let frame = 0;
-      const totalFrames = 90;
-      function autoReveal() {
-        const t = frame / totalFrames;
-        c.mouse.x = cx - sweepW / 2 + sweepW * t;
-        c.mouse.y = cy + Math.sin(t * Math.PI) * 40;
-        c.mouse.active = true;
-        frame++;
-        if (frame <= totalFrames) {
-          requestAnimationFrame(autoReveal);
-        } else {
-          c.mouse.active = false;
-        }
-      }
-      autoReveal();
-    }, 1800);
-  }
+  });
 
 
   // Block 2: white/paper universe — purple stars on light background, full-screen
@@ -1278,11 +1221,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // PILLARS ACCORDION — all open by default for full visibility of services
+  // PILLARS ACCORDION — collapsed by default, click to expand (one at a time)
   document.querySelectorAll('.pillar').forEach((pillar) => {
     const head = pillar.querySelector('.pillar__head');
-    head.addEventListener('click', () => pillar.classList.toggle('is-open'));
-    // pillar starts collapsed
+    head.addEventListener('click', () => {
+      const wasOpen = pillar.classList.contains('is-open');
+      // close all
+      document.querySelectorAll('.pillar.is-open').forEach(p => p.classList.remove('is-open'));
+      // open this one unless it was already open (toggle)
+      if (!wasOpen) pillar.classList.add('is-open');
+    });
   });
 
   // WORK CAROUSEL
@@ -1350,54 +1298,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
   revealEls.forEach(el => io.observe(el));
-
-
-// Auto-play case videos
-function playAllCaseVideos() {
-  document.querySelectorAll(".work-card__media video").forEach(v => {
-    v.muted = true;
-    v.playsInline = true;
-    v.loop = true;
-    v.preload = "auto";
-    v.removeAttribute("controls");
-    v.setAttribute("webkit-playsinline", "");
-    v.play().catch(() => {});
-  });
-}
-// Play immediately
-playAllCaseVideos();
-// Also play after any user interaction (iOS requirement)
-document.addEventListener("touchstart", function once() {
-  playAllCaseVideos();
-  document.removeEventListener("touchstart", once);
-}, { once: true });
-document.addEventListener("click", function once() {
-  playAllCaseVideos();
-  document.removeEventListener("click", once);
-}, { once: true });
-// Re-play on scroll into view
-const videoObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    const video = entry.target;
-    if (entry.isIntersecting) {
-      video.play().catch(() => {});
-    }
-  });
-}, { threshold: 0.1 });
-document.querySelectorAll(".work-card__media video").forEach(v => videoObserver.observe(v));
-// Re-play on carousel slide change
-const workNext = document.getElementById("workNext");
-const workPrev = document.getElementById("workPrev");
-if (workNext) workNext.addEventListener("click", () => setTimeout(playAllCaseVideos, 300));
-if (workPrev) workPrev.addEventListener("click", () => setTimeout(playAllCaseVideos, 300));
-
-
-// Hide mobile scroll button after passing block 1
-const mobileScrollBtn = document.querySelector(".hero__scroll-mobile");
-if (mobileScrollBtn) {
-  window.addEventListener("scroll", () => {
-    mobileScrollBtn.style.opacity = window.scrollY > window.innerHeight * 0.5 ? "0" : "1";
-    mobileScrollBtn.style.pointerEvents = window.scrollY > window.innerHeight * 0.5 ? "none" : "auto";
-  });
-}
 });
