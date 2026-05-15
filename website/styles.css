@@ -1709,3 +1709,39 @@ body.nav-open .nav { transform: translateY(0); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Mobile scroll button */
+.hero__scroll-mobile { display: none; }
+@media (max-width: 768px) {
+  .hero__scroll-mobile {
+    display: flex !important;
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 12px 28px;
+    border-radius: 50px;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    animation: mobileScrollPulse 2s ease-in-out infinite;
+    transition: opacity 0.3s;
+  }
+  .hero__scroll-mobile svg { width: 14px; height: 14px; }
+  @keyframes mobileScrollPulse {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.8; }
+    50% { transform: translateX(-50%) translateY(6px); opacity: 1; }
+  }
+  #cosmosHero { pointer-events: auto !important; z-index: 5 !important; }
+  .hero__block--1 { background: #0a0a0a !important; }
+}

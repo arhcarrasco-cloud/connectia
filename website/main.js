@@ -1299,3 +1299,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
   revealEls.forEach(el => io.observe(el));
 });
+
+// Mobile: auto-reveal cosmos logo + touch support + scroll button hide
+(function(){
+  var canvas = document.getElementById("cosmosHero");
+  if(canvas){
+    canvas.addEventListener("touchstart",function(e){
+      var t=e.touches[0]; var r=canvas.getBoundingClientRect();
+      window._cosmosMouseX=t.clientX-r.left; window._cosmosMouseY=t.clientY-r.top;
+    });
+    canvas.addEventListener("touchmove",function(e){
+      var t=e.touches[0]; var r=canvas.getBoundingClientRect();
+      window._cosmosMouseX=t.clientX-r.left; window._cosmosMouseY=t.clientY-r.top;
+    });
+    // Auto reveal on mobile
+    if(window.innerWidth<1024){
+      var w=canvas.width||window.innerWidth, h=canvas.height||window.innerHeight;
+      var cx=w/2, cy=h/2, angle=0;
+      setInterval(function(){
+        angle+=0.02;
+        window._cosmosMouseX=cx+Math.cos(angle)*w*0.25;
+        window._cosmosMouseY=cy+Math.sin(angle)*h*0.15;
+      },50);
+    }
+  }
+  // Hide scroll button after scrolling
+  var btn=document.querySelector(".hero__scroll-mobile");
+  if(btn){
+    window.addEventListener("scroll",function(){
+      btn.style.opacity=window.scrollY>window.innerHeight*0.3?"0":"1";
+      btn.style.pointerEvents=window.scrollY>window.innerHeight*0.3?"none":"auto";
+    });
+  }
+  // Force video autoplay
+  document.querySelectorAll(".work-card video, video[autoplay]").forEach(function(v){
+    v.muted=true; v.playsInline=true; v.play().catch(function(){});
+  });
+  document.addEventListener("touchstart",function(){
+    document.querySelectorAll("video[autoplay]").forEach(function(v){v.play().catch(function(){});});
+  },{once:true});
+})();
