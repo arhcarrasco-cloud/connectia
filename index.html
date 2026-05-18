@@ -320,9 +320,11 @@ body.nav-open .nav { transform: translateY(0); }
   width: 100%;
 }
 /* BLOCK 1 — only universe + cursor reveals logo constellation
-   Height calc compensates for .hero padding-top (100px) + topline (~30px) + gap (16px)
-   so the block fills only the VISIBLE viewport — its center = the visible center. */
+   v2: scroll-jacked — page doesn't actually scroll while inside the journey.
+   Wheel/keyboard input is captured and translated to camera travel through
+   the constellation. */
 .hero__block--1 {
+  position: relative;
   flex: 0 0 calc(100vh - 150px);
   min-height: calc(100vh - 150px);
   height: calc(100vh - 150px);
@@ -526,14 +528,14 @@ body.nav-open .nav { transform: translateY(0); }
   /* Cosmic appears only where: (logo pixels) AND (radial near cursor) */
   -webkit-mask-image:
     radial-gradient(circle 280px at var(--mx) var(--my), #000 30%, transparent 75%),
-    url('./website/assets/logo/connectia-white.png');
+    url('./assets/logo/connectia-white.png');
   -webkit-mask-size: 100% 100%, 100% 100%;
   -webkit-mask-position: 0 0, 0 0;
   -webkit-mask-repeat: no-repeat, no-repeat;
   -webkit-mask-composite: source-in;
   mask-image:
     radial-gradient(circle 280px at var(--mx) var(--my), #000 30%, transparent 75%),
-    url('./website/assets/logo/connectia-white.png');
+    url('./assets/logo/connectia-white.png');
   mask-size: 100% 100%, 100% 100%;
   mask-position: 0 0, 0 0;
   mask-repeat: no-repeat, no-repeat;
@@ -1514,13 +1516,15 @@ body.nav-open .nav { transform: translateY(0); }
 .section--contact .section__chapter .num { color: var(--purple-soft); }
 
 .contact__big {
-  font-family: var(--serif); font-weight: 400;
+  font-family: var(--sans);                   /* match Connectia logo font */
+  font-weight: 800;
   font-size: clamp(56px, 11vw, 180px);
-  line-height: 0.95; letter-spacing: -0.04em;
+  line-height: 0.95; letter-spacing: -0.045em;
   margin-bottom: 60px; max-width: 14ch;
+  text-transform: lowercase;                  /* logo is lowercase */
 }
 .contact__big em {
-  font-style: italic;
+  font-style: normal;                         /* logo is not italic */
   color: var(--purple-soft);
   text-shadow: 0 0 40px var(--purple-glow);
 }
@@ -1727,6 +1731,142 @@ body.nav-open .nav { transform: translateY(0); }
   }
 }
 
+/* =====================================================
+   GLITCH effect — "¿Hacemos algo memorable?"
+   Always-on subtle, intensifies on hover
+   ===================================================== */
+.contact__big em {
+  position: relative;
+  display: inline-block;
+}
+/* Glitch pseudo-elements ONLY rendered when hovering (.is-glitching) */
+.contact__big em.is-glitching::before,
+.contact__big em.is-glitching::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  color: inherit;
+  mix-blend-mode: screen;
+}
+.contact__big em.is-glitching::before {
+  text-shadow: 4px 0 #ff2bd9, -1px 0 #00e6ff;
+  animation: glitch-slice-a 0.35s infinite steps(1);
+}
+.contact__big em.is-glitching::after {
+  text-shadow: -4px 0 #00e6ff, 1px 0 #ff2bd9;
+  animation: glitch-slice-b 0.42s infinite steps(1);
+}
+.contact__big em.is-glitching {
+  animation: glitch-jitter 0.18s infinite steps(1);
+}
+@keyframes glitch-slice-a {
+  0%   { clip-path: polygon(0 0%, 100% 0%, 100% 10%, 0 10%); transform: translateX(0); }
+  8%   { clip-path: polygon(0 15%, 100% 15%, 100% 32%, 0 32%); transform: translateX(-3px); }
+  16%  { clip-path: polygon(0 40%, 100% 40%, 100% 48%, 0 48%); transform: translateX(2px); }
+  24%  { clip-path: polygon(0 5%, 100% 5%, 100% 22%, 0 22%); transform: translateX(4px); }
+  32%  { clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%); transform: translateX(-2px); }
+  40%  { clip-path: polygon(0 25%, 100% 25%, 100% 38%, 0 38%); transform: translateX(3px); }
+  48%  { clip-path: polygon(0 80%, 100% 80%, 100% 92%, 0 92%); transform: translateX(-4px); }
+  56%  { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transform: translateX(0); opacity: 0.3; }
+  64%  { clip-path: polygon(0 45%, 100% 45%, 100% 58%, 0 58%); transform: translateX(2px); opacity: 1; }
+  72%  { clip-path: polygon(0 12%, 100% 12%, 100% 28%, 0 28%); transform: translateX(-1px); }
+  80%  { clip-path: polygon(0 65%, 100% 65%, 100% 82%, 0 82%); transform: translateX(3px); }
+  100% { clip-path: polygon(0 0%, 100% 0%, 100% 10%, 0 10%); transform: translateX(0); }
+}
+@keyframes glitch-slice-b {
+  0%   { clip-path: polygon(0 35%, 100% 35%, 100% 50%, 0 50%); transform: translateX(0); }
+  10%  { clip-path: polygon(0 70%, 100% 70%, 100% 85%, 0 85%); transform: translateX(2px); }
+  20%  { clip-path: polygon(0 8%, 100% 8%, 100% 22%, 0 22%); transform: translateX(-3px); }
+  30%  { clip-path: polygon(0 55%, 100% 55%, 100% 68%, 0 68%); transform: translateX(4px); }
+  40%  { clip-path: polygon(0 20%, 100% 20%, 100% 35%, 0 35%); transform: translateX(-2px); }
+  50%  { clip-path: polygon(0 88%, 100% 88%, 100% 100%, 0 100%); transform: translateX(3px); }
+  60%  { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transform: translateX(0); opacity: 0.2; }
+  70%  { clip-path: polygon(0 42%, 100% 42%, 100% 55%, 0 55%); transform: translateX(-4px); opacity: 1; }
+  80%  { clip-path: polygon(0 15%, 100% 15%, 100% 30%, 0 30%); transform: translateX(2px); }
+  90%  { clip-path: polygon(0 60%, 100% 60%, 100% 78%, 0 78%); transform: translateX(-1px); }
+  100% { clip-path: polygon(0 35%, 100% 35%, 100% 50%, 0 50%); transform: translateX(0); }
+}
+@keyframes glitch-jitter {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(1px, -1px); }
+  50%  { transform: translate(-1px, 1px); }
+  75%  { transform: translate(1px, 1px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* =====================================================
+   SCROLL PILL — bottom of hero block 1 (small CTA that
+   jumps directly to block 2 without playing the journey)
+   ===================================================== */
+.hero__scroll-pill {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: rgba(245, 243, 238, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(245, 243, 238, 0.20);
+  color: rgba(245, 243, 238, 0.85);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 500;
+  z-index: 10;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s, color 0.3s;
+  animation: pill-bounce 2.4s ease-in-out infinite;
+}
+.hero__scroll-pill:hover {
+  background: rgba(245, 243, 238, 0.16);
+  color: var(--paper);
+  transform: translateX(-50%) translateY(-2px);
+}
+.hero__scroll-pill svg { display: inline-block; }
+@keyframes pill-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(4px); }
+}
+
+/* =====================================================
+   RESPONSIVE — hero block full-screen on tablet & mobile
+   (everything else adapts without modification)
+   ===================================================== */
+@media (max-width: 1024px) {
+  .hero__block--1 {
+    flex: 0 0 100dvh;
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+  .hero__topline {
+    position: absolute;
+    top: 90px; left: 0; right: 0;
+    padding: 0 var(--pad);
+    z-index: 5;
+  }
+}
+@media (max-width: 720px) {
+  .hero__block--1 {
+    flex: 0 0 100dvh;
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+  .hero__scroll-pill {
+    bottom: 32px;
+    padding: 10px 20px;
+    font-size: 12px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1742,7 +1882,7 @@ body.nav-open .nav { transform: translateY(0); }
       <em data-i18n="menu">Menú</em>
     </button>
     <a href="#top" class="header__logo" aria-label="Connectia">
-      <img src="./website/assets/logo/connectia-white.png" alt="Connectia" />
+      <img src="./assets/logo/connectia-white.png" alt="Connectia" />
     </a>
     <div class="header__right">
       <button class="lang-toggle" id="langToggle" aria-label="Language">
@@ -1794,13 +1934,17 @@ body.nav-open .nav { transform: translateY(0); }
         <div class="hero__cities">CDMX</div>
       </div>
 
-      <!-- BLOCK 1 (top): ONLY universe + cursor reveals connectia logo constellation -->
-      <div class="hero__block hero__block--1">
+      <!-- BLOCK 1 (top): scroll-jacked interstellar journey toward the connectia
+           logo. Wheel/keyboard input is captured by JS and drives the camera. -->
+      <div class="hero__block hero__block--1" id="heroBlock1">
         <canvas class="cosmos cosmos--inline" id="cosmosHero" aria-hidden="true"></canvas>
+        <button class="hero__scroll-pill" id="heroScrollPill" type="button" aria-label="Saltar al siguiente bloque">
+          <span>Scroll</span>
+          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
 
       <!-- BLOCK 2 (bottom): white universe full-screen + Somos rotator centered -->
-      <button class="hero__scroll-mobile" onclick="document.querySelector('.hero__block--2').scrollIntoView({behavior:'smooth'})">Scroll <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
       <div class="hero__block hero__block--2">
         <canvas class="cosmos cosmos--inline" id="cosmosHeroLight" aria-hidden="true"></canvas>
         <h1 class="hero__big-intro hero__big-intro--dark">
@@ -1845,7 +1989,7 @@ body.nav-open .nav { transform: translateY(0); }
         <div class="work__viewport" id="workViewport">
           <article class="work-card is-active" data-case="01">
             <div class="work-card__media">
-              <video src="./website/assets/cases/01-patron.mp4" autoplay muted loop playsinline preload="metadata"></video>
+              <video src="./assets/cases/01-patron.mp4" autoplay muted loop playsinline preload="metadata"></video>
               <span class="work-card__badge">01 / 06</span>
             </div>
             <div class="work-card__meta">
@@ -1858,7 +2002,7 @@ body.nav-open .nav { transform: translateY(0); }
 
           <article class="work-card" data-case="02">
             <div class="work-card__media">
-              <video src="./website/assets/cases/02-banamex.mp4" autoplay muted loop playsinline preload="metadata"></video>
+              <video src="./assets/cases/02-banamex.mp4" autoplay muted loop playsinline preload="metadata"></video>
               <span class="work-card__badge">02 / 06</span>
             </div>
             <div class="work-card__meta">
@@ -1871,7 +2015,7 @@ body.nav-open .nav { transform: translateY(0); }
 
           <article class="work-card" data-case="03">
             <div class="work-card__media">
-              <video src="./website/assets/cases/03-banco-azteca.mp4" autoplay muted loop playsinline preload="metadata"></video>
+              <video src="./assets/cases/03-banco-azteca.mp4" autoplay muted loop playsinline preload="metadata"></video>
               <span class="work-card__badge">03 / 06</span>
             </div>
             <div class="work-card__meta">
@@ -1884,7 +2028,7 @@ body.nav-open .nav { transform: translateY(0); }
 
           <article class="work-card" data-case="04">
             <div class="work-card__media">
-              <video src="./website/assets/cases/04-lala.mov" autoplay muted loop playsinline preload="metadata"></video>
+              <video src="./assets/cases/04-lala.mov" autoplay muted loop playsinline preload="metadata"></video>
               <span class="work-card__badge">04 / 06</span>
             </div>
             <div class="work-card__meta">
@@ -1897,7 +2041,7 @@ body.nav-open .nav { transform: translateY(0); }
 
           <article class="work-card" data-case="05">
             <div class="work-card__media">
-              <video src="./website/assets/cases/05-sams.mp4" autoplay muted loop playsinline preload="metadata"></video>
+              <video src="./assets/cases/05-sams.mp4" autoplay muted loop playsinline preload="metadata"></video>
               <span class="work-card__badge">05 / 06</span>
             </div>
             <div class="work-card__meta">
@@ -1910,7 +2054,7 @@ body.nav-open .nav { transform: translateY(0); }
 
           <article class="work-card" data-case="06">
             <div class="work-card__media">
-              <video src="./website/assets/cases/06-walmart.mp4" autoplay muted loop playsinline preload="metadata"></video>
+              <video src="./assets/cases/06-walmart.mp4" autoplay muted loop playsinline preload="metadata"></video>
               <span class="work-card__badge">06 / 06</span>
             </div>
             <div class="work-card__meta">
@@ -2195,7 +2339,7 @@ body.nav-open .nav { transform: translateY(0); }
       </div>
 
       <h3 class="contact__big">
-        <em data-i18n="contact_l2">¿Hacemos algo memorable?</em>
+        <em data-i18n="contact_l2" data-text="¿Hacemos algo memorable?" id="contactGlitch">¿Hacemos algo memorable?</em>
       </h3>
 
       <div class="contact__grid">
@@ -2223,7 +2367,6 @@ body.nav-open .nav { transform: translateY(0); }
 
     <!-- ============ FOOTER ============ -->
     <footer class="footer">
-      <canvas class="cosmos cosmos--footer" id="cosmosFooter" aria-hidden="true"></canvas>
 
       <div class="footer__top">
         <div class="footer__col">
@@ -2237,10 +2380,10 @@ body.nav-open .nav { transform: translateY(0); }
         <div class="footer__col">
           <span class="footer__lbl" data-i18n="ftr_contact">Contacto</span>
           <a href="mailto:hola@connectia.mx">hola@connectia.mx</a>
-          
+          <a href="tel:+525500000000">+52 55 0000 0000</a>
         </div>
         <div class="footer__col footer__col--sign">
-          <span class="footer__sign">Out of Noise.<br>Since 2018.<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></span>
+          <span class="footer__sign">Out of Noise.<br>Since 2024.<b class="dotcluster dotcluster--light"><i></i><i></i><i></i></b></span>
         </div>
       </div>
 
@@ -2467,20 +2610,36 @@ class Cosmos {
     console.log('[Cosmos] Wordmark centroid:', cx.toFixed(1), cy.toFixed(1),
                 '| canvas:', this.w, 'x', this.h,
                 '| offsets:', offsetX.toFixed(1), offsetY.toFixed(1));
-    // Tiny crisp points with sub-pixel jitter (avoids visible sampling grid) +
-    // per-star oscillator data for the dissolve/reform effect
-    this.logoStars = points.map(([x, y]) => ({
-      tx: x + offsetX + (Math.random() - 0.5) * 1.6,
-      ty: y + offsetY + (Math.random() - 0.5) * 1.6,
-      r: 0.55 + Math.random() * 0.5,
-      t: 0,
-      seedX: Math.random() * Math.PI * 2,
-      seedY: Math.random() * Math.PI * 2,
-      speedX: 0.0006 + Math.random() * 0.0008,
-      speedY: 0.0007 + Math.random() * 0.0008,
-      driftAng: Math.random() * Math.PI * 2,
-      driftDist: 6 + Math.random() * 18, // dispersion radius when fully dissolved
-    }));
+    // Each star has BOTH a home (scattered across the cosmos) and a target
+    // (its position in the wordmark). When idle, stars are INVISIBLE at their
+    // home. On cursor reveal / scroll they migrate toward target and fade in
+    // — gathering particles forming each letter of the wordmark.
+    // Exact v1 model: dust-like dots with small LOCAL dispersion (not random
+    // canvas home). At t=0 each star sits ~6-24px from its target, invisible.
+    // Cursor reveal activates stars by proximity to their target → they
+    // converge to target and become visible.
+    this.logoStars = points.map(([x, y]) => {
+      const jx = (Math.random() - 0.5) * 1.6;
+      const jy = (Math.random() - 0.5) * 1.6;
+      const sizeRoll = Math.random();
+      let r;
+      if (sizeRoll < 0.7)       r = 0.18 + Math.random() * 0.22;
+      else if (sizeRoll < 0.95) r = 0.35 + Math.random() * 0.25;
+      else                      r = 0.55 + Math.random() * 0.35;
+      return {
+        tx: x + offsetX + jx,
+        ty: y + offsetY + jy,
+        r: r,
+        t: 0,
+        cursorT: 0,
+        seedX: Math.random() * Math.PI * 2,
+        seedY: Math.random() * Math.PI * 2,
+        speedX: 0.0006 + Math.random() * 0.0008,
+        speedY: 0.0007 + Math.random() * 0.0008,
+        driftAng: Math.random() * Math.PI * 2,
+        driftDist: 6 + Math.random() * 18,
+      };
+    });
     console.log(`[Cosmos] Hidden logo: ${this.logoStars.length} stars seeded.`);
   }
   init() { this.resize(); this.bind(); this.loop(); }
@@ -2494,19 +2653,33 @@ class Cosmos {
     if (this.logoLoaded) this.buildLogoStars();
   }
   spawn() {
-    const count = Math.max(40, Math.min(180, Math.floor(this.w * this.h * this.opts.density)));
+    const cap = this.opts.maxStars || 180;
+    const count = Math.max(40, Math.min(cap, Math.floor(this.w * this.h * this.opts.density)));
     this.stars = [];
     for (let i = 0; i < count; i++) {
+      const sx = Math.random() * this.w;
+      const sy = Math.random() * this.h;
+      // v2: varied alpha distribution — most stars dim, a few bright
+      let baseAlpha = 1;
+      if (this.opts.variedAlpha) {
+        const r = Math.random();
+        if (r < 0.55)      baseAlpha = 0.18 + Math.random() * 0.22;   // mostly dim
+        else if (r < 0.85) baseAlpha = 0.45 + Math.random() * 0.25;   // mid
+        else               baseAlpha = 0.80 + Math.random() * 0.20;   // few bright
+      }
       this.stars.push({
-        x: Math.random() * this.w,
-        y: Math.random() * this.h,
+        x: sx,
+        y: sy,
+        prevX: sx,
+        prevY: sy,
         vx: (Math.random() - 0.5) * this.opts.drift,
         vy: (Math.random() - 0.5) * this.opts.drift,
         r: Math.random() * 1.4 + 0.4,
         baseR: 0,
+        baseAlpha: baseAlpha,
         twinkleSpeed: Math.random() * 0.02 + 0.005,
         twinklePhase: Math.random() * Math.PI * 2,
-        purple: Math.random() < 0.35,
+        purple: Math.random() < (this.opts.purpleRatio || 0.35),
       });
     }
     this.stars.forEach(s => s.baseR = s.r);
@@ -2525,6 +2698,29 @@ class Cosmos {
   loop() {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.w, this.h);
+
+    /* === V2 INTERSTELLAR JOURNEY (two-phase) ===
+       Phase A — APPROACH (W = 0 → 0.45)
+         The constellation wordmark fades in at the center and grows in
+         place (perspective: camera approaching it). Background cosmos
+         drifts normally. NO purple cloud — wordmark stays as crisp dots.
+
+       Phase B — TRAVEL THROUGH STARS (W = 0.45 → 1.0)
+         The camera "enters" the wordmark; its stars dissolve outward and
+         join the cosmic field. All stars stream outward continuously like
+         flying through space. New stars recycle at the center.
+    */
+    const W = this.warpProgress || 0;
+    const inWarp = W > 0.001;
+    const cx = this.w / 2, cy = this.h / 2;
+    // approachT: 0..1 across phase A (W in [0, 0.45])
+    const approachT = Math.max(0, Math.min(1, W / 0.45));
+    // travelT: 0..1 across phase B (W in [0.45, 1])
+    const travelT   = Math.max(0, Math.min(1, (W - 0.45) / 0.55));
+    const inTravel  = travelT > 0;
+
+    // BACKGROUND STARS — always calm drift (never warp). The travel effect
+    // happens INSIDE the logo itself (handled in the constellation block).
     for (let s of this.stars) {
       s.x += s.vx; s.y += s.vy;
       if (s.x < -10) s.x = this.w + 10;
@@ -2535,111 +2731,168 @@ class Cosmos {
         s.twinklePhase += s.twinkleSpeed;
         s.r = s.baseR * (0.7 + 0.6 * Math.abs(Math.sin(s.twinklePhase)));
       }
+      s.prevX = s.x;
+      s.prevY = s.y;
     }
-    const max = this.opts.maxLinkDist;
-    for (let i = 0; i < this.stars.length; i++) {
-      for (let j = i + 1; j < this.stars.length; j++) {
-        const a = this.stars[i], b = this.stars[j];
-        const dx = a.x - b.x, dy = a.y - b.y;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < max * max) {
-          const t = 1 - Math.sqrt(d2) / max;
-          ctx.strokeStyle = `rgba(${this.opts.lineColor}, ${t * 0.18})`;
-          ctx.lineWidth = 0.6;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
-          ctx.stroke();
+
+    // Background neural network — thin light-pink/purple connections between stars
+    if (!inTravel) {
+      const max = this.opts.maxLinkDist;
+      const linkAlphaMul = 1 - approachT * 0.6;
+      const netColor = this.opts.networkColor || '230, 170, 230';   // light pink/purple
+      for (let i = 0; i < this.stars.length; i++) {
+        for (let j = i + 1; j < this.stars.length; j++) {
+          const a = this.stars[i], b = this.stars[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < max * max) {
+            const t = 1 - Math.sqrt(d2) / max;
+            const a2 = Math.pow(t, 1.5) * 0.18 * linkAlphaMul;
+            ctx.strokeStyle = `rgba(${netColor}, ${a2})`;
+            ctx.lineWidth = 0.3;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
         }
       }
     }
-    if (this.mouse.active) {
-      const cr = this.opts.cursorRadius;
+
+    // Cursor link — SUBTLE neural-synapse vibe (thin, low alpha, no central glow)
+    // Now reaches a few more stars + boosts brightness of stars near cursor
+    if (this.mouse.active && !inTravel) {
+      const cr = this.opts.cursorRadius * 1.15;     // slightly wider reach → more stars join
       for (let s of this.stars) {
         const dx = s.x - this.mouse.x, dy = s.y - this.mouse.y;
         const d2 = dx * dx + dy * dy;
         if (d2 < cr * cr) {
           const t = 1 - Math.sqrt(d2) / cr;
-          ctx.strokeStyle = `rgba(${this.opts.cursorColor}, ${t * 0.7})`;
-          ctx.lineWidth = 0.8;
+          // Eased curve, slightly brighter than before
+          const a = Math.pow(t, 1.5) * 0.30;
+          ctx.strokeStyle = `rgba(${this.opts.cursorColor}, ${a})`;
+          ctx.lineWidth = 0.5;
           ctx.beginPath();
           ctx.moveTo(s.x, s.y); ctx.lineTo(this.mouse.x, this.mouse.y);
           ctx.stroke();
+          // Cache the brightness boost for the dot-draw pass below
+          s.cursorBoost = t;
+        } else {
+          s.cursorBoost = 0;
         }
       }
-      const grad = ctx.createRadialGradient(this.mouse.x, this.mouse.y, 0, this.mouse.x, this.mouse.y, 60);
-      grad.addColorStop(0, `rgba(${this.opts.cursorColor}, 0.18)`);
-      grad.addColorStop(1, `rgba(${this.opts.cursorColor}, 0)`);
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(this.mouse.x, this.mouse.y, 60, 0, Math.PI * 2);
-      ctx.fill();
+    } else {
+      for (let s of this.stars) s.cursorBoost = 0;
     }
+
+    // Background stars: always calm dots with varied opacity (never warp)
     for (let s of this.stars) {
+      const baseA = s.baseAlpha || 1;
+      // Boost alpha for stars near the cursor → they shine a bit brighter
+      const boost = s.cursorBoost || 0;
+      ctx.globalAlpha = Math.min(1, baseA + boost * 0.5);
       ctx.fillStyle = s.purple ? this.opts.starColor : this.opts.starColor2;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fill();
-      if (s.purple && s.r > 1) {
-        ctx.fillStyle = `rgba(${this.opts.lineColor}, 0.15)`;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r * 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.globalAlpha = 1;
     }
 
-    // ===== HIDDEN LOGO CONSTELLATION (dissolve / reform) =====
+    // ===== LOGO — v1 model: dispersion-based reveal + camera zoom journey =====
+    //  - Stars live at their TARGET (wordmark) positions
+    //  - At rest (t=0): they're OFFSET by a per-star drift oscillation
+    //    (small ~6-24px wobble around target) AND alpha=0 → invisible
+    //  - Cursor near target → t rises → offset shrinks back to 0 (star
+    //    converges to its exact target spot) AND alpha rises → visible
+    //  - Cursor leaves → t decays → offset grows back, alpha falls → star
+    //    drifts away from target and fades out
+    //  - Scroll: scrollT raises all stars uniformly (whole wordmark forms)
+    //  - Camera zoom applied for the immersive journey
     if (this.logoStars.length) {
       const opts = this.opts.logo || {};
       const revealR = opts.revealRadius || 180;
-      const decay = opts.decay || 0.018;
+      const decay = opts.decay || 0.012;
       const nowMs = performance.now();
 
-      // Activate stars within cursor radius (cursor proximity to TARGET position, not drifted position)
+      // ===== Two-phase journey =====
+      // Phase A (W = 0 → 0.5): logo opacity ramps from 0 → 1 (materializes
+      // from transparent to fully visible). No zoom yet.
+      // Phase B (W = 0.5 → 1): logo fully visible, camera zooms in from 1x
+      // to ~9x for the immersive "flying into the logo" effect.
+      const scrollT = Math.min(1, W / 0.5);
+      const phaseB  = Math.max(0, (W - 0.5) / 0.5);
+      const cameraScale = 1 + Math.pow(phaseB, 1.05) * 8;
+
+      // Cursor reveal — LOCAL proximity to wordmark target. Stars near cursor
+      // get full intensity, far stars stay invisible → reveal is non-uniform,
+      // showing the wordmark where the cursor is.
       if (this.mouse.active) {
         const r2 = revealR * revealR;
         for (let i = 0; i < this.logoStars.length; i++) {
           const ls = this.logoStars[i];
-          const dx = ls.tx - this.mouse.x;
-          const dy = ls.ty - this.mouse.y;
-          const d2 = dx * dx + dy * dy;
+          const cdx = ls.tx - this.mouse.x;
+          const cdy = ls.ty - this.mouse.y;
+          const d2 = cdx * cdx + cdy * cdy;
           if (d2 < r2) {
             const intensity = 1 - Math.sqrt(d2) / revealR;
-            ls.t = Math.max(ls.t, intensity);
+            // Accumulate: hover that lingers in one spot ramps to 100%
+            ls.cursorT = Math.min(1, (ls.cursorT || 0) + intensity * 0.06);
           }
         }
       }
 
-      // Pure white logo dots, two passes (halo + core)
-      // Each star drifts away from its target proportional to (1 - t):
-      //   t = 1 → exact position (logo formed)
-      //   t = 0 → drifted by driftDist * sin/cos oscillation (dissolved)
       ctx.fillStyle = 'rgba(255, 255, 255, 1)';
 
-      // Pass 1: halo
+      // ===== Radial flow — only deep into phase B (immersive travel) =====
+      // Stars stream outward past the camera, giving the sense of flying
+      // through the wordmark particles.
+      const flowActivation = Math.max(0, (phaseB - 0.4) / 0.6); // kicks in at phaseB > 0.4
+      const flowSpeed = Math.pow(flowActivation, 1.4) * 0.045;
+
+      // ===== Render: per-star drift offset shrinks as star activates =====
       for (let i = 0; i < this.logoStars.length; i++) {
         const ls = this.logoStars[i];
-        if (ls.t > 0.02) {
-          const dispersion = (1 - ls.t) * (1 - ls.t); // ease-in: most movement at low t
-          const ox = Math.sin(nowMs * ls.speedX + ls.seedX) * ls.driftDist * dispersion;
-          const oy = Math.cos(nowMs * ls.speedY + ls.seedY) * ls.driftDist * dispersion;
-          ctx.globalAlpha = ls.t * 0.18;
-          ctx.beginPath();
-          ctx.arc(ls.tx + ox, ls.ty + oy, ls.r + 1.4, 0, Math.PI * 2);
-          ctx.fill();
+        const t = Math.max(scrollT, ls.cursorT || 0);
+        if (t <= 0.02) {
+          if (ls.cursorT > 0) ls.cursorT = Math.max(0, ls.cursorT - decay);
+          continue;
         }
-      }
-      // Pass 2: sharp core only for activated stars (logo invisible until cursor reveals)
-      for (let i = 0; i < this.logoStars.length; i++) {
-        const ls = this.logoStars[i];
-        if (ls.t > 0.02) {
-          const dispersion = (1 - ls.t) * (1 - ls.t);
-          const ox = Math.sin(nowMs * ls.speedX + ls.seedX) * ls.driftDist * dispersion;
-          const oy = Math.cos(nowMs * ls.speedY + ls.seedY) * ls.driftDist * dispersion;
-          ctx.globalAlpha = ls.t;
-          ctx.beginPath();
-          ctx.arc(ls.tx + ox, ls.ty + oy, ls.r, 0, Math.PI * 2);
-          ctx.fill();
-          ls.t = Math.max(0, ls.t - decay);
+        // Initialize per-star flow offset on first use
+        if (ls.flowOX === undefined) { ls.flowOX = 0; ls.flowOY = 0; }
+        // Dispersion: SCROLL drives the fly-in (full offset → target).
+        // Cursor reveal: stars sit at target with only a small CONSTANT
+        // wander (~3px) so they look like floating particles, not static.
+        const useDispersion = (ls.cursorT || 0) < 0.02;
+        const dispersion = useDispersion ? (1 - scrollT) * (1 - scrollT) : 0;
+        const floatAmp = useDispersion ? 0 : 2.5;     // constant wander on cursor-revealed
+        const ox = Math.sin(nowMs * ls.speedX + ls.seedX) * (ls.driftDist * dispersion + floatAmp);
+        const oy = Math.cos(nowMs * ls.speedY + ls.seedY) * (ls.driftDist * dispersion + floatAmp);
+        // Apply radial flow during deep travel (forward motion through stars)
+        if (flowSpeed > 0) {
+          const baseX0 = ls.tx + ls.flowOX, baseY0 = ls.ty + ls.flowOY;
+          const ddx = baseX0 - cx, ddy = baseY0 - cy;
+          const dlen = Math.sqrt(ddx * ddx + ddy * ddy) || 1;
+          ls.flowOX += (ddx / dlen) * flowSpeed * dlen;
+          ls.flowOY += (ddy / dlen) * flowSpeed * dlen;
+          // Recycle when offset is large (star "passed" the camera)
+          if (Math.abs(ls.flowOX) > this.w * 0.8 || Math.abs(ls.flowOY) > this.h * 0.8) {
+            ls.flowOX = 0; ls.flowOY = 0;
+          }
+        } else {
+          ls.flowOX *= 0.92; ls.flowOY *= 0.92;   // decay flow when leaving travel
+        }
+        // Camera zoom from canvas center
+        const baseX = ls.tx + ox + ls.flowOX;
+        const baseY = ls.ty + oy + ls.flowOY;
+        const x = cx + (baseX - cx) * cameraScale;
+        const y = cy + (baseY - cy) * cameraScale;
+        const zoomGrow = 1 + Math.min(0.8, (cameraScale - 1) * 0.12);
+        const radius = ls.r * zoomGrow;
+        ctx.globalAlpha = Math.min(1, t);
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        if (ls.cursorT > 0) {
+          ls.cursorT = Math.max(0, ls.cursorT - decay);
         }
       }
       ctx.globalAlpha = 1;
@@ -2664,7 +2917,7 @@ class BigBang {
     this.logoLoaded = false;
     this.logoImg = new Image();
     this.logoImg.onload = () => { this.logoLoaded = true; };
-    this.logoImg.src = './website/assets/logo-white.svg';
+    this.logoImg.src = './assets/logo-white.svg';
     this.resize();
   }
   resize() {
@@ -3314,21 +3567,116 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const cosmosHero = document.getElementById('cosmosHero');
-  if (cosmosHero) new Cosmos(cosmosHero, {
+  let cosmosHeroInstance = null;
+  if (cosmosHero) cosmosHeroInstance = new Cosmos(cosmosHero, {
     ...darkCosmosOpts,
-    density: 0.00018, // denser starfield — universe feels alive around the rotator
+    starColor:  'rgba(180, 130, 220, 0.9)',   // v2: muted purple (less saturated)
+    starColor2: 'rgba(225, 225, 235, 0.9)',   // v2: soft white
+    lineColor:  '130, 90, 170',                // (kept for cursor reveal)
+    networkColor: '230, 170, 230',             // light pink/purple network
+    density: 0.00075,
+    maxStars: 700,
     cursorRadius: 280,
-    maxLinkDist: 200,
-    // Hidden logo: stars seeded at logo pixel positions; cursor reveals them as a constellation
+    maxLinkDist: 140,
+    purpleRatio: 0.55,
+    variedAlpha: true,                          // v2: stars have varied opacity (some dim, some bright)
     logo: {
-      src: './website/assets/logo/connectia-white.png',
-      widthRatio: 0.42,    // smaller logo
+      src: './assets/logo/connectia-white.png',
+      widthRatio: 0.42,
       maxWidth: 720,
-      step: 5,             // dense sampling for fine detail (no pixelation)
+      step: 7,
       revealRadius: 220,
-      decay: 0.0085,       // slow fade so dissolve effect is visible
+      decay: 0.012,                            // v1's slow fade — visible dispersion motion
     },
   });
+
+  /* ======================================================
+     V2 INTERSTELLAR JOURNEY — scroll-jacked
+     Camera state (0→1) advances/retreats with wheel input
+     while the page is at scrollY=0. The page itself does
+     NOT scroll during the journey; only the visual warp
+     advances. Once cameraZ reaches 1, additional scroll-down
+     releases the lock and the page scrolls naturally to
+     block 2. Scrolling up from block 2 returns to scrollY=0
+     where cameraZ stays at 1 — then wheel-up retreats it
+     back to 0 (the initial moment with the hidden logo).
+     ====================================================== */
+  (function setupJourneyLock() {
+    if (!cosmosHeroInstance) return;
+    let cameraZ = 0;
+    // ~5 substantial scrolls to complete the journey (deeper destination)
+    const SCROLL_SENS = 0.0007;
+    const KEY_STEP    = 0.07;
+
+    function apply() {
+      cosmosHeroInstance.warpProgress = cameraZ;
+    }
+
+    function atTop() { return window.scrollY <= 1; }
+
+    function onWheel(e) {
+      const delta = e.deltaY;
+      if (!atTop()) return; // outside hero, native scroll
+      if (delta > 0) {
+        // Scrolling DOWN
+        if (cameraZ < 1) {
+          e.preventDefault();
+          cameraZ = Math.min(1, cameraZ + delta * SCROLL_SENS);
+          apply();
+        }
+        // If cameraZ === 1, allow native scroll → page goes to block 2
+      } else if (delta < 0) {
+        // Scrolling UP
+        if (cameraZ > 0) {
+          e.preventDefault();
+          cameraZ = Math.max(0, cameraZ + delta * SCROLL_SENS);
+          apply();
+        }
+      }
+    }
+
+    function onKey(e) {
+      if (!atTop()) return;
+      const downKeys = ['ArrowDown', 'PageDown', ' ', 'Spacebar'];
+      const upKeys   = ['ArrowUp', 'PageUp'];
+      if (downKeys.includes(e.key) && cameraZ < 1) {
+        e.preventDefault();
+        cameraZ = Math.min(1, cameraZ + KEY_STEP);
+        apply();
+      } else if (upKeys.includes(e.key) && cameraZ > 0) {
+        e.preventDefault();
+        cameraZ = Math.max(0, cameraZ - KEY_STEP);
+        apply();
+      }
+    }
+
+    // When user scrolls back UP to scrollY=0 from block 2, keep cameraZ=1
+    // so wheel-up gradually retreats. Nothing to do — cameraZ persists.
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('keydown', onKey, { passive: false });
+
+    // Touch swipe support (mobile/trackpad-as-touch)
+    let touchStartY = 0;
+    window.addEventListener('touchstart', (e) => {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    window.addEventListener('touchmove', (e) => {
+      if (!atTop()) return;
+      const dy = touchStartY - e.touches[0].clientY;
+      touchStartY = e.touches[0].clientY;
+      if (dy > 0 && cameraZ < 1) {
+        e.preventDefault();
+        cameraZ = Math.min(1, cameraZ + dy * SCROLL_SENS * 1.5);
+        apply();
+      } else if (dy < 0 && cameraZ > 0) {
+        e.preventDefault();
+        cameraZ = Math.max(0, cameraZ + dy * SCROLL_SENS * 1.5);
+        apply();
+      }
+    }, { passive: false });
+
+    apply();
+  })();
 
 
   // Block 2: white/paper universe — purple stars on light background, full-screen
@@ -3575,6 +3923,51 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
   revealEls.forEach(el => io.observe(el));
+
+  /* Glitch hover for "¿Hacemos algo memorable?" */
+  (function setupContactGlitch() {
+    const el = document.getElementById('contactGlitch');
+    if (!el) return;
+    const enter = () => el.classList.add('is-glitching');
+    const leave = () => el.classList.remove('is-glitching');
+    el.addEventListener('mouseenter', enter);
+    el.addEventListener('mouseleave', leave);
+    el.addEventListener('focus', enter);
+    el.addEventListener('blur', leave);
+  })();
+
+  /* Hero scroll pill — jump straight to block 2 without playing the journey */
+  (function setupScrollPill() {
+    const pill = document.getElementById('heroScrollPill');
+    if (!pill) return;
+    pill.addEventListener('click', (e) => {
+      e.preventDefault();
+      const block2 = document.querySelector('.hero__block--2');
+      if (block2) block2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  })();
+
+  /* Touch support for the cosmosHero — taps/swipes trigger the same cursor
+     reveal as desktop hover so the wordmark forms on mobile/tablet */
+  (function setupTouchReveal() {
+    const canvas = document.getElementById('cosmosHero');
+    if (!canvas || !cosmosHeroInstance) return;
+    function setMouseFromTouch(touch) {
+      const r = canvas.getBoundingClientRect();
+      cosmosHeroInstance.mouse.x = touch.clientX - r.left;
+      cosmosHeroInstance.mouse.y = touch.clientY - r.top;
+      cosmosHeroInstance.mouse.active = true;
+    }
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length) setMouseFromTouch(e.touches[0]);
+    }, { passive: true });
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length) setMouseFromTouch(e.touches[0]);
+    }, { passive: true });
+    canvas.addEventListener('touchend', () => {
+      cosmosHeroInstance.mouse.active = false;
+    }, { passive: true });
+  })();
 });
 
 </script>
