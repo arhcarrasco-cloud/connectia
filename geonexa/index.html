@@ -965,6 +965,81 @@ var searchInProgress=false;
 var autoRefreshSearch=false;
 var markerClusterer=null;
 
+/* ============================================================
+   ConnectiaDrawingManager — reemplazo nativo de google.maps.drawing.DrawingManager
+   (eliminado por Google en Maps JS API v3.65). Implementa la misma API que usa la
+   app: setMap, getDrawingMode, setDrawingMode, setOptions, y eventos overlaycomplete
+   ({type,overlay}) y drawingmode_changed. Dibuja marker/circle/rectangle/polygon con
+   eventos nativos del mapa. Aditivo: no se editan los ~80 call-sites existentes.
+   ============================================================ */
+function _ensureConnectiaDrawingManager(){
+  if(window.ConnectiaDrawingManager) return;
+  if(!google.maps.drawing) google.maps.drawing={};
+  if(!google.maps.drawing.OverlayType) google.maps.drawing.OverlayType={MARKER:'marker',CIRCLE:'circle',RECTANGLE:'rectangle',POLYGON:'polygon',POLYLINE:'polyline'};
+  var OT=google.maps.drawing.OverlayType;
+  function CDM(opts){
+    this._o=opts||{};
+    this._map=null; this._mode=null; this._ls=[];
+    this._live=null; this._start=null; this._poly=null; this._down=false;
+    this.set('drawingMode',null);
+  }
+  CDM.prototype=Object.create(google.maps.MVCObject.prototype);
+  CDM.prototype.setMap=function(m){ this._map=m; };
+  CDM.prototype.getMap=function(){ return this._map; };
+  CDM.prototype.getDrawingMode=function(){ return this._mode; };
+  CDM.prototype.setOptions=function(o){ if(!o) return; for(var k in o){ var v=o[k];
+    if(v&&typeof v==='object'&&!Array.isArray(v)&&this._o[k]&&typeof this._o[k]==='object'){ for(var j in v) this._o[k][j]=v[j]; }
+    else this._o[k]=v; } };
+  CDM.prototype.setDrawingMode=function(mode){ if(mode===undefined) mode=null; if(mode===this._mode) return;
+    this._teardown(); this._mode=mode; this.set('drawingMode',mode); if(mode) this._arm(mode); };
+  CDM.prototype._teardown=function(){ var m=this._map;
+    this._ls.forEach(function(l){ try{google.maps.event.removeListener(l);}catch(e){} }); this._ls=[];
+    if(this._live){ try{this._live.setMap(null);}catch(e){} this._live=null; }
+    this._start=null; this._poly=null; this._down=false;
+    if(m){ try{ m.setOptions({draggable:true,disableDoubleClickZoom:false}); }catch(e){} } };
+  CDM.prototype._opt=function(n){ return this._o[n]||{}; };
+  CDM.prototype._merge=function(base,extra){ var r={}; for(var k in base) r[k]=base[k]; for(var k2 in extra) r[k2]=extra[k2]; return r; };
+  CDM.prototype._arm=function(mode){ var self=this, m=this._map; if(!m) return;
+    if(mode===OT.MARKER){
+      this._ls.push(m.addListener('click',function(e){
+        var mk=new google.maps.Marker(self._merge(self._opt('markerOptions'),{position:e.latLng,map:m}));
+        self._fire(OT.MARKER,mk); }));
+    } else if(mode===OT.CIRCLE){
+      m.setOptions({draggable:false});
+      this._ls.push(m.addListener('mousedown',function(e){ self._down=true; self._start=e.latLng;
+        self._live=new google.maps.Circle(self._merge(self._opt('circleOptions'),{center:e.latLng,radius:1,map:m})); }));
+      this._ls.push(m.addListener('mousemove',function(e){ if(!self._down||!self._live) return;
+        self._live.setRadius(Math.max(1,google.maps.geometry.spherical.computeDistanceBetween(self._start,e.latLng))); }));
+      this._ls.push(m.addListener('mouseup',function(e){ if(!self._down) return; self._down=false;
+        var c=self._live; self._live=null; if(!c) return;
+        var rr=(e&&e.latLng)?google.maps.geometry.spherical.computeDistanceBetween(self._start,e.latLng):c.getRadius();
+        if(rr>5){ c.setRadius(rr); self._fire(OT.CIRCLE,c); } else c.setMap(null); }));
+    } else if(mode===OT.RECTANGLE){
+      m.setOptions({draggable:false});
+      this._ls.push(m.addListener('mousedown',function(e){ self._down=true; self._start=e.latLng;
+        self._live=new google.maps.Rectangle(self._merge(self._opt('rectangleOptions'),{bounds:new google.maps.LatLngBounds(e.latLng,e.latLng),map:m})); }));
+      this._ls.push(m.addListener('mousemove',function(e){ if(!self._down||!self._live) return;
+        var b=new google.maps.LatLngBounds(); b.extend(self._start); b.extend(e.latLng); self._live.setBounds(b); }));
+      this._ls.push(m.addListener('mouseup',function(e){ if(!self._down) return; self._down=false;
+        var r=self._live; self._live=null; if(!r) return;
+        var end=(e&&e.latLng)?e.latLng:self._start; var b=new google.maps.LatLngBounds(); b.extend(self._start); b.extend(end);
+        var ne=b.getNorthEast(), sw=b.getSouthWest();
+        if(Math.abs(ne.lat()-sw.lat())>1e-7&&Math.abs(ne.lng()-sw.lng())>1e-7){ r.setBounds(b); self._fire(OT.RECTANGLE,r); } else r.setMap(null); }));
+    } else if(mode===OT.POLYGON){
+      m.setOptions({disableDoubleClickZoom:true}); this._poly=[];
+      var po=self._opt('polygonOptions');
+      this._live=new google.maps.Polyline({path:[],map:m,strokeColor:po.strokeColor||'#1d1d1f',strokeWeight:po.strokeWeight||2});
+      var eq=function(a,b){ return a&&b&&Math.abs(a.lat()-b.lat())<1e-9&&Math.abs(a.lng()-b.lng())<1e-9; };
+      this._ls.push(m.addListener('click',function(e){ var last=self._poly[self._poly.length-1];
+        if(eq(last,e.latLng)) return; self._poly.push(e.latLng); self._live.setPath(self._poly.slice()); }));
+      this._ls.push(m.addListener('dblclick',function(e){ if(self._poly.length>=3){
+        var poly=new google.maps.Polygon(self._merge(self._opt('polygonOptions'),{paths:self._poly.slice(),map:m}));
+        if(self._live){self._live.setMap(null);self._live=null;} self._poly=null; self._fire(OT.POLYGON,poly); } }));
+    } };
+  CDM.prototype._fire=function(type,overlay){ google.maps.event.trigger(this,'overlaycomplete',{type:type,overlay:overlay}); };
+  window.ConnectiaDrawingManager=CDM;
+}
+
 function initMap(){
   var initialCenter={lat:23.6345,lng:-102.5528};
   var initialZoom=5;
@@ -1004,13 +1079,20 @@ function initMap(){
   // MarkerClusterer - disabled for stability
   markerClusterer=null;
 
-  drawingManager=new google.maps.drawing.DrawingManager({
+  _ensureConnectiaDrawingManager();
+  var _dmOpts={
     drawingControl:false,
     circleOptions:shapeOpts(),
     rectangleOptions:shapeOpts(),
     polygonOptions:shapeOpts(),
     markerOptions:{draggable:false,icon:{path:'M 0,-29 C -7.7,-29 -14,-22.7 -14,-15 C -14,-5.3 0,4 0,4 C 0,4 14,-5.3 14,-15 C 14,-22.7 7.7,-29 0,-29 Z',scale:1.1,fillColor:'#ea4335',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,anchor:new google.maps.Point(0,-15),labelOrigin:new google.maps.Point(0,-15)}}
-  });
+  };
+  try{
+    drawingManager=new google.maps.drawing.DrawingManager(_dmOpts);
+  }catch(_dmErr){
+    console.warn('[connectia] DrawingManager nativo no disponible ('+(_dmErr&&_dmErr.message)+'); usando ConnectiaDrawingManager (migracion Maps v3.65)');
+    drawingManager=new ConnectiaDrawingManager(_dmOpts);
+  }
   drawingManager.setMap(map);
   google.maps.event.addListener(drawingManager,'overlaycomplete',onOverlayComplete);
   _setupCircleLiveTracking();
@@ -15847,9 +15929,8 @@ setInterval(function(){
   var s = document.createElement('script');
   s.async = true;
   s.src = 'https://maps.googleapis.com/maps/api/js?key=' + key
-        + '&v=3.64'  /* FIX 2026-06-22: DrawingManager eliminado en Maps v3.65 (canal weekly). Fijar 3.64 restaura dibujo/seleccion y buscador. Migrar a futuro fuera de DrawingManager. */
         + '&libraries=drawing,places,geometry,visualization,marker'
-        + '&callback=initMap';
+        + '&callback=initMap';  /* 2026-06-22: migrado fuera de DrawingManager (eliminado en Maps v3.65). ConnectiaDrawingManager hace el dibujo nativo; sin pin de version. */
   document.head.appendChild(s);
 
   // === Interceptor universal: cualquier URL hardcodeada con la web key se reescribe ===
