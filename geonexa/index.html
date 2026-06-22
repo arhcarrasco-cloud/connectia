@@ -15847,6 +15847,7 @@ setInterval(function(){
   var s = document.createElement('script');
   s.async = true;
   s.src = 'https://maps.googleapis.com/maps/api/js?key=' + key
+        + '&v=3.64'  /* FIX 2026-06-22: DrawingManager eliminado en Maps v3.65 (canal weekly). Fijar 3.64 restaura dibujo/seleccion y buscador. Migrar a futuro fuera de DrawingManager. */
         + '&libraries=drawing,places,geometry,visualization,marker'
         + '&callback=initMap';
   document.head.appendChild(s);
