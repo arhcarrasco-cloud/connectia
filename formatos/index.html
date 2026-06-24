@@ -170,7 +170,6 @@ const FORM_SCHEMAS={
       {k:'fecha_solicitud',label:'Fecha de solicitud',type:'date',today:true},
       {k:'area',label:'Área / Departamento',from:'department'},
       {k:'puesto',label:'Puesto',from:'position'},
-      {k:'no_empleado',label:'No. de empleado',from:'employee_no'},
       {k:'periodo',label:'Periodo del gasto',ph:'Ej. 1–15 junio 2026'}],
     table:{key:'gastos',title:'Detalle de gastos',addLabel:'+ Agregar gasto',req:'importe',cols:[
       {k:'fecha',label:'Fecha',type:'date',w:'130px'},
@@ -191,7 +190,6 @@ const FORM_SCHEMAS={
       {k:'fecha',label:'Fecha de asignación',type:'date',today:true},
       {k:'area',label:'Área / Departamento',from:'department'},
       {k:'puesto',label:'Puesto',from:'position'},
-      {k:'no_empleado',label:'No. de empleado',from:'employee_no'},
       {k:'tipo_movimiento',label:'Tipo de movimiento',type:'select',options:['Alta','Cambio','Reposición','Baja / Devolución']}],
     table:{key:'equipos',title:'Equipos asignados',addLabel:'+ Agregar equipo',req:'descripcion',cols:[
       {k:'descripcion',label:'Equipo / Descripción'},
@@ -209,7 +207,6 @@ const FORM_SCHEMAS={
     eyebrow:'Recursos Humanos · Resguardo',
     header:[
       {k:'nombre',label:'Nombre',from:'full_name'},
-      {k:'no_empleado',label:'No. de empleado',from:'employee_no'},
       {k:'area',label:'Área / Depto.',from:'department'},
       {k:'puesto',label:'Puesto',from:'position'},
       {k:'fecha_entrega',label:'Fecha de entrega',type:'date',today:true},
@@ -246,6 +243,7 @@ function numeroALetras(num){
 
 /* ---------- init ---------- */
 async function init(){
+  try{ STATE.pendingVer=new URLSearchParams(location.search).get('ver'); }catch(e){}
   const {data:{session}}=await sb.auth.getSession();
   if(session){STATE.user=session.user;await loadProfile();await loadFormTypes();}
   route();
@@ -261,6 +259,7 @@ function route(){
   window.scrollTo(0,0);
   if(!STATE.user)return renderAuth();
   if(!STATE.profile)return renderProfileSetup();
+  if(STATE.pendingVer){ const v=STATE.pendingVer; STATE.pendingVer=null; STATE.view='detalle'; STATE.arg=v; try{history.replaceState(null,'',location.pathname);}catch(e){} }
   switch(STATE.view){
     case 'misformatos':return renderMisFormatos();
     case 'aprobaciones':return renderAprobaciones();
@@ -320,12 +319,11 @@ function renderProfileSetup(){
       <div class="field"><label>Nombre completo</label><input id="ps_name" value="${esc(STATE.profile?.full_name||'')}"/></div>
       <div class="fgrid"><div class="field"><label>Área / Departamento</label><input id="ps_dep"/></div>
         <div class="field"><label>Puesto</label><input id="ps_pos"/></div></div>
-      <div class="field"><label>No. de empleado</label><input id="ps_emp"/></div>
       <button class="btn-primary" id="psSave">Guardar y continuar</button>
     </div></div></div>`;
   bindTop();
   $('#psSave').onclick=async()=>{
-    const upd={full_name:$('#ps_name').value.trim(),department:$('#ps_dep').value.trim(),position:$('#ps_pos').value.trim(),employee_no:$('#ps_emp').value.trim()};
+    const upd={full_name:$('#ps_name').value.trim(),department:$('#ps_dep').value.trim(),position:$('#ps_pos').value.trim()};
     if(!upd.full_name){$('#psMsg').innerHTML='<div class="msg err">El nombre es obligatorio.</div>';return;}
     const {error}=await db.from('profiles').update(upd).eq('id',STATE.user.id);
     if(error){$('#psMsg').innerHTML=`<div class="msg err">${esc(error.message)}</div>`;return;}
