@@ -641,16 +641,44 @@ function openSignModal(onConfirm,title,subtitle){
 async function renderEquipo(){
   app.innerHTML=`${topbar()}<div class="page"><div class="container">
     <div class="eyebrow">Administración</div>
-    <h1 style="font-size:28px;font-weight:800;letter-spacing:-.02em;margin:6px 0 6px">Equipo y roles</h1>
-    <p style="color:var(--slate);margin-bottom:18px">Asigna rol y jefe directo a cada persona. El jefe directo define quién aprueba el primer paso.</p>
-    <div class="panel" id="team"><div class="spinner"></div></div></div></div>`;
+    <h1 style="font-size:28px;font-weight:800;letter-spacing:-.02em;margin:6px 0 6px">Equipo y organigrama</h1>
+    <p style="color:var(--slate);margin-bottom:18px">Quién ya se registró, su rol y su jefe directo. La estructura se asigna sola al registrarse; abajo puedes ajustarla.</p>
+    <div id="roster"><div class="spinner"></div></div>
+    <h2 style="font-size:18px;font-weight:700;letter-spacing:-.01em;margin:30px 0 4px">Ajuste manual</h2>
+    <p style="color:var(--slate);font-size:13px;margin-bottom:14px">Solo personas ya registradas. Los cambios se guardan al instante.</p>
+    <div class="panel" id="team" style="padding:18px"></div>
+  </div></div>`;
   bindTop();
-  const {data:people}=await db.from('profiles').select('*').order('full_name');
-  $('#team').innerHTML=`<div class="tbl-wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th style="width:160px">Rol</th><th style="width:220px">Jefe directo</th></tr></thead>
+  const [pr,sr]=await Promise.all([ db.from('profiles').select('*').order('full_name'), db.from('org_seed').select('*') ]);
+  const people=pr.data||[]; const seed=sr.data||[];
+  const byEmail={}; people.forEach(p=>{ if(p.email) byEmail[p.email.toLowerCase()]=p; });
+  const seedEmails=new Set(seed.map(s=>(s.email||'').toLowerCase()));
+  const rank={admin:0,direccion:1,finanzas:2,jefe:3,empleado:4};
+  let roster=seed.map(s=>{ const p=byEmail[(s.email||'').toLowerCase()]; return {email:s.email,name:(p&&p.full_name)||s.full_name||s.email,role:(p&&p.role)||s.role,jefe:s.manager_email||'',reg:!!p}; });
+  people.forEach(p=>{ if(p.email && !seedEmails.has(p.email.toLowerCase())){ const m=people.find(x=>x.id===p.manager_id); roster.push({email:p.email,name:p.full_name||p.email,role:p.role,jefe:m?m.email:'',reg:true}); } });
+  roster.sort((a,b)=>((rank[a.role]??9)-(rank[b.role]??9))||String(a.name).localeCompare(String(b.name)));
+  const total=roster.length, reg=roster.filter(r=>r.reg).length;
+  $('#roster').innerHTML=`
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <span class="chip on">${reg} registrados</span><span class="chip">${total-reg} pendientes</span>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(255px,1fr));margin-top:0">
+    ${roster.map(r=>`<div class="panel" style="margin:0;padding:16px;display:flex;gap:12px;align-items:flex-start">
+      <div class="avatar" style="flex:none;background:${r.reg?'linear-gradient(135deg,var(--violet),var(--violet-hot))':'var(--mist)'};color:${r.reg?'#fff':'var(--slate)'}">${esc(String(r.name||'?').slice(0,1).toUpperCase())}</div>
+      <div style="min-width:0;flex:1">
+        <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.name)}</div>
+        <div style="font-size:12px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.email)}</div>
+        <div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <span style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;background:rgba(96,48,160,.12);color:var(--violet);padding:3px 9px;border-radius:999px">${ROLES[r.role]||r.role}</span>
+          <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;${r.reg?'background:#dcfce7;color:#166534':'background:var(--mist);color:var(--slate)'}">${r.reg?'✓ Registrado':'Pendiente'}</span>
+        </div>
+        ${r.jefe?`<div style="font-size:11px;color:var(--slate);margin-top:7px">Jefe directo: <b style="color:var(--ink)">${esc(r.jefe)}</b></div>`:(r.role==='admin'?'':`<div style="font-size:11px;color:var(--warn);margin-top:7px">Sin jefe directo</div>`)}
+      </div></div>`).join('')}
+    </div>`;
+  $('#team').innerHTML=`<div class="tbl-wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th style="width:150px">Rol</th><th style="width:210px">Jefe directo</th></tr></thead>
    <tbody>${people.map(p=>`<tr data-uid="${p.id}"><td>${esc(p.full_name||'—')}</td><td style="font-size:12px;color:var(--slate)">${esc(p.email||'')}</td>
      <td><select data-k="role">${Object.keys(ROLES).map(r=>`<option value="${r}" ${p.role===r?'selected':''}>${ROLES[r]}</option>`).join('')}</select></td>
-     <td><select data-k="manager_id"><option value="">— ninguno —</option>${people.filter(x=>x.id!==p.id).map(x=>`<option value="${x.id}" ${p.manager_id===x.id?'selected':''}>${esc(x.full_name||x.email)}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div>
-   <p style="font-size:12px;color:var(--slate);margin-top:10px">Los cambios se guardan al instante.</p>`;
+     <td><select data-k="manager_id"><option value="">— ninguno —</option>${people.filter(x=>x.id!==p.id).map(x=>`<option value="${x.id}" ${p.manager_id===x.id?'selected':''}>${esc(x.full_name||x.email)}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div>`;
   $('#team').querySelectorAll('select').forEach(sel=>sel.onchange=async()=>{const tr=sel.closest('tr');const k=sel.dataset.k;const val=k==='manager_id'?(sel.value||null):sel.value;const {error}=await db.from('profiles').update({[k]:val}).eq('id',tr.dataset.uid);toast(error?('Error: '+error.message):'Guardado');});
 }
 
