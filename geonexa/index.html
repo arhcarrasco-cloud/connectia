@@ -765,7 +765,41 @@ var ALCALDIA_POP=[
   {lat:25.7400,lng:-100.2570,r:4.0,pop:643064,a:232.0,n:'San Nicolás+Apodaca'},
   // Guadalajara metro
   {lat:20.6597,lng:-103.3496,r:4.0,pop:1385629,a:187.9,n:'Guadalajara'},
-  {lat:20.6300,lng:-103.4200,r:4.0,pop:1460148,a:339.0,n:'Zapopan'}
+  {lat:20.6300,lng:-103.4200,r:4.0,pop:1460148,a:339.0,n:'Zapopan'},
+  // Puebla-Tlaxcala metro
+  {lat:19.0414,lng:-98.2063,r:6.0,pop:1692181,a:534.32,n:'Puebla'},
+  {lat:19.0547,lng:-98.2836,r:3.0,pop:154448,a:62.53,n:'San Andrés Cholula'},
+  {lat:19.0638,lng:-98.3020,r:2.5,pop:138433,a:39.61,n:'San Pedro Cholula'},
+  {lat:19.0672,lng:-98.2513,r:2.5,pop:137435,a:45.7,n:'Cuautlancingo'},
+  {lat:19.0342,lng:-98.0475,r:3.5,pop:125876,a:273.61,n:'Amozoc'},
+  // Toluca metro
+  {lat:19.2926,lng:-99.6568,r:5.0,pop:910608,a:420.14,n:'Toluca'},
+  {lat:19.2601,lng:-99.6068,r:2.5,pop:242307,a:43.55,n:'Metepec'},
+  {lat:19.2795,lng:-99.7280,r:3.0,pop:203872,a:306.29,n:'Zinacantepec'},
+  {lat:19.2853,lng:-99.5136,r:2.5,pop:170327,a:210.57,n:'Lerma'},
+  // Tijuana metro
+  {lat:32.5149,lng:-117.0382,r:8.0,pop:1922523,a:1239.49,n:'Tijuana'},
+  // León metro
+  {lat:21.1250,lng:-101.6860,r:7.0,pop:1721215,a:1219.53,n:'León'},
+  // Querétaro metro
+  {lat:20.5888,lng:-100.3899,r:5.0,pop:1049777,a:730.61,n:'Querétaro'},
+  {lat:20.5236,lng:-100.4390,r:2.5,pop:212567,a:210.68,n:'Corregidora'},
+  {lat:20.5975,lng:-100.3037,r:3.0,pop:231668,a:594.15,n:'El Marqués'},
+  // Juárez metro
+  {lat:31.6904,lng:-106.4245,r:8.0,pop:1512450,a:3563.66,n:'Juárez'},
+  // La Laguna metro (Coahuila-Durango)
+  {lat:25.5428,lng:-103.4068,r:5.5,pop:720848,a:1666.62,n:'Torreón'},
+  {lat:25.5428,lng:-103.4933,r:3.5,pop:372750,a:780.35,n:'Gómez Palacio'},
+  {lat:25.5423,lng:-103.5233,r:2.5,pop:163313,a:1067.95,n:'Lerdo'},
+  // Mérida metro
+  {lat:20.9674,lng:-89.5926,r:6.0,pop:995129,a:858.41,n:'Mérida'},
+  {lat:20.9297,lng:-89.5583,r:2.5,pop:141939,a:82.66,n:'Kanasín'},
+  // Aguascalientes metro
+  {lat:21.8853,lng:-102.2916,r:5.5,pop:948990,a:1181.83,n:'Aguascalientes'},
+  {lat:21.9611,lng:-102.3425,r:2.5,pop:129929,a:580.44,n:'Jesús María'},
+  // San Luis Potosí metro
+  {lat:22.1565,lng:-100.9855,r:5.5,pop:911908,a:1571.65,n:'San Luis Potosí'},
+  {lat:22.2103,lng:-100.9282,r:2.5,pop:332072,a:55.10,n:'Soledad de Graciano Sánchez'}
 ];
 
 // Alcaldía/municipality demographic overrides — Censo 2020 INEGI, granular age + gender
@@ -828,6 +862,40 @@ function _getAgeRanges7(alcDemo,ce){
 function _getGender(alcDemo,ce){
   var mPct=alcDemo?Math.round(alcDemo.m):Math.round(100-(ce.f||50));
   return {m:mPct,f:100-mPct};
+}
+
+// Universo de referencia por zona metropolitana (poblacion total ZM, delimitacion INEGI/SEDATU/CONAPO 2020)
+// Usado para calcular Alcance% = PersonasUnicas / Universo. ZMVM usa la constante original (benchmark Dat's Why).
+// Fuente: Censo de Poblacion y Vivienda 2020, INEGI / Metropolis de Mexico 2020, SEDATU-INEGI-CONAPO.
+var ZM_UNIVERSO=[
+  {lat:19.4326,lng:-99.1332,r:55,pop:22057420,n:'ZMVM'},
+  {lat:25.6866,lng:-100.3161,r:35,pop:5341171,n:'Monterrey'},
+  {lat:20.6597,lng:-103.3496,r:35,pop:5268642,n:'Guadalajara'},
+  {lat:19.0414,lng:-98.2063,r:25,pop:3199530,n:'Puebla-Tlaxcala'},
+  {lat:19.2926,lng:-99.6568,r:25,pop:2353925,n:'Toluca'},
+  {lat:32.5149,lng:-117.0382,r:20,pop:2157853,n:'Tijuana'},
+  {lat:21.1250,lng:-101.6860,r:20,pop:1924771,n:'Leon'},
+  {lat:20.5888,lng:-100.3899,r:20,pop:1594212,n:'Queretaro'},
+  {lat:31.6904,lng:-106.4245,r:15,pop:1512450,n:'Juarez'},
+  {lat:25.5428,lng:-103.4500,r:20,pop:1434283,n:'La Laguna'},
+  {lat:20.9674,lng:-89.5926,r:20,pop:1316088,n:'Merida'},
+  {lat:22.1565,lng:-100.9855,r:18,pop:1243980,n:'San Luis Potosi'},
+  {lat:21.8853,lng:-102.2916,r:18,pop:1140916,n:'Aguascalientes'}
+];
+
+// Resolve the correct reference universe (total ZM population) for a given point.
+// Falls back to the state's total population (still far better than a flat ZMVM
+// constant applied nationwide), and only defaults to ZMVM if nothing else is known.
+function nearestUniverso(lat,lng,stateCode){
+  if(typeof ZM_UNIVERSO!=='undefined'&&typeof lat==='number'&&typeof lng==='number'&&!isNaN(lat)&&!isNaN(lng)){
+    for(var zi=0;zi<ZM_UNIVERSO.length;zi++){
+      var zu=ZM_UNIVERSO[zi];
+      var zd=Math.sqrt(Math.pow(lat-zu.lat,2)+Math.pow(lng-zu.lng,2));
+      if(zd<zu.r/111.0)return zu.pop;
+    }
+  }
+  if(typeof CENSUS!=='undefined'&&stateCode&&CENSUS[stateCode]&&CENSUS[stateCode].pop)return CENSUS[stateCode].pop;
+  return 22057420;
 }
 
 var BRAND_LOGOS={
@@ -2006,8 +2074,8 @@ function _renderPDFPage(doc,sel,d,pageWidth,pageHeight,margin,mapImage){
   doc.text(fmt(d.uniPer||0),col3X+col3W-2,y3+15.5,{align:'right'});
   y3+=23;
 
-  // UNIVERSO ZMVM
-  var universo=d.universo||22057420;
+  // Universo de referencia (ZM real, con fallback a poblacion estatal)
+  var universo=d.universo||(typeof nearestUniverso==='function'?nearestUniverso(d.lat,d.lng,d.stateCode):22057420);
   var alcance=universo>0?((d.uniPer||0)/universo*100).toFixed(2):0;
   doc.setFillColor(220,252,231);doc.roundedRect(col3X,y3,col3W,12,1,1,'F');
   doc.setTextColor(21,128,61);doc.setFontSize(5);doc.setFont(undefined,'bold');
@@ -3069,7 +3137,7 @@ function analyzeMultiSelection(idx){
   var _msImpTotal=_msImpVeh+_msImpPer;
   var _msFreqOTS=(_msImpVeh/Math.max(_msUniVeh,1)).toFixed(2);
   var _msExpSec=Math.round(_calcExposureSec(effectiveDens)*100)/100;
-  var _msUniverso=22057420; // ZMVM fixed population universe (Dat's Why)
+  var _msUniverso=nearestUniverso(lat,lng,stateCode); // Universo ZM real (fallback: poblacion estatal)
   sel.data={lat:lat,lng:lng,estPop:estPop,estHog:estHog,dens:Math.round(effectiveDens),areaSqKm:areaSqKm,radiusM:radiusM,_flowParams:fp,
     state:en.n,stateCode:stateCode,ing:localIng,gas:localGas,ingHog:localIngHog,gasHog:localGasHog,nse:nseData,dominant:dominantNSE.n,ce:ce,en:en,
     vehMonthly:vehMonthlyCalc,pedMonthly:pedMonthlyCalc,vehDaily:vehDaily,pedDaily:pedDaily,totalTrips:totalTrips,
@@ -3517,7 +3585,7 @@ function analyzeOverlay(overlay,type){
     var _cImpTotal=_cImpVeh+_cImpPer;
     var _cFreqOTS=(_cImpVeh/Math.max(_cUniVeh,1)).toFixed(2);
     var _cExpSec=Math.round(_calcExposureSec(_cDens)*100)/100;
-    var _cUniverso=22057420;
+    var _cUniverso=nearestUniverso(clat,clng,stateCode); // Universo ZM real (fallback: poblacion estatal)
     var _cLocalIng=Math.round((enArea.ingPC||enArea.ing));
     var _cLocalGas=Math.round((enArea.gasPC||enArea.gas));
     currentData={en:enArea,ce:ceArea,center:center,radiusM:radiusM,areaSqKm:areaSqKm,stateCode:stateCode,estPop:estPop,estHog:estHog,nse:nse,dominant:dominant,address:_formattedAddress,
@@ -8214,7 +8282,7 @@ function generateFlujo(){
   var impPersons=Math.round(impVeh*occupancy);
   var uniquePers=Math.round(impPersons/otsCalc);
   var exposureSec=Math.round(_calcExposureSec(dens)*100)/100;
-  var universo=22057420; // ZMVM population universe (Dat's Why)
+  var universo=nearestUniverso(d.lat,d.lng,d.stateCode); // Universo ZM real (fallback: poblacion estatal)
   var reachPct=((uniquePers/universo)*100).toFixed(2);
   var impTotal=impVeh+impPersons;
   var uniqueTotal=uniqueVeh+uniquePers;
@@ -14689,7 +14757,8 @@ function renderMobilityResults(osmData){
     var _rmImpPer=Math.round(vehM*1.44);
     var _rmImpTotal=_rmImpVeh+_rmImpPer;
     var _rmUniPer=Math.round(_rmImpPer/_rmOTS);
-    var _rmAlcance=((_rmUniPer/22057420)*100).toFixed(2);
+    var _rmUniverso=nearestUniverso(d.lat,d.lng,d.stateCode); // Universo ZM real (fallback: poblacion estatal)
+    var _rmAlcance=((_rmUniPer/_rmUniverso)*100).toFixed(2);
     html+='<div style="background:linear-gradient(135deg,#6D28D9,#8B3A9F);padding:10px;border-radius:6px;margin-bottom:8px;text-align:center">';
     html+='<div style="font-size:9px;color:rgba(255,255,255,.7);font-weight:600">⚡ IMPACTOS TOTALES (MENSUAL)</div>';
     html+='<div style="font-size:22px;font-weight:800;color:#fff">'+fmt(_rmImpTotal)+'</div>';
@@ -16728,7 +16797,7 @@ setInterval(function(){
       var freqOTS=(impVeh/Math.max(uniVeh,1)).toFixed(2);
       var expSec=Math.round(_calcExposureSec(dens)*100)/100;
       var impTotal=impVeh+impPer;
-      var universo=22057420; // ZMVM fixed population universe (Dat's Why)
+      var universo=nearestUniverso(d.lat,d.lng,d.stateCode); // Universo ZM real (fallback: poblacion estatal)
       var alcance=((uniPer/universo)*100).toFixed(2);
 
       var h='';
