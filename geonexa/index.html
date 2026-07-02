@@ -898,6 +898,135 @@ function nearestUniverso(lat,lng,stateCode){
   return 22057420;
 }
 
+// ===== NATIONAL MUNICIPIO POPULATION TABLE (INEGI Censo 2020) =====
+// Poblacion total por municipio, filtrado a >=15,000 hab (cobertura de facto de cualquier
+// localidad con relevancia comercial para OOH). Usado por getMunicipioPop() para refinar
+// densidad y universo de alcance en CUALQUIER punto del pais via reverse-geocoding,
+// sin necesitar curar ciudad por ciudad. Fuente: INEGI Censo de Poblacion y Vivienda 2020.
+var MUNICIPIO_POP={
+  "01":[["Aguascalientes",948990],["Jesús María",129929],["San Francisco de los Romo",61997],["Calvillo",58250],["Rincón de Romos",57369],["Asientos",51536],["Pabellón de Arteaga",47646],["Tepezalá",22485],["El Llano",20853],["Cosío",17000]],
+  "02":[["Tijuana",1922523],["Mexicali",1049792],["Ensenada",443807],["Playas de Rosarito",126890],["San Quintín",117568],["Tecate",108440]],
+  "03":[["Los Cabos",351111],["La Paz",292241],["Comondú",73021],["Mulegé",64022],["Loreto",18052]],
+  "04":[["Campeche",294077],["Carmen",248845],["Champotón",78170],["Escárcega",59923],["Calkiní",59232],["Candelaria",46913],["Hopelchén",42140],["Hecelchakán",31917],["Calakmul",31714],["Seybaplaya",15297]],
+  "05":[["Saltillo",879958],["Torreón",720848],["Monclova",237951],["Piedras Negras",176327],["Acuña",163058],["Ramos Arizpe",122243],["Matamoros",118337],["San Pedro",101041],["Frontera",82409],["Múzquiz",71627],["Sabinas",64811],["Francisco I. Madero",59035],["Parras",44472],["San Juan de Sabinas",42260],["Nava",33129],["Arteaga",29578],["Castaños",29128],["San Buenaventura",24759],["Allende",23056],["Viesca",20305]],
+  "06":[["Manzanillo",191031],["Colima",157048],["Villa de Álvarez",149762],["Tecomán",116305],["Cuauhtémoc",31267],["Armería",27626],["Comala",21661],["Coquimatlán",20837]],
+  "07":[["Tuxtla Gutiérrez",604147],["Tapachula",353706],["Ocosingo",234661],["San Cristóbal de las Casas",215874],["Comitán de Domínguez",166178],["Las Margaritas",141027],["Chilón",137262],["Palenque",132265],["Chiapa de Corzo",112075],["Villaflores",109536],["Chamula",101967],["Ocozocoautla de Espinosa",97397],["Tonalá",91913],["Cintalapa de Figueroa",88106],["Tila",83505],["La Trinitaria",83111],["Frontera Comalapa",80897],["Motozintla",76398],["Venustiano Carranza",67292],["Villa Corzo",65643],["Berriozábal",64632],["Salto de Agua",64251],["Oxchuc",54932],["Huixtla",53242],["Simojovel",52935],["Pijijiapan",51193],["Cacahoatán",50112],["La Concordia",49920],["Teopisca",49499],["Tenejapa",48162],["Chenalhó",47371],["La Independencia",46409],["Mapastepec",46130],["Zinacantán",45373],["Reforma",44829],["San Fernando",41793],["Suchiate",41672],["Arriaga",41135],["Jiquipilas",41063],["Tuxtla Chico",41024],["Yajalón",40285],["Tumbalá",38025],["San Juan Cancuc",37948],["Bochil",37263],["Chicomuselo",36785],["Huehuetán",36333],["Altamirano",36160],["Ángel Albino Corzo",31947],["Pichucalco",31919],["Amatenango de la Frontera",31735],["Larráinzar",31259],["Escuintla",30896],["Tuzantán",30302],["Villa Comaltitlán",30297],["Sabanilla",29889],["Pueblo Nuevo Solistahuacán",29636],["Ixtapa",28999],["Las Rosas",28829],["Mazatán",28250],["Huitiupán",27893],["Acapetahua",26899],["Pantelhó",26391],["Siltepec",25937],["Suchiapa",25627],["Jitotol",24966],["Amatán",24512],["El Bosque",24273],["Mezcalapa",23847],["Benemérito de las Américas",23603],["Huixtán",22975],["Copainalá",22192],["Chalchihuitán",21915],["Juárez",21807],["Tecpatán",21426],["Acala",21187],["Bella Vista",20157],["Socoltenango",19092],["Ostuacán",18469],["Acacoyagua",17994],["Catazajá",17619],["Tzimol",16560],["Unión Juárez",16008],["El Parral",15587],["Sitalá",15518]],
+  "08":[["Juárez",1512450],["Chihuahua",937674],["Cuauhtémoc",180638],["Delicias",150506],["Hidalgo del Parral",116662],["Nuevo Casas Grandes",65753],["Guadalupe y Calvo",50514],["Guachochi",50180],["Camargo",49499],["Meoqui",44853],["Jiménez",40859],["Guerrero",35473],["Saucillo",29862],["Ascensión",26093],["Aldama",26047],["Buenaventura",25146],["Madera",25144],["Ojinaga",24534],["Aquiles Serdán",24344],["Bocoyna",23351],["Namiquipa",22712],["Urique",17043],["Rosales",16776],["Balleza",16440]],
+  "09":[["Iztapalapa",1835486],["Gustavo A. Madero",1173351],["Álvaro Obregón",759137],["Tlalpan",699928],["Coyoacán",614447],["Cuauhtémoc",545884],["Venustiano Carranza",443704],["Xochimilco",442178],["Benito Juárez",434153],["Azcapotzalco",432205],["Miguel Hidalgo",414470],["Iztacalco",404695],["Tláhuac",392313],["La Magdalena Contreras",247622],["Cuajimalpa de Morelos",217686],["Milpa Alta",152685]],
+  "10":[["Durango",688697],["Gómez Palacio",372750],["Lerdo",163313],["Pueblo Nuevo",51269],["Santiago Papasquiaro",49207],["Mezquital",48583],["Guadalupe Victoria",36695],["Cuencamé",34955],["Canatlán",31454],["Nuevo Ideal",27981],["Mapimí",26932],["Tamazula",26300],["Poanas",25623],["Vicente Guerrero",23476],["Tlahualilo",21143],["Nombre de Dios",19060],["San Dimas",17333]],
+  "11":[["León",1721215],["Irapuato",592953],["Celaya",521169],["Salamanca",273417],["Silao de la Victoria",203556],["Guanajuato",194500],["San Miguel de Allende",174615],["Dolores Hidalgo Cuna de la Independencia Nacional",163038],["Pénjamo",154960],["Valle de Santiago",150054],["San Francisco del Rincón",130871],["San Luis de la Paz",128536],["San Felipe",119793],["Apaseo el Grande",117883],["Acámbaro",108697],["Cortazar",97928],["Salvatierra",94126],["Abasolo",92040],["San José de Iturbide",89558],["Purísima del Rincón",83842],["Santa Cruz de Juventino Rosas",82340],["Comonfort",82216],["Yuriria",68741],["Villagrán",65791],["Romita",65766],["Apaseo el Alto",63392],["Uriangato",61494],["Jerécuaro",49517],["Moroleón",47261],["Manuel Doblado",41240],["San Diego de la Unión",41054],["Jaral del Progreso",38782],["Tarimoro",35905],["Cuerámaro",30857],["Doctor Mora",27390],["Ocampo",26383],["Victoria",21253],["Huanímaro",21128],["Tierra Blanca",20007]],
+  "12":[["Acapulco de Juárez",779566],["Chilpancingo de los Bravo",283354],["Iguala de la Independencia",154173],["Zihuatanejo de Azueta",126001],["Chilapa de Álvarez",123722],["Taxco de Alarcón",105586],["Tlapa de Comonfort",96125],["Coyuca de Benítez",73056],["Ayutla de los Libres",69123],["Ometepec",68207],["Técpan de Galeana",65237],["Atoyac de Álvarez",60680],["Teloloapan",53817],["Eduardo Neri",53126],["San Marcos",50124],["San Luis Acatlán",46270],["Tecoanapa",46063],["Petatlán",44583],["Tixtla de Guerrero",43171],["Acatepec",40197],["Coyuca de Catalán",38554],["Pungarabato",38482],["Ajuchitlán del Progreso",37655],["General Heliodoro Castillo",37254],["Huitzuco de los Figueroa",36593],["Quechultenango",36143],["Arcelia",33267],["Tepecoacuilco de Trujano",30806],["Xochistlahuaca",29891],["Malinaltepec",29625],["Atlixtac",28491],["Olinalá",28446],["Cuajinicuilapa",26627],["Leonardo Bravo",26357],["La Unión de Isidoro Montes de Oca",26349],["Juan R. Escudero",26093],["Ahuacuotzingo",25205],["San Miguel Totolapan",24139],["Tlacoachistlahuaca",22781],["Florencio Villarreal",22250],["Tlapehuala",22209],["Zitlala",21977],["Copanatoyac",21648],["Cochoapa el Grande",21241],["Alcozauca de Guerrero",21225],["Cutzamala de Pinzón",20537],["Metlatónoc",18859],["Mártir de Cuilapan",18613],["José Joaquín de Herrera",18381],["Zirándaro",18031],["Huamuxtitlán",17488],["Cuautepec",17024],["Copalillo",15598],["Cocula",15579],["Benito Juárez",15442],["Azoyú",15099]],
+  "13":[["Pachuca de Soto",314331],["Mineral de la Reforma",202749],["Tulancingo de Bravo",168369],["Tizayuca",168302],["Huejutla de Reyes",126781],["Tula de Allende",115107],["Ixmiquilpan",98654],["Tepeji del Río de Ocampo",90546],["Atotonilco de Tula",62470],["Actopan",61002],["Cuautepec de Hinojosa",60421],["Zempoala",57906],["Tepeapulco",56245],["Tezontepec de Aldama",55134],["Huichapan",47425],["Mixquiahuala de Juárez",47222],["Apan",46681],["Acaxochitlán",46065],["Zimapán",39927],["Santiago Tulantepec de Lugo Guerrero",39561],["San Agustín Tlaxiaca",38891],["San Felipe Orizatlán",38492],["Zacualtipán de Ángeles",38155],["Tecozautla",38010],["Tlanchinol",37722],["San Salvador",36796],["Francisco I. Madero",36248],["Atitalaquia",31525],["Tepehuacán de Guerrero",31235],["Atotonilco el Grande",30135],["Tlaxcoapan",28626],["Yahualica",24674],["Progreso de Obregón",23641],["Chapulhuacán",22903],["Huehuetla",22846],["Acatlán",22268],["Zapotlán de Juárez",21443],["Tolcayuca",21362],["Metztitlán",20962],["Huautla",20673],["El Arenal",19836],["Atlapexco",19812],["Cardonal",19431],["Alfajayucan",19162],["Tlahuelilpan",19067],["Chilcuautla",18909],["Ajacuba",18872],["Pisaflores",18723],["Santiago de Anaya",18329],["Xochiatipan",18260],["San Bartolo Tutotepec",17699],["Huasca de Ocampo",17607],["Tenango de Doria",17503],["Tasquillo",17441],["Nopala de Villagrán",16948],["Epazoyucan",16285],["Calnali",16150],["Emiliano Zapata",15175],["Singuilucan",15142]],
+  "14":[["Zapopan",1476491],["Guadalajara",1385629],["Tlajomulco de Zúñiga",727750],["San Pedro Tlaquepaque",687127],["Tonalá",569913],["Puerto Vallarta",291839],["El Salto",232852],["Lagos de Moreno",172403],["Tepatitlán de Morelos",150190],["Zapotlán el Grande",115141],["Ocotlán",106050],["Tala",87690],["Arandas",80609],["San Juan de los Lagos",72230],["Ixtlahuacán de los Membrillos",67969],["La Barca",67937],["Autlán de Navarro",64931],["Zapotlanejo",64806],["Atotonilco el Alto",64009],["Ameca",60386],["Chapala",55196],["Poncitlán",53659],["Encarnación de Díaz",53039],["Jocotepec",47105],["Tequila",44353],["Ayotlán",41552],["Cihuatlán",40139],["Teocaltiche",39839],["Tamazula de Gordiano",38955],["Tuxpan",37518],["Sayula",37186],["Tomatlán",36316],["Zapotiltic",33713],["Ojuelos de Jalisco",33588],["Jalostotitlán",32678],["San Miguel el Alto",31965],["Juanacatlán",30855],["Zacoalco de Torres",30472],["Cocula",29267],["San Martín Hidalgo",28102],["El Grullo",25920],["Acatlán de Juárez",25250],["Jamay",24894],["Ahualulco de Mercado",23630],["Tototlán",23573],["La Huerta",23258],["Acatic",23175],["Tizapán el Alto",22758],["Yahualica de González Gallo",22394],["Mezquitic",22083],["Magdalena",21781],["Tapalpa",21245],["Degollado",21226],["El Arenal",21115],["Casimiro Castillo",20548],["Ixtlahuacán del Río",20465],["Villa Hidalgo",20088],["Etzatlán",20011],["Colotlán",19689],["Zapotlán del Rey",19279],["Unión de San Antonio",19069],["Villa Corona",19063],["Jesús María",18982],["Cuautitlán de García Barragán",18370],["San Ignacio Cerro Gordo",18341],["Cuquío",17820],["San Julián",16792],["Tecalitlán",16705],["Tecolotlán",16603],["San Gabriel",16548],["Amatitán",16490],["Gómez Farías",16431]],
+  "15":[["Ecatepec de Morelos",1645352],["Nezahualcóyotl",1077208],["Toluca",910608],["Naucalpan de Juárez",834434],["Chimalhuacán",705193],["Tlalnepantla de Baz",672202],["Cuautitlán Izcalli",555163],["Tecámac",547503],["Ixtapaluca",542211],["Atizapán de Zaragoza",523674],["Tultitlán",516341],["Nicolás Romero",430601],["Chalco",400057],["Valle de Chalco Solidaridad",391731],["La Paz",304088],["Coacalco de Berriozábal",293444],["Huixquilucan",284965],["Zumpango",280455],["Texcoco",277562],["Metepec",242307],["Zinacantepec",203872],["Chicoloapan",200750],["Cuautitlán",178847],["Almoloya de Juárez",174587],["Acolman",171507],["Lerma",170327],["Huehuetoca",163244],["Ixtlahuaca",160139],["Tultepec",157645],["San Felipe del Progreso",144924],["Atlacomulco",109384],["Villa Victoria",108196],["Temoaya",105766],["Tenancingo",104677],["Tepotzotlán",103696],["San José del Rincón",100082],["San Mateo Atenco",97418],["Tenango del Valle",90518],["Otzolotepec",88783],["Jilotepec",87671],["Tianguistenco",84259],["Tejupilco",79282],["Jiquipilco",76826],["Atenco",75489],["Ocoyoacac",72103],["Jocotitlán",69264],["Villa Guerrero",69086],["Calimaya",68489],["Acambay de Ruíz Castañeda",67872],["Temascalcingo",66414],["Teoloyucan",65459],["Valle de Bravo",61590],["Melchor Ocampo",61220],["Teotihuacán",58507],["Nextlalpan",57082],["Xonacatlán",54633],["Amecameca",53441],["Villa de Allende",53275],["Villa del Carbón",51498],["Aculco",49266],["Tlalmanalco",49196],["Tezoyuca",47044],["Hueypoxtla",46757],["Temascalapa",43593],["Coyotepec",40885],["Tequixquiac",39489],["Coatepec Harinas",38643],["Donato Guerra",37436],["El Oro",36937],["Capulhuac",36921],["Ixtapan de la Sal",36911],["Otumba",36331],["Ocuilan",36223],["Temascaltepec",35014],["Morelos",33164],["Tepetlaoxtoc",32564],["San Antonio la Isla",31962],["Atlautla",31900],["Apaxco",31898],["Tlatlaya",31762],["Chapa de Mota",31737],["Ozumba",30785],["Xalatlaco",30687],["Chiautla",30045],["San Martín de las Pirámides",29182],["Axapusco",29128],["Luvianos",28822],["Jaltenco",28217],["Malinalco",28155],["Chiconcuac",27692],["Juchitepec",27116],["Amatepec",25244],["Sultepec",24145],["Amanalco",23675],["Tepetlixpa",20500],["Jilotzingo",19877],["Zumpahuacán",18833],["Texcaltitlán",18482],["Timilpan",16414],["Rayón",15972],["Joquicingo",15428],["Almoloya de Alquisiras",15333],["Cocotitlán",15107]],
+  "16":[["Morelia",849053],["Uruapan",356786],["Zamora",204860],["Lázaro Cárdenas",196003],["Zitácuaro",157056],["Apatzingán",126191],["Hidalgo",125712],["Tarímbaro",114513],["La Piedad",106490],["Pátzcuaro",98382],["Maravatío",89311],["Tacámbaro",79540],["Los Reyes",78935],["Sahuayo",78477],["Zacapu",76829],["Puruándiro",69260],["Jacona",68781],["Salvador Escalante",49896],["Zinapécuaro",49005],["Múgica",45732],["Buenavista",45538],["Huetamo",41973],["Chilchota",40560],["Paracho",39657],["Ario",36268],["Jiquilpan",36158],["Tangancícuaro",35256],["Contepec",35070],["Tancítaro",33453],["Nahuatzen",32598],["Yurécuaro",32303],["Tangamandapio",31716],["La Huacana",30627],["Cuitzeo",29910],["Peribán",29389],["Turicato",29056],["Tlalpujahua",28556],["Quiroga",27176],["Parácuaro",26832],["José Sixto Verduzco",26213],["Tuxpan",25757],["Charo",25138],["Ocampo",24774],["Aquila",24676],["Tepalcatepec",24074],["Venustiano Carranza",23469],["Álvaro Obregón",23000],["Gabriel Zamora",21466],["Pajacuarán",21028],["Vista Hermosa",20982],["Nuevo Parangaricutiro",20981],["Coeneo",20965],["Cherán",20586],["Arteaga",20332],["Cotija",20198],["Jungapeo",19834],["Senguio",19833],["Coalcomán de Vázquez Pallares",19633],["Madero",19086],["Ziracuaretiro",18402],["Indaparapeo",18385],["San Lucas",17677],["Coahuayana",17022],["Penjamillo",16621],["Tingambato",16325],["Epitacio Huerta",16112],["Irimbo",16043],["Villamar",15864],["Erongarícuaro",15715],["Taretan",15589],["Tanhuato",15534],["Purépero",15503]],
+  "17":[["Cuernavaca",378476],["Jiutepec",215357],["Cuautla",187118],["Temixco",122263],["Emiliano Zapata",107053],["Yautepec",105780],["Ayala",89834],["Xochitepec",73539],["Jojutla",57682],["Yecapixtla",56083],["Tepoztlán",54987],["Tlaltizapán de Zapata",52399],["Puente de Ixtla",40018],["Axochiapan",39174],["Zacatepec",36094],["Tlaquiltenango",33789],["Tepalcingo",28122],["Xoxocotla",27805],["Atlatlahucan",25232],["Huitzilac",24515],["Tlayacapan",19408],["Ocuituco",19219],["Jantetelco",18402],["Amacuzac",17598],["Jonacatepec de Leandro Valle",16694],["Temoac",16574],["Miacatlán",15802]],
+  "18":[["Tepic",425924],["Bahía de Banderas",187632],["Santiago Ixcuintla",93981],["Compostela",77436],["Xalisco",65229],["Del Nayar",47550],["San Blas",41518],["Acaponeta",37232],["Tecuala",37135],["Rosamorada",33567],["Tuxpan",30064],["Ixtlán del Río",29299],["Santa María del Oro",24911],["Ruiz",24096],["Jala",19321],["Ahuacatlán",15393]],
+  "19":[["Monterrey",1142994],["Apodaca",656464],["Guadalupe",643143],["General Escobedo",481213],["Juárez",471523],["San Nicolás de los Garza",412199],["García",397205],["Santa Catarina",306322],["Pesquería",147624],["San Pedro Garza García",132169],["Cadereyta Jiménez",122337],["El Carmen",104478],["General Zuazua",102149],["Salinas Victoria",86766],["Linares",84666],["Ciénega de Flores",68747],["Montemorelos",67428],["Santiago",46784],["Galeana",40903],["Doctor Arroyo",36088],["Allende",35289],["Sabinas Hidalgo",34709],["Anáhuac",18030],["Hidalgo",16086]],
+  "20":[["Oaxaca de Juárez",270955],["San Juan Bautista Tuxtepec",159452],["Heroica Ciudad de Juchitán de Zaragoza",113570],["Santa Cruz Xoxocotlán",100402],["Salina Cruz",84438],["Heroica Ciudad de Huajuapan de León",78313],["Santo Domingo Tehuantepec",67739],["Santiago Pinotepa Nacional",55840],["Santa María Huatulco",50862],["Villa de Tututepec",50541],["Heroica Ciudad de Miahuatlán de Porfirio Díaz",50375],["Santa Lucía del Camino",50362],["San Pedro Mixtepec",49780],["San Pedro Pochutla",48204],["Villa de Zaachila",46464],["Acatlán de Pérez Figueroa",45167],["Santa María Atzompa",41921],["Loma Bonita",40934],["Heroica Ciudad de Tlaxiaco",40123],["San Miguel Soyaltepec",38682],["Matías Romero Avendaño",38183],["Santiago Juxtlahuaca",34735],["Putla Villa de Guerrero",34652],["Huautla de Jiménez",31710],["Tlacolula de Matamoros",30254],["San Juan Guichicovi",29802],["San Felipe Jalapa de Díaz",28500],["Ciudad Ixtepec",28082],["Santa María Colotepec",27046],["Cuilápam de Guerrero",26882],["San Antonio de la Cal",26282],["San Agustín Loxicha",26194],["Santa María Tonameca",25347],["Ocotlán de Morelos",23751],["Heroica Ciudad de Ejutla de Crespo",23148],["San Juan Bautista Valle Nacional",23067],["San Juan Cotzocón",22444],["San Lucas Ojitlán",22185],["Zimatlán de Álvarez",22093],["Santa María Chilchotla",21469],["Asunción Nochixtlán",20464],["Heroica Villa de San Blas Atempa",19696],["Santiago Jamiltepec",19112],["Santa Cruz Zenzontepec",19079],["San Juan Mazatlán",19032],["Santa Catarina Juquila",18654],["San Lorenzo Cacaotepec",18339],["San José Tenango",18102],["San Pablo Etla",17116],["Santa María Zacatepec",17100],["San Juan Lalana",16989],["San Sebastián Tutla",16878],["San Jacinto Amilpas",16827],["Santa María Petapa",16706],["Santos Reyes Nopala",16688],["San Mateo del Mar",15571],["San Pedro Tapanatepec",15479],["Asunción Ixtaltepec",15261]],
+  "21":[["Puebla",1692181],["Tehuacán",327312],["San Martín Texmelucan",155738],["San Andrés Cholula",154448],["Atlixco",141793],["San Pedro Cholula",138433],["Cuautlancingo",137435],["Amozoc",125876],["Huauchinango",103946],["Teziutlán",103583],["Huejotzingo",90794],["Zacatlán",87361],["Tepeaca",84270],["Izúcar de Matamoros",82809],["Tecamachalco",80771],["Xicotepec",80591],["Ajalpan",74768],["Acajete",72894],["Chignahuapan",66464],["Acatzingo",63743],["Quecholac",57992],["Zacapoaxtla",57887],["Tlatlauquitepec",55576],["Tlacotepec de Benito Juárez",54757],["Palmar de Bravo",50226],["Cuetzalan del Progreso",49864],["Chalchicomula de Sesma",47410],["Coronango",46836],["Xiutetelco",42943],["Ocoyucan",42669],["Tlahuapan",41547],["Acatlán",37955],["Libres",37257],["Chietla",37030],["Chignautla",35223],["San Salvador el Verde",34880],["Nopalucan",32772],["Tlachichuca",31639],["San Salvador el Seco",30639],["Santiago Miahuatlán",30309],["Los Reyes de Juárez",30021],["Atempan",29742],["Huaquechula",29233],["Venustiano Carranza",28395],["Hueytamalco",27600],["Tetela de Ocampo",27216],["Chichiquila",26928],["Vicente Guerrero",26559],["Yehualtepec",26392],["Ixtacamaxtitlán",25319],["Juan C. Bonilla",23783],["Tecali de Herrera",23625],["Quimixtlán",22855],["General Felipe Ángeles",22694],["Altepexi",22629],["Tochtepec",22454],["Tepexi de Rodríguez",22331],["Tepanco de López",22218],["Chiautzingo",22039],["Chiautla",21699],["Chilchotla",21002],["San Matías Tlalancaleca",20974],["Zautla",20717],["Cañada Morelos",20659],["Coxcatlán",20653],["Tlaola",20433],["Zoquitlán",20335],["Pahuatlán",20274],["Oriental",19903],["Tochimilco",19315],["Tepeyahualco",19200],["Tepatlaxco de Hidalgo",18854],["Guadalupe Victoria",18784],["Pantepec",18528],["Zinacatepec",18359],["Francisco Z. Mena",17824],["Chiconcuautla",17382],["Cuyoaco",17139],["Huehuetla",17082],["San Salvador Huixcolotla",16790],["Zaragoza",16752],["Tlacuilotepec",15977],["San Gabriel Chilac",15954],["Rafael Lara Grajales",15952],["Huitzilan de Serdán",15928],["Calpan",15271]],
+  "22":[["Querétaro",1049777],["San Juan del Río",297804],["El Marqués",231668],["Corregidora",212567],["Pedro Escobedo",77404],["Tequisquiapan",72201],["Cadereyta de Montes",69075],["Colón",67121],["Amealco de Bonfil",66841],["Ezequiel Montes",45141],["Huimilpan",36808],["Tolimán",27916],["Pinal de Amoles",27365],["Jalpan de Serra",27343],["Peñamiller",19141],["Landa de Matamoros",18794]],
+  "23":[["Benito Juárez",911503],["Playa del Carmen",333800],["Othón P. Blanco",233648],["Cozumel",88626],["Felipe Carrillo Puerto",83990],["Tulum",46721],["Bacalar",41754],["José María Morelos",39165],["Lázaro Cárdenas",29171],["Puerto Morelos",26921],["Isla Mujeres",22686]],
+  "24":[["San Luis Potosí",911908],["Soledad de Graciano Sánchez",332072],["Ciudad Valles",179371],["Matehuala",102199],["Rioverde",97943],["Tamazunchale",95037],["Mexquitic de Carmona",58469],["Villa de Reyes",52912],["Xilitla",49741],["Aquismón",48359],["Ciudad Fernández",48106],["Ebano",40899],["Santa María del Río",39880],["Villa de Ramos",38389],["Tamuín",36968],["Axtla de Terrazas",32544],["Salinas",31107],["Ciudad del Maíz",30320],["Tamasopo",29184],["Matlapa",28996],["Zaragoza",27386],["Guadalcázar",25119],["Cerritos",22075],["Charcas",21814],["El Naranjo",20959],["Tancanhuitz",20300],["Cedral",19840],["Moctezuma",19036],["Ahualulco del Sonido 13",18974],["San Martín Chalchicuautla",18468],["Cárdenas",18317],["Tanlajás",18208],["Villa de Arriaga",18206],["Villa de Arista",17258],["Coxcatlán",15660],["Villa Hidalgo",15458],["Huehuetlán",15334],["Rayón",15301]],
+  "25":[["Culiacán",1003530],["Mazatlán",501441],["Ahome",459310],["Guasave",289370],["Navolato",149122],["El Fuerte",96593],["Salvador Alvarado",79492],["Sinaloa",78670],["Escuinapa",59988],["Elota",55339],["Rosario",52345],["Angostura",44093],["Mocorito",40358],["Choix",29334],["Badiraguato",26542],["Concordia",24899],["San Ignacio",19505],["Cosalá",17012]],
+  "26":[["Hermosillo",936263],["Cajeme",436484],["Nogales",264782],["San Luis Río Colorado",199021],["Navojoa",164387],["Guaymas",156863],["Agua Prieta",91929],["Caborca",89122],["Huatabampo",77682],["Puerto Peñasco",62689],["Etchojoa",61309],["Empalme",51431],["Cananea",39451],["Magdalena",33049],["Álamos",24976],["Bácum",23151],["Benito Juárez",21692],["Santa Ana",16203]],
+  "27":[["Centro",683607],["Cárdenas",243229],["Comalcalco",214877],["Huimanguillo",190885],["Macuspana",158601],["Nacajuca",150300],["Cunduacán",137257],["Centla",107731],["Paraíso",96741],["Jalpa de Méndez",91185],["Tenosique",62310],["Teapa",58718],["Balancán",58524],["Tacotalpa",47905],["Jalapa",37749],["Emiliano Zapata",32181],["Jonuta",30798]],
+  "28":[["Reynosa",704767],["Matamoros",541979],["Nuevo Laredo",425058],["Victoria",349688],["Tampico",297562],["Altamira",269790],["Ciudad Madero",205933],["Río Bravo",132484],["El Mante",106144],["Valle Hermoso",60055],["San Fernando",51405],["González",41470],["Aldama",28725],["Tula",28230],["Miguel Alemán",26237],["Soto la Marina",23673],["Xicoténcatl",22229],["Hidalgo",17012],["Camargo",16546],["Jaumave",15994],["Gustavo Díaz Ordaz",15677],["Güémez",15032]],
+  "29":[["Tlaxcala",99896],["Huamantla",98764],["San Pablo del Monte",82688],["Apizaco",80725],["Chiautempan",73215],["Calpulalpan",51172],["Zacatelco",45717],["Tlaxco",45438],["Yauhquemehcan",42242],["Ixtacuixtla de Mariano Matamoros",38970],["Contla de Juan Cuamatzi",38579],["Tetla de la Solidaridad",35284],["Papalotla de Xicohténcatl",33499],["Panotla",28357],["Natívitas",26309],["Xaloztoc",25607],["Teolocholco",25257],["Santa Cruz Tlaxcala",24116],["Totolac",22529],["Tepetitla de Lardizábal",22274],["La Magdalena Tlaltelulco",19036],["Nanacamilpa de Mariano Arista",18686],["Atltzayanca",18111],["Tzompantepec",18006],["El Carmen Tequexquitla",17332],["Cuapiaxtla",16222],["Apetatitlán de Antonio Carvajal",16003],["Terrenate",15475],["Hueyotlipan",15190]],
+  "30":[["Veracruz",607209],["Xalapa",488531],["Coatzacoalcos",310698],["Córdoba",204721],["Poza Rica de Hidalgo",189457],["San Andrés Tuxtla",162428],["Papantla",159910],["Tuxpan",154600],["Minatitlán",144776],["Boca del Río",144550],["Cosoleacaque",130903],["Orizaba",123182],["Martínez de la Torre",108842],["Álamo Temapache",107270],["Tantoyuca",99959],["Pánuco",96185],["Tierra Blanca",95602],["Medellín de Bravo",95202],["Coatepec",93911],["Tihuatlán",92726],["Emiliano Zapata",85489],["Las Choapas",81080],["Acayucan",80815],["Perote",77432],["Ixtaczoquitlán",74004],["Fortín",66372],["Misantla",65761],["Altotonga",64234],["Tlapacoyan",61377],["Huatusco",59920],["Coscomatepec",59471],["Pueblo Viejo",57909],["Santiago Tuxtla",57085],["Alvarado",57035],["Coatzintla",55016],["Cosamaloapan de Carpio",54737],["Tezonapa",54537],["Chicontepec",53858],["Ixhuatlán de Madero",50836],["Catemaco",49451],["Atzalan",49180],["Amatlán de los Reyes",46955],["Jalacingo",46794],["Zongolica",45028],["Tres Valles",44978],["Agua Dulce",44104],["Isla",42807],["Camerino Z. Mendoza",41835],["Río Blanco",41795],["Actopan",41742],["Hueyapan de Ocampo",41670],["Xico",39623],["Playa Vicente",39327],["Mariano Escobedo",38670],["Jáltipan",38669],["Juan Rodríguez Clara",38367],["Tlalixcoyan",37795],["Nogales",37314],["Tempoal",34408],["Soteapan",34385],["Angel R. Cabada",33839],["Paso de Ovejas",33442],["San Juan Evangelista",32631],["Sayula de Alemán",32400],["Paso del Macho",31894],["Uxpanapa",30891],["San Rafael",30351],["Ursulo Galván",30097],["Tehuipango",29686],["Nanchital de Lázaro Cárdenas del Río",29209],["La Antigua",28682],["Jesús Carranza",28524],["La Perla",28258],["Alto Lucero de Gutiérrez Barrios",28184],["Soledad de Doblado",28130],["Cuitláhuac",28075],["Ixhuatlancillo",27295],["Ayahualulco",27217],["Naranjos Amatlán",26843],["Espinal",26830],["Banderilla",25993],["Cerro Azul",25011],["Soledad Atzompa",24578],["Tecolutla",24551],["Cazones de Herrera",24421],["Rafael Delgado",24127],["Gutiérrez Zamora",24085],["Manlio Fabio Altamirano",23918],["Omealca",23773],["Puente Nacional",23544],["Atoyac",23461],["Carlos A. Carrillo",23376],["Ixhuatlán del Café",23132],["Acultzingo",23100],["Coyutla",23096],["Naolinco",22835],["Ozuluama de Mascareñas",22756],["José Azueta",22709],["Atzacan",22651],["Chinameca",22638],["Cotaxtla",22050],["Tamiahua",21902],["Huayacocotla",21796],["Chocamán",20839],["Las Vigas de Ramírez",20300],["Vega de Alatorre",20204],["Castillo de Teayo",20145],["Texistepec",19925],["Comapa",19876],["Tlalnelhuayocan",19664],["El Higo",19402],["Filomeno Mata",19179],["Lerdo de Tejada",19123],["Carrillo Puerto",18888],["Maltrata",18327],["Hidalgotitlán",18275],["Platón Sánchez",18053],["Pajapan",18051],["Yanga",17902],["Totutla",17217],["Mecayapan",17134],["Oluta",17027],["Teocelo",16957],["Jilotepec",16585],["Soconusco",16574],["Ignacio de la Llave",16525],["Moloacán",16493],["Tlaltetela",16485],["Tequila",16343],["Coxquihui",16333],["Chinampa de Gorostiza",16283],["Cosautlán de Carvajal",16167],["Benito Juárez",16120],["Ixhuatlán del Sureste",15831],["Juchique de Ferrer",15059],["Tatahuicapan de Juárez",15044]],
+  "31":[["Mérida",995129],["Kanasín",141939],["Valladolid",85460],["Tizimín",80672],["Umán",69147],["Progreso",66008],["Tekax",45062],["Ticul",40495],["Chemax",38934],["Motul",37804],["Hunucmá",35137],["Oxkutzcab",33854],["Izamal",28555],["Peto",25954],["Maxcanú",23991],["Halachó",21255],["Tixkokob",18420],["Tecoh",17939],["Espita",16779],["Acanceh",16772],["Temozón",16680],["Conkal",16671],["Yaxcabá",16350],["Tzucacab",15346]],
+  "32":[["Fresnillo",240532],["Guadalupe",211740],["Zacatecas",149607],["Pinos",72241],["Río Grande",64535],["Sombrerete",63665],["Jerez",59910],["Loreto",53709],["Calera",45759],["Ojocaliente",44144],["Villa de Cos",34623],["Valparaíso",32461],["Villanueva",31558],["Nochistlán de Mejía",27945],["Tlaltenango de Sánchez Román",27302],["Jalpa",25296],["Miguel Auza",23713],["General Pánfilo Natera",23526],["Sain Alto",21844],["Trancoso",20455],["General Francisco R. Murguía",20191],["Juan Aldama",19749],["Villa García",19525],["Villa Hidalgo",19446],["Mazapil",17774],["Pánuco",17577],["Tabasco",16588],["Noria de Ángeles",16284]]
+};
+
+// Density bands calibrated against real ALCALDIA_POP examples (e.g. Iztapalapa 1.84M/117km2=15,687;
+// Cuauhtemoc CDMX 546K/32.4km2=16,849; mid cities ~3,000-7,000; small towns ~600-1,200).
+// Always takes the MAX against the state-average fallback so this only ever raises density, never lowers it
+// below what CENSUS[stateCode].dens already implies.
+function densityFromMunicipioPop(pop,fallbackDens){
+  if(!pop)return fallbackDens;
+  var band;
+  if(pop>=1000000)band=9000;
+  else if(pop>=500000)band=7000;
+  else if(pop>=200000)band=5000;
+  else if(pop>=100000)band=3500;
+  else if(pop>=50000)band=2200;
+  else if(pop>=20000)band=1200;
+  else if(pop>=5000)band=600;
+  else band=300;
+  return Math.max(fallbackDens||0,band);
+}
+
+// Look up a municipio's real Censo 2020 population by name (mirrors getMunNSEData's exact
+// normalize+match pattern). municipioName typically comes from reverseGeocodeForNSE's geoResult.municipio.
+function getMunicipioPop(municipioName,stateCode){
+  if(!municipioName||typeof MUNICIPIO_POP==='undefined')return null;
+  var munKey=municipioName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if(stateCode&&MUNICIPIO_POP[stateCode]){
+    var list=MUNICIPIO_POP[stateCode];
+    for(var i=0;i<list.length;i++){
+      var mn=list[i][0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      if(munKey.indexOf(mn)>=0||mn.indexOf(munKey)>=0)return list[i][1];
+    }
+  }
+  // Broader search across all states (in case stateCode was misclassified upstream)
+  for(var sc in MUNICIPIO_POP){
+    var list2=MUNICIPIO_POP[sc];
+    for(var j=0;j<list2.length;j++){
+      var mn2=list2[j][0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      if(munKey.indexOf(mn2)>=0||mn2.indexOf(munKey)>=0)return list2[j][1];
+    }
+  }
+  return null;
+}
+
+// Proximity match against ALCALDIA_POP WITHOUT the area-proportion gate, so it also fires for
+// small pin/circle analyses (the common case) and not just analyses whose drawn area happens to
+// be comparable to the whole alcaldia/municipio.
+function _alcProximityMatch(lat,lng){
+  if(typeof ALCALDIA_POP==='undefined')return null;
+  var best=null,bestD=Infinity;
+  for(var i=0;i<ALCALDIA_POP.length;i++){
+    var a=ALCALDIA_POP[i];
+    var d=Math.sqrt(Math.pow(lat-a.lat,2)+Math.pow(lng-a.lng,2));
+    if(d<a.r/111.0&&d<bestD){bestD=d;best=a;}
+  }
+  return best;
+}
+
+// Nationwide density + universo refinement, resolved via the geocoded municipio name.
+// Priority for density: (1) ALCALDIA_POP proximity match (real pop/area for the ~20 curated metros),
+// (2) MUNICIPIO_POP population-band estimate (covers ~1,169 municipios nationally, >=15k hab).
+// Priority for universo: keep existing ZM_UNIVERSO match untouched; otherwise upgrade the fallback
+// from state population to the resolved municipio's own (smaller, more accurate) population.
+function resolveMunicipioRefinement(lat,lng,stateCode,municipioName,fallbackDens,currentUniverso){
+  var out={dens:null,universo:null};
+  var alc=_alcProximityMatch(lat,lng);
+  var munPop=null;
+  if(alc){
+    out.dens=alc.pop/alc.a;
+    munPop=alc.pop;
+  }else if(municipioName){
+    var mp=getMunicipioPop(municipioName,stateCode);
+    if(mp){
+      out.dens=densityFromMunicipioPop(mp,fallbackDens);
+      munPop=mp;
+    }
+  }
+  var zmMatch=false;
+  if(typeof ZM_UNIVERSO!=='undefined'&&typeof lat==='number'&&typeof lng==='number'){
+    for(var zi=0;zi<ZM_UNIVERSO.length;zi++){
+      var zu=ZM_UNIVERSO[zi];
+      var zd=Math.sqrt(Math.pow(lat-zu.lat,2)+Math.pow(lng-zu.lng,2));
+      if(zd<zu.r/111.0){zmMatch=true;break;}
+    }
+  }
+  if(!zmMatch&&munPop&&munPop<(currentUniverso||Infinity)){
+    out.universo=munPop;
+  }
+  return out;
+}
+
+
 var BRAND_LOGOS={
   'walmart':'https://www.google.com/s2/favicons?domain=walmart.com&sz=64',
   'starbucks':'https://www.google.com/s2/favicons?domain=starbucks.com&sz=64',
@@ -3158,6 +3287,41 @@ function analyzeMultiSelection(idx){
       sel.data.gasHog=Math.round(en.gas*im2);
       var dom2=refinedNSE.reduce(function(a,b){return b.p>a.p?b:a;},refinedNSE[0]);
       sel.data.dominant=dom2.n;
+
+      // Nationwide density/universo refinement via resolved municipio (no per-city curation needed)
+      if(typeof resolveMunicipioRefinement==='function'){
+        var msRef=resolveMunicipioRefinement(lat,lng,stateCode,geoResult.municipio,effectiveDens,sel.data.universo);
+        if(msRef.dens&&Math.abs(msRef.dens-effectiveDens)>1){
+          effectiveDens=msRef.dens;
+          estPop=Math.max(25,Math.round(effectiveDens*areaSqKm));
+          estPop=Math.min(estPop,ce.pop);
+          estHog=Math.round(estPop/(3.2+locVar*1.2));
+          estPop=Math.round(estPop*projFactor);estHog=Math.round(estHog*projFactor);
+          fp=calcFlowParams(effectiveDens,areaSqKm);
+          totalTrips=Math.round(estPop*fp.tripsPerP);
+          vehMonthlyCalc=Math.round(totalTrips*fp.vehShare*fp.throughMult*30);
+          pedMonthlyCalc=Math.round(totalTrips*fp.pedShare*fp.throughMult*30);
+          vehDaily=Math.round(vehMonthlyCalc/30);
+          pedDaily=Math.round(pedMonthlyCalc/30);
+          _msMotor=_calcMotorRate(effectiveDens);
+          _msOTS=(fp.tripsPerP*fp.vehShare*30)/_msMotor;
+          _msImpVeh=vehMonthlyCalc;
+          _msUniVeh=Math.round(_msImpVeh/_msOTS);
+          _msImpPer=Math.round(_msImpVeh*_msOccupancy);
+          _msUniPer=Math.round(_msImpPer/_msOTS);
+          _msImpTotal=_msImpVeh+_msImpPer;
+          _msFreqOTS=(_msImpVeh/Math.max(_msUniVeh,1)).toFixed(2);
+          _msExpSec=Math.round(_calcExposureSec(effectiveDens)*100)/100;
+          sel.data.dens=Math.round(effectiveDens);
+          sel.data.estPop=estPop;sel.data.estHog=estHog;sel.data._flowParams=fp;
+          sel.data.vehMonthly=vehMonthlyCalc;sel.data.pedMonthly=pedMonthlyCalc;
+          sel.data.vehDaily=vehDaily;sel.data.pedDaily=pedDaily;sel.data.totalTrips=totalTrips;
+          sel.data.impVeh=_msImpVeh;sel.data.uniVeh=_msUniVeh;sel.data.impPer=_msImpPer;sel.data.uniPer=_msUniPer;
+          sel.data.impTotal=_msImpTotal;sel.data.freqOTS=_msFreqOTS;sel.data.expSec=_msExpSec;
+        }
+        if(msRef.universo){sel.data.universo=msRef.universo;}
+      }
+
       showMultiSelectReport();
     }
   });
@@ -3431,6 +3595,7 @@ function analyzeOverlay(overlay,type){
     var areaRatio=areaSqKm/stArea;
     var estPop,estHog,effectiveDens;
 
+    var _areaCorrectionApplied=false;
     if(areaSqKm>=100||areaRatio>=0.3){
       // Large area: use real census population proportionally
       // Population = census_pop * (selected_area / state_area), capped at census_pop
@@ -3445,6 +3610,7 @@ function analyzeOverlay(overlay,type){
       estPop=Math.min(estPop,ce.pop);
       effectiveDens=Math.round(estPop/areaSqKm);
       estHog=Math.round(estPop/(ce.pop/ce.h));
+      _areaCorrectionApplied=true; // large-area path already uses real proportional census population
     }else{
       // Small area: use density estimation with premium/low zone adjustments
       var zoneFactor=1.0;
@@ -3492,6 +3658,7 @@ function analyzeOverlay(overlay,type){
           estHog=Math.round(estPop/3.3);
           effectiveDens=Math.round(estPop/areaSqKm);
           console.log('analyzeOverlay: matched alcaldía '+alc.n+', pop='+estPop+' (real 2020: '+alc.pop+')');
+          _areaCorrectionApplied=true;
           break;
         }
       }
@@ -3523,6 +3690,7 @@ function analyzeOverlay(overlay,type){
         estHog=cpm.hog;
         effectiveDens=Math.round(estPop/cpm.areaSqKm);
         console.log('analyzeOverlay: matched city '+_bestCityMatch.key+', pop='+estPop+' (census direct, dist='+_bestCityDist.toFixed(3)+')');
+        _areaCorrectionApplied=true;
       }
     }
 
@@ -3610,6 +3778,43 @@ function analyzeOverlay(overlay,type){
         // Update income/spending based on refined NSE
         cd.en.ingPC=Math.round((ENIGH[cd.stateCode].ingPC||ENIGH[cd.stateCode].ing)*im2);
         cd.en.gasPC=Math.round((ENIGH[cd.stateCode].gasPC||ENIGH[cd.stateCode].gas)*im2);
+
+        // Nationwide density/universo refinement via resolved municipio (no per-city curation needed).
+        // Skipped if a synchronous correction (ALCALDIA_POP or CITY_POPULATIONS match, or the
+        // large-area census-proportional path) already resolved this location with real data.
+        if(!_areaCorrectionApplied&&typeof resolveMunicipioRefinement==='function'){
+          var ovRef=resolveMunicipioRefinement(clatRef,clngRef,cd.stateCode,geoResult.municipio,cd.dens,cd.universo);
+          if(ovRef.dens&&Math.abs(ovRef.dens-cd.dens)>1){
+            var _newDens=ovRef.dens;
+            var _ceRef=CENSUS[cd.stateCode]||cd.ce;
+            var _newEstPop=Math.max(25,Math.round(_newDens*cd.areaSqKm));
+            _newEstPop=Math.min(_newEstPop,_ceRef.pop||cd.estPop);
+            var _newEstHog=Math.round(_newEstPop/(3.2+((Math.abs(clatRef*1000)%1)+(Math.abs(clngRef*1000)%1))/2*1.2));
+            _newEstPop=Math.round(_newEstPop*projFactor);_newEstHog=Math.round(_newEstHog*projFactor);
+            var _ovFP=calcFlowParams(_newDens,cd.areaSqKm);
+            var _ovTotalTrips=Math.round(_newEstPop*_ovFP.tripsPerP);
+            var _ovVehMonthly=Math.round(_ovTotalTrips*_ovFP.vehShare*_ovFP.throughMult*30);
+            var _ovPedMonthly=Math.round(_ovTotalTrips*_ovFP.pedShare*_ovFP.throughMult*30);
+            var _ovVehDaily=Math.round(_ovVehMonthly/30);
+            var _ovPedDaily=Math.round(_ovPedMonthly/30);
+            var _ovMotor=_calcMotorRate(_newDens);
+            var _ovOTS=(_ovFP.tripsPerP*_ovFP.vehShare*30)/_ovMotor;
+            var _ovImpVeh=_ovVehMonthly;
+            var _ovUniVeh=Math.round(_ovImpVeh/_ovOTS);
+            var _ovImpPer=Math.round(_ovImpVeh*1.44);
+            var _ovUniPer=Math.round(_ovImpPer/_ovOTS);
+            var _ovImpTotal=_ovImpVeh+_ovImpPer;
+            var _ovFreqOTS=(_ovImpVeh/Math.max(_ovUniVeh,1)).toFixed(2);
+            var _ovExpSec=Math.round(_calcExposureSec(_newDens)*100)/100;
+            cd.dens=Math.round(_newDens);
+            if(cd.ce)cd.ce.dens=Math.round(_newDens);
+            cd.estPop=_newEstPop;cd.estHog=_newEstHog;cd._flowParams=_ovFP;
+            cd.vehMonthly=_ovVehMonthly;cd.pedMonthly=_ovPedMonthly;cd.vehDaily=_ovVehDaily;cd.pedDaily=_ovPedDaily;cd.totalTrips=_ovTotalTrips;
+            cd.impVeh=_ovImpVeh;cd.uniVeh=_ovUniVeh;cd.impPer=_ovImpPer;cd.uniPer=_ovUniPer;cd.impTotal=_ovImpTotal;cd.freqOTS=_ovFreqOTS;cd.expSec=_ovExpSec;
+          }
+          if(ovRef.universo){cd.universo=ovRef.universo;}
+        }
+
         // Refresh displays
         try{updateNSE();updateResumen();}catch(ex){}
         try{if(typeof window.refreshAutoReport==='function')window.refreshAutoReport();}catch(ex){}
