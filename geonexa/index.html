@@ -35569,5 +35569,194 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   else { boot(); }
 })();
 </script>
+
+<script id="connectia-r45-landmark-pin-custom">
+/* ============================================================
+   Round 45 — Personalizar diseño de pins de LANDMARKS
+   (negocios seleccionados / sitios de interés), igual que los
+   pins de selección (_pgCustomizePin): Tipo de Medio, Color,
+   Emoji dentro de la cabeza (__emojiPinIcon) e Imagen custom.
+   Entradas: botón 🎨 en el InfoWindow + click derecho en el pin.
+   Aditivo: no toca showLandmark original (se wrappea).
+   ============================================================ */
+(function(){
+  'use strict';
+  if(window.__r45LmPinCustom) return; window.__r45LmPinCustom = true;
+
+  function _key(lat,lng){ return Number(lat).toFixed(6)+','+Number(lng).toFixed(6); }
+  function _findByKey(k){
+    var parts = String(k).split(','); var lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
+    var arr = window.landmarkMarkers || [];
+    for(var i=0;i<arr.length;i++){
+      try{
+        var p = arr[i].getPosition();
+        if(Math.abs(p.lat()-lat)<1e-5 && Math.abs(p.lng()-lng)<1e-5) return arr[i];
+      }catch(e){}
+    }
+    return null;
+  }
+  function _style(m){
+    if(!m._lmStyle) m._lmStyle = {color:'#6D28D9', _icon:'', _customImg:null};
+    return m._lmStyle;
+  }
+  function _clearExtras(m){
+    try{ m.setLabel(null); }catch(e){}
+    if(m._logoOverlay){ try{ m._logoOverlay.setMap(null); }catch(e){} m._logoOverlay = null; }
+  }
+  function _render(m){
+    var st = _style(m); m._lmCustom = true;
+    _clearExtras(m);
+    if(st._customImg){
+      try{ m.setIcon({url:st._customImg, scaledSize:new google.maps.Size(36,36), anchor:new google.maps.Point(18,18)}); }catch(e){}
+    } else if(st._icon && typeof window.__emojiPinIcon === 'function'){
+      var ic = window.__emojiPinIcon(st._icon, st.color);
+      if(ic){ try{ m.setIcon(ic); }catch(e){} }
+    } else if(st._icon && typeof window._pinIcon === 'function'){
+      try{ m.setIcon(window._pinIcon(st.color)); m.setLabel({text:st._icon, fontSize:'14px', color:st.color}); }catch(e){}
+    } else if(typeof window._pinIcon === 'function'){
+      try{ m.setIcon(window._pinIcon(st.color)); }catch(e){}
+    }
+  }
+
+  window._lmApplyColor = function(k,color){
+    var m = _findByKey(k); if(!m) return;
+    _style(m).color = color; _render(m);
+    var pop = document.getElementById('lm-pin-customize'); if(pop) window._lmCustomize(k);
+  };
+  window._lmApplyIcon = function(k,icon){
+    var m = _findByKey(k); if(!m) return;
+    var st = _style(m); st._icon = icon; st._customImg = null; _render(m);
+  };
+  window._lmApplyType = function(k,typeId){
+    var t = (window.pinOOHTypes||[]).find(function(x){return x.id===typeId;}); if(!t) return;
+    var m = _findByKey(k); if(!m) return;
+    var st = _style(m); st.color = t.color || st.color; st._icon = t.icon; st._customImg = null; _render(m);
+    var pop = document.getElementById('lm-pin-customize'); if(pop) pop.remove();
+  };
+  window._lmApplyCustomImage = function(k,input){
+    if(!input.files || !input.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var m = _findByKey(k); if(!m) return;
+      var st = _style(m); st._customImg = e.target.result; st._icon = ''; _render(m);
+      window._lmCustomize(k);
+    };
+    reader.readAsDataURL(input.files[0]);
+  };
+  window._lmRemoveCustomImage = function(k){
+    var m = _findByKey(k); if(!m) return;
+    _style(m)._customImg = null; _render(m);
+    window._lmCustomize(k);
+  };
+
+  window._lmCustomize = function(k){
+    var old = document.getElementById('lm-pin-customize'); if(old) old.remove();
+    var m = _findByKey(k); if(!m) return;
+    var st = _style(m);
+    var name = (typeof m.getTitle==='function' && m.getTitle()) || 'Landmark';
+    var pop = document.createElement('div');
+    pop.id = 'lm-pin-customize';
+    pop.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:0;box-shadow:0 16px 50px rgba(0,0,0,.22);z-index:10008;width:360px;max-height:85vh;display:flex;flex-direction:column';
+    var h = '<div style="padding:10px 14px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">';
+    h += '<span style="font-weight:600;color:#fff;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">🎨 '+name+'</span>';
+    h += '<button onclick="document.getElementById(\'lm-pin-customize\').remove()" style="border:none;background:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,.7)">×</button></div>';
+    h += '<div style="padding:12px;overflow-y:auto;flex:1">';
+    h += '<div style="font-size:10px;font-weight:600;color:#6D28D9;margin-bottom:4px">Tipo de Medio</div>';
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:10px">';
+    (window.pinOOHTypes||[]).forEach(function(t){
+      h += '<div onclick="_lmApplyType(\''+k+'\',\''+t.id+'\')" style="display:flex;align-items:center;gap:4px;padding:5px 6px;border-radius:5px;cursor:pointer;border:1px solid #e2e8f0;font-size:9px" onmouseover="this.style.background=\'#f5f5f7\'" onmouseout="this.style.background=\'#fff\'">';
+      h += '<span style="font-size:14px">'+t.icon+'</span><span style="font-weight:600">'+t.label+'</span></div>';
+    });
+    h += '</div>';
+    h += '<div style="font-size:10px;font-weight:600;color:#1d1d1f;margin-bottom:4px">Color</div>';
+    h += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">';
+    (window.pinColors||[]).forEach(function(c){
+      h += '<div onclick="_lmApplyColor(\''+k+'\',\''+c+'\')" style="width:22px;height:22px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid '+(c===st.color?'#1d1d1f':'transparent')+'"></div>';
+    });
+    h += '</div>';
+    h += '<div style="font-size:10px;font-weight:600;color:#1d1d1f;margin-bottom:4px">Icono</div>';
+    h += '<div style="display:flex;gap:1px;margin-bottom:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px">';
+    (window.pinEmojiCategories||[]).forEach(function(cat,ci){
+      h += '<div onclick="_lmSwitchTab('+ci+')" class="lm-pc-tab" style="padding:4px 6px;border-radius:5px;cursor:pointer;font-size:13px;flex-shrink:0;border:1px solid '+(ci===0?'#6D28D9':'#e2e8f0')+';background:'+(ci===0?'#ede9fe':'#fff')+'" title="'+cat.name+'">'+cat.icon+'</div>';
+    });
+    h += '</div>';
+    (window.pinEmojiCategories||[]).forEach(function(cat,ci){
+      h += '<div id="lm-emoji-grid-'+ci+'" style="display:'+(ci===0?'flex':'none')+';flex-wrap:wrap;gap:2px;margin-bottom:6px;max-height:140px;overflow-y:auto">';
+      cat.emojis.forEach(function(em){
+        h += '<div onclick="_lmApplyIcon(\''+k+'\',\''+em+'\')" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:5px;cursor:pointer;font-size:16px;background:#f5f5f7;border:1px solid rgba(0,0,0,.06);transition:transform .1s" onmouseover="this.style.transform=\'scale(1.25)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</div>';
+      });
+      h += '</div>';
+    });
+    h += '<div style="font-size:10px;font-weight:600;color:#1d1d1f;margin-bottom:4px;margin-top:6px">Imagen personalizada</div>';
+    h += '<div style="display:flex;gap:6px;align-items:center">';
+    h += '<button onclick="document.getElementById(\'lm-img-input\').click()" style="padding:6px 12px;background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;border:none;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer">📷 Importar imagen</button>';
+    h += '<input type="file" id="lm-img-input" accept="image/*" style="display:none" onchange="_lmApplyCustomImage(\''+k+'\',this)">';
+    if(st._customImg){
+      h += '<img src="'+st._customImg+'" style="width:28px;height:28px;border-radius:5px;object-fit:cover;border:2px solid #6D28D9">';
+      h += '<button onclick="_lmRemoveCustomImage(\''+k+'\')" style="border:none;background:#fee2e2;color:#dc2626;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:8px;font-weight:600">✕</button>';
+    }
+    h += '</div></div>';
+    pop.innerHTML = h;
+    document.body.appendChild(pop);
+  };
+  window._lmSwitchTab = function(idx){
+    document.querySelectorAll('.lm-pc-tab').forEach(function(t,i){
+      t.style.border = '1px solid '+(i===idx?'#6D28D9':'#e2e8f0');
+      t.style.background = i===idx?'#ede9fe':'#fff';
+    });
+    (window.pinEmojiCategories||[]).forEach(function(_,i){
+      var g = document.getElementById('lm-emoji-grid-'+i);
+      if(g) g.style.display = i===idx?'flex':'none';
+    });
+  };
+
+  var BTN = function(k){
+    return '<div style="margin-top:6px;border-top:1px solid #e2e8f0;padding-top:6px">'
+      + '<button onclick="_lmCustomize(\''+k+'\')" style="border:none;background:rgba(109,40,217,.08);color:#6D28D9;cursor:pointer;font-size:10px;padding:4px 8px;border-radius:5px;font-weight:600">🎨 Personalizar pin</button></div>';
+  };
+
+  function _wire(m, iw){
+    if(!m || m._lmWired) return; m._lmWired = true;
+    var p; try{ p = m.getPosition(); }catch(e){ return; }
+    var k = _key(p.lat(), p.lng());
+    if(iw){
+      try{
+        var c = iw.getContent();
+        if(typeof c === 'string' && c.indexOf('_lmCustomize(')===-1){ iw.setContent(c + BTN(k)); }
+      }catch(e){}
+    }
+    try{ m.addListener('rightclick', function(){ window._lmCustomize(k); }); }catch(e){}
+  }
+
+  // Wrap showLandmark: cablear cada landmark nuevo
+  function hook(){
+    if(typeof window.showLandmark !== 'function' || window.showLandmark._r45) return false;
+    var orig = window.showLandmark;
+    window.showLandmark = function(lat,lng){
+      var r = orig.apply(this, arguments);
+      try{
+        var arr = window.landmarkMarkers||[], infos = window.landmarkInfos||[];
+        for(var i=0;i<arr.length;i++){
+          var p = arr[i].getPosition();
+          if(Math.abs(p.lat()-lat)<1e-5 && Math.abs(p.lng()-lng)<1e-5){ _wire(arr[i], infos[i]); break; }
+        }
+      }catch(e){}
+      return r;
+    };
+    window.showLandmark._r45 = true;
+    return true;
+  }
+  // Retrofit: landmarks ya existentes (p. ej. restaurados de un link compartido)
+  function retrofit(){
+    var arr = window.landmarkMarkers||[], infos = window.landmarkInfos||[];
+    for(var i=0;i<arr.length;i++){ _wire(arr[i], infos[i]); }
+  }
+  function boot(){ hook(); retrofit(); }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', boot); }
+  boot();
+  [800,2000,4000,8000].forEach(function(d){ setTimeout(boot, d); });
+})();
+</script>
+
 </body>
 </html>
