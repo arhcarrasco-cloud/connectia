@@ -1941,7 +1941,7 @@ function flashChains(p){
 }
 function init(){
   buildNav(); buildOoh(); buildVideos(); buildSoluciones(); buildCasos();
-  $('ruta-count').textContent=POIS.length;
+  const _rc=$('ruta-count'); if(_rc) _rc.textContent=POIS.length;
   cartBadge();
   bigDots($('welcome-dots'),64,true); bigDots($('cierre-dots'),16);
   initGate();
