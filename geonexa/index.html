@@ -35445,15 +35445,49 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   async function uploadShare(state){ var r=await fetch(SB_URL+'/rest/v1/rpc/create_geonexa_share',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_state:state})}); if(!r.ok) throw new Error('upload '+r.status); return await r.json(); }
   async function fetchShare(id){ var r=await fetch(SB_URL+'/rest/v1/rpc/get_geonexa_share',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_id:id})}); if(!r.ok) throw new Error('fetch '+r.status); return await r.json(); }
 
-  // core = el mismo hash #share= que la app ya produce y sabe restaurar
-  function captureFull(){
-    var core='';
-    try{ if(typeof window._writeUrl==='function') window._writeUrl(); }catch(e){}
-    var h=window.location.hash||'';
-    if(h.indexOf('#share=')===0) core=h.substring(7);
-    else { try{ if(typeof stateToHash==='function'&&typeof captureMapState==='function') core=stateToHash(captureMapState()); }catch(e){} }
-    return { core: core, lm: captureLandmarks() };
+  // Serializa la seleccion dibujada actual (mismo formato que la extension url-sync)
+  function _serializeOverlay(ov){
+    try{
+      if(!ov) return null;
+      if(typeof ov.getPosition==='function' && !ov.getRadius && !ov.getBounds && !ov.getPath){ var p=ov.getPosition(); return {t:'m', a:+p.lat().toFixed(6), o:+p.lng().toFixed(6)}; }
+      if(typeof ov.getRadius==='function' && typeof ov.getCenter==='function'){ var c=ov.getCenter(); return {t:'c', a:+c.lat().toFixed(6), o:+c.lng().toFixed(6), r:Math.round(ov.getRadius())}; }
+      if(typeof ov.getBounds==='function' && typeof ov.getCenter!=='function'){ var b=ov.getBounds(); var ne=b.getNorthEast(), sw=b.getSouthWest(); return {t:'r', n:+ne.lat().toFixed(6), e:+ne.lng().toFixed(6), s:+sw.lat().toFixed(6), w:+sw.lng().toFixed(6)}; }
+      if(typeof ov.getPath==='function' || typeof ov.getPaths==='function'){ var arr=(ov.getPaths?ov.getPaths().getAt(0):ov.getPath()).getArray(); if(arr.length>80) arr=arr.filter(function(_,i){return i%Math.ceil(arr.length/80)===0;}); return {t:'p', pts:arr.map(function(pt){return [+pt.lat().toFixed(5),+pt.lng().toFixed(5)];})}; }
+    }catch(e){}
+    return null;
   }
+  function _serializePin(sel){
+    try{
+      if(!sel||!sel.overlay) return null;
+      var ov=sel.overlay, pos=null;
+      if(typeof ov.getPosition==='function') pos=ov.getPosition();
+      else if(typeof ov.getCenter==='function') pos=ov.getCenter();
+      if(!pos) return null;
+      var name=''; if(sel.data&&sel.data._name) name=sel.data._name; else if(sel.data&&sel.data._direccion) name=sel.data._direccion;
+      return { a:+pos.lat().toFixed(6), o:+pos.lng().toFixed(6), n:name?String(name).substring(0,40):'', c:sel.color||'', i:sel._icon||'' };
+    }catch(e){ return null; }
+  }
+  // Construye el core FRESCO desde el estado actual (NO depende del hash con debounce).
+  function captureCore(){
+    var s = (typeof captureMapState==='function')? captureMapState() : {};
+    try{ if(typeof currentOverlay!=='undefined' && currentOverlay && currentOverlay.getMap && currentOverlay.getMap()){ var ser=_serializeOverlay(currentOverlay); if(ser) s.sel=ser; } }catch(e){}
+    try{
+      if(typeof multiSelections!=='undefined' && multiSelections && multiSelections.length){
+        var pins=[]; for(var i=0;i<multiSelections.length && pins.length<200;i++){ var p=_serializePin(multiSelections[i]); if(p) pins.push(p); }
+        if(pins.length) s.pins=pins;
+      }
+    }catch(e){}
+    var lyr={};
+    try{ if(typeof nseOverlayActive!=='undefined'&&nseOverlayActive) lyr.nse=1; }catch(e){}
+    try{ if(typeof densityLayerActive!=='undefined'&&densityLayerActive) lyr.den=1; }catch(e){}
+    try{ if(typeof _popHeatActive!=='undefined'&&_popHeatActive) lyr.pop=1; }catch(e){}
+    try{ if(typeof _trafHeatActive!=='undefined'&&_trafHeatActive) lyr.tra=1; }catch(e){}
+    try{ if(typeof _routeHeatmapActive!=='undefined'&&_routeHeatmapActive) lyr.rh=1; }catch(e){}
+    if(Object.keys(lyr).length) s.lyr=lyr;
+    try{ var panel=document.getElementById('nse-panel'); if(panel){ var checked=[]; panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){ if(cb.checked&&cb.dataset&&cb.dataset.nse) checked.push(cb.dataset.nse); }); if(checked.length) s.nlv=checked; } }catch(e){}
+    return s;
+  }
+  function captureFull(){ var core=''; try{ core=stateToHash(captureCore()); }catch(e){} return { core: core, lm: captureLandmarks() }; }
 
   // ---- Compartir: reemplaza el handler del FAB para producir link corto ----
   async function openFullShareModal(){
