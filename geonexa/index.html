@@ -35524,8 +35524,9 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
     if(!id) return false;
     fetchShare(id).then(function(state){
       if(!state){ return; }
-      try{ sessionStorage.setItem('cn_pending_lm', JSON.stringify(state.lm||[])); }catch(e){}
       var core=state.core||'';
+      var ctr=null; try{ var cs=(typeof hashToState==='function')?hashToState(core):null; if(cs&&cs.lat&&cs.lng) ctr={lat:cs.lat,lng:cs.lng,z:cs.z||14}; }catch(e){}
+      try{ sessionStorage.setItem('cn_pending_lm', JSON.stringify(state.lm||[])); if(ctr) sessionStorage.setItem('cn_pending_ctr', JSON.stringify(ctr)); }catch(e){}
       var target=window.location.pathname + (core? ('#share='+core) : '');
       try{ window.location.replace(target); }catch(e){ window.location.hash = core? ('#share='+core):''; }
       setTimeout(function(){ window.location.reload(); }, 30);
@@ -35534,15 +35535,20 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   }
 
   function restorePendingLandmarks(){
-    var raw=null; try{ raw=sessionStorage.getItem('cn_pending_lm'); }catch(e){}
-    if(!raw) return;
-    try{ sessionStorage.removeItem('cn_pending_lm'); }catch(e){}
-    var lm=null; try{ lm=JSON.parse(raw); }catch(e){ return; }
-    if(!lm||!lm.length) return;
+    var raw=null, ctrRaw=null;
+    try{ raw=sessionStorage.getItem('cn_pending_lm'); ctrRaw=sessionStorage.getItem('cn_pending_ctr'); }catch(e){}
+    if(!raw && !ctrRaw) return;
+    try{ sessionStorage.removeItem('cn_pending_lm'); sessionStorage.removeItem('cn_pending_ctr'); }catch(e){}
+    var lm=null; try{ lm=raw?JSON.parse(raw):null; }catch(e){}
+    var ctr=null; try{ ctr=ctrRaw?JSON.parse(ctrRaw):null; }catch(e){}
     var tries=0;
     var t=setInterval(function(){
       tries++;
-      if(typeof map!=='undefined' && map){ clearInterval(t); setTimeout(function(){ try{ var n=restoreLandmarks(lm); if(typeof setStatus==='function') setStatus(n+' landmarks restaurados del enlace'); }catch(e){} }, 2600); }
+      if(typeof map!=='undefined' && map){ clearInterval(t);
+        // Re-asertar el centro compartido para vencer a la geolocalizacion de initMap (que lo pisa ~1-3s despues)
+        if(ctr){ [900,2000,3500,5500,8000].forEach(function(d){ setTimeout(function(){ try{ map.setCenter({lat:ctr.lat,lng:ctr.lng}); if(ctr.z) map.setZoom(ctr.z); }catch(e){} }, d); }); }
+        if(lm && lm.length){ setTimeout(function(){ try{ var n=restoreLandmarks(lm); if(typeof setStatus==='function') setStatus(n+' landmarks restaurados del enlace'); }catch(e){} }, 2600); }
+      }
       else if(tries>60){ clearInterval(t); }
     },250);
   }
