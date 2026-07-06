@@ -4258,6 +4258,7 @@ function showLandmark(lat,lng,name,address,rating,iconUrl){
     +'</div>';
   var iw=new google.maps.InfoWindow({content:content});
   marker.addListener('click',function(){iw.open(map,marker)});
+  marker._lmData={name:name,address:address||'',rating:rating||'',iconUrl:iconUrl||''};
   landmarkMarkers.push(marker);
   landmarkInfos.push(iw);
   iw.open(map,marker);
@@ -35414,10 +35415,11 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
       if(mk._info) o.nf=String(mk._info).substring(0,1500);
       if(mk._importData){ try{ o.id=JSON.parse(JSON.stringify(mk._importData)); }catch(e){} }
       if(mk._importColor) o.cl=mk._importColor;
+      if(mk._lmData){ try{ o.lm=JSON.parse(JSON.stringify(mk._lmData)); }catch(e){} }
       return o; }catch(e){ return null; } }
 
   function captureLandmarks(){
-    var arrs=[['searchMarkers',window.searchMarkers],['placesMarkers',window.placesMarkers],['denueMarkers',window.denueMarkers],['importedMarkers',window.importedMarkers],['reportPins',window._arReportPlacePins]];
+    var arrs=[['searchMarkers',window.searchMarkers],['placesMarkers',window.placesMarkers],['denueMarkers',window.denueMarkers],['importedMarkers',window.importedMarkers],['landmarkMarkers',window.landmarkMarkers],['reportPins',window._arReportPlacePins]];
     var lm=[];
     arrs.forEach(function(pair){ var arr=pair[1]; if(arr&&arr.length){ arr.forEach(function(mk){ if(lm.length>=400) return; var s=_serMk(mk,pair[0]); if(s) lm.push(s); }); } });
     try{ if(window._searchPinMarker){ var sp=_serMk(window._searchPinMarker,'searchPin'); if(sp) lm.push(sp); } }catch(e){}
@@ -35426,7 +35428,18 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 
   function restoreLandmarks(lm){ if(!lm||!lm.length) return 0; var n=0;
     window.searchMarkers=window.searchMarkers||[]; window.placesMarkers=window.placesMarkers||[]; window.denueMarkers=window.denueMarkers||[]; window.importedMarkers=window.importedMarkers||[]; window._arReportPlacePins=window._arReportPlacePins||[];
+    window.landmarkMarkers=window.landmarkMarkers||[]; window.landmarkInfos=window.landmarkInfos||[];
     lm.forEach(function(o){ try{
+        // landmarkMarkers (negocios seleccionados): usar showLandmark nativo si existe (pin morado + logo + infowindow identicos)
+        if(o.k==='landmarkMarkers' && typeof window.showLandmark==='function' && o.lm){
+          try{
+            var beforeIw = window.landmarkInfos ? window.landmarkInfos.length : 0;
+            window.showLandmark(o.la, o.ln, o.lm.name||o.ti||'', o.lm.address||'', o.lm.rating||'', o.lm.iconUrl||'');
+            // showLandmark auto-abre el infowindow y hace panTo; cerrar el popup para no saturar
+            try{ if(window.landmarkInfos && window.landmarkInfos.length>beforeIw){ window.landmarkInfos[window.landmarkInfos.length-1].close(); } }catch(e){}
+            n++; return;
+          }catch(eS){}
+        }
         var opts={position:{lat:o.la,lng:o.ln}, map:map, title:o.ti||''};
         if(o.ic){ if(o.ic.u){ opts.icon={url:o.ic.u, scaledSize:new google.maps.Size(28,28)}; } else if(o.ic.p){ opts.icon={path:o.ic.p, fillColor:o.ic.fc||'#6D28D9', fillOpacity:1, strokeColor:o.ic.sc||'#fff', strokeWeight:1.5, scale:o.ic.sca||1}; } }
         if(o.lb&&o.lb.t){ opts.label={text:o.lb.t, color:(o.lb.c||'#fff'), fontSize:'10px', fontWeight:'bold'}; }
@@ -35434,8 +35447,8 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
         var info=o.nf || ('<div style="font-family:sans-serif;font-size:12px;font-weight:600">'+(o.ti||'')+'</div>');
         var iw=new google.maps.InfoWindow({content:info});
         mk.addListener('click',function(){iw.open(map,mk);});
-        var target={searchMarkers:window.searchMarkers,placesMarkers:window.placesMarkers,denueMarkers:window.denueMarkers,importedMarkers:window.importedMarkers,reportPins:window._arReportPlacePins}[o.k];
-        if(o.k==='searchPin'){ window._searchPinMarker=mk; } else if(target){ target.push(mk); }
+        var target={searchMarkers:window.searchMarkers,placesMarkers:window.placesMarkers,denueMarkers:window.denueMarkers,importedMarkers:window.importedMarkers,landmarkMarkers:window.landmarkMarkers,reportPins:window._arReportPlacePins}[o.k];
+        if(o.k==='searchPin'){ window._searchPinMarker=mk; } else if(target){ target.push(mk); if(o.k==='landmarkMarkers'){ window.landmarkInfos.push(iw); } }
         if(o.id) mk._importData=o.id; if(o.cl) mk._importColor=o.cl;
         n++;
       }catch(e){} });
