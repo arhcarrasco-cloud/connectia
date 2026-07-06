@@ -35879,5 +35879,110 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 })();
 </script>
 
+
+<script id="connectia-r48-session-file">
+/* ============================================================
+   Round 48 — Sesión como archivo (.json).
+   💾 Descargar: serializa captureFull() (mapa, selección, pins,
+   capas, landmarks con estilo r47) a un .json descargable.
+   📂 Importar: lee el .json y pregunta:
+     ➕ Agregar a la sesión actual (suma los landmarks/pines)
+     🆕 Empezar de cero (restaura TODO vía #share= + reload,
+        igual que abrir un link corto #s=)
+   Botones en el modal de compartir + API window.CN_SESSIONFILE.
+   ============================================================ */
+(function(){
+  'use strict';
+  if(window.__r48SessionFile) return; window.__r48SessionFile = true;
+
+  function dl(){
+    try{
+      if(!window.CN_FULLSHARE || typeof CN_FULLSHARE.captureFull!=='function'){ alert('Share engine no disponible'); return; }
+      var st = CN_FULLSHARE.captureFull();
+      var blob = new Blob([JSON.stringify(st)], {type:'application/json'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      var d = new Date(), pad = function(n){ return (n<10?'0':'')+n; };
+      a.download = 'geonexa-sesion-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes())+'.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ try{ URL.revokeObjectURL(a.href); a.remove(); }catch(e){} }, 800);
+      if(typeof setStatus==='function') setStatus('Sesión descargada (.json) — impórtala con 📂 en el mismo modal');
+    }catch(e){ alert('No se pudo exportar: '+e.message); }
+  }
+
+  function doImport(state, mode){
+    if(!state || typeof state!=='object' || (!state.lm && !state.core)){ alert('Archivo de sesión no válido'); return; }
+    if(mode === 'fresh'){
+      try{
+        sessionStorage.setItem('cn_pending_lm', JSON.stringify(state.lm||[]));
+        var core = state.core||'';
+        try{
+          var cs = (typeof hashToState==='function') ? hashToState(core) : null;
+          if(cs && cs.lat && cs.lng) sessionStorage.setItem('cn_pending_ctr', JSON.stringify({lat:cs.lat,lng:cs.lng,z:cs.z||14}));
+        }catch(e){}
+        window.location.replace(window.location.pathname + (core?('#share='+core):''));
+        setTimeout(function(){ window.location.reload(); }, 30);
+      }catch(e){ alert('Error al importar: '+e.message); }
+    } else {
+      var n = (state.lm||[]).length;
+      try{ if(window.CN_FULLSHARE && typeof CN_FULLSHARE.restoreLandmarks==='function') CN_FULLSHARE.restoreLandmarks(state.lm||[]); }catch(e){}
+      if(typeof setStatus==='function') setStatus('Importado: '+n+' elementos agregados a la sesión actual');
+    }
+  }
+
+  function askMode(state){
+    var old = document.getElementById('r48-import-mode'); if(old) old.remove();
+    var n = (state && state.lm ? state.lm.length : 0);
+    var d = document.createElement('div'); d.id = 'r48-import-mode';
+    d.style.cssText = 'position:fixed;inset:0;z-index:100010;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)';
+    d.innerHTML = '<div style="background:#fff;border-radius:14px;padding:22px;width:340px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:-apple-system,sans-serif">'
+      + '<div style="font-weight:700;font-size:14px;color:#1d1d1f;margin-bottom:6px">📂 Importar sesión</div>'
+      + '<div style="font-size:12px;color:#64748b;margin-bottom:14px">'+n+' elementos en el archivo. ¿Cómo lo importo?</div>'
+      + '<button id="r48-add" style="width:100%;padding:10px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:8px">➕ Agregar a la sesión actual</button>'
+      + '<button id="r48-fresh" style="width:100%;padding:10px;background:#f5f5f7;color:#1d1d1f;border:1px solid #d2d2d7;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:8px">🆕 Empezar de cero con esta sesión</button>'
+      + '<button id="r48-cancel" style="width:100%;padding:8px;background:none;color:#86868b;border:none;font-size:11px;cursor:pointer">Cancelar</button></div>';
+    document.body.appendChild(d);
+    d.querySelector('#r48-add').onclick = function(){ d.remove(); doImport(state, 'add'); };
+    d.querySelector('#r48-fresh').onclick = function(){ d.remove(); doImport(state, 'fresh'); };
+    d.querySelector('#r48-cancel').onclick = function(){ d.remove(); };
+  }
+
+  function pick(){
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.onchange = function(){
+      if(!inp.files || !inp.files[0]) return;
+      var r = new FileReader();
+      r.onload = function(e){
+        var st = null;
+        try{ st = JSON.parse(e.target.result); }catch(err){ alert('El archivo no es un JSON válido'); return; }
+        askMode(st);
+      };
+      r.readAsText(inp.files[0]);
+    };
+    inp.click();
+  }
+
+  window.CN_SESSIONFILE = { download: dl, importFile: pick, importState: doImport };
+
+  function inject(){
+    var modal = document.getElementById('cn-share-modal');
+    if(!modal || modal._r48) return;
+    var anchor = modal.querySelector('#cn-share-url-public');
+    var box = anchor ? anchor.parentElement : modal.firstElementChild;
+    if(!box) return;
+    modal._r48 = true;
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;margin-top:10px';
+    row.innerHTML = '<button onclick="CN_SESSIONFILE.download()" style="flex:1;padding:8px;background:#f5f5f7;border:1px solid #d2d2d7;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;color:#1d1d1f">💾 Descargar sesión (.json)</button>'
+      + '<button onclick="CN_SESSIONFILE.importFile()" style="flex:1;padding:8px;background:#f5f5f7;border:1px solid #d2d2d7;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;color:#1d1d1f">📂 Importar sesión</button>';
+    box.appendChild(row);
+  }
+  function boot(){ inject(); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  boot();
+  [1000, 3000, 6000, 10000].forEach(function(d){ setTimeout(boot, d); });
+})();
+</script>
+
 </body>
 </html>
