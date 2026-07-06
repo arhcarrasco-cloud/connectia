@@ -4778,7 +4778,9 @@ function clearAll(){
   overlays=[];
   clearGeoOverlays();
   document.getElementById('geo-selector-input').value='';
-  // NOTE: search markers are NOT cleared here — use empty search + Enter to clear them
+  // Limpiar TAMBIÉN los pines de búsqueda acumulados (lugares/coordenadas) — Roger: Limpiar debe borrarlos
+  try{ if(typeof _searchPins!=='undefined'){ _searchPins.forEach(function(m){try{m.setMap(null)}catch(e){}}); _searchPins=[]; } }catch(e){}
+  _searchPinMarker=null; _coordMarker=null;
   clearLandmarks();
   // Clear DENUE markers
   if(denueMarkers){denueMarkers.forEach(function(m){m.setMap(null)});denueMarkers=[];}
@@ -6744,6 +6746,7 @@ function simplifyAndConvert(coords){
 
 // Enhanced selectPlace: tries to fetch boundary for administrative areas
 var _searchPinMarker=null;
+var _searchPins=[]; // acumulador de pines de búsqueda (lugares/coordenadas); se limpia con Limpiar o Enter vacío
 function selectPlace(placeId,desc){
   placesService.getDetails({placeId:placeId,fields:['geometry','name','address_components','types']},function(place,status){
     if(status!==google.maps.places.PlacesServiceStatus.OK||!place||!place.geometry)return;
@@ -6806,8 +6809,8 @@ function selectPlace(placeId,desc){
       var loc=place.geometry.location;
       map.setCenter(loc);
       map.setZoom(17);
-      // Remove previous search pin
-      if(_searchPinMarker)_searchPinMarker.setMap(null);
+      // ACUMULAR: no se borra el pin anterior; los pines de búsqueda se acumulan.
+      // Se limpian con el botón Limpiar (clearAll) o con Enter en el buscador vacío (clearSearchMarkers).
       _searchPinMarker=new google.maps.Marker({
         position:loc,
         map:map,
@@ -6816,6 +6819,7 @@ function selectPlace(placeId,desc){
         zIndex:9995,
         animation:google.maps.Animation.DROP
       });
+      try{ if(typeof _searchPins!=='undefined') _searchPins.push(_searchPinMarker); }catch(e){}
       // Info window with place details
       var iwContent='<div style="font-family:-apple-system,sans-serif;padding:4px 6px;font-size:12px;max-width:250px">';
       iwContent+='<strong style="color:#8B3A9F">📍 '+(place.name||'Ubicación')+'</strong>';
@@ -7061,6 +7065,9 @@ function clearGeoOverlays(){
 function clearSearchMarkers(){
   searchMarkers.forEach(function(m){m.setMap(null)});
   searchMarkers=[];
+  // Limpiar también los pines de búsqueda acumulados (lugares/coordenadas)
+  try{ if(typeof _searchPins!=='undefined'){ _searchPins.forEach(function(m){try{m.setMap(null)}catch(e){}}); _searchPins=[]; } }catch(e){}
+  _searchPinMarker=null; _coordMarker=null;
 }
 
 function handleSearch(val){
@@ -7558,8 +7565,7 @@ var _coordMarker=null;
 function goTo(lat,lng){
   map.setCenter({lat:lat,lng:lng});map.setZoom(15);
   document.getElementById('suggestions').classList.remove('open');
-  // Drop a pin at the coordinates
-  if(_coordMarker)_coordMarker.setMap(null);
+  // Drop a pin at the coordinates — ACUMULAR (no borrar el anterior)
   _coordMarker=new google.maps.Marker({
     position:{lat:lat,lng:lng},
     map:map,
@@ -7568,6 +7574,7 @@ function goTo(lat,lng){
     zIndex:9995,
     animation:google.maps.Animation.DROP
   });
+  try{ if(typeof _searchPins!=='undefined') _searchPins.push(_coordMarker); }catch(e){}
   // Info window on click
   var iw=new google.maps.InfoWindow({content:'<div style="font-family:-apple-system,sans-serif;padding:4px 6px;font-size:12px"><strong style="color:#8B3A9F">📍 Coordenadas</strong><br>'+lat.toFixed(6)+', '+lng.toFixed(6)+'</div>'});
   _coordMarker.addListener('click',function(){iw.open(map,_coordMarker);});
@@ -35423,7 +35430,10 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
     var arrs=[['searchMarkers',window.searchMarkers],['placesMarkers',window.placesMarkers],['denueMarkers',window.denueMarkers],['importedMarkers',window.importedMarkers],['landmarkMarkers',window.landmarkMarkers],['reportPins',window._arReportPlacePins]];
     var lm=[];
     arrs.forEach(function(pair){ var arr=pair[1]; if(arr&&arr.length){ arr.forEach(function(mk){ if(lm.length>=400) return; var s=_serMk(mk,pair[0]); if(s) lm.push(s); }); } });
-    try{ if(window._searchPinMarker){ var sp=_serMk(window._searchPinMarker,'searchPin'); if(sp) lm.push(sp); } }catch(e){}
+    try{
+      if(window._searchPins && window._searchPins.length){ window._searchPins.forEach(function(mk){ if(lm.length>=400) return; var sp=_serMk(mk,'searchPin'); if(sp) lm.push(sp); }); }
+      else if(window._searchPinMarker){ var sp2=_serMk(window._searchPinMarker,'searchPin'); if(sp2) lm.push(sp2); }
+    }catch(e){}
     return lm;
   }
 
@@ -35450,7 +35460,7 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
         var iw=new google.maps.InfoWindow({content:info});
         mk.addListener('click',function(){iw.open(map,mk);});
         var target={searchMarkers:window.searchMarkers,placesMarkers:window.placesMarkers,denueMarkers:window.denueMarkers,importedMarkers:window.importedMarkers,landmarkMarkers:window.landmarkMarkers,reportPins:window._arReportPlacePins}[o.k];
-        if(o.k==='searchPin'){ window._searchPinMarker=mk; } else if(target){ target.push(mk); if(o.k==='landmarkMarkers'){ window.landmarkInfos.push(iw); } }
+        if(o.k==='searchPin'){ window._searchPins=window._searchPins||[]; window._searchPins.push(mk); window._searchPinMarker=mk; } else if(target){ target.push(mk); if(o.k==='landmarkMarkers'){ window.landmarkInfos.push(iw); } }
         if(o.id) mk._importData=o.id; if(o.cl) mk._importColor=o.cl;
         n++;
       }catch(e){} });
