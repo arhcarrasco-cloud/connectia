@@ -1,0 +1,12 @@
+{
+  "name": "Connectia × Walmart · Recorrido",
+  "short_name": "Recorrido",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1A0B3D",
+  "theme_color": "#201040",
+  "icons": [
+    { "src": "assets/walmart-spark-oficial.svg.png", "sizes": "600x600", "type": "image/png" }
+  ]
+}

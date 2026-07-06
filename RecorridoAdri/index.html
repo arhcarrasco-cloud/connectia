@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/walmart-spark-oficial.svg.png">
+<title>connectia × Walmart · Recorrido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<style>
+/* ═══════════════ CONNECTIA V3 DESIGN TOKENS ═══════════════ */
+:root{
+  --indigo:#201040; --violet-mid:#502090; --brand:#6030A0; --violet-hot:#7B3FF2;
+  --lime:#C8FF00; --citrus:#FF6A1A; --ink:#0A0118; --graphite:#1F1B2E;
+  --slate:#6B6580; --mist:#E9E6F0; --paper:#FAFAFB; --white:#FFFFFF;
+  --wm-blue:#0053e2; --wm-spark:#FFC220;
+  --grad-hero:linear-gradient(135deg,#201040 0%,#502090 50%,#6030A0 100%);
+  --grad-sunset:linear-gradient(180deg,#1A0B3D 0%,#5A1B82 25%,#E01C8A 55%,#FF2E63 78%,#FF6A1A 100%);
+  --grad-active:linear-gradient(135deg,#6030A0 0%,#E01C8A 100%);
+  --nav-h:96px; --rail-w:76px;
+  --glass:rgba(32,16,64,.55); --glass-border:rgba(123,63,242,.35);
+  --r:22px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--ink)}
+body{font-family:'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif;color:var(--white);
+  -webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--indigo)}
+
+/* ─── typographic system ─── */
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--violet-hot)}
+.eyebrow.on-photo{color:rgba(255,255,255,.85)}
+h1{font-size:clamp(34px,4.2vw,56px);font-weight:800;letter-spacing:-.02em;line-height:1.05;text-transform:uppercase}
+h2{font-size:clamp(24px,2.8vw,34px);font-weight:700;letter-spacing:-.01em;text-transform:uppercase}
+h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
+.body{font-size:clamp(15px,1.5vw,18px);font-weight:400;line-height:1.55;color:var(--mist)}
+.aforismo{font-style:italic;font-weight:300;font-size:clamp(16px,1.7vw,21px);color:rgba(255,255,255,.85)}
+.num{font-weight:800;font-size:clamp(22px,2.4vw,30px);color:var(--violet-hot);letter-spacing:-.02em}
+
+/* ─── screens ─── */
+.screen{position:absolute;inset:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  opacity:0;pointer-events:none;transform:translateY(12px);transition:opacity .45s ease,transform .45s ease;
+  background:var(--indigo)}
+.screen.active{opacity:1;pointer-events:auto;transform:none}
+.screen-pad{padding:56px 64px 48px;max-width:2200px;margin:0 auto}
+.section-head{margin-bottom:34px}
+.section-head h1{margin-top:10px}
+.section-sub{margin-top:14px;max-width:900px}
+
+/* ─── buttons (min touch 56px) ─── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:64px;padding:0 34px;
+  border-radius:18px;border:none;font-family:inherit;font-size:17px;font-weight:700;letter-spacing:.02em;
+  text-transform:uppercase;cursor:pointer;color:var(--white);background:var(--brand);
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:var(--grad-active);box-shadow:0 10px 34px rgba(224,28,138,.35)}
+.btn.ghost{background:rgba(255,255,255,.08);border:1.5px solid var(--glass-border);backdrop-filter:blur(12px)}
+.btn.lime{background:var(--lime);color:var(--ink)}
+.btn.sm{min-height:56px;padding:0 24px;font-size:15px}
+.btn.wide{width:100%}
+
+/* ─── glass cards ─── */
+.card{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--r);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);padding:30px;position:relative;overflow:hidden}
+.card.clickable{cursor:pointer;transition:transform .2s ease,border-color .2s ease}
+.card.clickable:active{transform:scale(.98);border-color:var(--violet-hot)}
+
+/* ─── constellation dots ─── */
+.dots{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.dot{position:absolute;border-radius:50%;background:var(--white);opacity:.6;animation:pulse 4s ease-in-out infinite}
+.dot.lime{background:var(--lime)}.dot.citrus{background:var(--citrus)}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.9;transform:scale(1.25)}}
+@keyframes float-in{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.fade-up{animation:float-in .7s ease both}
+.fade-up.d1{animation-delay:.15s}.fade-up.d2{animation-delay:.3s}.fade-up.d3{animation-delay:.45s}.fade-up.d4{animation-delay:.6s}
+
+/* ═══════════════ WELCOME ═══════════════ */
+#scr-inicio{background:var(--grad-sunset)}
+.welcome{height:100%;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:52px 72px;position:relative}
+.welcome-top{display:flex;justify-content:space-between;font-size:13px;font-weight:600;letter-spacing:.22em;
+  text-transform:uppercase;color:rgba(255,255,255,.9)}
+.welcome-center{text-align:center;position:relative;z-index:2}
+.wordmark{font-weight:900;font-size:clamp(64px,8.5vw,120px);letter-spacing:-.045em;color:var(--white);line-height:1}
+.wordmark .cx-dot{color:var(--lime)}
+.co-lockup{display:flex;align-items:center;justify-content:center;gap:26px;margin-top:22px}
+.co-x{font-size:clamp(24px,3vw,40px);font-weight:300;color:rgba(255,255,255,.8)}
+/* contenedor dimensionado a las LETRAS del logo (filas 339-443 del PNG 884x445);
+   la constelación flota arriba y las letras quedan centradas con el logo Walmart */
+.cx-letters{position:relative;aspect-ratio:884/104;flex:none}
+.cx-letters .cx-logo{position:absolute;left:0;bottom:-1.5%;width:100%;height:auto}
+.co-wm{height:clamp(34px,4.4vw,58px);display:flex;align-items:center;gap:14px}
+.co-wm svg{height:100%;width:auto;filter:drop-shadow(0 2px 12px rgba(0,0,0,.25))}
+.welcome-sub{margin:26px auto 0;max-width:880px;font-size:clamp(16px,1.8vw,22px);line-height:1.5;color:rgba(255,255,255,.92)}
+.welcome-ctas{display:flex;gap:20px;justify-content:center;margin-top:44px;flex-wrap:wrap}
+.welcome-bottom{display:flex;justify-content:space-between;align-items:flex-end;font-size:14px;color:rgba(255,255,255,.85)}
+.welcome-bottom .tagline{font-style:italic;font-weight:300;font-size:clamp(16px,1.8vw,22px)}
+.welcome-bottom .razon{font-size:12px;letter-spacing:.06em;opacity:.75}
+
+/* ═══════════════ MAP ═══════════════ */
+#scr-mapa{overflow:hidden}
+#map{position:absolute;inset:0;background:var(--indigo)}
+.map-overlay-top{position:absolute;top:26px;left:26px;right:26px;display:flex;justify-content:space-between;
+  align-items:flex-start;pointer-events:none;z-index:20;gap:20px}
+.map-overlay-top .card{pointer-events:auto;padding:12px 18px}
+.trip-stats{display:flex;gap:22px}
+.stat .lbl{font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--violet-hot)}
+.stat .val{font-size:18px;font-weight:800;margin-top:3px}
+.stat .val small{font-size:11px;font-weight:600;color:var(--mist)}
+.next-poi-chip{display:flex;align-items:center;gap:16px;max-width:520px}
+.next-poi-chip .spark-mini{width:30px;height:30px;flex:none}
+.next-poi-chip .npc-lbl{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--violet-hot)}
+.next-poi-chip .npc-name{font-size:19px;font-weight:700;margin-top:2px}
+.map-controls{position:absolute;right:26px;bottom:120px;display:flex;flex-direction:column;gap:14px;z-index:20}
+.map-btn{width:64px;height:64px;border-radius:18px;background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:blur(14px);color:var(--white);font-size:24px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .15s}
+.map-btn:active{transform:scale(.92)}
+.map-hint{position:absolute;left:26px;bottom:120px;z-index:20;max-width:460px;padding:18px 24px}
+.map-hint p{font-size:15px;line-height:1.5;color:var(--mist)}
+.gps-badge{display:inline-flex;align-items:center;gap:8px;font-size:10px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;padding:6px 12px;border-radius:999px;background:rgba(200,255,0,.12);color:var(--lime);
+  border:1px solid rgba(200,255,0,.3)}
+.gps-badge .pulse-dot{width:10px;height:10px;border-radius:50%;background:var(--lime);animation:pulse 1.6s infinite}
+.gps-badge.searching{background:rgba(255,106,26,.12);color:var(--citrus);border-color:rgba(255,106,26,.35)}
+.gps-badge.searching .pulse-dot{background:var(--citrus)}
+.progress-track{position:absolute;left:26px;right:26px;bottom:26px;z-index:20;padding:16px 24px}
+.progress-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:10px}
+.progress-fill{height:100%;width:0%;border-radius:999px;background:var(--grad-active);transition:width .8s ease}
+.seek-wrap{display:flex;align-items:center;gap:12px;margin-top:8px}
+.sim-ctl{display:flex;gap:6px}
+.sim-ctl button{width:44px;height:40px;border-radius:10px;border:1px solid var(--glass-border);
+  background:rgba(255,255,255,.06);color:#fff;font-size:15px;cursor:pointer}
+#sim-seek{position:absolute;inset:-8px 0;width:100%;opacity:0;cursor:pointer}
+.progress-lbls{display:flex;justify-content:space-between;font-size:12px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--mist)}
+
+/* car marker + pins (estilo Google Maps · 50/50 Connectia-Walmart) */
+.car-marker{width:60px;height:60px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.06);
+  box-shadow:0 0 0 10px rgba(0,83,226,.18),0 8px 24px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
+.car-marker svg{width:44px;height:auto}
+.poi-pin{width:44px;height:44px;background:var(--brand);border:2.5px solid #fff;
+  border-radius:50% 50% 50% 0;transform:rotate(-45deg);transform-origin:center;
+  box-shadow:0 6px 16px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:background .2s}
+.poi-pin:active{background:var(--violet-hot)}
+.poi-pin svg{width:22px;height:22px;transform:rotate(45deg)}
+.poi-pin.visited{background:#1f9d55}
+.poi-pin.near{animation:pin-bounce 1s ease infinite;background:var(--wm-blue)}
+@keyframes pin-bounce{0%,100%{transform:rotate(-45deg) translate(0,0)}50%{transform:rotate(-45deg) translate(-6px,-6px)}}
+
+/* ─── logo Connectia original (connectia.mx) ─── */
+.cx-logo{background:url("data:image/png;base64,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tusBy/iYZDHg+wNHRqADANjeZZJZhnk+3O8pK3NfBnhv4EgJdAAAu/mS5DzJP9PPat1Vkh+TvOvhvYAT4xo6AID9naVskVwkebXj//2YcrOVms+5Axon0AEA9OMs5Rq785vfn9/798uU1b31nd8DHESgAwAAaJRr6AAAABol0AEAADRKoAMAAGiUQAcAANAogQ4AAKBRAh0AAECjBDoAAIBGCXQAAACNEugAAAAaJdABAAA0SqADAABolEAHAADQKIEOAACgUQIdAABAowQ6AACARgl0AAAAjRLoAAAAGiXQAQAANEqgAwAAaJRABwAA0CiBDgAAoFECHQAAQKMEOgAAgEYJdAAAAI0S6AAAABol0AEAADRKoAMAAGiUQAcAANAogQ4AAKBRAh0AAECjBDoAAIBGCXQAAACNEugAAAAaJdABAAA0SqADAABolEAHAADQKIEOAACgUQIdAABAowQ6AACARgl0AAAAjRLoAAAAGiXQAQAANEqgAwAAaJRABwAA0CiBDgAAoFECHQAAQKMEOgAAgEYJdAAAAI0S6AAAABol0AEAADRKoAMAAGiUQAcAANAogQ4AAKBRAh0AAECjBDoAAIBGCXQAAACNEugAAAAaJdABAAA0SqADAABolEAHAADQKIEOAACgUQIdAABAowQ6AACARgl0AAAAjRLoAAAAGiXQAQAANEqgAwAAaJRABwAA0CiBDgAAoFECHQAAQKMEOgAAgEYJdAAAAI0S6AAAABol0AEAADRKoAMAAGiUQAcAANAogQ4AAKBRAh0AAECjBDoAAIBGCXQAAACNEugAAAAaJdABAAA0SqADAABolEAHAADQKIEOAACgUQIdAABAowQ6AACARgl0AAAAjRLoAAAAGiXQAQAANEqgAwAAaJRABwAA0CiBDgAAoFECHQAAQKMEOgAAgEYJdAAAAI0S6AAAABol0AEAADRKoAMAAGiUQAcAANAogQ4AAKBRAh0AAECjBDoAAIBGCXQAAACNEugAAAAaJdABAAA0SqADAABolEAHAADQKIEOAACgUQIdAABAowQ6AACARgl0AAAAjRLoAAAAGiXQAQAANEqgAwAAaJRABwAA0CiBDgAAoFECHQAAQKMEOgAAgEb9tXYFAACAXpwlOU8yv/nz7OZ1meTLzd+t7/2Zxv3w9evX2nUAAAD2c5ZkcfN6tcP/u0ry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") center/contain no-repeat;aspect-ratio:884/445}
+
+/* ─── UI mapa estilo Google Maps (blanco) · toques Connectia + Walmart 50/50 ─── */
+#scr-mapa .trip-stats,#scr-mapa .map-hint,#scr-mapa .progress-track{
+  background:rgba(255,255,255,.96);border-color:rgba(0,0,0,.08);color:#202124;
+  box-shadow:0 2px 10px rgba(0,0,0,.18);backdrop-filter:none;-webkit-backdrop-filter:none}
+#scr-mapa .stat .val{color:#202124}
+#scr-mapa .stat .val small{color:#5f6368}
+#scr-mapa .stat .lbl{color:var(--brand)}
+#scr-mapa .map-hint p{color:#3c4043}
+#scr-mapa .map-hint strong{color:var(--brand)}
+#scr-mapa .progress-lbls{color:#5f6368}
+#scr-mapa .progress-bar{background:rgba(0,0,0,.08)}
+#scr-mapa .progress-fill{background:linear-gradient(90deg,var(--brand) 0%,var(--wm-blue) 100%)}
+#scr-mapa .map-btn{background:#fff;border-color:rgba(0,0,0,.08);color:var(--brand);
+  box-shadow:0 2px 8px rgba(0,0,0,.2);backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:50%}
+#scr-mapa .gps-badge{background:rgba(0,83,226,.08);color:var(--wm-blue);border-color:rgba(0,83,226,.25)}
+#scr-mapa .gps-badge .pulse-dot{background:var(--wm-blue)}
+#scr-mapa .gps-badge.searching{background:rgba(255,106,26,.1);color:var(--citrus);border-color:rgba(255,106,26,.35)}
+#scr-mapa .gps-badge.searching .pulse-dot{background:var(--citrus)}
+
+/* ─── botón ruta tipo Waze + lista de sitios ─── */
+.ruta-btn{position:absolute;left:50%;transform:translateX(-50%);bottom:120px;z-index:22;
+  display:flex;align-items:center;gap:12px;min-height:64px;padding:0 30px;border:none;border-radius:999px;
+  background:var(--grad-active);color:#fff;font-family:inherit;font-size:16px;font-weight:800;
+  letter-spacing:.06em;cursor:pointer;box-shadow:0 8px 26px rgba(96,48,160,.5);transition:transform .15s}
+.ruta-btn:active{transform:translateX(-50%) scale(.95)}
+.ruta-list{padding:10px 44px 44px}
+.ruta-item{display:flex;align-items:center;gap:20px;padding:20px 18px;border-radius:18px;cursor:pointer;
+  position:relative;transition:background .2s;min-height:88px}
+.ruta-item:active{background:rgba(123,63,242,.14)}
+.ruta-item + .ruta-item{border-top:1px solid rgba(123,63,242,.16)}
+.ruta-num{width:46px;height:46px;flex:none;border-radius:50%;background:var(--grad-active);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;position:relative;z-index:2}
+.ruta-item.visitado .ruta-num{background:#1f9d55}
+.ruta-line{position:absolute;left:41px;top:66px;bottom:-22px;width:3px;background:rgba(123,63,242,.35);z-index:1}
+.ruta-item:last-child .ruta-line{display:none}
+.ruta-info{flex:1;min-width:0}
+.ruta-info h3{font-size:17px;margin-bottom:3px}
+.ruta-info .ri-meta{font-size:13.5px;color:var(--mist)}
+.ruta-chev{font-size:22px;color:var(--violet-hot);flex:none}
+
+/* ─── home tecnológico: CTA botando, estrellas en movimiento, nebulosa ─── */
+@keyframes bounce-cta{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.btn.bounce{animation:bounce-cta 1.5s ease-in-out infinite}
+@keyframes drift{0%{transform:translate(0,0) scale(1);opacity:.35}50%{transform:translate(var(--dx,30px),var(--dy,-20px)) scale(1.35);opacity:.95}100%{transform:translate(0,0) scale(1);opacity:.35}}
+.dots.drift .dot{animation:drift var(--dur,10s) ease-in-out var(--del,0s) infinite}
+@keyframes nebulaA{0%,100%{transform:translate(-4%,-2%) scale(1)}50%{transform:translate(6%,4%) scale(1.2)}}
+@keyframes nebulaB{0%,100%{transform:translate(5%,3%) scale(1.18)}50%{transform:translate(-6%,-5%) scale(.98)}}
+@keyframes hueShift{0%,100%{filter:hue-rotate(0deg) blur(0px)}50%{filter:hue-rotate(28deg) blur(2px)}}
+.welcome::before{content:'';position:absolute;inset:-18%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 25% 30%,rgba(123,63,242,.45),transparent 42%),
+             radial-gradient(circle at 75% 55%,rgba(255,46,99,.32),transparent 45%),
+             radial-gradient(circle at 55% 12%,rgba(200,255,0,.10),transparent 35%);
+  animation:nebulaA 16s ease-in-out infinite,hueShift 22s ease-in-out infinite}
+.welcome::after{content:'';position:absolute;inset:-22%;pointer-events:none;z-index:0;mix-blend-mode:screen;
+  background:radial-gradient(circle at 68% 22%,rgba(255,106,26,.22),transparent 38%),
+             radial-gradient(circle at 18% 72%,rgba(123,63,242,.32),transparent 42%),
+             radial-gradient(circle at 88% 82%,rgba(200,255,0,.08),transparent 30%);
+  animation:nebulaB 20s ease-in-out infinite}
+.welcome-top,.welcome-bottom{position:relative;z-index:2}
+
+/* ─── chip próximo punto: morado con fade, letras blancas ─── */
+#scr-mapa .next-poi-chip{background:var(--grad-active);border:none;box-shadow:0 8px 26px rgba(96,48,160,.45)}
+#scr-mapa .next-poi-chip .npc-lbl{color:rgba(255,255,255,.85)}
+#scr-mapa .next-poi-chip .npc-name{color:#fff}
+
+/* ─── ventana de sitios del recorrido (sobre el mapa) ─── */
+.sitios-panel{position:absolute;left:26px;bottom:120px;z-index:21;width:400px;max-height:46%;
+  display:flex;flex-direction:column;padding:20px 14px 12px;transition:opacity .3s,transform .3s}
+.sitios-panel.hide{opacity:0;pointer-events:none;transform:translateY(16px)}
+.sitios-panel .sp-title{padding:0 10px 10px;flex:none}
+.sp-list{overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sp-item{display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:14px;cursor:pointer;min-height:64px}
+.sp-item:active{background:rgba(123,63,242,.18)}
+.sp-item + .sp-item{border-top:1px solid rgba(123,63,242,.15)}
+.sp-num{width:34px;height:34px;flex:none;border-radius:50%;background:var(--grad-active);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.sp-item.visitado .sp-num{background:#1f9d55}
+.sp-item.visitado .sp-name{color:#7ee2a8}
+.sp-thumb{width:58px;height:42px;border-radius:8px;object-fit:cover;flex:none;background:#150a30}
+.sp-info{flex:1;min-width:0}
+.sp-name{font-weight:700;font-size:14.5px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-meta{font-size:12px;color:var(--mist);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-imp{font-size:12.5px;font-weight:800;color:var(--lime);margin-top:2px;letter-spacing:.02em}
+.sp-sem{display:flex;gap:4px;margin-top:5px;align-items:center}
+.sp-sem .sem-dot{width:9px;height:9px}
+.sp-sem .sem-lbl{font-size:8.5px}
+.sp-fav{width:44px;height:44px;flex:none;border-radius:50%;border:1px solid var(--glass-border);
+  background:rgba(255,255,255,.06);color:#fff;font-size:16px;cursor:pointer}
+.sp-fav.on{background:var(--grad-active);border-color:transparent}
+
+/* ─── pines de cadenas retail (DENUE) ─── */
+.store-pin{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.4);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;cursor:pointer}
+.store-pin.wm{background:#0053e2}
+.store-pin.cm{width:26px;height:26px;border-radius:50%;background:#00944d;color:#fff;font-size:11px;font-weight:800}
+.store-pin.so,.store-pin.ch{width:52px;height:26px;border-radius:8px;background-color:#fff;
+  background-repeat:no-repeat;background-position:center;background-size:82% auto}
+.store-pin.so-unused{background-image:url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgd2lkdGg9IjQzMTkuOTg4OCIKICAgaGVpZ2h0PSIxMDgwIgogICB2aWV3Qm94PSIwIDAgNDMxOS45ODg4IDEwODAiCiAgIHZlcnNpb249IjEuMSIKICAgaWQ9InN2ZzE0IgogICBzb2RpcG9kaTpkb2NuYW1lPSJsb2dvLXNvcmlhbmEuc3ZnIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIxLjEgKGM2OGUyMmMzODcsIDIwMjEtMDUtMjMpIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxkZWZzCiAgICAgaWQ9ImRlZnMxOCIgLz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9Im5hbWVkdmlldzE2IgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VjaGVja2VyYm9hcmQ9IjAiCiAgICAgc2hvd2dyaWQ9ImZhbHNlIgogICAgIGZpdC1tYXJnaW4tdG9wPSIwIgogICAgIGZpdC1tYXJnaW4tbGVmdD0iMCIKICAgICBmaXQtbWFyZ2luLXJpZ2h0PSIwIgogICAgIGZpdC1tYXJnaW4tYm90dG9tPSIwIgogICAgIGlua3NjYXBlOnpvb209IjAuMDg5NDkzMjAyIgogICAgIGlua3NjYXBlOmN4PSIxOTM4LjY5NDciCiAgICAgaW5rc2NhcGU6Y3k9IjE2MjUuODIxOCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjE5MjAiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iMTAxNyIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMTkxMiIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iLTgiCiAgICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJzdmcxNCIgLz4KICA8ZwogICAgIGZpbGw9Im5vbmUiCiAgICAgZmlsbC1ydWxlPSJldmVub2RkIgogICAgIGlkPSJnMTIiCiAgICAgdHJhbnNmb3JtPSJtYXRyaXgoMzAuODU3MTQzLDAsMCwzMC44NTcxNDMsLTAuMDExMTA4NTYsMCkiPgogICAgPGcKICAgICAgIGlkPSJnMTAiPgogICAgICA8ZwogICAgICAgICBpZD0iZzgiPgogICAgICAgIDxwYXRoCiAgICAgICAgICAgZmlsbD0iI2Q1MmIxZSIKICAgICAgICAgICBkPSJtIDMwLjQwMiwzLjQxNSBjIC0xLjg1OSwwIC00LjQzNiwwLjc5IC02LjMwOCwzLjM2NiAtMC4zNDQsMC40NyAtMC42MjUsMS4wNjggLTAuNzksMS42NTcgLTAuNTcyLDIuMDA3IC0wLjE3LDQuMjE2IDEuMDg1LDUuOTA4IDAuOTYyLDEuMzAyIDIuMTksMi4yNzYgMy4yNzQsMy4xMzYgMC41MywwLjQyIDEuNjU1LDEuNDg0IDIuMDE4LDEuOTM1IDAuNTQxLDAuNjc3IDAuOTUzLDEuMDggMS40NDIsMi41NyAwLjI5NiwwLjkwNCAwLjMzOCwyLjA5NSAwLjE5MywyLjc3IDMuMzkzLC0zLjQ0IDcuMDk5LC03LjkwNSA3LjA5OSwtMTIuNzYyIDAsLTUuNTggLTMuOTk3LC04LjU4IC04LjAxMywtOC41OCIKICAgICAgICAgICBpZD0icGF0aDIiIC8+CiAgICAgICAgPHBhdGgKICAgICAgICAgICBmaWxsPSIjYjZiZjAwIgogICAgICAgICAgIGQ9Im0gMjQuMDg4LDIyLjI4MSBjIC0xLjQxNiwtMS45MjkgLTMuMDU0LC0zLjEgLTQuNDA2LC00LjMzNCAtMC41OSwtMC41MzcgLTEuMjM2LC0wLjkzMyAtMS43MTQsLTEuNDEgLTIuMjkzLC0yLjI3OCAtMy4zNjUsLTUuMDg2IC0yLjgyMywtOC41NDMgMC40MjgsLTIuNzExIDEuNzc0LC00LjQ5MiAzLjQsLTUuOCBDIDE2LjYwNCwwLjc3MiAxNC4zMDEsMCAxMS42OTksMCA1LjI0LDAgLTAuMTYsNS4xOSAwLjAwNCwxMS41OSAwLjI5NywyMy4xNDIgMTQuNzY2LDMyLjk4NiAyMC43MjgsMzUgYyAzLjE4OCwtMS42MzIgNC44ODIsLTQuNjg0IDQuODgyLC03LjgxNSAwLC0yLjI4MyAtMC45NzgsLTQuMTY0IC0xLjUyMiwtNC45MDQiCiAgICAgICAgICAgaWQ9InBhdGg0IiAvPgogICAgICAgIDxwYXRoCiAgICAgICAgICAgZmlsbD0iI2Q1MmIxZSIKICAgICAgICAgICBkPSJtIDQ4LjMxOSwyMi4xMDkgYyAxLjExMSwwLjc5NyAzLjMwNSwxLjgyMiA0Ljg2LDEuODIyIDEuMTk1LDAgMi4yMjQsLTAuNDU1IDIuMjI0LC0xLjc2MyAwLC0xLjI4IC0xLjYxMywtMS43MzYgLTMuMjUsLTIuMzkgLTEuODksLTAuNzQgLTMuNzc4LC0xLjkxIC0zLjc3OCwtNC45ODIgMCwtNC4wOTQgMi45NzEsLTYuMjYgNy4yNzksLTYuMjYgMi44MzEsMCA1LjM1NywxLjQ1MiA2LjY2MywyLjk5MiBsIC0yLjgzMywzLjAxMSBjIC0xLjI3NywtMS4xMDYgLTIuNjkzLC0xLjkzMyAtNC4wNTUsLTEuOTMzIC0xLjExMSwwIC0xLjk0MiwwLjQ1NSAtMS45NDIsMS40OCAwLDEuMzk1IDEuMTkzLDEuNzM1IDMuMjIsMi41OSAxLjk0MywwLjgyNCAzLjk0MywyLjAyIDMuOTQzLDQuOTUzIDAsMy45ODEgLTMuMTY2LDYuNTQyIC03LjY2NSw2LjU0MiAtMy4xNjgsMCAtNS44MzMsLTEuMzM3IC02Ljg4NywtMi4xOSBsIDIuMjIsLTMuODcyIHogbSAyMi42NDUsLTEuMzgyIGMgMC4xNjUsLTAuOTA3IDAuMjIsLTEuNzI5IDAuMjIsLTIuMzQ4IDAsLTEuMzYgLTAuNDEzLC0yLjE4IC0xLjM3NywtMi4xOCAtMS4yOTMsMCAtMi4xNDcsMS4zIC0yLjU2MSwzLjY1MiAtMC4xNjUsMC45MDIgLTAuMjQ4LDEuODY3IC0wLjI0OCwyLjYgMCwxLjI0NiAwLjMzLDIuMjY0IDEuMzUsMi4yNjQgMS4zNDgsMCAyLjE0OCwtMS4yMTggMi42MTYsLTMuOTg4IG0gLTAuMzg3LC03LjkyMiBjIDEuOTU3LDAgNS4zOTksMC43NjIgNS4zOTksNS40NiAwLDAuNjI0IC0wLjAyOCwxLjM1NyAtMC4xNCwyLjEyMiAtMC44NSw1LjU0NyAtNC4yNjYsNy43ODQgLTguMTc2LDcuNzg0IC0zLjQxNCwwIC01LjM0MywtMi4wNCAtNS4zNDMsLTUuNjYgMCwtMC42OCAwLjAyNywtMS41IDAuMTY0LC0yLjI5MyAxLjAxOSwtNS45NDMgNC45MywtNy40MTMgOC4wOTYsLTcuNDEzIG0gMTEuNDY2LDE0LjUxMiBoIC00LjM2IGwgMS45MDYsLTExLjQyOSAwLjEwNCwtMi42NzMgaCAzLjUgbCAwLjA3NywxLjk1OSBjIDAuOTY3LC0xLjczNiAyLjMyNSwtMi4zNyAzLjQyLC0yLjM3IDAuNzYsMCAxLjU2OCwwLjE5MyAyLjA5LDAuNTUgbCAtMS4yNTMsMy44MyBjIC0wLjQ5NSwtMC4yNzggLTEuMTI0LC0wLjQ5NiAtMS43NzQsLTAuNDk2IC0xLjEyNiwwIC0yLjAxMiwwLjcxNCAtMi4yNDcsMi4wMSBsIC0xLjQ2Myw4LjYyIHogbSA1Ljg4NCwwIDIuMzksLTEzLjY1OCBoIDQuNDM5IEwgOTIuMzY1LDI3LjMxNyBaIE0gOTMuNDQ3LDYuODMgYyAxLjMzNiwwIDIuMTYzLDAuOTg4IDIuMTYzLDIuMTkzIDAsMS42MzUgLTEuMzA5LDIuOTI4IC0yLjk4OSwyLjkyOCAtMS4zNjQsMCAtMi4xMzMsLTAuODk1IC0yLjEzMywtMi4xMjYgMCwtMS42MDIgMS4yNTIsLTIuOTk2IDIuOTU5LC0yLjk5NiBtIDExLjYzMyw5LjUxOCBjIC0wLjMxMiwtMC4xNCAtMC43NiwtMC4yMjcgLTEuMjcsLTAuMjI3IC0yLjU2NiwwIC0zLjQ5MiwzLjg4NSAtMy40OTIsNi4yMTQgMCwxLjM1OCAwLjMwOCwyLjQ2MSAxLjY2LDIuNDYxIDAuOTYsMCAxLjYzNSwtMC42MTggMS45MTYsLTEuNjExIGwgMS4xODUsLTYuODM3IHogbSAzLjE1NCw4LjMzOCAtMC4xOTcsMy4wNjMgaCAtMy45NzQgdiAtMS4zMzQgbCAtMC4xNDEsLTAuMDI3IGMgLTAuOTg0LDEuMTYzIC0yLjI1MiwxLjc4NCAtMy45NDMsMS43ODQgLTMuMDE2LDAgLTQuMzcsLTIuMjM1IC00LjM3LC01LjMwMiAwLC01LjgxMyAzLjIxNSwtMTAuMDY0IDkuMTA0LC0xMC4wNjQgMS4xODEsMCAzLjI5NSwwLjI4MiA1LjQwOSwxLjEzMiB6IG0gMS44ODgsMi42MzIgMS45MjgsLTExLjI2NCAwLjE2LC0yLjgzOCBoIDMuNjk2IGwgMC4wNTQsMS41MTYgYyAxLjA0NCwtMS4xODQgMi40MzcsLTEuOTI2IDQuMjMyLC0xLjkyNiAyLjIyMiwwIDMuNTYxLDEuMDQ1IDMuNTg4LDMuNDEzIDAsMC40NCAtMC4wNTQsMC45OTQgLTAuMTM1LDEuNTEzIGwgLTEuNjU5LDkuNTg2IGggLTQuNDc0IGwgMS4zOTUsLTguMjM0IGMgMC4wOCwtMC40NCAwLjIxMywtMS4wNzYgMC4yMTMsLTEuNTk4IDAsLTAuNTUxIC0wLjIxMywtMS4xNTYgLTEuMDE4LC0xLjE1NiAtMS4xNTMsMCAtMS44MjIsMC44ODMgLTIuMDEsMi4wMzcgbCAtMS41MjUsOC45NTEgeiBtIDI0LjgzMywtMTAuOTcgYyAtMC4zMSwtMC4xNCAtMC43NjIsLTAuMjI3IC0xLjI2OCwtMC4yMjcgLTIuNTY1LDAgLTMuNDk1LDMuODg1IC0zLjQ5NSw2LjIxNCAwLDEuMzU4IDAuMzEsMi40NjEgMS42NjQsMi40NjEgMC45NTYsMCAxLjYzNCwtMC42MTggMS45MTUsLTEuNjExIHogbSAzLjE1Niw4LjMzOCAtMC4xOTgsMy4wNjMgaCAtMy45NzMgdiAtMS4zMzQgbCAtMC4xNDEsLTAuMDI3IGMgLTAuOTg3LDEuMTYzIC0yLjI1NCwxLjc4NCAtMy45NDMsMS43ODQgLTMuMDE2LDAgLTQuMzY4LC0yLjIzNSAtNC4zNjgsLTUuMzAyIDAsLTUuODEzIDMuMjExLC0xMC4wNjQgOS4xMDEsLTEwLjA2NCAxLjE4MiwwIDMuMjk1LDAuMjgyIDUuNDExLDEuMTMyIHoiCiAgICAgICAgICAgaWQ9InBhdGg2IiAvPgogICAgICA8L2c+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K")}
+.store-pin.ch{background-image:url("data:image/png;base64,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")}
+
+.chain-km{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--mist);margin-right:8px}
+.sp-chains{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+
+.chain-km{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--mist);margin-right:8px}
+.sp-chains{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+
+.sp-tarifa{font-size:12.5px;font-weight:800;color:var(--wm-spark);margin-top:2px}
+.gpsp-tarifa{font-size:12px;font-weight:800;color:var(--wm-spark)}
+#cart-fab{position:absolute;right:18px;top:18px;z-index:80;width:48px;height:48px;
+  border-radius:50%;border:none;background:var(--grad-active);color:#fff;cursor:pointer;
+  box-shadow:0 6px 18px rgba(96,48,160,.5);display:flex;align-items:center;justify-content:center}
+#cart-fab svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#scr-mapa .map-overlay-top{left:80px;right:80px}
+#cart-count{position:absolute;top:-5px;right:-7px;min-width:21px;height:21px;font-size:11px;border-radius:999px;
+  background:var(--wm-spark);color:#201040;font-size:13px;font-weight:800;display:flex;align-items:center;
+  justify-content:center;padding:0 7px;border:2px solid #fff}
+.cart-item{display:flex;align-items:center;gap:14px;padding:14px 10px;border-radius:16px}
+.cart-item + .cart-item{border-top:1px solid rgba(123,63,242,.16)}
+.cart-item.no-disp{opacity:.42;filter:grayscale(.9)}
+.cart-thumb{width:86px;height:60px;border-radius:10px;object-fit:cover;flex:none;background:#150a30}
+.cart-info{flex:1;min-width:0}
+.cart-nombre{font-weight:700;font-size:14.5px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cart-precio{font-size:13px;font-weight:800;color:var(--wm-spark);margin-top:2px}
+.cart-actions{display:flex;gap:8px;flex:none;align-items:center}
+.btn-estado{min-height:46px;padding:0 16px;border-radius:12px;border:1.5px solid var(--glass-border);
+  background:rgba(255,255,255,.06);color:#fff;font-family:inherit;font-size:11.5px;font-weight:800;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.btn-estado.on-res{background:#1f9d55;border-color:transparent}
+.btn-estado.on-blk{background:var(--citrus);border-color:transparent;color:#201040}
+.btn-estado:disabled{opacity:.4;cursor:not-allowed}
+.cart-del{width:44px;height:44px;border-radius:50%;border:1px solid var(--glass-border);
+  background:rgba(255,255,255,.05);color:#ff8a8a;font-size:16px;cursor:pointer;flex:none}
+.chk-row{display:flex;justify-content:space-between;padding:9px 0;font-size:14.5px;color:var(--mist)}
+.chk-row strong{color:#fff}
+.chk-total{border-top:1px solid rgba(123,63,242,.3);margin-top:8px;padding-top:14px;font-size:18px;font-weight:800}
+.email-input{width:100%;min-height:60px;border-radius:14px;border:1.5px solid var(--glass-border);
+  background:rgba(255,255,255,.07);color:#fff;font-family:inherit;font-size:16px;padding:0 20px;outline:none}
+#push-note{position:fixed;top:26px;left:50%;transform:translateX(-50%) translateY(-140%);z-index:400;
+  width:min(560px,92%);transition:transform .5s cubic-bezier(.22,1,.36,1)}
+#push-note.show{transform:translateX(-50%) translateY(0)}
+#push-note .card{padding:22px 26px;border-color:rgba(255,194,32,.5);box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.gracias-box{text-align:center;padding:30px 20px}
+.gracias-box .aforismo{font-size:20px;color:#fff;max-width:560px;margin:18px auto 0}
+.nl-hero{background:var(--grad-sunset);border-radius:20px;padding:44px 30px;text-align:center;position:relative;overflow:hidden}
+.nl-btn{display:block;width:100%;margin-top:14px}
+.tpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.tpi-card{border:1.5px dashed rgba(123,63,242,.4);border-radius:16px;min-height:110px;display:flex;
+  align-items:center;justify-content:center;color:var(--slate);font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;text-align:center;padding:10px}
+@media (max-width:760px){
+  #cart-fab{right:12px;top:12px;width:42px;height:42px}
+  #menu-fab{left:12px;top:12px;width:42px;height:42px}
+  #scr-mapa .map-overlay-top{left:64px;right:64px;top:12px}
+  .tpi-grid{grid-template-columns:1fr}
+  .cart-actions{flex-direction:column}
+}
+
+/* geonexa iframe (interfaz real connectia.mx) */
+.geo-map-mock iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:var(--r);background:#150a30}
+
+/* GPS proximity popup — mini, abajo izquierda, con foto y semáforo */
+#gps-popup{position:absolute;right:104px;bottom:118px;z-index:45;width:490px;
+  opacity:0;pointer-events:none;transform:translateY(24px);transition:all .45s cubic-bezier(.22,1,.36,1)}
+#gps-popup.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+#gps-popup .card{padding:14px;display:flex;gap:14px;border-color:rgba(255,194,32,.5);box-shadow:0 16px 44px rgba(0,0,0,.5)}
+.gpsp-photo{width:195px;flex:none;border-radius:12px;overflow:hidden;position:relative;min-height:165px}
+.gpsp-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.gpsp-eyebrow{font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--wm-spark)}
+.gpsp-title{font-size:15.5px;font-weight:800;text-transform:uppercase;line-height:1.15}
+.semaforo{display:flex;align-items:center;gap:7px}
+.sem-dot{width:13px;height:13px;border-radius:50%;opacity:.22}
+.sem-dot.g{background:#22c55e}.sem-dot.o{background:#FF6A1A}.sem-dot.r{background:#ef4444}
+.sem-dot.on{opacity:1;box-shadow:0 0 10px currentColor}
+.sem-dot.g.on{color:#22c55e}.sem-dot.o.on{color:#FF6A1A}.sem-dot.r.on{color:#ef4444}
+.sem-lbl{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mist)}
+.gpsp-ctas{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.gpsp-ctas .btn{min-height:44px;padding:0 14px;font-size:12px;border-radius:12px}
+
+/* ═══════════════ POI SHEET / MODALS ═══════════════ */
+.sheet-backdrop{position:fixed;inset:0;background:rgba(10,1,24,.7);backdrop-filter:blur(8px);z-index:80;
+  opacity:0;pointer-events:none;transition:opacity .35s}
+.sheet-backdrop.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.97);width:min(1240px,92%);
+  max-height:86%;z-index:90;opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.22,1,.36,1);
+  background:linear-gradient(160deg,#241148,#150a30);border:1px solid var(--glass-border);border-radius:28px;
+  overflow:hidden;display:flex;flex-direction:column;box-shadow:0 40px 120px rgba(0,0,0,.6)}
+.sheet.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.sheet-close{position:absolute;top:22px;right:22px;width:60px;height:60px;border-radius:50%;
+  background:rgba(255,255,255,.1);border:1px solid var(--glass-border);color:var(--white);font-size:24px;
+  cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center}
+.sheet-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* ═══════════════ BOTTOM NAV ═══════════════ */
+nav#bottomnav{position:absolute;left:0;right:0;bottom:0;height:var(--nav-h);z-index:60;display:flex;
+  background:rgba(16,6,38,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-top:1px solid rgba(123,63,242,.25);padding:0 max(env(safe-area-inset-left),12px) env(safe-area-inset-bottom) max(env(safe-area-inset-right),12px)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  border:none;background:transparent;color:var(--slate);cursor:pointer;font-family:inherit;position:relative;
+  transition:color .25s;min-width:56px}
+.nav-item svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-item span{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+.nav-item.active{color:var(--white)}
+.nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:52px;height:4px;
+  border-radius:0 0 6px 6px;background:var(--grad-active)}
+.nav-item.active svg{stroke:url(#navgrad)}
+
+/* ═══════════════ GRIDS ═══════════════ */
+.grid{display:grid;gap:26px}
+.grid.cols3{grid-template-columns:repeat(3,1fr)}
+.grid.cols4{grid-template-columns:repeat(4,1fr)}
+.grid.cols2{grid-template-columns:repeat(2,1fr)}
+@media (max-width:1100px){.grid.cols4{grid-template-columns:repeat(2,1fr)}.grid.cols3{grid-template-columns:repeat(2,1fr)}}
+
+/* mockup / video cards */
+.media-card{padding:0;display:flex;flex-direction:column}
+.media-visual{aspect-ratio:16/10;position:relative;overflow:hidden;border-radius:var(--r) var(--r) 0 0}
+.media-visual .art{position:absolute;inset:0}
+.media-body{padding:22px 26px 26px;display:flex;flex-direction:column;gap:10px;flex:1}
+.media-body h3{font-size:18px}
+.media-meta{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:8px 14px;
+  border-radius:999px;background:rgba(123,63,242,.18);color:#c9b3ff;border:1px solid rgba(123,63,242,.3)}
+.chip.impact-alto{background:rgba(224,28,138,.16);color:#ff8ac4;border-color:rgba(224,28,138,.35)}
+.chip.impact-medio{background:rgba(255,106,26,.14);color:#ffb184;border-color:rgba(255,106,26,.3)}
+.chip.wm{background:rgba(255,194,32,.12);color:var(--wm-spark);border-color:rgba(255,194,32,.3)}
+.fav-btn{position:absolute;top:14px;right:14px;width:56px;height:56px;border-radius:50%;z-index:3;
+  background:rgba(10,1,24,.55);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(8px);
+  color:var(--white);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.fav-btn.on{background:var(--grad-active);border-color:transparent}
+.play-badge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.play-badge .pb{width:84px;height:84px;border-radius:50%;background:rgba(10,1,24,.5);border:2px solid rgba(255,255,255,.5);
+  backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.media-card:active .pb{transform:scale(1.1)}
+.play-badge svg{width:30px;height:30px;fill:var(--white);margin-left:5px}
+.duration{position:absolute;bottom:14px;right:14px;font-size:12px;font-weight:700;padding:6px 12px;
+  border-radius:8px;background:rgba(10,1,24,.7)}
+
+/* category filter row */
+.filter-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin-bottom:30px;-webkit-overflow-scrolling:touch}
+.filter-pill{flex:none;min-height:56px;padding:0 26px;border-radius:999px;border:1.5px solid var(--glass-border);
+  background:rgba(255,255,255,.05);color:var(--mist);font-family:inherit;font-size:15px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.filter-pill.active{background:var(--grad-active);color:var(--white);border-color:transparent}
+
+/* billboard art (CSS OOH scene) */
+.ooh-scene{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center}
+.ooh-board{width:78%;height:56%;margin-bottom:16%;border-radius:8px;position:relative;
+  box-shadow:0 18px 40px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ooh-board.wm{background:var(--wm-blue)}
+.ooh-board .board-inner{display:flex;align-items:center;gap:10px}
+.ooh-board .board-inner svg{height:26px;width:auto}
+.ooh-legs{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);width:8px;height:12%;background:#0c0620;border-radius:2px}
+.ooh-copy{color:#fff;font-weight:800;font-size:13px;letter-spacing:.02em;text-transform:uppercase}
+
+/* ═══════════════ CONNECTIA SCREEN ═══════════════ */
+.stack-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;margin-top:36px}
+.stack-card{padding:30px;min-height:270px;display:flex;flex-direction:column}
+.stack-card .num{margin-bottom:14px}
+.stack-card h3{margin-bottom:10px}
+.stack-card p{font-size:14.5px;line-height:1.5;color:var(--mist);flex:1}
+.stack-card .cierre{margin-top:16px;font-style:italic;font-weight:300;font-size:14px;color:#c9b3ff}
+.pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:34px}
+.pillar{padding:22px;text-align:center;border-radius:18px;background:rgba(255,255,255,.05);
+  border:1px solid var(--glass-border);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.06em}
+
+/* soluciones accordion-ish list */
+.sol-row{display:flex;gap:26px;align-items:flex-start;padding:28px 0;border-bottom:1px solid rgba(123,63,242,.18)}
+.sol-row .num{width:70px;flex:none}
+.sol-row h3{margin-bottom:8px}
+.sol-row p{font-size:15px;line-height:1.55;color:var(--mist);max-width:900px}
+
+/* geonexa */
+.geo-map-mock.geo-full{width:100%;aspect-ratio:16/8;min-height:520px}
+.geo-map-mock{aspect-ratio:16/11;border-radius:var(--r);position:relative;overflow:hidden;
+  background:radial-gradient(circle at 30% 40%,#2a1656,#150a30 70%);border:1px solid var(--glass-border)}
+.layer-list{display:flex;flex-direction:column;gap:14px}
+.layer-item{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-radius:16px;
+  background:rgba(255,255,255,.05);border:1px solid var(--glass-border);min-height:64px}
+.layer-item .li-name{font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em}
+.toggle{width:64px;height:36px;border-radius:999px;background:rgba(255,255,255,.15);position:relative;
+  cursor:pointer;transition:background .25s;border:none;flex:none}
+.toggle::after{content:'';position:absolute;top:4px;left:4px;width:28px;height:28px;border-radius:50%;
+  background:var(--white);transition:transform .25s}
+.toggle.on{background:var(--brand)}
+.toggle.on::after{transform:translateX(28px)}
+
+/* casos */
+.caso-card{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.caso-hero{aspect-ratio:16/8;position:relative}
+.caso-body{padding:26px;display:flex;flex-direction:column;gap:12px}
+.caso-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:8px}
+.caso-block h3{font-size:14px;color:var(--violet-hot);margin-bottom:6px}
+.caso-block p{font-size:15px;line-height:1.55;color:var(--mist)}
+
+/* cierre */
+#scr-cierre .screen-inner{height:100%;display:flex;flex-direction:column;justify-content:center;
+  align-items:center;text-align:center;padding:60px;position:relative;background:var(--grad-hero)}
+.cierre-ctas{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:46px;max-width:1100px}
+
+/* toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--graphite);border:1px solid var(--glass-border);color:var(--white);padding:16px 30px;
+  border-radius:16px;font-size:15px;font-weight:600;z-index:200;opacity:0;pointer-events:none;transition:all .35s}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* video player */
+#player{position:fixed;inset:0;background:var(--ink);z-index:150;display:none;flex-direction:column}
+#player.show{display:flex}
+.player-stage{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.player-bar{height:110px;background:rgba(16,6,38,.92);border-top:1px solid var(--glass-border);
+  display:flex;align-items:center;gap:22px;padding:0 34px}
+.player-bar .pb-info{flex:1}
+.player-bar .pb-title{font-size:19px;font-weight:800;text-transform:uppercase}
+.player-bar .pb-desc{font-size:13.5px;color:var(--mist);margin-top:3px}
+
+/* offline / loading states */
+#boot{position:fixed;inset:0;background:var(--grad-hero);z-index:300;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:26px;transition:opacity .6s}
+#boot.hide{opacity:0;pointer-events:none}
+.spinner{width:56px;height:56px;border-radius:50%;border:4px solid rgba(255,255,255,.15);
+  border-top-color:var(--lime);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.offline-note{position:absolute;top:26px;left:50%;transform:translateX(-50%);z-index:30;padding:14px 26px;
+  display:none;align-items:center;gap:12px;font-size:14px;font-weight:600}
+.offline-note.show{display:flex}
+
+/* gate de bienvenida */
+#gate{position:fixed;inset:0;z-index:360;background:var(--grad-sunset);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;text-align:center;padding:30px}
+#gate.hide{display:none}
+#gate-title{font-weight:900;font-size:clamp(40px,7vw,84px);letter-spacing:-.03em;color:#fff;text-transform:uppercase}
+/* menú de 3 puntos + nav oculta */
+#menu-fab{position:absolute;top:18px;left:18px;z-index:80;width:48px;height:48px;border-radius:50%;
+  border:1px solid var(--glass-border);background:var(--glass);backdrop-filter:blur(12px);color:#fff;
+  font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:0}
+nav#bottomnav{transform:translateY(110%);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+nav#bottomnav.open{transform:none}
+/* pill sitios del recorrido */
+.sitios-panel .sp-body{display:none}
+.sitios-panel.open .sp-body{display:block}
+.sitios-panel{width:auto;max-width:430px;padding:0;bottom:112px}
+.sitios-panel{background:transparent;border:none;box-shadow:none;backdrop-filter:none}
+.sitios-panel .sp-head{display:flex;align-items:center;gap:10px;padding:12px 20px;cursor:pointer;min-height:52px;
+  background:var(--grad-active);border-radius:999px;box-shadow:0 8px 24px rgba(96,48,160,.45)}
+.sp-head-t{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#fff}
+.sitios-panel .sp-arrow{color:#fff}
+.sitios-panel.open .sp-body{background:var(--glass);border:1px solid var(--glass-border);border-radius:18px;
+  margin-top:8px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.sp-arrow{margin-left:auto;transition:transform .3s;font-size:14px;color:var(--violet-hot)}
+.sitios-panel.open .sp-arrow{transform:rotate(180deg)}
+.sitios-panel.open{width:400px;max-height:46%}
+.sitios-panel .sp-body{overflow-y:auto;padding:0 14px 12px}
+/* popup proximidad = pill compacto en todas las versiones */
+#gps-popup{width:auto;max-width:420px;left:auto;right:106px;bottom:262px}
+#gps-popup .card{padding:6px 14px 6px 6px;gap:10px;flex-direction:row;align-items:center;border-radius:999px;cursor:pointer}
+.gpsp-photo{width:44px;height:44px;min-height:44px;border-radius:50%;flex:none}
+.gpsp-body{gap:1px}
+.gpsp-eyebrow{display:none}
+.gpsp-title{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.gpsp-tarifa{font-size:11px}
+#gps-popup .semaforo .sem-lbl{display:none}
+#gps-popup .sem-dot{width:8px;height:8px}
+.gpsp-ctas{display:none}
+.gpsp-arrow{color:var(--violet-hot);font-size:16px;flex:none;padding:0 4px}
+/* flash tipo waze de cadenas cercanas */
+#waze-flash{position:absolute;top:84px;left:50%;transform:translateX(-50%) translateY(-12px);z-index:46;
+  background:rgba(21,10,48,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(123,63,242,.35);border-radius:999px;padding:10px 20px;display:flex;gap:12px;
+  align-items:center;opacity:0;pointer-events:none;transition:all .5s}
+#waze-flash.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#waze-flash .chain-km{color:#fff;font-size:12px}
+#street360{position:absolute;inset:0;z-index:120;background:#000;display:none;overflow:hidden}
+#street360.show{display:block}
+#s360-img{position:absolute;top:0;height:100%;width:auto;min-width:160%;animation:pan360 9s ease-in-out forwards}
+@keyframes pan360{0%{transform:translateX(0) scale(1.15)}50%{transform:translateX(calc(-100% + 100vw)) scale(1.05)}100%{transform:translateX(0) scale(1.15)}}
+.s360-top{position:absolute;top:22px;left:22px;display:flex;gap:12px;align-items:center;z-index:2}
+.s360-badge{background:var(--grad-active);color:#fff;font-size:11px;font-weight:800;letter-spacing:.14em;padding:8px 14px;border-radius:999px}
+#s360-name{color:#fff;font-weight:800;text-transform:uppercase;font-size:15px;text-shadow:0 2px 8px #000}
+.s360-skip{position:absolute;bottom:24px;right:24px;z-index:2}
+/* misc helpers */
+.spark-svg{fill:var(--wm-spark)}
+.txt-lime{color:var(--lime)}
+.mt10{margin-top:10px}.mt20{margin-top:20px}.mt30{margin-top:30px}.mt40{margin-top:40px}
+::-webkit-scrollbar{width:0;height:0}
+
+/* ═══════════════ RESPONSIVE · MOBILE / TABLET / DESKTOP ═══════════════ */
+@media (max-width:1024px){
+  .screen-pad{padding:44px 36px 40px}
+  .stack-grid{grid-template-columns:repeat(2,1fr)}
+  .pillars{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:760px){
+  :root{--nav-h:78px}
+  /* logos del home: fluidos, nunca desbordan */
+  .co-lockup .cx-letters{height:clamp(13px,4.6vw,24px) !important}
+  .co-lockup #wm-logo-slot{height:clamp(15px,5.4vw,28px) !important}
+  .co-lockup{gap:10px;flex-wrap:nowrap;max-width:100%}
+  .co-x{font-size:clamp(14px,4vw,18px)}
+  .welcome-bottom{flex-wrap:wrap;gap:6px}
+  .welcome-center{padding:0 4px}
+  .screen-pad{padding:30px 18px 30px}
+  .grid.cols2,.grid.cols3,.grid.cols4{grid-template-columns:1fr}
+  .stack-grid{grid-template-columns:1fr}
+  .caso-detail-grid{grid-template-columns:1fr}
+  .nav-item span{font-size:9px;letter-spacing:.04em}
+  .nav-item{min-width:0}
+  .nav-item svg{width:22px;height:22px}
+  .welcome{padding:22px 14px;height:auto;min-height:100%;gap:18px}
+  #scr-cierre .screen-inner{height:auto;min-height:100%;padding:44px 16px 60px}
+  #scr-cierre h1{font-size:clamp(24px,6.6vw,34px)}
+  .welcome-top{font-size:9.5px;letter-spacing:.14em}
+  .welcome-bottom{font-size:11px}
+  .welcome-bottom .tagline{font-size:14px}
+  .welcome-bottom .razon{font-size:9px}
+  .welcome-ctas{gap:12px;margin-top:30px}
+  .welcome-ctas .btn{width:100%}
+  .co-lockup{gap:14px}
+  .cierre-ctas .btn{width:100%}
+  .btn{min-height:56px;padding:0 22px;font-size:14px}
+  /* mapa */
+  .map-overlay-top{flex-direction:column;left:12px;right:12px;top:12px;gap:10px}
+  .trip-stats{gap:14px;flex-wrap:wrap;justify-content:space-between}
+  .next-poi-chip{max-width:100%}
+  .map-controls{right:12px;bottom:96px;gap:10px}
+  .map-btn{width:52px;height:52px;font-size:19px}
+  .sitios-panel{left:12px;right:70px;width:auto;bottom:158px;max-height:38%}
+  /* pill compacto: thumbnail + nombre — el mapa se ve */
+  #gps-popup{left:auto;right:64px;width:auto;max-width:70%;bottom:210px}
+  #gps-popup .card{padding:6px 16px 6px 6px;gap:10px;flex-direction:row;align-items:center;border-radius:999px}
+  .gpsp-photo{width:46px;height:46px;min-height:46px;border-radius:50%;flex:none}
+  .gpsp-body{gap:2px}
+  .gpsp-eyebrow{display:none}
+  .gpsp-title{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52vw}
+  .semaforo .sem-lbl{display:none}
+  .sem-dot{width:9px;height:9px}
+  .gpsp-ctas{display:none}
+  .gpsp-title{font-size:13px}
+  .gpsp-eyebrow{font-size:8.5px}
+  .progress-track{left:12px;right:12px;bottom:10px;padding:8px 14px}
+  .progress-lbls{font-size:9.5px}
+  .ruta-btn{bottom:92px;min-height:48px;font-size:11.5px;padding:0 16px;gap:8px}
+  .ruta-btn svg{width:18px;height:18px}
+  .map-overlay-top .card{padding:10px 12px}
+  .trip-stats{gap:12px}
+  .stat .val{font-size:15px}
+  .stat .lbl{font-size:8.5px;letter-spacing:.1em}
+  .next-poi-chip{padding:10px 14px !important;gap:10px}
+  .next-poi-chip .npc-name{font-size:14px}
+  .next-poi-chip .npc-lbl{font-size:9px}
+  .next-poi-chip .spark-mini{width:20px;height:20px}
+  .gps-badge{padding:4px 9px;font-size:8.5px}
+  /* sheets: que el botón ✕ no tape títulos y CTAs cómodos */
+  #sheet-content h1,#sheet-content h2{padding-right:58px}
+  #sheet-content .btn{min-height:50px;font-size:12.5px;padding:0 16px}
+  .caso-hero h1{font-size:26px}
+  /* sheets / fichas */
+  .sheet{width:96%;max-height:92%;border-radius:20px}
+  .sheet-close{width:48px;height:48px;top:12px;right:12px;font-size:18px}
+  #sheet-content > div{padding-left:18px !important;padding-right:18px !important}
+  #sheet-content div[style*="grid-template-columns"]{grid-template-columns:repeat(2,1fr) !important}
+  .geo-map-mock.geo-full{min-height:340px;aspect-ratio:auto;height:56vh}
+  .player-bar{height:auto;flex-wrap:wrap;gap:10px;padding:12px 14px}
+  .player-bar .pb-info{flex:1 1 100%;order:-1}
+}
+@media (max-width:600px){
+  .nav-item span{display:none}
+  .nav-item{min-width:0}
+  .nav-item svg{width:26px;height:26px}
+  .nav-item.active::before{width:36px}
+}
+@media (max-width:480px){
+  .pillars{grid-template-columns:1fr}
+  #sheet-content .btn{flex:1 1 100%}
+  .welcome-ctas{margin-top:22px}
+  .eyebrow{font-size:10.5px;letter-spacing:.16em}
+  h1{font-size:clamp(26px,7vw,34px)}
+  h2{font-size:clamp(19px,5.4vw,24px)}
+  .screen-pad{padding:24px 14px}
+  .gpsp-ctas .btn{min-height:38px;padding:0 9px;font-size:10px}
+  #gps-popup{right:64px}
+  .sitios-panel{right:64px}
+  .sp-name{font-size:12.5px}
+  .sp-imp{font-size:11px}
+  .map-controls{gap:8px}
+  .map-btn{width:46px;height:46px;font-size:16px}
+  .store-pin.cm{width:26px;height:26px;border-radius:50%;background:#00944d;color:#fff;font-size:11px;font-weight:800}
+.store-pin.so,.store-pin.ch{width:42px;height:21px}
+  #sheet-content div[style*="grid-template-columns"]{grid-template-columns:1fr !important}
+  .stat:nth-child(3){display:none}
+  .trip-stats{gap:10px}
+  .gpsp-ctas .btn{min-height:40px;padding:0 10px;font-size:11px}
+}
+</style>
+</head>
+<body>
+<!-- SVG DEFS: gradiente nav + spark oficial Walmart (vector original, no redibujado) -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="navgrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7B3FF2"/><stop offset="1" stop-color="#E01C8A"/>
+    </linearGradient>
+    <g id="wm-word"><g transform="matrix(0.43162073,0,0,0.43162073,0,0)"><path d="M 120.594,0 105.854,74.6036 89.316,0 H 60.5936 L 44.0556,74.6036 29.3248,0 H 0 L 23.9125,113.958 H 58.038 L 74.7312,38.2933 91.4243,113.958 H 124.801 L 148.559,0 Z"/><path d="m 180.513,98.1586 c -6.617,0 -10.222,-4.1042 -10.222,-9.7209 0,-7.2953 5.714,-10.1821 12.933,-12.7644 3.76,-1.4296 7.53,-2.9145 10.076,-5.1648 v 12.6076 c 0,9.5733 -4.965,15.0425 -12.778,15.0425 m 3.907,-77.1861 c -18.199,0 -30.977,6.2347 -35.641,10.634 v 24.3114 c 5.412,-4.8604 16.839,-11.9989 31.88,-11.9989 9.319,0 12.778,2.5824 12.778,7.904 0,4.556 -4.81,6.3822 -18.199,9.2689 -20.298,4.2518 -32.026,11.7038 -32.026,29.4762 0,16.4079 10.678,25.9809 26.167,25.9809 12.969,0 20.718,-6.078 24.962,-14.249 v 11.667 h 27.965 V 58.0484 c 0,-25.6764 -13.234,-37.0759 -37.895,-37.0759"/><path d="m 261.805,0 h -29.024 v 113.958 h 29.024 z"/><path d="m 378.279,21.2773 c -14.083,0 -23.183,8.5496 -27.938,19.9398 -2.555,-12.2018 -11.034,-19.9398 -22.89,-19.9398 -13.426,0 -22.179,7.9132 -26.614,19.0268 V 23.8597 H 272.27 v 90.1073 h 29.023 V 63.9791 c 0,-12.3032 4.062,-19.2942 12.778,-19.2942 7.064,0 9.474,4.8605 9.474,12.4601 v 56.831 h 29.023 V 63.9884 c 0,-12.3033 4.062,-19.2942 12.778,-19.2942 7.064,0 9.474,4.8604 9.474,12.46 v 56.8308 h 29.023 V 53.0316 c 0,-18.9898 -8.871,-31.7543 -25.564,-31.7543 z"/><path d="m 447.444,98.1586 c -6.617,0 -10.222,-4.1042 -10.222,-9.7209 0,-7.2953 5.714,-10.1821 12.933,-12.7644 3.76,-1.4296 7.53,-2.9145 10.076,-5.1648 v 12.6076 c 0,9.5733 -4.965,15.0425 -12.787,15.0425 z m 3.907,-77.1861 c -18.199,0 -30.977,6.2347 -35.641,10.634 v 24.3114 c 5.412,-4.8604 16.839,-11.9989 31.88,-11.9989 9.319,0 12.778,2.5824 12.778,7.904 0,4.556 -4.81,6.3822 -18.199,9.2689 -20.298,4.2518 -32.026,11.7038 -32.026,29.4762 0,16.4079 10.678,25.9809 26.166,25.9809 12.97,0 20.719,-6.078 24.963,-14.249 v 11.667 h 27.964 V 58.0484 c 0,-25.6764 -13.234,-37.0759 -37.895,-37.0759"/><path d="M 527.589,49.3147 V 23.8596 h -28.421 v 90.1074 h 29.024 V 75.6736 c 0,-17.6249 10.824,-22.3378 21.201,-22.3378 3.459,0 6.763,0.4519 8.269,0.9131 v -30.998 c -16.328,-0.7932 -26.249,9.7393 -30.073,26.0638 z"/><path d="M 612.999,46.6487 V 23.859 H 594.508 V 6.38171 H 565.484 V 83.8721 c 0,21.7289 12.176,31.9109 31.579,31.9109 9.027,0 13.837,-1.826 15.936,-3.191 V 89.95 c -1.652,1.2174 -4.363,2.1304 -7.822,2.1304 -6.462,0.1476 -10.678,-2.7392 -10.678,-12.3032 V 46.6487 h 18.491 z"/></g></g>
+    <g id="wm-spark"><path d="M375.663,273.363c12.505-2.575,123.146-53.269,133.021-58.97c22.547-13.017,30.271-41.847,17.254-64.393s-41.847-30.271-64.393-17.254c-9.876,5.702-109.099,76.172-117.581,85.715c-9.721,10.937-11.402,26.579-4.211,39.033C346.945,269.949,361.331,276.314,375.663,273.363z"/><path d="M508.685,385.607c-9.876-5.702-120.516-56.396-133.021-58.97c-14.332-2.951-28.719,3.415-35.909,15.87c-7.191,12.455-5.51,28.097,4.211,39.033c8.482,9.542,107.705,80.013,117.581,85.715c22.546,13.017,51.376,5.292,64.393-17.254S531.231,398.624,508.685,385.607z"/><path d="M266.131,385.012c-14.382,0-27.088,9.276-31.698,23.164c-4.023,12.117-15.441,133.282-15.441,144.685c0,26.034,21.105,47.139,47.139,47.139c26.034,0,47.139-21.105,47.139-47.139c0-11.403-11.418-132.568-15.441-144.685C293.219,394.288,280.513,385.012,266.131,385.012z"/><path d="M156.599,326.637c-12.505,2.575-123.146,53.269-133.021,58.97C1.031,398.624-6.694,427.454,6.323,450c13.017,22.546,41.847,30.271,64.393,17.254c9.876-5.702,109.098-76.172,117.58-85.715c9.722-10.937,11.402-26.579,4.211-39.033S170.931,323.686,156.599,326.637z"/><path d="M70.717,132.746C48.171,119.729,19.341,127.454,6.323,150c-13.017,22.546-5.292,51.376,17.254,64.393c9.876,5.702,120.517,56.396,133.021,58.97c14.332,2.951,28.719-3.415,35.91-15.87c7.191-12.455,5.51-28.096-4.211-39.033C179.815,208.918,80.592,138.447,70.717,132.746z"/><path d="M266.131,0c-26.035,0-47.139,21.105-47.139,47.139c0,11.403,11.418,132.568,15.441,144.685c4.611,13.888,17.317,23.164,31.698,23.164s27.088-9.276,31.698-23.164c4.023-12.117,15.441-133.282,15.441-144.685C313.27,21.105,292.165,0,266.131,0z"/></g>
+  </defs>
+</svg>
+
+<div id="gate">
+  <div class="dots light-dots" id="gate-dots"></div>
+  <div class="eyebrow on-photo">CONNECTIA × WALMART · RECORRIDO</div>
+  <div id="gate-title">BIENVENIDA</div>
+  <div id="gate-sub" style="color:rgba(255,255,255,.85);font-size:15px;letter-spacing:.14em;text-transform:uppercase;margin-top:8px">Toca la pantalla para comenzar</div>
+  <div class="tagline" style="font-style:italic;color:rgba(255,255,255,.85);margin-top:34px">everything is connected.</div>
+</div>
+<div id="boot">
+  <div class="cx-logo" style="height:96px"></div>
+  <div class="spinner"></div>
+  <div class="eyebrow on-photo">Preparando el recorrido</div>
+</div>
+
+<div id="app">
+
+<!-- ═══════ 01 · BIENVENIDA (portada V10 sunset) ═══════ -->
+<section class="screen active" id="scr-inicio">
+  <div class="welcome">
+    <div class="dots" id="welcome-dots"></div>
+    <div class="welcome-top">
+      <span>CONNECTIA · RECORRIDO WALMART</span>
+      <span>V1 · 2026</span>
+    </div>
+    <div class="welcome-center">
+      <div class="eyebrow on-photo fade-up">BIENVENIDO AL RECORRIDO</div>
+      <div class="co-lockup fade-up d1" style="margin-top:34px">
+        <div class="cx-letters" style="height:clamp(33px,4.4vw,60px)"><div class="cx-logo"></div></div>
+        <span class="co-x">×</span>
+        <div class="co-wm" id="wm-logo-slot" style="height:clamp(40px,5.2vw,72px)"></div>
+      </div>
+      <div class="welcome-ctas fade-up d4">
+        <button class="btn primary bounce" onclick="startTour()">▶&nbsp; INICIAR RECORRIDO</button>
+        <button class="btn ghost" onclick="verRecorrido()">SIMULAR RECORRIDO</button>
+      </div>
+    </div>
+    <div class="welcome-bottom">
+      <span class="tagline">everything is connected.</span>
+      <span class="razon">Facilitadores Publicitarios HS, S.A. de C.V.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ 02 · MAPA / NAVEGACIÓN EN TIEMPO REAL ═══════ -->
+<section class="screen" id="scr-mapa">
+  <div id="map"></div>
+  <div class="card offline-note" id="offline-note">⚠ Sin conexión — mostrando ruta guardada</div>
+  <div class="map-overlay-top">
+    <div class="card trip-stats">
+      <div class="stat"><div class="lbl">Tiempo restante · tráfico</div><div class="val" id="st-eta">— <small>min</small></div></div>
+      <div class="stat"><div class="lbl">Distancia recorrida</div><div class="val" id="st-dist">0.0 <small>km</small></div></div>
+      <div class="stat"><div class="lbl">Puntos visitados</div><div class="val" id="st-visited">0<small>/8</small></div></div>
+      <div class="stat"><div class="lbl">GPS</div><div class="gps-badge searching" id="gps-badge" style="margin-top:4px">
+        <span class="pulse-dot"></span><span id="gps-badge-txt">BUSCANDO</span></div></div>
+    </div>
+    <div class="card next-poi-chip clickable" onclick="nextPoiFicha()">
+      <svg class="spark-mini spark-svg" viewBox="0 0 532.262 600"><use href="#wm-spark"/></svg>
+      <div><div class="npc-lbl">Próximo punto de interés</div>
+      <div class="npc-name" id="next-poi-name">—</div></div>
+    </div>
+  </div>
+  <div class="card sitios-panel" id="sitios-panel">
+    <div class="sp-head" onclick="toggleSitiosOpen()">
+      <div class="sp-head-t">📍 SITIOS DEL RECORRIDO · <span id="sp-count">7</span></div>
+      <span class="sp-arrow">▼</span>
+    </div>
+    <div class="sp-body">
+      <div style="font-size:12px;color:var(--mist);padding:2px 4px 8px">Toca un sitio para ver su ficha — se marcan en verde al pasar.</div>
+      <div class="sp-list" id="sp-list"></div>
+    </div>
+  </div>
+  <div class="map-controls">
+    <button class="map-btn" id="play-btn" onclick="togglePlay()" style="display:none" aria-label="Pausa / Play">⏸</button>
+    <button class="map-btn" onclick="mapZoom(1)" aria-label="Acercar">＋</button>
+    <button class="map-btn" onclick="mapZoom(-1)" aria-label="Alejar">－</button>
+    <button class="map-btn" onclick="centerCar()" aria-label="Centrar ubicación">◉</button>
+    <button class="map-btn" onclick="fitRoute()" aria-label="Ver ruta completa">⛶</button>
+  </div>
+  <div class="card progress-track">
+    <div class="progress-lbls"><span>Inicio · Corporativo Walmart</span><span id="prog-pct">0%</span><span>Cierre · Interlomas</span></div>
+    <div class="seek-wrap">
+      <div class="sim-ctl">
+        <button onclick="simSkip(-1)" aria-label="Regresar">⏪</button>
+        <button onclick="togglePlay()" aria-label="Pausa/Play">⏯</button>
+        <button onclick="simSkip(1)" aria-label="Adelantar">⏩</button>
+      </div>
+      <div class="progress-bar" style="flex:1;position:relative">
+        <div class="progress-fill" id="prog-fill"></div>
+        <input type="range" id="sim-seek" min="0" max="1000" value="0" oninput="simSeek(this.value/1000)">
+      </div>
+    </div>
+  </div>
+  <!-- pop-up proximidad: mini card con foto + semáforo -->
+  <div id="gps-popup"><div class="card">
+    <div class="gpsp-photo" id="gpsp-photo"></div>
+    <div class="gpsp-body">
+      <div class="gpsp-eyebrow" id="gpsp-eyebrow">NUEVO PUNTO DE INTERÉS CERCA</div>
+      <div class="gpsp-title" id="gpsp-title">—</div>
+      <div class="gpsp-tarifa" id="gpsp-tarifa"></div>
+      <div class="semaforo" id="gpsp-sem"></div>
+    </div>
+    <span class="gpsp-arrow">❯</span>
+  </div></div>
+  <div id="waze-flash"></div>
+  <div id="street360">
+    <img id="s360-img" src="" alt="">
+    <div class="s360-top"><span class="s360-badge">VISTA 360°</span><span id="s360-name"></span></div>
+    <button class="btn sm ghost s360-skip" onclick="closeStreet360()">SALTAR ▸</button>
+  </div>
+</section>
+
+<!-- ═══════ 04 · MOCKUPS OOH ═══════ -->
+<section class="screen" id="scr-ooh">
+  <div class="screen-pad">
+    <div class="section-head">
+      <div class="eyebrow">CONNECTIA × WALMART · SITIOS ADICIONALES</div>
+      <h1>OPORTUNIDADES</h1>
+      <p class="body section-sub">Sitios estratégicos fuera de la ruta — inventario en curación para
+      amplificar la presencia de Walmart en toda la ciudad. No compramos inventario: <em>curamos presencia</em>.</p>
+    </div>
+    <div class="filter-row" id="ooh-filters"></div>
+    <div class="grid cols3" id="ooh-grid"></div>
+    <p class="aforismo mt40">La marca aparece donde importa, no donde sobra.</p>
+  </div>
+</section>
+
+<!-- ═══════ 05 · VIDEOS ═══════ -->
+<section class="screen" id="scr-videos">
+  <div class="screen-pad">
+    <div class="section-head">
+      <div class="eyebrow">CONNECTIA × WALMART · CONTENIDO</div>
+      <h1>VIDEOS DEL RECORRIDO</h1>
+      <p class="body section-sub">Manifiesto, formatos en movimiento, Geonexa y casos — precargados para verse sin conexión.</p>
+    </div>
+    <div class="grid cols3" id="video-grid"></div>
+  </div>
+</section>
+
+<!-- ═══════ 06 · QUÉ ES CONNECTIA ═══════ -->
+<section class="screen" id="scr-connectia">
+  <div class="screen-pad">
+    <div class="section-head">
+      <div class="eyebrow">QUIÉNES SOMOS</div>
+      <h1>CONNECTIA: EVERYTHING IS CONNECTED</h1>
+      <p class="body section-sub">Connectia conecta marcas, audiencias, territorios, datos y medios para crear
+      experiencias de comunicación más inteligentes, medibles y relevantes. No hacemos Out of Home.
+      Hacemos <em>Out of Noise</em>.</p>
+    </div>
+    <div class="eyebrow mt20">CULTURAL STACK™</div>
+    <div class="stack-grid">
+      <div class="card stack-card"><div class="num">01</div><h3>MEDIA</h3>
+        <p><em>Amplificación con intención.</em> Landmarks icónicos, presencia urbana curada, programmatic contextual,
+        sponsorships y branded content.</p>
+        <div class="cierre">La marca aparece donde importa, no donde sobra.</div></div>
+      <div class="card stack-card"><div class="num">02</div><h3>UX EXPERIENCES</h3>
+        <p><em>Wow factor en el espacio.</em> Activaciones, eventos, stands, sponsorships deportivos, pop-ups y phygital.</p>
+        <div class="cierre">La ciudad se convierte en el escenario de la marca.</div></div>
+      <div class="card stack-card"><div class="num">03</div><h3>CREATIVIDAD</h3>
+        <p><em>Ideas que pertenecen.</em> Estrategia, dirección de arte, copy cultural, narrativa e identidad.</p>
+        <div class="cierre">La marca habla el idioma de su audiencia.</div></div>
+      <div class="card stack-card"><div class="num">04</div><h3>PRODUCCIÓN</h3>
+        <p><em>Producción 360°.</em> Contenido, stands y letreros 3D, diseño e impresión en gran formato.</p>
+        <div class="cierre">La marca genera conversación, no solo mensajes.</div></div>
+    </div>
+    <div class="pillars">
+      <div class="pillar">Estrategia</div><div class="pillar">Data</div>
+      <div class="pillar">Geolocalización</div><div class="pillar">Medición</div>
+    </div>
+    <p class="aforismo mt40">No se trata solo de estar presentes en la ciudad. Se trata de aparecer en el momento
+    correcto, en el lugar correcto, con el mensaje correcto.</p>
+    <div class="mt30" style="display:flex;gap:16px;flex-wrap:wrap">
+      <button class="btn primary" onclick="go('soluciones')">SOLUCIONES PARA WALMART</button>
+      <button class="btn ghost" onclick="go('geonexa')">CONOCER GEONEXA</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ 07 · SOLUCIONES PARA WALMART ═══════ -->
+<section class="screen" id="scr-soluciones">
+  <div class="screen-pad">
+    <div class="section-head">
+      <div class="eyebrow">CONNECTIA × WALMART</div>
+      <h1>SOLUCIONES PARA WALMART</h1>
+      <p class="body section-sub">Una capa estratégica que conecta presencia física, movilidad urbana, data territorial,
+      creatividad y objetivos comerciales.</p>
+    </div>
+    <div id="sol-list"></div>
+    <div class="mt40" style="display:flex;gap:16px;flex-wrap:wrap">
+      <button class="btn primary" onclick="go('geonexa')">VER OPORTUNIDADES POR ZONA</button>
+      <button class="btn ghost" onclick="go('ooh')">EXPLORAR SITIOS</button>
+      <button class="btn ghost" onclick="go('casos')">VER CASOS APLICABLES</button>
+    </div>
+    <p class="aforismo mt40">Cada tienda es un centro de gravedad. Cada ruta, una conversación.</p>
+  </div>
+</section>
+
+<!-- ═══════ 08 · GEONEXA ═══════ -->
+<section class="screen" id="scr-geonexa">
+  <div class="screen-pad">
+    <div class="section-head">
+      <div class="eyebrow">PLATAFORMA · GEONEXA BY CONNECTIA</div>
+      <h1>INTELIGENCIA TERRITORIAL</h1>
+      <p class="body section-sub">Geonexa permite visualizar rutas, zonas de influencia, puntos de interés, inventario,
+      audiencias y oportunidades de activación en un solo entorno interactivo.</p>
+    </div>
+    <div class="geo-map-mock geo-full" id="geo-map-mock">
+      <iframe src="https://connectia.mx/geonexa" title="Geonexa · connectia.mx" loading="lazy"
+        allow="geolocation"></iframe>
+    </div>
+    <div class="mt30" style="display:flex;gap:16px;flex-wrap:wrap">
+      <button class="btn primary" onclick="toast('Selección exportada al resumen ejecutivo')">EXPORTAR SELECCIÓN</button>
+      <button class="btn ghost" onclick="toast('Impacto estimado: cobertura ABC+ en 3 zonas prioritarias')">VER IMPACTO ESTIMADO</button>
+    </div>
+    <p class="aforismo mt40">Geonexa transforma el territorio en una herramienta de planeación estratégica.</p>
+  </div>
+</section>
+
+<!-- ═══════ 09 · CASOS DE ÉXITO ═══════ -->
+<section class="screen" id="scr-casos">
+  <div class="screen-pad">
+    <div class="section-head">
+      <div class="eyebrow">CREDIBILIDAD · CLIENTES ANCLA</div>
+      <h1>CASOS DE ÉXITO</h1>
+      <p class="body section-sub">Marcas que ya se volvieron cultura con Connectia.</p>
+    </div>
+    <div class="grid cols2" id="casos-grid"></div>
+    <p class="aforismo mt40">Una agencia creativa que no amplifica marcas: <em>las vuelve cultura</em>.</p>
+  </div>
+</section>
+
+<!-- ═══════ 10 · CIERRE ═══════ -->
+<section class="screen" id="scr-cierre">
+  <div class="screen-inner">
+    <div class="dots" id="cierre-dots"></div>
+    <div class="eyebrow on-photo">SIGUIENTE PASO</div>
+    <h1 class="mt10" style="max-width:1100px">LA CIUDAD PUEDE SER UNA PLATAFORMA VIVA PARA WALMART</h1>
+    <p class="body mt20" style="max-width:860px">Con Connectia, cada ruta, pantalla, punto de interés, tienda,
+    audiencia y momento puede conectarse en una experiencia estratégica, medible y accionable.</p>
+    <div class="cierre-ctas">
+      <button class="btn primary" onclick="exportResumen()">DESCARGAR RESUMEN</button>
+      <button class="btn ghost" onclick="showSeleccion()">GUARDAR SELECCIÓN</button>
+      <button class="btn ghost" onclick="toast('Propuesta enviada a hola@connectia.mx')">ENVIAR PROPUESTA</button>
+      <button class="btn ghost" onclick="toast('Agenda de próximos pasos disponible con tu ejecutivo Connectia')">VER PRÓXIMOS PASOS</button>
+      <button class="btn lime" onclick="restartTour()">REINICIAR RECORRIDO</button>
+    </div>
+    <p class="aforismo mt40" style="font-size:26px">connectia. <em>everything is connected.</em></p>
+  </div>
+</section>
+
+<!-- ═══════ NAV INFERIOR TIPO CABINA ═══════ -->
+<nav id="bottomnav"></nav>
+
+<!-- ═══════ SHEET (ficha POI / caso / más) ═══════ -->
+<div class="sheet-backdrop" id="sheet-backdrop" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <button class="sheet-close" onclick="closeSheet()">✕</button>
+  <div class="sheet-scroll" id="sheet-content"></div>
+</div>
+
+<!-- ═══════ REPRODUCTOR ═══════ -->
+<div id="player">
+  <div class="player-stage" id="player-stage"></div>
+  <div class="player-bar">
+    <button class="btn sm ghost" onclick="closePlayer()">← VOLVER</button>
+    <div class="pb-info"><div class="pb-title" id="pb-title"></div><div class="pb-desc" id="pb-desc"></div></div>
+    <button class="btn sm ghost" onclick="toast('Guardado en tu selección')">GUARDAR</button>
+    <button class="btn sm ghost" onclick="playerToMap()">VER EN MAPA</button>
+  </div>
+</div>
+
+</div>
+
+<button id="menu-fab" onclick="toggleNav()" aria-label="Menú">⋮</button>
+<button id="cart-fab" onclick="openCarrito()" aria-label="Carrito">
+  <svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/>
+  <path d="M3 3h2.5l2.2 11.5a1.5 1.5 0 001.5 1.2h7.9a1.5 1.5 0 001.5-1.2L20.5 7H6"/></svg>
+  <span id="cart-count">0</span>
+</button>
+<div id="push-note"><div class="card">
+  <div class="eyebrow">CONNECTIA × WALMART</div>
+  <h3 class="mt10">¿DESEAS AGREGAR ALGÚN SITIO MÁS?</h3>
+  <div class="mt20" style="display:flex;gap:12px">
+    <button class="btn sm primary" style="flex:1" onclick="pushSi()">SÍ</button>
+    <button class="btn sm lime" style="flex:1" onclick="pushNo()">NO</button>
+  </div>
+</div></div>
+<div id="toast"></div>
+<script>
+'use strict';
+/* ══════════════════════════════════════════════════════════
+   CONNECTIA × WALMART · PLATAFORMA DE RECORRIDO · v1
+   ══════════════════════════════════════════════════════════ */
+
+/* ─── LOCKUP WALMART OFICIAL (wordmark blanco + Spark amarillo) ─── */
+const WM_LOCKUP = `<svg viewBox="0 0 330 50.4" style="height:100%;width:auto">
+  <use href="#wm-word" fill="#FFFFFF"/>
+  <use href="#wm-spark" fill="#FFC220" transform="translate(276,0) scale(0.084)"/></svg>`;
+const SPARK_SM = `<svg viewBox="0 0 532.262 600" style="width:22px;height:22px;fill:#FFC220"><use href="#wm-spark"/></svg>`;
+document.getElementById('wm-logo-slot').innerHTML = WM_LOCKUP;
+
+/* ═══════════════ BASE DE DATOS · PUNTOS DE INTERÉS ═══════════════ */
+const POIS = [
+ {id:'EEM-0819-A',tarifa:1000000,estatus:'disponible',nombre:'Cubo Digital Magnocentro · Interlomas',lat:19.402051,lng:-99.271914,tipo:'Cubo digital',cat:'recorrido',
+  medidas:'4 caras · hasta 18.7 × 10 m',imp:4000000,audiencia:'NSE ABC+ · AAA · Interlomas',impacto:'alto',
+  desc:'Frente a CC Interlomas, Toyota y agencias. Cubo digital con exclusividad de categoría.',
+  beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
+  reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
+  campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:200,
+  foto:'assets/sitios/EEM-0819-A.jpg',fotoWm:'assets/sitios/EEM-0819-A-wm.jpg'},
+ {id:'BEM-18567-A',tarifa:650000,estatus:'disponible',nombre:'Muro Blvd. F.M. · Palmas',lat:19.399222,lng:-99.270725,tipo:'Muro gran formato',cat:'recorrido',
+  medidas:'12.40 × 40.30 m',imp:1600000,audiencia:'Vehicular · Villa de las Palmas',impacto:'medio',
+  desc:'Muro de gran formato sobre boulevard en Naucalpan.',
+  beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
+  reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
+  campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:150,
+  foto:'assets/sitios/BEM-18567-A.jpg',fotoWm:'assets/sitios/BEM-18567-A-wm.jpg'},
+ {id:'EEM-17672-A',tarifa:480000,estatus:'disponible',nombre:'Pantalla LED Paseo Interlomas',lat:19.396232,lng:-99.281112,tipo:'Pantalla LED · puente',cat:'recorrido',
+  medidas:'15.36 × 3.84 m',imp:1835257,audiencia:'Shoppers · frente a Liverpool',impacto:'medio',
+  desc:'Frente a Liverpool y CC Paseo Interlomas.',
+  beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
+  reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
+  campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:150,
+  foto:'assets/sitios/EEM-17672-A.jpg',fotoWm:'assets/sitios/EEM-17672-A-wm.jpg'},
+ {id:'EEM-17672-B',tarifa:320000,estatus:'disponible',nombre:'Puente Paseo Interlomas',lat:19.3968,lng:-99.2816,tipo:'Puente peatonal',cat:'recorrido',
+  medidas:'15.10 × 3.80 m',imp:900000,audiencia:'Vehicular · Hospital Ángeles',impacto:'tactico',
+  desc:'Frente a Hospital Ángeles Interlomas y Paseo Interlomas; lona front con jareta oculta.',
+  beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
+  reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
+  campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:150,
+  foto:'assets/sitios/EEM-17672-B.jpg',fotoWm:'assets/sitios/EEM-17672-B-wm.jpg'},
+ {id:'BEM-17344-A',tarifa:350000,estatus:'disponible',nombre:'Muro CC Interlomas',lat:19.396262,lng:-99.288435,tipo:'Muro',cat:'recorrido',
+  medidas:'8.00 × 15.00 m',imp:1100000,audiencia:'Shoppers · entrada principal',impacto:'tactico',
+  desc:'Entrada principal del Centro Comercial Interlomas.',
+  beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
+  reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
+  campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:150,
+  foto:'assets/sitios/BEM-17344-A.jpg',fotoWm:'assets/sitios/BEM-17344-A-wm.jpg'},
+ {id:'EEM-17427-B',tarifa:280000,estatus:'disponible',nombre:'Puente Hueyetlaco',lat:19.387794,lng:-99.278823,tipo:'Puente peatonal',cat:'recorrido',
+  medidas:'10.60 × 5.20 m',imp:850000,audiencia:'Vehicular · Santa Fe-Interlomas',impacto:'tactico',
+  desc:'Circulación de Santa Fe hacia Interlomas.',
+  beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
+  reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
+  campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:150,
+  foto:'assets/sitios/EEM-17427-B.jpg',fotoWm:'assets/sitios/EEM-17427-B-wm.jpg'},
+ {id:'EEM-15935-B',tarifa:420000,estatus:'disponible',nombre:'Unipolar Vialidad de la Barranca',lat:19.388173,lng:-99.2786,tipo:'Unipolar',cat:'recorrido',
+  medidas:'12.90 × 10.80 m',imp:1400000,audiencia:'Alta plusvalía · Bosque de las Lomas',impacto:'medio',
+  desc:'Sobre Vialidad de la Barranca hacia Santa Fe y Bosques; iluminado.',
+  beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
+  reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
+  campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:150,
+  foto:'assets/sitios/EEM-15935-B.jpg',fotoWm:'assets/sitios/EEM-15935-B-wm.jpg'}
+];
+
+/* ruta (lng,lat) Ángel → Toreo */
+const ROUTE = [[-99.2155,19.4598],[-99.271914,19.402051],[-99.270725,19.399222],[-99.281112,19.396232],[-99.2816,19.3968],[-99.288435,19.396262],[-99.278823,19.387794],[-99.2786,19.388173]];
+
+/* ═══════════════ MOCKUPS OOH ═══════════════ */
+const CATS = [['todos','Todos']];
+const MOCKUPS = [];
+
+/* ═══════════════ VIDEOS ═══════════════ */
+const VIDEOS = [
+ {id:'v1',titulo:'Everything is connected',dur:'1:45',cat:'Manifiesto',poi:null,
+  desc:'Una visión de cómo la ciudad puede convertirse en una red inteligente de comunicación, datos y puntos de contacto para Walmart.'},
+ {id:'v2',titulo:'Out of Noise en movimiento',dur:'1:10',cat:'Formatos',poi:'p1',
+  desc:'Formatos urbanos conectados a rutas, audiencias y momentos de consumo.'},
+ {id:'v3',titulo:'Geonexa',dur:'1:30',cat:'Plataforma',poi:null,
+  desc:'La plataforma que permite entender, mapear y activar audiencias en el territorio.'},
+ {id:'v4',titulo:'Doble Muro Toreo',dur:'0:45',cat:'Sitio',poi:'p7',
+  desc:'El landmark que domina la entrada norte de la ciudad — visto desde la ruta.'},
+ {id:'v6',titulo:'Data y movilidad urbana',dur:'1:20',cat:'Data',poi:null,
+  desc:'Cómo la movilidad de la ciudad se traduce en decisiones de inversión medibles.'}
+];
+
+/* ═══════════════ CASOS ═══════════════ */
+const CASOS = [
+ {id:'c1',vid:'https://connectia.mx/assets/cases/06-walmart.mp4',vid:'https://connectia.mx/assets/cases/06-walmart.mp4',cliente:'Branding Fleet Walmart',tag:'Mobility · branding',grad:'linear-gradient(150deg,#0053e2,#201040)',
+  reto:'Convertir la operación logística de Walmart en presencia de marca permanente en todo México.',
+  sol:'Wrap completo de la flotilla Walmart: cada camión convertido en un medio rodante de marca.',
+  impl:'Diseño, producción e instalación de vinil en flotilla nacional con control de calidad fotográfico.',
+  res:'Una red de landmarks rodantes circulando todo el país, con cobertura diaria en rutas de alto flujo.',
+  apr:'Cada camión es un landmark rodante.'},
+ {id:'c2',vid:'https://connectia.mx/assets/cases/01-patron.mp4',vid:'https://connectia.mx/assets/cases/01-patron.mp4',cliente:'Tequila Patrón',tag:'Landmark cultural',grad:'linear-gradient(150deg,#241148,#6030A0)',
+  reto:'Posicionar a Patrón como referencia premium frente a una audiencia de alto valor.',
+  sol:'Doble muro landmark frente a Parque Toreo — presencia monumental curada.',
+  impl:'Dos muros complementarios de gran formato con dirección de arte premium e iluminación nocturna.',
+  res:'El doble muro se volvió referencia visual del nodo Toreo y conversación orgánica en redes.',
+  apr:'Un landmark bien curado vale más que cien caras dispersas.'},
+ {id:'c3',vid:'https://connectia.mx/assets/cases/02-banamex.mp4',vid:'https://connectia.mx/assets/cases/02-banamex.mp4',cliente:'Banamex',tag:'Mobility + micro influencers',grad:'linear-gradient(150deg,#1a0b3d,#E01C8A)',
+  reto:'Activar una audiencia urbana joven en movimiento.',
+  sol:'Ad Truck + micro influencers: movilidad activada con contenido en tiempo real.',
+  impl:'Ruta curada por zonas de afluencia + cobertura simultánea de creadores locales.',
+  res:'La campaña viajó de la calle al feed: presencia física amplificada por conversación digital.',
+  apr:'La movilidad convierte cada trayecto en un medio.'},
+ {id:'c4',vid:'https://connectia.mx/assets/cases/03-banco-azteca.mp4',vid:'https://connectia.mx/assets/cases/03-banco-azteca.mp4',cliente:'Banco Azteca',tag:'Indoor masivo',grad:'linear-gradient(150deg,#201040,#FF6A1A)',
+  reto:'Comunicar a audiencias masivas en su trayecto diario.',
+  sol:'Toma del Metro CDMX — dominio indoor del sistema de transporte más usado del país.',
+  impl:'Vestido integral de estaciones estratégicas con creatividad de barrio.',
+  res:'Cobertura masiva con frecuencia diaria y afinidad territorial.',
+  apr:'El barrio no se compra: se respeta y se habita.'},
+ {id:'c5',vid:'https://connectia.mx/assets/cases/04-lala.mov',vid:'https://connectia.mx/assets/cases/04-lala.mov',cliente:'Lala 100',tag:'Landmark Reforma',grad:'linear-gradient(150deg,#2a1656,#7B3FF2)',
+  reto:'Celebrar 100 años de la marca conectando herencia y modernidad.',
+  sol:'Landmark en Reforma — cultura, herencia y barrio en el corredor más visible de México.',
+  impl:'Gran formato conmemorativo + narrativa de contenido alrededor del centenario.',
+  res:'La celebración se volvió tema de ciudad, no solo campaña.',
+  apr:'La herencia es cultura viva cuando se cuenta en el espacio público.'},
+ {id:'c6',vid:'https://connectia.mx/assets/cases/05-sams.mp4',vid:'https://connectia.mx/assets/cases/05-sams.mp4',cliente:"Sam's Club",tag:'Apertura 360°',grad:'linear-gradient(150deg,#150a30,#C8FF00)',
+  reto:'Garantizar tráfico desde el día uno en la apertura San Miguel.',
+  sol:'Plan 360° con foco en tráfico día 1: OOH táctico + geolocalización + activación.',
+  impl:'Circuito de comunicación en radios de influencia de la tienda + convocatoria local.',
+  res:'Apertura con afluencia récord y awareness inmediato en la zona.',
+  apr:'La geodata convierte aperturas en eventos de barrio.'}
+];
+
+/* ═══════════════ SOLUCIONES ═══════════════ */
+const SOLUCIONES = [
+ ['Awareness urbano','Presencia curada en landmarks y corredores de alta visibilidad — la marca aparece donde importa, no donde sobra.'],
+ ['Campañas promocionales','Buen Fin, Hot Sale, Navidad, Regreso a clases: mensajes por temporalidad y promociones dinámicas en digital.'],
+ ['Retail media extendido','La comunicación de la calle conecta con la tienda y con Walmart.com.mx — de la ruta al anaquel al carrito digital.'],
+ ['Data geográfica','Campañas geolocalizadas por tienda: cada Walmart, Bodega Aurrerá y Sam’s con su propio radio de comunicación.'],
+ ['Activaciones físicas','Experiencias, sampling y momentos wow en zonas comerciales y culturales de alto flujo.'],
+ ['Experiencias Out of Noise','Formatos especiales que generan conversación: landmarks, dobles muros y tomas de espacio.'],
+ ['Omnicanalidad','Tráfico a tienda + tráfico a Walmart.com.mx + comunicación de Walmart Pass en un mismo sistema de medios.'],
+ ['Medición y optimización','Geonexa mide impactos, audiencias y cobertura por zona — y optimiza la inversión campaña sobre campaña.']
+];
+
+/* ═══════════════ GEONEXA LAYERS ═══════════════ */
+
+/* ═══════════════ ESTADO ═══════════════ */
+const S = {
+  screen:'inicio', map:null, carMarker:null, poiMarkers:{}, mapReady:false,
+  sim:{on:false, seg:0, t:0, speed:38, dist:0, total:0, timer:null},
+  realGps:false, gpsWatch:null, visited:new Set(), history:[], favs:new Set(), seleccion:new Set(), cartEstado:{}, model3dOk:false, car3d:null,
+  popupPoi:null, popupLevel:0, silent:false, nav3d:false, lastPos:null, gpsPaused:false
+};
+
+/* Cadenas retail del corredor — coordenadas reales INEGI DENUE 2024 */
+const TIENDAS=[
+ {n:"Sam's Club Jesús del Monte",lat:19.39847,lng:-99.28789,c:'wm'},
+ {n:'Walmart Supercenter Jesús del Monte',lat:19.39992,lng:-99.28807,c:'wm'},
+ {n:'Walmart Central Interlomas',lat:19.39583,lng:-99.28908,c:'wm'},
+ {n:'Walmart Express F. de las Lomas',lat:19.39490,lng:-99.29001,c:'wm'},
+ {n:'Walmart Supercenter Magnocentro',lat:19.40380,lng:-99.27154,c:'wm'},
+ {n:'Walmart Express Vista Hermosa',lat:19.37323,lng:-99.27879,c:'wm'},
+ {n:'Walmart Express Lomas Anáhuac',lat:19.40622,lng:-99.25667,c:'wm'},
+ {n:'Chedraui Palmas Hills',lat:19.39359,lng:-99.28173,c:'ch'},
+ {n:'Chedraui Interlomas',lat:19.40133,lng:-99.27078,c:'ch'},
+ {n:'Superche Tecamachalco',lat:19.41115,lng:-99.25065,c:'ch'},
+ {n:'Chedraui Selecto Santa Fe',lat:19.36218,lng:-99.27575,c:'ch'},
+ {n:'La Comer Magnocentro',lat:19.39943,lng:-99.27475,c:'cm'},
+ {n:'Fresko Jesús del Monte',lat:19.38890,lng:-99.29267,c:'cm'},
+ {n:'Fresko Pabellón Bosques',lat:19.38252,lng:-99.26741,c:'cm'}
+];
+try{ (JSON.parse(localStorage.getItem('cxw_favs')||'[]')).forEach(f=>S.favs.add(f)); }catch(e){}
+try{ S.cartEstado=JSON.parse(localStorage.getItem('cxw_estado')||'{}'); }catch(e){}
+function saveEstado(){ try{ localStorage.setItem('cxw_estado',JSON.stringify(S.cartEstado)); }catch(e){} }
+function itemById(id){ return POIS.find(x=>x.id===id)||MOCKUPS.find(x=>x.id===id); }
+
+const $=id=>document.getElementById(id);
+function fmtMXN(n){ return n ? '$'+Number(n).toLocaleString('es-MX') : 'Cotizar'; }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
+function saveFavs(){ try{ localStorage.setItem('cxw_favs',JSON.stringify([...S.favs])); }catch(e){} }
+
+/* ═══════════════ NAV ═══════════════ */
+const NAV = [
+ ['inicio','Inicio','M3 11l9-8 9 8v9a2 2 0 01-2 2h-4v-7h-6v7H5a2 2 0 01-2-2z'],
+ ['mapa','Mapa','M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3zM9 7v13M15 4v13'],
+ ['ooh','Oportunidades','M12 21a9 9 0 110-18 9 9 0 010 18zM12 17a5 5 0 110-10 5 5 0 010 10zM12 13a1 1 0 110-2 1 1 0 010 2z'],
+ ['videos','Videos','M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zM10 9l5 3-5 3z'],
+ ['geonexa','Geonexa','M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11zM12 12a2 2 0 100-4 2 2 0 000 4z'],
+ ['casos','Casos','M8 21h8M12 17v4M6 3h12v6a6 6 0 01-12 0zM6 5H3v2a4 4 0 004 4M18 5h3v2a4 4 0 01-4 4']
+];
+function buildNav(){
+  $('bottomnav').innerHTML = NAV.map(([id,lbl,d])=>
+    `<button class="nav-item${id===S.screen?' active':''}" id="nav-${id}" onclick="navTap('${id}')">
+     <svg viewBox="0 0 24 24"><path d="${d}"/></svg><span>${lbl}</span></button>`).join('');
+}
+function navTap(id){ $('bottomnav').classList.remove('open'); go(id); }
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const scr=$('scr-'+id); if(!scr) return;
+  scr.classList.add('active'); S.screen=id;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const nb=$('nav-'+id); if(nb) nb.classList.add('active');
+  if(id==='mapa'&&S.map){ setTimeout(()=>S.map.resize(),80); }
+}
+
+/* ═══════════════ MAPA ═══════════════ */
+function initMap(){
+  try{
+    S.map = new maplibregl.Map({
+      container:'map',
+      style:'https://tiles.openfreemap.org/styles/liberty',
+      center:ROUTE[0], zoom:15.2, pitch:55, bearing:-15, attributionControl:false
+    });
+    S.map.on('load',()=>{
+      S.mapReady=true;
+      /* ruta trazada */
+      /* edificios 3D: ocultar footprints planos (evita encimado) + extrusión con altura real */
+      try{
+        const st=S.map.getStyle();
+        const srcName=Object.keys(st.sources).find(k=>st.sources[k].type==='vector');
+        st.layers.forEach(l=>{
+          if(l['source-layer']==='building' && l.type!=='fill-extrusion'){
+            try{ S.map.setLayoutProperty(l.id,'visibility','none'); }catch(e){}
+          }
+        });
+        const firstLabel=(st.layers.find(l=>l.type==='symbol')||{}).id;
+        if(srcName) S.map.addLayer({id:'3d-buildings',type:'fill-extrusion',source:srcName,'source-layer':'building',minzoom:14.5,
+          paint:{
+            'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],10],
+              0,'#eae4f4', 40,'#cfc2e4', 120,'#a897cc'],
+            'fill-extrusion-height':['interpolate',['linear'],['zoom'],14.5,0,15.8,['coalesce',['get','render_height'],10]],
+            'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
+            'fill-extrusion-opacity':.8}},firstLabel);
+      }catch(e){}
+      S.map.addSource('route',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:ROUTE}}});
+      S.map.addLayer({id:'route-glow',type:'line',source:'route',
+        paint:{'line-color':'#6030A0','line-width':13,'line-opacity':.22,'line-blur':5}});
+      S.map.addLayer({id:'route-line',type:'line',source:'route',
+        paint:{'line-color':'#0053e2','line-width':6,'line-opacity':.95},
+        layout:{'line-cap':'round','line-join':'round'}});
+      /* pines POI */
+      POIS.forEach(p=>{
+        const el=document.createElement('div'); el.className='poi-pin'; el.id='pin-'+p.id;
+        el.innerHTML=SPARK_SM;
+        el.onclick=()=>openPoi(p.id);
+        S.poiMarkers[p.id]=new maplibregl.Marker({element:el}).setLngLat([p.lng,p.lat]).addTo(S.map);
+      });
+      /* auto */
+      const car=document.createElement('div'); car.className='car-marker';
+      car.innerHTML=`<svg viewBox="0 0 64 42">
+        <path d="M6 26c0-3 1.5-5 4.5-5.6l4.8-1 5.2-6.8c1.2-1.6 3-2.6 5-2.6h14c2 0 3.9 1 5 2.7l4.6 6.7 5.4 1.1c3 .6 4.5 2.6 4.5 5.5v5.5c0 1.6-1.3 2.9-2.9 2.9H8.9A2.9 2.9 0 016 31.5z" fill="#0053e2"/>
+        <path d="M23 13.5h6.5V19H18.6zM32.5 13.5H39c.7 0 1.4.4 1.8 1l3 4.5h-11.3z" fill="#cfe0ff"/>
+        <circle cx="17" cy="34" r="6" fill="#201040"/><circle cx="17" cy="34" r="2.6" fill="#E9E6F0"/>
+        <circle cx="47" cy="34" r="6" fill="#201040"/><circle cx="47" cy="34" r="2.6" fill="#E9E6F0"/>
+        <use href="#wm-spark" fill="#FFC220" transform="translate(27.5,21) scale(0.017)"/>
+      </svg>`;
+      S.carMarker=new maplibregl.Marker({element:car}).setLngLat(ROUTE[0]).addTo(S.map);
+      /* tiendas retail (Walmart · Soriana · Chedraui) */
+      TIENDAS.forEach(t=>{
+        const el=document.createElement('div'); el.className='store-pin '+t.c;
+        if(t.c==='wm') el.innerHTML='<svg viewBox="0 0 532.262 600" style="width:14px;height:14px;fill:#FFC220"><use href="#wm-spark"/></svg>';
+        if(t.c==='cm') el.textContent='LC';
+        el.onclick=()=>toast(t.n);
+        new maplibregl.Marker({element:el}).setLngLat([t.lng,t.lat]).addTo(S.map);
+      });
+      const corpEl=document.createElement('div'); corpEl.className='store-pin wm';
+      corpEl.style.width='34px'; corpEl.style.height='34px'; corpEl.style.border='3px solid #FFC220';
+      corpEl.innerHTML='<svg viewBox="0 0 532.262 600" style="width:20px;height:20px;fill:#FFC220"><use href="#wm-spark"/></svg>';
+      corpEl.onclick=()=>toast('Corporativo Walmart de México · Toreo — inicio del recorrido');
+      new maplibregl.Marker({element:corpEl}).setLngLat([-99.2155,19.4598]).addTo(S.map);
+      setGps('activo');
+      /* carro 3D GLB (PBR) con badge Walmart — fallback: marcador SVG */
+      try{
+        if(window.THREE && THREE.GLTFLoader){
+          S.car3d={lng:ROUTE[0][0],lat:ROUTE[0][1],bearing:0};
+          const CAR_YAW=0; /* ajustar orientación del modelo si hace falta: 0, 90, 180, -90 */
+          S.map.addLayer({id:'car-3d',type:'custom',renderingMode:'3d',
+            onAdd:function(map,gl){
+              this.camera=new THREE.Camera(); this.scene=new THREE.Scene();
+              const d=new THREE.DirectionalLight(0xffffff,1.1); d.position.set(60,-80,140).normalize(); this.scene.add(d);
+              this.scene.add(new THREE.AmbientLight(0xffffff,.9));
+              const self=this;
+              new THREE.GLTFLoader().load('assets/car3d.glb',function(gg){
+                const car=gg.scene;
+                const b1=new THREE.Box3().setFromObject(car);
+                const size=b1.getSize(new THREE.Vector3());
+                const k=5.2/Math.max(size.x,size.z);
+                car.scale.setScalar(k);
+                const b2=new THREE.Box3().setFromObject(car);
+                car.position.set(-(b2.min.x+b2.max.x)/2, -b2.min.y, -(b2.min.z+b2.max.z)/2);
+                if(CAR_YAW) car.rotation.y=CAR_YAW*Math.PI/180;
+                const grp=new THREE.Group(); grp.add(car);
+                const top=(new THREE.Box3().setFromObject(grp)).max.y;
+                const badgeB=new THREE.Mesh(new THREE.CircleGeometry(.62,28),new THREE.MeshBasicMaterial({color:0x0053e2}));
+                badgeB.rotation.x=-Math.PI/2; badgeB.position.y=top+.07; grp.add(badgeB);
+                const badgeY=new THREE.Mesh(new THREE.CircleGeometry(.40,28),new THREE.MeshBasicMaterial({color:0xFFC220}));
+                badgeY.rotation.x=-Math.PI/2; badgeY.position.y=top+.08; grp.add(badgeY);
+                self.model=grp; self.scene.add(grp); S.model3dOk=true;
+                try{ S.carMarker.getElement().style.display='none'; }catch(e){}
+              });
+              this.map=map;
+              this.renderer=new THREE.WebGLRenderer({canvas:map.getCanvas(),context:gl,antialias:true});
+              this.renderer.autoClear=false;
+            },
+            render:function(gl,matrix){
+              if(!this.model||!S.car3d) return;
+              const c=S.car3d;
+              const mc=maplibregl.MercatorCoordinate.fromLngLat([c.lng,c.lat],0);
+              const sc=mc.meterInMercatorCoordinateUnits();
+              const rX=new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1,0,0),Math.PI/2);
+              const rZ=new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,1,0),((90-(c.bearing||0))*Math.PI/180));
+              const l=new THREE.Matrix4().makeTranslation(mc.x,mc.y,mc.z)
+                .scale(new THREE.Vector3(sc,-sc,sc)).multiply(rX).multiply(rZ);
+              this.camera.projectionMatrix=new THREE.Matrix4().fromArray(matrix).multiply(l);
+              this.renderer.resetState();
+              this.renderer.render(this.scene,this.camera);
+              this.map.triggerRepaint();
+            }});
+        }
+      }catch(e){}
+    });
+    S.map.on('error',()=>{ if(!S.mapReady && !S._retryStyle){ S._retryStyle=true;
+      try{ S.map.setStyle('https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'); }catch(e){} } });
+    setTimeout(()=>{ if(!S.mapReady && !S._retryStyle){ S._retryStyle=true;
+      try{ S.map.setStyle('https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'); }catch(e){} } },9000);
+    setTimeout(()=>{ if(!S.mapReady) mapOffline(); },18000);
+  }catch(e){ mapOffline(); }
+}
+function mapOffline(){ $('offline-note').classList.add('show'); setGps('buscando'); }
+function setGps(mode){
+  const b=$('gps-badge'),t=$('gps-badge-txt');
+  if(mode==='activo'){ b.classList.remove('searching'); t.textContent = S.realGps?'GPS REAL':'GPS ACTIVO'; }
+  else{ b.classList.add('searching'); t.textContent='BUSCANDO'; }
+}
+function mapZoom(d){ if(S.map) S.map.zoomTo(S.map.getZoom()+d,{duration:400}); }
+function centerCar(){ if(S.map&&S.carMarker) S.map.flyTo({center:S.carMarker.getLngLat(),zoom:15.5,duration:900}); }
+function fitRoute(){ if(!S.map) return;
+  const b=new maplibregl.LngLatBounds(); ROUTE.forEach(c=>b.extend(c));
+  S.map.fitBounds(b,{padding:{top:160,bottom:160,left:80,right:80},duration:1000}); }
+function nextPoiFicha(){ const p=nextPoi(); if(p) openPoi(p.id); }
+function focusNextPoi(){ const p=nextPoi(); if(p&&S.map){ S.map.flyTo({center:[p.lng,p.lat],zoom:15.8,duration:900}); } }
+
+/* ═══════════════ GEO UTILS ═══════════════ */
+function hav(a,b){ const R=6371000,rad=x=>x*Math.PI/180;
+  const dLat=rad(b[1]-a[1]),dLng=rad(b[0]-a[0]);
+  const h=Math.sin(dLat/2)**2+Math.cos(rad(a[1]))*Math.cos(rad(b[1]))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h)); }
+const SEGLEN=ROUTE.slice(1).map((c,i)=>hav(ROUTE[i],c));
+const TOTAL=SEGLEN.reduce((a,b)=>a+b,0);
+
+/* ═══════════════ RECORRIDO ═══════════════ */
+/* INICIAR RECORRIDO = ubicación GPS en tiempo real */
+function startTour(){
+  go('mapa');
+  if(S.sim.timer){ clearInterval(S.sim.timer); S.sim.on=false; }
+  S.sim.paused=false; S.gpsPaused=false;
+  S.visited.clear(); S.history=[];
+  document.querySelectorAll('.poi-pin').forEach(p=>p.classList.remove('visited'));
+  nav3dOn();
+  enableRealGps();
+  showPlay();
+  renderSitios();
+}
+/* SIMULAR RECORRIDO = avance simulado sobre la ruta */
+function verRecorrido(){
+  go('mapa');
+  if(S.realGps) disableRealGps(true);
+  if(S.sim.on) return;
+  S.sim.paused=false; S.gpsPaused=false;
+  S.sim.on=true; S.sim.seg=0; S.sim.t=0; S.sim.dist=0;
+  S.visited.clear(); S.history=[];
+  document.querySelectorAll('.poi-pin').forEach(p=>p.classList.remove('visited'));
+  toast('Simulación del recorrido iniciada');
+  nav3dOn();
+  S.sim.timer=setInterval(tick,120);
+  showPlay();
+  renderSitios();
+}
+function restartTour(){ if(S.sim.timer) clearInterval(S.sim.timer); S.sim.on=false; S.sim.paused=false; verRecorrido(); }
+/* navegación 3D tipo copiloto */
+function nav3dOn(){ S.nav3d=true; S.lastPos=null;
+  if(S.map) S.map.easeTo({pitch:60,zoom:16.2,duration:900}); }
+function brg(a,b){ const r=Math.PI/180;
+  const y=Math.sin((b[0]-a[0])*r)*Math.cos(b[1]*r);
+  const x=Math.cos(a[1]*r)*Math.sin(b[1]*r)-Math.sin(a[1]*r)*Math.cos(b[1]*r)*Math.cos((b[0]-a[0])*r);
+  return (Math.atan2(y,x)/r+360)%360; }
+/* pausa / play del recorrido */
+function showPlay(){ const b=$('play-btn'); if(b){ b.style.display='flex'; b.textContent='⏸'; } }
+function togglePlay(){
+  const b=$('play-btn');
+  if(S.sim.on){ clearInterval(S.sim.timer); S.sim.on=false; S.sim.paused=true; b.textContent='▶'; toast('Recorrido en pausa'); return; }
+  if(S.sim.paused){ S.sim.paused=false; S.sim.on=true; S.sim.timer=setInterval(tick,120); b.textContent='⏸'; toast('Recorrido reanudado'); return; }
+  if(S.realGps){ disableRealGps(true); S.gpsPaused=true; b.textContent='▶'; toast('Ubicación en pausa'); return; }
+  if(S.gpsPaused){ S.gpsPaused=false; enableRealGps(); b.textContent='⏸'; return; }
+  verRecorrido();
+}
+function tick(){
+  const sim=S.sim, mps=sim.speed/3.6*0.12*14; /* velocidad demo acelerada */
+  sim.t+=mps;
+  while(sim.seg<SEGLEN.length && sim.t>=SEGLEN[sim.seg]){ sim.t-=SEGLEN[sim.seg]; sim.seg++; }
+  if(sim.seg>=SEGLEN.length){ finishTour(); return; }
+  const a=ROUTE[sim.seg], b=ROUTE[sim.seg+1], f=SEGLEN[sim.seg]?sim.t/SEGLEN[sim.seg]:0;
+  const pos=[a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
+  sim.dist=SEGLEN.slice(0,sim.seg).reduce((x,y)=>x+y,0)+sim.t;
+  updateCar(pos);
+}
+function updateCar(pos){
+  if(S.carMarker) S.carMarker.setLngLat(pos);
+  S.car3d={lng:pos[0],lat:pos[1],bearing:(S.lastPos&&hav(S.lastPos,pos)>2)?brg(S.lastPos,pos):(S.car3d?S.car3d.bearing:0)};
+  if(S.map&&S.model3dOk) S.map.triggerRepaint();
+  if(S.map && S.screen==='mapa' && !S.map.isMoving()){
+    if(S.nav3d && S.lastPos && hav(S.lastPos,pos)>2){
+      S.map.easeTo({center:pos,bearing:brg(S.lastPos,pos),pitch:60,zoom:16.4,duration:600});
+    } else {
+      S.map.easeTo({center:pos,duration:600});
+    }
+  }
+  S.lastPos=pos;
+  const pct=Math.min(100,Math.round(S.sim.dist/TOTAL*100));
+  $('prog-fill').style.width=pct+'%'; $('prog-pct').textContent=pct+'%';
+  const sk=$('sim-seek'); if(sk) sk.value=Math.round(S.sim.dist/TOTAL*1000);
+  $('st-dist').innerHTML=(S.sim.dist/1000).toFixed(1)+' <small>km</small>';
+  const remMin=Math.max(0,Math.round((TOTAL-S.sim.dist)/1000/(trafficSpeed()/60)));
+  $('st-eta').innerHTML=remMin+' <small>min</small>';
+  $('st-visited').innerHTML=S.visited.size+'<small>/'+POIS.length+'</small>';
+  const np=nextPoi(); $('next-poi-name').textContent=np?np.nombre:'Recorrido completado';
+  checkProximity(pos);
+}
+function posAtDist(d){
+  d=Math.max(0,Math.min(TOTAL-1,d));
+  let seg=0,t=d;
+  while(seg<SEGLEN.length && t>=SEGLEN[seg]){ t-=SEGLEN[seg]; seg++; }
+  if(seg>=SEGLEN.length){ seg=SEGLEN.length-1; t=SEGLEN[seg]; }
+  S.sim.seg=seg; S.sim.t=t; S.sim.dist=d;
+  const a=ROUTE[seg], b=ROUTE[seg+1], f=SEGLEN[seg]?t/SEGLEN[seg]:0;
+  return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
+}
+function ensureSim(){ if(!S.sim.on && !S.sim.paused){ verRecorrido(); togglePlay(); } }
+function simSkip(dir){ ensureSim(); updateCar(posAtDist(S.sim.dist + dir*400)); }
+function simSeek(frac){ ensureSim(); updateCar(posAtDist(frac*TOTAL)); }
+function trafficSpeed(){ const h=new Date().getHours();
+  if((h>=7&&h<10)||(h>=17&&h<20)) return 14;   /* hora pico CDMX */
+  if(h>=10&&h<17) return 19;
+  if(h>=20||h<1) return 26;
+  return 32; }
+function trafficSpeed(){ const h=new Date().getHours();
+  if((h>=7&&h<10)||(h>=17&&h<20)) return 14;   /* hora pico CDMX */
+  if(h>=10&&h<17) return 19;
+  if(h>=20||h<1) return 26;
+  return 32; }
+function nextPoi(){ return POIS.find(p=>!S.visited.has(p.id)); }
+function finishTour(){
+  clearInterval(S.sim.timer); S.sim.on=false; S.sim.paused=false; S.nav3d=false;
+  const b=$('play-btn'); if(b) b.textContent='▶';
+  toast('Recorrido finalizado');
+  setTimeout(()=>{ openSheet(`
+   <div class="gracias-box">
+     <div class="eyebrow">CONNECTIA × WALMART · FIN DEL RECORRIDO</div>
+     <h2 class="mt10">GRACIAS</h2>
+     <p class="aforismo">«El tiempo es lo más valioso que tenemos, gracias por regalarnos un poco de él.»</p>
+     <p class="body mt10">Atentamente, todo el equipo de Connectia.</p>
+     <div class="mt30" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+       <button class="btn ghost" onclick="closeSheet();go('mapa');const sp=$('sitios-panel');if(sp)sp.classList.add('open')">VER SITIOS DEL RECORRIDO</button>
+       <button class="btn lime" onclick="closeSheet();restartTour()">REINICIAR RECORRIDO</button>
+       <button class="btn primary" onclick="openCarrito()">CARRITO DE FAVORITOS</button>
+     </div>
+   </div>`); },1200);
+}
+
+/* ═══════════════ LÓGICA DE PROXIMIDAD (150m / 75m) ═══════════════ */
+function checkProximity(pos){
+  let nearest=null,nd=1e9;
+  POIS.forEach(p=>{ const d=hav(pos,[p.lng,p.lat]); if(d<nd){ nd=d; nearest=p; } });
+  if(!nearest) return;
+  const pin=$('pin-'+nearest.id);
+  if(nd<=100 && !S.visited.has(nearest.id)){
+    if(pin) pin.classList.add('near');
+    if(nd<=75){
+      showGpsPopup(nearest,2);
+      S.visited.add(nearest.id);
+      if(!S.history.includes(nearest.id)) S.history.push(nearest.id);
+      if(pin){ pin.classList.remove('near'); pin.classList.add('visited'); }
+      renderSitios(); flashChains(nearest);
+      if(S.sim.on) openStreet360(nearest);
+    } else if(S.popupPoi!==nearest.id){ showGpsPopup(nearest,1); }
+  } else if(S.popupPoi && nd>220){ hideGpsPopup(); document.querySelectorAll('.poi-pin.near').forEach(p=>p.classList.remove('near')); }
+}
+const SEM={disponible:['g','DISPONIBLE'],bloqueada:['o','BLOQUEADA'],no_disponible:['r','NO DISPONIBLE']};
+(function(){ const e=S.cartEstado||{}; Object.keys(e).forEach(k=>{ if(e[k]==='bloquear') e[k]='reservar'; else if(e[k]==='reservar') e[k]='propuesta'; }); })();
+function semaforoHtml(st){ const [act,lbl]=SEM[st]||SEM.disponible;
+  return ['g','o','r'].map(c=>`<span class="sem-dot ${c}${c===act?' on':''}"></span>`).join('')+`<span class="sem-lbl">${lbl}</span>`; }
+function reservar(id){ S.reservas=S.reservas||new Set(); S.reservas.add(id);
+  toast('Sitio reservado — tu ejecutivo Connectia confirmará disponibilidad'); }
+function showGpsPopup(p,level){
+  if(S.silent) return;
+  S.popupPoi=p.id; S.popupLevel=level;
+  $('gpsp-eyebrow').textContent = level===2 ? 'ESTÁS PASANDO POR' : 'NUEVO PUNTO DE INTERÉS CERCA';
+  $('gpsp-title').textContent=p.nombre;
+  $('gpsp-tarifa').textContent=fmtMXN(p.tarifa)+' /mes';
+  $('gpsp-photo').innerHTML = (p.fotoWm||p.foto) ? '<img src="'+(p.fotoWm||p.foto)+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">' : oohArt({grad:'linear-gradient(160deg,#2a1656,#502090)',copy:''});
+  $('gps-popup').dataset.poi=p.id;
+  $('gpsp-sem').innerHTML=semaforoHtml(p.estatus);
+  var _gp=document.querySelector('#gps-popup .card');
+  if(_gp) _gp.onclick=function(){ hideGpsPopup(); openPoi(p.id); };
+  $('gps-popup').classList.add('show');
+  clearTimeout(S._pt); S._pt=setTimeout(hideGpsPopup, level===1?14000:20000);
+}
+function hideGpsPopup(){ $('gps-popup').classList.remove('show'); S.popupPoi=null; }
+
+/* ═══════════════ GPS REAL ═══════════════ */
+function enableRealGps(){
+  if(S.realGps){ toast('Ubicación en tiempo real activa'); return; }
+  if(!navigator.geolocation){ toast('GPS no disponible — usa "Ver recorrido" para simular'); return; }
+  S.realGps=true; setGps('buscando');
+  S.gpsWatch=navigator.geolocation.watchPosition(g=>{
+    setGps('activo'); updateCar([g.coords.longitude,g.coords.latitude]);
+  },()=>{ toast('No se pudo obtener GPS — usa "Ver recorrido" para simular'); disableRealGps(true); },
+  {enableHighAccuracy:true,maximumAge:2000});
+  toast('Recorrido iniciado — ubicación en tiempo real');
+}
+function disableRealGps(quiet){
+  if(S.gpsWatch) navigator.geolocation.clearWatch(S.gpsWatch);
+  S.realGps=false; setGps('activo'); if(!quiet) toast('Modo demo manual');
+}
+function toggleRealGps(){
+  if(S.realGps){ disableRealGps(); }
+  else{ if(S.sim.timer){ clearInterval(S.sim.timer); S.sim.on=false; } enableRealGps(); }
+  openMas();
+}
+function setDemoMode(){ S.silent=false; if(S.realGps) toggleRealGps(); else{ toast('Modo demo manual'); openMas(); } }
+function toggleSilent(){ S.silent=!S.silent; toast(S.silent?'Modo presentación silenciosa activado':'Alertas activadas'); openMas(); }
+
+/* ═══════════════ ARTE OOH (escena CSS con marca oficial) ═══════════════ */
+function oohArt(m){
+  return `<div class="art" style="background:${m.grad}">
+    <div class="dots">${miniDots(7)}</div>
+    <div class="ooh-scene"><div class="ooh-legs"></div>
+      <div class="ooh-board wm"><div class="board-inner">
+        <svg viewBox="0 0 330 50.4" style="height:22px"><use href="#wm-word" fill="#fff"/>
+        <use href="#wm-spark" fill="#FFC220" transform="translate(276,0) scale(0.084)"/></svg>
+      </div></div></div>
+    <div style="position:absolute;bottom:8%;width:100%;text-align:center" class="ooh-copy">${m.copy||''}</div></div>`;
+}
+function miniDots(n){ let h='';
+  for(let i=0;i<n;i++){ const s=2+Math.random()*4;
+    h+=`<span class="dot" style="width:${s}px;height:${s}px;left:${Math.random()*95}%;top:${Math.random()*90}%;animation-delay:${(Math.random()*3).toFixed(1)}s"></span>`; }
+  return h; }
+function bigDots(el,n,drift){ let h='';
+  for(let i=0;i<n;i++){ const s=drift?(0.7+Math.random()*2.1):(3+Math.random()*7);
+    const cls=i===n-1?'dot citrus':(i===n-2?'dot lime':'dot');
+    const extra=drift?`;--dx:${(Math.random()*90-45).toFixed(0)}px;--dy:${(Math.random()*60-30).toFixed(0)}px;--dur:${(6+Math.random()*9).toFixed(1)}s;--del:${(Math.random()*5).toFixed(1)}s`:'';
+    h+=`<span class="${cls}" style="width:${s}px;height:${s}px;left:${Math.random()*97}%;top:${Math.random()*95}%;animation-delay:${(Math.random()*4).toFixed(1)}s${extra}"></span>`; }
+  if(drift) el.classList.add('drift');
+  el.innerHTML=h; }
+
+/* ═══════════════ OOH GRID ═══════════════ */
+let oohFilter='todos';
+function buildOoh(){
+  $('ooh-filters').innerHTML=CATS.map(([id,lbl])=>
+    `<button class="filter-pill${id===oohFilter?' active':''}" onclick="setOohFilter('${id}')">${lbl}</button>`).join('');
+  const items=MOCKUPS.filter(m=>oohFilter==='todos'||m.cat===oohFilter);
+  if(!items.length){ $('ooh-grid').innerHTML=`<div class="card" style="grid-column:1/-1;text-align:center;padding:60px">
+    <div class="eyebrow">PRÓXIMAMENTE</div>
+    <h3 class="mt10">INVENTARIO ADICIONAL EN CURACIÓN</h3>
+    <p class="body mt10">Los sitios de oportunidad fuera de la ruta se integrarán aquí.</p></div>`; return; }
+  $('ooh-grid').innerHTML=items.map(m=>`
+    <div class="card media-card clickable" onclick="openMockup('${m.id}')">
+      <div class="media-visual">${m.foto?`<img src="${m.fotoWm||m.foto}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" alt="">`:oohArt(m)}
+        <button class="fav-btn${S.favs.has(m.id)?' on':''}" onclick="event.stopPropagation();toggleFav('${m.id}')">♥</button>
+      </div>
+      <div class="media-body"><h3>${m.titulo}</h3>
+        <div class="body" style="font-size:14px">${m.ubic}</div>
+        <div class="media-meta"><span class="chip wm">${fmtMXN(m.tarifa)} /mes</span><span class="chip impact-${m.imp}">Impacto ${m.imp==='tactico'?'táctico':m.imp}</span>
+        <span class="chip">${m.medidas}</span></div></div>
+    </div>`).join('');
+}
+function setOohFilter(f){ oohFilter=f; buildOoh(); }
+function toggleFav(id){
+  if(S.favs.has(id)){ S.favs.delete(id); toast('Eliminado de favoritos'); }
+  else{ S.favs.add(id); toast('★ Guardado en favoritos'); }
+  saveFavs(); buildOoh(); renderSitios(); cartBadge();
+}
+
+/* ═══════════════ FICHAS (sheet) ═══════════════ */
+function openSheet(html){ $('sheet-content').innerHTML=html;
+  $('sheet-backdrop').classList.add('show'); $('sheet').classList.add('show'); }
+function closeSheet(){ $('sheet-backdrop').classList.remove('show'); $('sheet').classList.remove('show'); }
+
+function statRow(pairs){ return `<div style="display:grid;grid-template-columns:repeat(${pairs.length},1fr);gap:18px;margin-top:22px">`+
+  pairs.map(([l,v])=>`<div style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:16px;padding:16px 20px">
+   <div style="font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--violet-hot)">${l}</div>
+   <div style="font-size:16px;font-weight:700;margin-top:5px">${v}</div></div>`).join('')+`</div>`; }
+
+function openPoi(id,mockFirst){
+  const p=POIS.find(x=>x.id===id); if(!p) return;
+  const art = (p.fotoWm||p.foto)
+    ? `<img src="${p.fotoWm||p.foto}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain" alt="">`
+    : oohArt({grad:'linear-gradient(160deg,#2a1656,#502090)',copy:p.nombre});
+  openSheet(`
+   <div style="aspect-ratio:16/8;position:relative;overflow:hidden;background:#0b0620">${art}</div>
+   <div style="padding:34px 44px 44px">
+     <div class="eyebrow">${p.tipo.toUpperCase()} · ${p.medidas}</div>
+     <h2 style="margin-top:8px">${p.nombre}</h2>
+     <p class="body mt10">${p.desc}</p>
+     ${statRow([['Tarifa mensual',fmtMXN(p.tarifa)],['Impactos mensuales',flujoMes(p)],['Audiencia',p.audiencia],['Nivel de impacto',p.impacto==='tactico'?'Táctico':p.impacto.charAt(0).toUpperCase()+p.impacto.slice(1)]])}
+     <div class="mt20"><div class="eyebrow">BENEFICIO PARA WALMART</div><p class="body mt10">${p.beneficio}</p></div>
+     <div class="mt20"><div class="eyebrow">RECOMENDACIÓN CREATIVA</div><p class="body mt10">${p.reco}</p></div>
+     <div class="media-meta mt20">${p.campanas.map(c=>`<span class="chip wm">${c}</span>`).join('')}</div>
+     <div class="semaforo mt20">${semaforoHtml(p.estatus)}</div>
+     <div class="mt20"><div class="eyebrow">CADENAS CERCANAS</div>
+       <div class="mt10" style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px;font-weight:700">${nearestChains(p)}</div></div>
+     <div class="mt20"><div class="eyebrow">CADENAS CERCANAS</div>
+       <div class="mt10" style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px;font-weight:700">${nearestChains(p)}</div></div>
+     <div class="mt30" style="display:flex;gap:14px;flex-wrap:wrap">
+       <button class="btn ghost" onclick="closeSheet();go('mapa');S.map&&S.map.flyTo({center:[${p.lng},${p.lat}],zoom:16,duration:900})">VER EN MAPA</button>
+       <button class="btn primary" onclick="toggleFav('${p.id}');">♥ GUARDAR EN CARRITO</button>
+     </div>
+   </div>`);
+}
+function openMockup(id){
+  const m=MOCKUPS.find(x=>x.id===id); if(!m) return;
+  openSheet(`
+   <div style="aspect-ratio:16/6;position:relative;overflow:hidden;background:#150a30">${m.foto?`<img id="mock-foto" src="${m.fotoWm||m.foto}" data-real="${m.foto}" data-wm="${m.fotoWm||''}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" alt="">`:oohArt(m)}</div>
+   <div style="padding:34px 44px 44px">
+     <div class="eyebrow">MOCKUP · CONNECTIA × WALMART</div>
+     <h2 style="margin-top:8px">${m.titulo}</h2>
+     ${statRow([['Tarifa mensual',fmtMXN(m.tarifa)],['Ubicación',m.ubic],['Medidas',m.medidas],['Audiencia',m.aud],['Objetivo',m.obj]])}
+     <div class="mt20"><div class="eyebrow">CAMPAÑAS SUGERIDAS</div>
+     <div class="media-meta mt10">${m.campanas.map(c=>`<span class="chip wm">${c}</span>`).join('')}
+       <span class="chip">Temporadas: Regreso a clases · Navidad · Hot Sale · Buen Fin</span></div></div>
+     <div class="mt30" style="display:flex;gap:14px;flex-wrap:wrap">
+       ${m.fotoWm?`<button class="btn primary" onclick="toggleMock()">VER ANTES / DESPUÉS</button>`:''}
+       ${m.poi?`<button class="btn ghost" onclick="closeSheet();go('mapa');const p=POIS.find(x=>x.id==='${m.poi}');S.map&&S.map.flyTo({center:[p.lng,p.lat],zoom:16,duration:900})">VER UBICACIÓN EN MAPA</button>`:''}
+       <button class="btn ghost" onclick="addSel('${m.id}','${m.titulo.replace(/'/g,'')}')">AGREGAR A SELECCIÓN</button>
+     </div>
+   </div>`);
+}
+function toggleMock(){
+  const im=$('mock-foto'); if(!im||!im.dataset.wm) return;
+  const wm = im.src.indexOf(im.dataset.wm)===-1;
+  im.src = wm ? im.dataset.wm : im.dataset.real;
+  toast(wm ? 'Mockup Walmart' : 'Foto real del sitio');
+}
+function toggleCampana(){
+  const im=$('ficha-foto'); if(!im||!im.dataset.wm) return;
+  const wm = im.src.indexOf(im.dataset.wm)===-1;
+  im.src = wm ? im.dataset.wm : im.dataset.real;
+  toast(wm ? 'Modo campaña: creatividad Walmart aplicada' : 'Foto real del sitio');
+}
+function addSel(id,nombre){ S.seleccion.add(id); toast('“'+nombre+'” agregado a la propuesta'); }
+
+/* ═══════════════ CARRITO · CHECKOUT · NEWSLETTER ═══════════════ */
+const FN_CHECKOUT='https://mduxlmnlwycwknyapwsx.supabase.co/functions/v1/recorrido-checkout';
+function cartBadge(){ const c=$('cart-count'); if(c) c.textContent=S.favs.size; }
+function cartItems(){ return [...S.favs].map(itemById).filter(Boolean); }
+function subtot(tipo){ return cartItems().filter(x=>S.cartEstado[x.id]===tipo).reduce((a,x)=>a+(x.tarifa||0),0); }
+function openCarrito(){
+  const items=cartItems();
+  openSheet(`
+   <div style="padding:44px 44px 34px">
+     <div class="eyebrow">CARRITO · RESUMEN DE COMPRA</div>
+     <h2 style="margin-top:8px">TU SELECCIÓN (${items.length})</h2>
+     ${items.length?'':'<p class="body mt20">Aún no agregas sitios. Toca ♥ en cualquier sitio del recorrido para agregarlo al carrito.</p>'}
+     <div class="mt20">${items.map(x=>{
+       const disp=x.estatus==='disponible', est=S.cartEstado[x.id];
+       return `<div class="cart-item${disp?'':' no-disp'}">
+         <img class="cart-thumb" src="${x.fotoWm||x.foto||''}" alt="">
+         <div class="cart-info"><div class="cart-nombre">${x.nombre||x.titulo}</div>
+           <div class="cart-precio">${fmtMXN(x.tarifa)} /mes</div>
+           <div class="sp-sem" style="margin-top:4px">${semaforoHtml(x.estatus)}</div></div>
+         <div class="cart-actions">
+           <button class="btn-estado${est==='reservar'?' on-res':''}" ${disp?'':'disabled'} onclick="setEstado('${x.id}','reservar')">RESERVAR</button>
+           <button class="btn-estado${est==='propuesta'?' on-blk':''}" ${disp?'':'disabled'} onclick="setEstado('${x.id}','propuesta')">AGREGAR A PROPUESTA</button>
+         </div>
+         <button class="cart-del" onclick="delCart('${x.id}')">🗑</button>
+       </div>`;}).join('')}</div>
+     <div class="mt20">
+       <div class="chk-row"><span>Reservados</span><strong>${fmtMXN(subtot('reservar'))}</strong></div>
+       <div class="chk-row"><span>En propuesta</span><strong>${fmtMXN(subtot('propuesta'))}</strong></div>
+       <div class="chk-row chk-total"><span>TOTAL MENSUAL</span><strong>${fmtMXN(subtot('reservar')+subtot('propuesta'))}</strong></div>
+     </div>
+     <div class="mt20" style="display:flex;gap:12px;flex-wrap:wrap">
+       <button class="btn primary" ${Object.keys(S.cartEstado).some(k=>S.favs.has(k))?'':'disabled style="opacity:.4"'} onclick="openCheckout()">VER CHECKOUT</button>
+       <button class="btn ghost" onclick="closeSheet();go('mapa')">SEGUIR EXPLORANDO</button>
+     </div>
+   </div>`);
+}
+function delCart(id){ S.favs.delete(id); delete S.cartEstado[id]; saveFavs(); saveEstado(); cartBadge(); renderSitios(); openCarrito(); }
+function setEstado(id,tipo){
+  S.cartEstado[id]=(S.cartEstado[id]===tipo?null:tipo);
+  if(!S.cartEstado[id]) delete S.cartEstado[id];
+  saveEstado(); openCarrito();
+  if(S.cartEstado[id]) setTimeout(()=>$('push-note').classList.add('show'),350);
+}
+function pushSi(){ $('push-note').classList.remove('show'); closeSheet(); go('mapa');
+  const sp=$('sitios-panel'); if(sp) sp.classList.remove('hide'); }
+function pushNo(){ $('push-note').classList.remove('show'); openCheckout(); }
+function openCheckout(){
+  const res=cartItems().filter(x=>S.cartEstado[x.id]==='reservar');
+  const blk=cartItems().filter(x=>S.cartEstado[x.id]==='propuesta');
+  openSheet(`
+   <div style="padding:44px 44px 34px">
+     <div class="eyebrow">CHECKOUT · RESUMEN DE COSTOS</div>
+     <h2 style="margin-top:8px">CONFIRMA TU SELECCIÓN</h2>
+     ${res.length?`<div class="mt20"><div class="eyebrow" style="color:#7ee2a8">RESERVADOS (${res.length})</div>
+       ${res.map(x=>`<div class="chk-row"><span>${x.nombre||x.titulo}</span><strong>${fmtMXN(x.tarifa)}</strong></div>`).join('')}
+       <div class="chk-row"><span><em>Subtotal reservados</em></span><strong>${fmtMXN(subtot('reservar'))}</strong></div></div>`:''}
+     ${blk.length?`<div class="mt20"><div class="eyebrow" style="color:#ffb184">EN PROPUESTA (${blk.length})</div>
+       ${blk.map(x=>`<div class="chk-row"><span>${x.nombre||x.titulo}</span><strong>${fmtMXN(x.tarifa)}</strong></div>`).join('')}
+       <div class="chk-row"><span><em>Subtotal en propuesta</em></span><strong>${fmtMXN(subtot('propuesta'))}</strong></div></div>`:''}
+     <div class="chk-row chk-total"><span>TOTAL MENSUAL</span><strong>${fmtMXN(subtot('reservar')+subtot('propuesta'))}</strong></div>
+     <div class="mt30"><div class="eyebrow">INGRESA TU CORREO PARA CONFIRMAR</div>
+       <input class="email-input mt10" id="chk-email" type="email" placeholder="tucorreo@empresa.com">
+     </div>
+     <div class="mt20" style="display:flex;gap:12px;flex-wrap:wrap">
+       <button class="btn primary" onclick="submitCheckout()">ENVIAR</button>
+       <button class="btn ghost" onclick="openCarrito()">← VOLVER AL CARRITO</button>
+     </div>
+   </div>`);
+}
+function submitCheckout(){
+  const em=($('chk-email').value||'').trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ toast('Ingresa un correo válido'); return; }
+  const pay={correo:em,
+    reservados:cartItems().filter(x=>S.cartEstado[x.id]==='reservar').map(x=>({id:x.id,nombre:x.nombre||x.titulo,tarifa:x.tarifa||0})),
+    bloqueados:cartItems().filter(x=>S.cartEstado[x.id]==='propuesta').map(x=>({id:x.id,nombre:x.nombre||x.titulo,tarifa:x.tarifa||0})),
+    total:subtot('reservar')+subtot('propuesta')};
+  try{ fetch(FN_CHECKOUT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pay)}).catch(()=>{}); }catch(e){}
+  openSheet(`
+   <div class="gracias-box">
+     <div class="eyebrow">CONNECTIA × WALMART</div>
+     <h2 class="mt10">GRACIAS</h2>
+     <p class="aforismo">«El tiempo es lo más valioso que tenemos, gracias por regalarnos un poco de él.»</p>
+     <p class="body mt10">Atentamente, todo el equipo de Connectia.</p>
+     <p class="body mt20" style="font-size:13px">Enviamos tu newsletter con la selección a <strong>${em}</strong></p>
+     <div class="mt30" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+       <button class="btn ghost" onclick="closeSheet()">CERRAR</button>
+     </div>
+   </div>`);
+}
+function openNewsletter(){
+  openSheet(`
+   <div style="padding:34px">
+     <div class="nl-hero"><div class="dots">${miniDots(14)}</div>
+       <div class="eyebrow on-photo">CONNECTIA × WALMART</div>
+       <h1 style="margin-top:10px">GRACIAS POR ACOMPAÑARNOS</h1>
+       <p class="body mt10" style="color:rgba(255,255,255,.9)">Tu recorrido quedó guardado. Descarga tu selección:</p>
+     </div>
+     <button class="btn primary nl-btn" onclick="downloadSel('reservar')">⬇ DESCARGA LOS SITIOS RESERVADOS</button>
+     <button class="btn ghost nl-btn" onclick="downloadSel('propuesta')">⬇ DESCARGA LOS SITIOS EN PROPUESTA</button>
+     <div class="mt30"><div class="eyebrow">TAMBIÉN TE PUEDE INTERESAR</div>
+       <div class="tpi-grid">
+         <div class="tpi-card">Próximamente<br>más sitios</div>
+         <div class="tpi-card">Próximamente<br>más sitios</div>
+         <div class="tpi-card">Próximamente<br>más sitios</div>
+       </div></div>
+     <p class="aforismo mt30" style="text-align:center">everything is connected.</p>
+   </div>`);
+}
+function downloadSel(tipo){
+  const items=cartItems().filter(x=>S.cartEstado[x.id]===tipo);
+  if(!items.length){ toast('No tienes sitios '+(tipo==='reservar'?'reservados':'en propuesta')); return; }
+  const BASEURL='https://arhcarrasco-cloud.github.io/recorrido-walmart/';
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Connectia × Walmart · Sitios</title>
+   <style>body{font-family:Arial,Helvetica,sans-serif;background:#201040;color:#fff;padding:40px;max-width:800px;margin:auto}
+   h1{text-transform:uppercase}.s{background:#2a1656;border-radius:16px;padding:20px;margin:18px 0}
+   img{width:100%;border-radius:12px}.t{color:#FFC220;font-weight:bold}.e{color:#7B3FF2;font-size:11px;letter-spacing:2px;text-transform:uppercase}</style></head>
+   <body><div class="e">CONNECTIA × WALMART · RECORRIDO</div><h1>Sitios ${tipo==='reservar'?'reservados':'en propuesta'}</h1>
+   ${items.map(x=>`<div class="s"><img src="${BASEURL}${(x.fotoWm||x.foto)||''}"><h2>${x.nombre||x.titulo}</h2>
+     <p>${x.tipo||''} · ${x.medidas||''}</p><p class="t">${fmtMXN(x.tarifa)} /mes</p></div>`).join('')}
+   <p><em>El tiempo es lo más valioso que tenemos, gracias por regalarnos un poco de él.<br>— Todo el equipo de Connectia</em></p></body></html>`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.download='connectia-walmart-sitios-'+(tipo==='reservar'?'reservados':'en-propuesta')+'.html';
+  a.click(); toast('Descarga iniciada');
+}
+
+/* ═══════════════ VENTANA DE SITIOS DEL RECORRIDO ═══════════════ */
+function flujoMes(p){
+  const m=p.imp||0;
+  return (m>=1e6?(m/1e6).toFixed(1).replace('.0','')+' M':Math.round(m/1e3)+' K')+' impactos/mes';
+}
+const CHAIN_META={wm:['#0053e2','Walmart'],ch:['#F58220','Chedraui'],cm:['#00944d','La Comer']};
+function nearestChains(p){
+  const res={};
+  TIENDAS.forEach(t=>{ const d=hav([p.lng,p.lat],[t.lng,t.lat]);
+    if(!res[t.c]||d<res[t.c].d) res[t.c]={d,n:t.n}; });
+  return ['wm','ch','cm'].map(c=>{ if(!res[c]) return '';
+    const km=(res[c].d/1000).toFixed(1); const [col,nm]=CHAIN_META[c];
+    const ico = c==='wm'
+      ? '<svg viewBox="0 0 532.262 600" style="width:12px;height:12px;fill:#FFC220;vertical-align:-1px"><use href="#wm-spark"/></svg>'
+      : '<span style="display:inline-flex;width:13px;height:13px;border-radius:50%;background:'+col+';color:#fff;font-size:8.5px;font-weight:800;align-items:center;justify-content:center;vertical-align:-2px">'+nm[0]+'</span>';
+    return '<span class="chain-km">'+ico+' '+km+' km</span>'; }).join('');
+}
+function renderSitios(){
+  const el=$('sp-list'); if(!el) return;
+  el.innerHTML=POIS.map((p,i)=>`
+   <div class="sp-item${S.visited.has(p.id)?' visitado':''}" onclick="openPoi('${p.id}')">
+     <div class="sp-num">${S.visited.has(p.id)?'✓':String(i+1).padStart(2,'0')}</div>
+     <img class="sp-thumb" src="${p.fotoWm||p.foto||''}" alt="">
+     <div class="sp-info"><div class="sp-name">${p.nombre}</div>
+       <div class="sp-meta">${p.tipo}</div>
+       <div class="sp-imp"><strong>${flujoMes(p)}</strong></div>
+       <div class="sp-tarifa">${fmtMXN(p.tarifa)} /mes</div>
+       <div class="sp-sem">${semaforoHtml(p.estatus)}</div>
+       <div class="sp-chains">${nearestChains(p)}</div>
+       <div class="sp-chains">${nearestChains(p)}</div></div>
+     <button class="sp-fav${S.favs.has(p.id)?' on':''}" onclick="event.stopPropagation();toggleFav('${p.id}')">♥</button>
+   </div>`).join('');
+}
+function toggleSitios(){ const sp=$('sitios-panel'); sp.classList.remove('hide'); sp.classList.toggle('open'); }
+
+/* ═══════════════ VIDEOS ═══════════════ */
+function buildVideos(){
+  $('video-grid').innerHTML=VIDEOS.map(v=>`
+   <div class="card media-card clickable" onclick="openVideo('${v.id}')">
+     <div class="media-visual"><div class="art" style="background:linear-gradient(150deg,#241148,#6030A0)">
+       <div class="dots">${miniDots(8)}</div></div>
+       <div class="play-badge"><div class="pb"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></div></div>
+       <span class="duration">${v.dur}</span></div>
+     <div class="media-body"><h3>${v.titulo}</h3>
+       <div class="body" style="font-size:14px">${v.desc}</div>
+       <div class="media-meta"><span class="chip">${v.cat}</span><span class="chip wm">Precargado</span></div></div>
+   </div>`).join('');
+}
+let curVideo=null;
+function playCase(cid){
+  const c=CASOS.find(x=>x.id===cid); if(!c||!c.vid) return;
+  curVideo={titulo:c.cliente,desc:c.tag,poi:null};
+  $('pb-title').textContent=c.cliente; $('pb-desc').textContent=c.tag;
+  $('player-stage').innerHTML=`<video src="${c.vid}" controls autoplay playsinline
+    style="width:100%;height:100%;object-fit:contain;background:#000"></video>`;
+  $('player').classList.add('show');
+}
+function playCase(cid){
+  const c=CASOS.find(x=>x.id===cid); if(!c||!c.vid) return;
+  curVideo={titulo:c.cliente,desc:c.tag,poi:null};
+  $('pb-title').textContent=c.cliente; $('pb-desc').textContent=c.tag;
+  $('player-stage').innerHTML=`<video src="${c.vid}" controls autoplay playsinline
+    style="width:100%;height:100%;object-fit:contain;background:#000"></video>`;
+  $('player').classList.add('show');
+}
+function openVideo(id){
+  const v=VIDEOS.find(x=>x.id===id); if(!v) return; curVideo=v;
+  $('pb-title').textContent=v.titulo; $('pb-desc').textContent=v.desc;
+  $('player-stage').innerHTML=`<div class="art" style="position:absolute;inset:0;background:var(--grad-hero)">
+    <div class="dots">${miniDots(24)}</div></div>
+    <div style="position:relative;text-align:center;z-index:2">
+      <div class="eyebrow on-photo">CONNECTIA × WALMART · ${v.cat.toUpperCase()}</div>
+      <h1 style="margin-top:12px">${v.titulo}</h1>
+      <p class="body mt20" style="max-width:700px;margin-left:auto;margin-right:auto">▶ Video demo — en producción el archivo .mp4
+      precargado se reproduce aquí en pantalla completa.</p></div>`;
+  $('player').classList.add('show');
+}
+function closePlayer(){ $('player').classList.remove('show'); }
+function playerToMap(){ closePlayer();
+  if(curVideo&&curVideo.poi){ const p=POIS.find(x=>x.id===curVideo.poi);
+    go('mapa'); if(p&&S.map) S.map.flyTo({center:[p.lng,p.lat],zoom:16,duration:900}); }
+  else { go('mapa'); fitRoute(); } }
+
+/* ═══════════════ SOLUCIONES / GEONEXA / CASOS ═══════════════ */
+function buildSoluciones(){
+  $('sol-list').innerHTML=SOLUCIONES.map((s,i)=>`
+   <div class="sol-row"><div class="num">${String(i+1).padStart(2,'0')}</div>
+   <div><h3>${s[0]}</h3><p>${s[1]}</p></div></div>`).join('');
+}
+function buildCasos(){
+  $('casos-grid').innerHTML=CASOS.map(c=>`
+   <div class="card caso-card clickable" onclick="openCaso('${c.id}')">
+     <div class="caso-hero" style="background:${c.grad}"><div class="dots">${miniDots(9)}</div>
+       <div style="position:absolute;bottom:20px;left:26px"><div class="eyebrow on-photo">${c.tag.toUpperCase()}</div>
+       <h2 style="margin-top:4px">${c.cliente}</h2></div></div>
+     <div class="caso-body"><p class="body" style="font-size:15px">${c.reto}</p>
+       <div><span class="chip">Ver caso completo →</span></div></div>
+   </div>`).join('');
+}
+function openCaso(id){
+  const c=CASOS.find(x=>x.id===id); if(!c) return;
+  openSheet(`
+   <div style="aspect-ratio:16/5;position:relative;background:${c.grad}"><div class="dots">${miniDots(12)}</div>
+     <div style="position:absolute;bottom:26px;left:44px"><div class="eyebrow on-photo">CASO DE ÉXITO · ${c.tag.toUpperCase()}</div>
+     <h1 style="margin-top:6px">${c.cliente}</h1></div></div>
+   <div style="padding:34px 44px 44px">
+     <div class="caso-detail-grid">
+       <div class="caso-block"><h3>01 · RETO</h3><p>${c.reto}</p></div>
+       <div class="caso-block"><h3>02 · SOLUCIÓN</h3><p>${c.sol}</p></div>
+       <div class="caso-block"><h3>03 · IMPLEMENTACIÓN</h3><p>${c.impl}</p></div>
+       <div class="caso-block"><h3>04 · RESULTADO</h3><p>${c.res}</p></div>
+     </div>
+     <div class="mt20"><div class="eyebrow">APRENDIZAJE</div><p class="aforismo mt10">${c.apr}</p></div>
+     <div class="mt30" style="display:flex;gap:14px;flex-wrap:wrap">
+       <button class="btn primary" onclick="closeSheet();playCase('${c.id}')">VER VIDEO</button>
+       <button class="btn ghost" onclick="toast('Aprendizaje guardado en el resumen')">VER APRENDIZAJES</button>
+       <button class="btn ghost" onclick="toast('Aplicado como referencia a la propuesta Walmart')">APLICAR A NUEVA CAMPAÑA</button>
+     </div>
+   </div>`);
+}
+
+/* ═══════════════ MÁS (modos + selección + historial) ═══════════════ */
+function openMas(){
+  const sel=[...S.seleccion], favs=[...S.favs];
+  openSheet(`
+   <div style="padding:44px">
+     <div class="eyebrow">CENTRO DE CONTROL</div>
+     <h2 style="margin-top:8px">MÁS OPCIONES</h2>
+     <div class="mt30"><div class="eyebrow">MODOS DE EXPERIENCIA</div>
+     <div class="mt20" style="display:flex;gap:14px;flex-wrap:wrap">
+       <button class="btn ${!S.realGps&&!S.silent?'primary':'ghost'}" onclick="setDemoMode()">MODO DEMO MANUAL</button>
+       <button class="btn ${S.realGps?'primary':'ghost'}" onclick="toggleRealGps()">RECORRIDO AUTOMÁTICO · GPS</button>
+       <button class="btn ${S.silent?'primary':'ghost'}" onclick="toggleSilent()">PRESENTACIÓN SILENCIOSA</button>
+     </div></div>
+     <div class="mt30"><div class="eyebrow">SECCIONES</div>
+     <div class="mt20" style="display:flex;gap:14px;flex-wrap:wrap">
+       <button class="btn ghost" onclick="closeSheet();go('connectia')">QUÉ ES CONNECTIA</button>
+       <button class="btn ghost" onclick="closeSheet();go('soluciones')">SOLUCIONES WALMART</button>
+       <button class="btn ghost" onclick="closeSheet();go('cierre')">CIERRE / SIGUIENTE PASO</button>
+     </div></div>
+     <div class="mt30"><div class="eyebrow">TU SELECCIÓN (${sel.length})</div>
+       <p class="body mt10">${sel.length?sel.map(nameOf).join(' · '):'Aún no has agregado sitios a la propuesta.'}</p></div>
+     <div class="mt20"><div class="eyebrow">FAVORITOS (${favs.length})</div>
+       <p class="body mt10">${favs.length?favs.map(nameOf).join(' · '):'Toca ♥ en cualquier mockup para guardarlo.'}</p></div>
+     <div class="mt20"><div class="eyebrow">HISTORIAL DEL RECORRIDO (${S.history.length})</div>
+       <p class="body mt10">${S.history.length?S.history.map(nameOf).join(' → '):'Los puntos visitados aparecerán aquí.'}</p></div>
+     <div class="mt30" style="display:flex;gap:14px;flex-wrap:wrap">
+       <button class="btn primary" onclick="exportResumen()">DESCARGAR RESUMEN</button>
+       <button class="btn lime" onclick="closeSheet();restartTour()">REINICIAR RECORRIDO</button>
+     </div>
+   </div>`);
+}
+function nameOf(id){ const p=POIS.find(x=>x.id===id); if(p) return p.nombre;
+  const m=MOCKUPS.find(x=>x.id===id); return m?m.titulo:id; }
+function showSeleccion(){ openMas(); }
+function exportResumen(){
+  const lines=['CONNECTIA × WALMART — RESUMEN DEL RECORRIDO','Fecha: '+new Date().toLocaleString('es-MX'),'',
+   'PUNTOS VISITADOS:',...S.history.map((id,i)=>` ${String(i+1).padStart(2,'0')} · ${nameOf(id)}`),'',
+   'SELECCIÓN PARA PROPUESTA:',...[...S.seleccion].map(id=>' • '+nameOf(id)),'',
+   'FAVORITOS:',...[...S.favs].map(id=>' ♥ '+nameOf(id)),'',
+   'connectia. everything is connected. — hola@connectia.mx'];
+  const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='connectia-walmart-resumen.txt'; a.click();
+  toast('Resumen descargado');
+}
+
+/* ═══════════════ INIT ═══════════════ */
+const GATE_NAME=(new URLSearchParams(location.search).get('n'))||'Adri'; /* liga por persona: ?n=Moni */
+function initGate(){
+  bigDots($('gate-dots'),40,true);
+  $('gate-title').textContent='BIENVENIDA '+GATE_NAME.toUpperCase();
+  $('gate').onclick=enterGate;
+  if(new URLSearchParams(location.search).get('qa')){ enterGate(); setTimeout(()=>{go('mapa');verRecorrido();},1500); }
+}
+function enterGate(){
+  $('gate').classList.add('hide');
+  try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }catch(e){}
+  toast('Bienvenida '+GATE_NAME+' ✨');
+}
+function toggleNav(){ $('bottomnav').classList.toggle('open'); }
+function toggleSitiosOpen(){ $('sitios-panel').classList.toggle('open'); }
+function openStreet360(p){
+  const el=$('street360'); if(!el||!(p.fotoWm||p.foto)) return;
+  S._resume360 = S.sim.on;
+  if(S.sim.on){ clearInterval(S.sim.timer); S.sim.on=false; S.sim.paused=true; const b=$('play-btn'); if(b) b.textContent='▶'; }
+  $('s360-img').src=p.fotoWm||p.foto;
+  $('s360-name').textContent=p.nombre;
+  el.classList.add('show');
+  clearTimeout(S._s360t); S._s360t=setTimeout(closeStreet360, 9200);
+}
+function closeStreet360(){
+  const el=$('street360'); el.classList.remove('show'); clearTimeout(S._s360t);
+  if(S._resume360){ S.sim.paused=false; S.sim.on=true; S.sim.timer=setInterval(tick,120); const b=$('play-btn'); if(b) b.textContent='⏸'; }
+}
+const LUGARES=[
+ {n:'CC Interlomas',lat:19.39626,lng:-99.28844},
+ {n:'Paseo Interlomas',lat:19.39623,lng:-99.28111},
+ {n:'Magnocentro / La Comer',lat:19.39943,lng:-99.27475},
+ {n:'Costco Interlomas',lat:19.40419,lng:-99.27177},
+ {n:'Parque Interlomas',lat:19.39523,lng:-99.28968},
+ {n:'Hospital Ángeles',lat:19.39580,lng:-99.28080},
+ {n:'Plaza Palmas Hills',lat:19.39359,lng:-99.28173},
+ {n:'Pabellón Bosques',lat:19.38252,lng:-99.26741}
+];
+function nearestLugares(p){
+  return LUGARES.map(l=>({n:l.n,d:hav([p.lng,p.lat],[l.lng,l.lat])}))
+    .filter(x=>x.d<=3000).sort((a,b)=>a.d-b.d).slice(0,2)
+    .map(x=>`<span class="chain-km">🏬 ${x.n} · ${(x.d/1000).toFixed(1)} km</span>`).join('');
+}
+function flashChains(p){
+  const w=$('waze-flash'); if(!w) return;
+  w.innerHTML=nearestChains(p)+nearestLugares(p);
+  w.classList.add('show');
+  clearTimeout(w._t); w._t=setTimeout(()=>w.classList.remove('show'),4500);
+}
+function init(){
+  buildNav(); buildOoh(); buildVideos(); buildSoluciones(); buildCasos();
+  $('ruta-count').textContent=POIS.length;
+  cartBadge();
+  bigDots($('welcome-dots'),64,true); bigDots($('cierre-dots'),16);
+  initGate();
+  const spc=$('sp-count'); if(spc) spc.textContent=POIS.length;
+  renderSitios();
+  initMap();
+  setTimeout(()=>$('boot').classList.add('hide'),1400);
+}
+window.addEventListener('load',init);
+
+</script>
+</body>
+</html>
