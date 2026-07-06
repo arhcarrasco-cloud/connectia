@@ -180,7 +180,7 @@ select:focus{border-color:#0071e3}
 <div id="intro-page" style="position:fixed;inset:0;z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;background:#000">
   <div style="position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80') center/cover;opacity:.55"></div>
   <div style="position:relative;z-index:2;text-align:center;max-width:440px;width:90%">
-    <div style="font-size:42px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:4px;text-shadow:0 2px 20px rgba(0,0,0,.5)">connectia</div>
+    <img src="../assets/logo-white.svg" alt="connectia" style="height:52px;margin-bottom:4px;filter:drop-shadow(0 2px 20px rgba(0,0,0,.5))">
     <div style="font-size:14px;color:rgba(255,255,255,.7);margin-bottom:30px">Inteligencia Geoespacial</div>
     <!-- Login Card -->
     <div id="login-card" style="background:rgba(255,255,255,.12);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:28px 24px;text-align:left">
@@ -230,7 +230,7 @@ select:focus{border-color:#0071e3}
 <div id="map"></div>
 
 <div id="topbar">
-  <div class="logo" style="cursor:pointer" onclick="_showMainMenu()">connectia</div>
+  <div class="logo" style="cursor:pointer;display:flex;align-items:center" onclick="_showMainMenu()"><img src="../assets/logo-purple.svg" alt="connectia" style="height:22px;display:block"></div>
   <!-- Horizontal top menu -->
   <div id="top-menu" style="display:flex;gap:2px;margin-right:6px">
     <div class="tmenu-item" onclick="_showMainMenu()">Archivo ▾</div>
@@ -35768,6 +35768,102 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', boot); }
   boot();
   [800,2000,4000,8000].forEach(function(d){ setTimeout(boot, d); });
+})();
+</script>
+
+
+<script id="connectia-r46-scoped-layers">
+/* ============================================================
+   Round 46 — Capas y búsquedas acotadas a la selección activa.
+   1) NSE (AGEB/manzana): oculta polígonos cuyo centroide cae
+      fuera de la selección (círculo/rect/polígono, simple o
+      multi). Si no hay selección, muestra todo (restaura).
+   2) Búsqueda de negocios: pasadas tardías que filtran
+      searchMarkers también contra multi-selección (el core solo
+      filtra currentOverlay y la paginación llega async).
+   Nota: población (_drawPopGrid) ya se acota vía
+   _getHeatmapBounds; no se toca.
+   ============================================================ */
+(function(){
+  'use strict';
+  if(window.__r46Scoped) return; window.__r46Scoped = true;
+
+  function geoms(){
+    var gs = [];
+    try{ if(window.currentOverlay && (currentOverlay.getRadius||currentOverlay.getPath||currentOverlay.getBounds) && currentOverlay.getMap && currentOverlay.getMap()) gs.push(currentOverlay); }catch(e){}
+    try{
+      (window.multiSelections||[]).forEach(function(s){
+        if(s && s.overlay && (s.overlay.getRadius||s.overlay.getPath||s.overlay.getBounds)) gs.push(s.overlay);
+      });
+    }catch(e){}
+    return gs;
+  }
+  function inGeom(pos, g){
+    try{
+      if(g.getRadius && g.getCenter) return google.maps.geometry.spherical.computeDistanceBetween(pos, g.getCenter()) <= g.getRadius();
+      if(g.getPath && google.maps.geometry.poly) return google.maps.geometry.poly.containsLocation(pos, g);
+      if(g.getBounds) return g.getBounds().contains(pos);
+    }catch(e){}
+    return true;
+  }
+  function inAny(pos, gs){
+    for(var i=0;i<gs.length;i++){ if(inGeom(pos, gs[i])) return true; }
+    return false;
+  }
+  function centroid(pg){
+    try{
+      if(typeof pg.getPath !== 'function') return null;
+      if(pg._r46C) return pg._r46C;
+      var p = pg.getPath(), n = p.getLength(); if(!n) return null;
+      var la=0, ln=0;
+      for(var i=0;i<n;i++){ var pt=p.getAt(i); la+=pt.lat(); ln+=pt.lng(); }
+      pg._r46C = new google.maps.LatLng(la/n, ln/n);
+      return pg._r46C;
+    }catch(e){ return null; }
+  }
+
+  // --- 1) NSE scoping watchdog ---
+  setInterval(function(){
+    try{
+      if(!window.nseLayerActive) return;
+      var arr = window.nseGridPolygons || [];
+      if(!arr.length) return;
+      var gs = geoms();
+      arr.forEach(function(pg){
+        if(!pg || typeof pg.setMap !== 'function') return;
+        var c = centroid(pg); if(!c) return;
+        var show = !gs.length || inAny(c, gs);
+        var onMap = null;
+        try{ onMap = pg.getMap(); }catch(e){}
+        if(show && !onMap && pg._r46Hidden){ pg._r46Hidden=false; try{ pg.setMap(window.map); }catch(e){} }
+        else if(!show && onMap){ pg._r46Hidden=true; try{ pg.setMap(null); }catch(e){} }
+      });
+    }catch(e){}
+  }, 900);
+
+  // --- 2) búsqueda: filtro tardío incl. multi-selección ---
+  function filterSearchMarkers(){
+    try{
+      var gs = geoms(); if(!gs.length) return;
+      var arr = window.searchMarkers || [];
+      for(var i=arr.length-1;i>=0;i--){
+        var m = arr[i]; if(!m || typeof m.getPosition !== 'function') continue;
+        if(!inAny(m.getPosition(), gs)){ try{ m.setMap(null); }catch(e){} arr.splice(i,1); }
+      }
+    }catch(e){}
+  }
+  function hookSearch(){
+    if(typeof window.searchBusiness !== 'function' || window.searchBusiness._r46) return;
+    var orig = window.searchBusiness;
+    window.searchBusiness = function(){
+      var r = orig.apply(this, arguments);
+      [1200, 2500, 4500, 7000].forEach(function(d){ setTimeout(filterSearchMarkers, d); });
+      return r;
+    };
+    window.searchBusiness._r46 = true;
+  }
+  hookSearch();
+  [1000, 3000].forEach(function(d){ setTimeout(hookSearch, d); });
 })();
 </script>
 
