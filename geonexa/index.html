@@ -35359,5 +35359,147 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
   window.r44Variants = r44Variants;
 })();
 </script>
+<!-- ============================================================ -->
+<!-- Connectia FULL SHARE (2026-06-22)                            -->
+<!-- Comparte TODA la sesion (incl. landmarks: search/places/     -->
+<!-- DENUE/importados/pin de direccion) guardando el estado en    -->
+<!-- Supabase y generando un link corto #s=<id>. Aditivo: reusa   -->
+<!-- el hash #share= existente como "core" y solo agrega landmarks.-->
+<!-- ============================================================ -->
+<script id="connectia-full-share">
+(function(){
+  'use strict';
+  var SB_URL='https://mduxlmnlwycwknyapwsx.supabase.co';
+  var SB_KEY='sb_publishable_lqa9WdRYSvYZ1elBbkN_ZQ_pMCGJdxL';
+
+  function _iconInfo(ov){ try{ var ic=ov.getIcon&&ov.getIcon(); if(!ic) return null;
+      if(typeof ic==='string') return {u:ic};
+      if(ic.url) return {u:ic.url};
+      if(ic.path) return {p:ic.path, fc:ic.fillColor||null, sc:ic.strokeColor||null, sca:ic.scale||null};
+    }catch(e){} return null; }
+  function _labelInfo(ov){ try{ var l=ov.getLabel&&ov.getLabel(); if(!l) return null; if(typeof l==='string') return {t:l}; return {t:l.text||'', c:l.color||null}; }catch(e){} return null; }
+  function _serMk(mk, kind){ try{ if(!mk||!mk.getPosition) return null; var p=mk.getPosition(); if(!p) return null;
+      var o={la:+p.lat().toFixed(6), ln:+p.lng().toFixed(6), k:kind};
+      var t=mk.getTitle&&mk.getTitle(); if(t) o.ti=String(t).substring(0,120);
+      var ic=_iconInfo(mk); if(ic) o.ic=ic;
+      var lb=_labelInfo(mk); if(lb) o.lb=lb;
+      if(mk._info) o.nf=String(mk._info).substring(0,1500);
+      if(mk._importData){ try{ o.id=JSON.parse(JSON.stringify(mk._importData)); }catch(e){} }
+      if(mk._importColor) o.cl=mk._importColor;
+      return o; }catch(e){ return null; } }
+
+  function captureLandmarks(){
+    var arrs=[['searchMarkers',window.searchMarkers],['placesMarkers',window.placesMarkers],['denueMarkers',window.denueMarkers],['importedMarkers',window.importedMarkers],['reportPins',window._arReportPlacePins]];
+    var lm=[];
+    arrs.forEach(function(pair){ var arr=pair[1]; if(arr&&arr.length){ arr.forEach(function(mk){ if(lm.length>=400) return; var s=_serMk(mk,pair[0]); if(s) lm.push(s); }); } });
+    try{ if(window._searchPinMarker){ var sp=_serMk(window._searchPinMarker,'searchPin'); if(sp) lm.push(sp); } }catch(e){}
+    return lm;
+  }
+
+  function restoreLandmarks(lm){ if(!lm||!lm.length) return 0; var n=0;
+    window.searchMarkers=window.searchMarkers||[]; window.placesMarkers=window.placesMarkers||[]; window.denueMarkers=window.denueMarkers||[]; window.importedMarkers=window.importedMarkers||[]; window._arReportPlacePins=window._arReportPlacePins||[];
+    lm.forEach(function(o){ try{
+        var opts={position:{lat:o.la,lng:o.ln}, map:map, title:o.ti||''};
+        if(o.ic){ if(o.ic.u){ opts.icon={url:o.ic.u, scaledSize:new google.maps.Size(28,28)}; } else if(o.ic.p){ opts.icon={path:o.ic.p, fillColor:o.ic.fc||'#6D28D9', fillOpacity:1, strokeColor:o.ic.sc||'#fff', strokeWeight:1.5, scale:o.ic.sca||1}; } }
+        if(o.lb&&o.lb.t){ opts.label={text:o.lb.t, color:(o.lb.c||'#fff'), fontSize:'10px', fontWeight:'bold'}; }
+        var mk=new google.maps.Marker(opts);
+        var info=o.nf || ('<div style="font-family:sans-serif;font-size:12px;font-weight:600">'+(o.ti||'')+'</div>');
+        var iw=new google.maps.InfoWindow({content:info});
+        mk.addListener('click',function(){iw.open(map,mk);});
+        var target={searchMarkers:window.searchMarkers,placesMarkers:window.placesMarkers,denueMarkers:window.denueMarkers,importedMarkers:window.importedMarkers,reportPins:window._arReportPlacePins}[o.k];
+        if(o.k==='searchPin'){ window._searchPinMarker=mk; } else if(target){ target.push(mk); }
+        if(o.id) mk._importData=o.id; if(o.cl) mk._importColor=o.cl;
+        n++;
+      }catch(e){} });
+    return n;
+  }
+
+  async function uploadShare(state){ var r=await fetch(SB_URL+'/rest/v1/rpc/create_geonexa_share',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_state:state})}); if(!r.ok) throw new Error('upload '+r.status); return await r.json(); }
+  async function fetchShare(id){ var r=await fetch(SB_URL+'/rest/v1/rpc/get_geonexa_share',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_id:id})}); if(!r.ok) throw new Error('fetch '+r.status); return await r.json(); }
+
+  // core = el mismo hash #share= que la app ya produce y sabe restaurar
+  function captureFull(){
+    var core='';
+    try{ if(typeof window._writeUrl==='function') window._writeUrl(); }catch(e){}
+    var h=window.location.hash||'';
+    if(h.indexOf('#share=')===0) core=h.substring(7);
+    else { try{ if(typeof stateToHash==='function'&&typeof captureMapState==='function') core=stateToHash(captureMapState()); }catch(e){} }
+    return { core: core, lm: captureLandmarks() };
+  }
+
+  // ---- Compartir: reemplaza el handler del FAB para producir link corto ----
+  async function openFullShareModal(){
+    var modal=document.getElementById('cn-share-modal');
+    if(!modal){ return; }
+    var inp=modal.querySelector('#cn-share-url-public');
+    try{ modal.querySelector('#cn-share-pwd-input').value=''; modal.querySelector('#cn-share-url-pwd').value=''; modal.querySelector('#cn-share-pwd-on').checked=false; modal.querySelector('#cn-share-pwd-block').style.display='none'; }catch(e){}
+    if(inp) inp.value='Generando enlace…';
+    modal.classList.add('show');
+    try{
+      var state=captureFull();
+      var id=await uploadShare(state);
+      if(inp) inp.value = window.location.origin+window.location.pathname+'#s='+id;
+    }catch(e){
+      console.warn('[connectia] full-share upload fallo, uso link largo', e);
+      try{ if(typeof window._writeUrl==='function') window._writeUrl(); }catch(_){}
+      if(inp) inp.value = window.location.href;
+    }
+  }
+
+  function hookFab(){
+    var fab=document.getElementById('cn-share-fab');
+    if(!fab || fab._cnFull) return;
+    var clone=fab.cloneNode(true); clone._cnFull=true;
+    if(fab.parentNode) fab.parentNode.replaceChild(clone, fab);
+    clone.addEventListener('click', openFullShareModal);
+  }
+
+  // ---- Abrir link corto #s=<id>: baja estado, deja core en #share= y recarga ----
+  function handleShortLink(){
+    var h=window.location.hash||'';
+    if(h.indexOf('#s=')!==0) return false;
+    var id=h.substring(3).replace(/[^A-Za-z0-9]/g,'');
+    if(!id) return false;
+    fetchShare(id).then(function(state){
+      if(!state){ return; }
+      try{ sessionStorage.setItem('cn_pending_lm', JSON.stringify(state.lm||[])); }catch(e){}
+      var core=state.core||'';
+      var target=window.location.pathname + (core? ('#share='+core) : '');
+      try{ window.location.replace(target); }catch(e){ window.location.hash = core? ('#share='+core):''; }
+      setTimeout(function(){ window.location.reload(); }, 30);
+    }).catch(function(e){ console.warn('[connectia] short-share fetch fallo', e); });
+    return true;
+  }
+
+  function restorePendingLandmarks(){
+    var raw=null; try{ raw=sessionStorage.getItem('cn_pending_lm'); }catch(e){}
+    if(!raw) return;
+    try{ sessionStorage.removeItem('cn_pending_lm'); }catch(e){}
+    var lm=null; try{ lm=JSON.parse(raw); }catch(e){ return; }
+    if(!lm||!lm.length) return;
+    var tries=0;
+    var t=setInterval(function(){
+      tries++;
+      if(typeof map!=='undefined' && map){ clearInterval(t); setTimeout(function(){ try{ var n=restoreLandmarks(lm); if(typeof setStatus==='function') setStatus(n+' landmarks restaurados del enlace'); }catch(e){} }, 2600); }
+      else if(tries>60){ clearInterval(t); }
+    },250);
+  }
+
+  window.CN_FULLSHARE={captureFull:captureFull, captureLandmarks:captureLandmarks, restoreLandmarks:restoreLandmarks, uploadShare:uploadShare, fetchShare:fetchShare};
+
+  function start(){ hookFab(); }
+  // Si venimos de un link corto, procesarlo cuanto antes (antes de que la app corra su restore)
+  var _isShort = false;
+  try{ _isShort = (window.location.hash||'').indexOf('#s=')===0; }catch(e){}
+  if(_isShort){ handleShortLink(); }
+  function boot(){
+    restorePendingLandmarks();
+    start();
+    [600,1500,3000,6000].forEach(function(d){ setTimeout(start, d); });
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', boot); }
+  else { boot(); }
+})();
+</script>
 </body>
 </html>
