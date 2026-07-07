@@ -17339,7 +17339,7 @@ function setLayerOpacity(layerId,val){
 }
 
 // ===== PIN ICON & COLOR CUSTOMIZER =====
-var pinColors=['#ea4335','#1d1d1f','#15803d','#2563eb','#7c3aed','#f59e0b','#ec4899','#06b6d4','#f97316','#636366'];
+var pinColors=['#ea4335','#d32f2f','#b91c1c','#c2185b','#e91e63','#ec4899','#f472b6','#f97316','#ea580c','#f59e0b','#fbc02d','#fdd835','#eab308','#84cc16','#22c55e','#16a34a','#15803d','#059669','#0d9488','#06b6d4','#0891b2','#0ea5e9','#3b82f6','#2563eb','#1d4ed8','#6366f1','#8b5cf6','#7c3aed','#a855f7','#9333ea','#c026d3','#1d1d1f','#374151','#636366','#78716c','#92400e'];
 var pinIcons=['📍','🔴','🟢','🔵','⭐','🏠','🏢','🏪','🏥','🎯','📌','🚩','💎','🎪','⛳','🪧','🌉','🚏','🚌','🚍','🌁'];
 var pinEmojiCategories=[
   {name:'Landmarks',icon:'🏛️',emojis:['🏛️','🗽','🗼','🏰','🏯','⛪','🕌','🛕','🕍','⛩️','🕋','🗻','🌋','🏔️','⛰️','🏗️','🏟️','🏘️','🏙️','🌆','🌇','🌃','🌉','🌁','🗾','🎪','🎠','🎡','🎢','🏖️','🏝️','🏜️','⛲','⛺','🛖','🪨','🏺','🪑','🛏️','🚪','🪟','🛋️','🪞','🧯','🪣','🧹','🧺','🧻','🚽','🚰','🚿','🛁','🛀','🧼','🧽','🧴','🛒']},
@@ -17368,6 +17368,15 @@ var pinOOHTypes=[
   {id:'pantalla',label:'Pantalla Digital',icon:'🖥️',color:'#8b5cf6'},
   {id:'parabuses',label:'Parabuses',icon:'🛖',color:'#ea580c'},
   {id:'valla',label:'Valla',icon:'🏗️',color:'#475569'}
+];
+// Lista PLANA de iconos (todos juntos, sin secciones). OOH/publicidad primero para que destaquen.
+var pinIconsAll=[
+  '🪧','📺','🖥️','📢','📣','🚏','🚌','🚍','🚐','🚚','🚛','🌉','🌁','🏗️','🏢','🏬','🏙️','🧱','🛣️','🚧',
+  '📍','📌','🚩','⭐','🎯','🔺','🔻','🔶','🔷','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','💎','👑','🏆',
+  '🏠','🏡','🏪','🏫','🏥','🏨','🏦','🏛️','🏟️','⛽','🛒','🛍️','🏧','🍔','🍕','☕','🍺','🍷','🥤','🎪',
+  '🚗','🚕','🚙','🏍️','🛵','🚲','✈️','🚉','🚇','🚆','🚊','⚓','🚢','🅿️','🛎️','🎬','🎤','🎧','🎵','📸',
+  '💻','📱','📡','🔔','⚡','🔥','💥','✨','❤️','💜','💙','💚','💛','🧡','💗','🏳️','🏁','🎗️','⚕️','💊',
+  '🎓','📚','⚽','🏀','🏈','⚾','🎾','🏉','🏓','🎣','🌳','🌲','🌴','🌵','🌊','☀️','🌙','🏭','⛲','🗽'
 ];
 var currentPinColor='#ea4335';
 var currentPinIcon='📍';
@@ -17415,20 +17424,13 @@ function showPinConfig(){
   h+='<span style="font-size:9px;color:#86868b">Personalizado</span>';
   h+='</div>';
 
-  // Icon picker — tabbed emoji categories (same as per-pin customize)
+  // Icon picker — TODOS los iconos juntos, sin secciones
   h+='<div style="font-size:10px;font-weight:600;color:#1d1d1f;margin-bottom:6px">📌 Icono del Pin</div>';
-  h+='<div style="display:flex;gap:1px;margin-bottom:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px" id="pcg-emoji-tabs">';
-  pinEmojiCategories.forEach(function(cat,ci){
-    h+='<div onclick="_pcgSwitchTab('+ci+')" data-gtab="'+ci+'" class="pcg-tab" style="padding:3px 5px;border-radius:5px;cursor:pointer;font-size:12px;flex-shrink:0;border:1px solid '+(ci===0?'#6D28D9':'#e2e8f0')+';background:'+(ci===0?'#ede9fe':'#fff')+'" title="'+cat.name+'">'+cat.icon+'</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;max-height:150px;overflow-y:auto">';
+  pinIconsAll.forEach(function(em){
+    h+='<div onclick="setPinIcon(\''+em+'\');_pcgHighlight(this)" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;font-size:16px;background:#f5f5f7;border:1px solid rgba(0,0,0,.06)" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</div>';
   });
   h+='</div>';
-  pinEmojiCategories.forEach(function(cat,ci){
-    h+='<div id="pcg-emoji-grid-'+ci+'" style="display:'+(ci===0?'flex':'none')+';flex-wrap:wrap;gap:2px;margin-bottom:6px;max-height:120px;overflow-y:auto">';
-    cat.emojis.forEach(function(em){
-      h+='<div onclick="setPinIcon(\''+em+'\');_pcgHighlight(this)" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:5px;cursor:pointer;font-size:14px;background:#f5f5f7;border:1px solid rgba(0,0,0,.06);transition:transform .1s" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</div>';
-    });
-    h+='</div>';
-  });
   // Image import for global pin config
   h+='<div style="font-size:10px;font-weight:600;color:#1d1d1f;margin-bottom:4px;margin-top:6px">📷 Imagen personalizada</div>';
   h+='<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">';
@@ -17524,15 +17526,14 @@ function _pcgApplyImage(input){
 }
 
 function updateAllMarkerColors(color){
-  // Update markers on map (if using AdvancedMarkerElement or default markers)
+  // Recolorea los pines CONSERVANDO la forma de gota original (no los convierte en círculo).
   if(typeof multiSelections!=='undefined'){
     multiSelections.forEach(function(s){
       if(s.overlay&&s.type==='marker'&&s.overlay.setIcon){
         try{
-          s.overlay.setIcon({
-            path:google.maps.SymbolPath.CIRCLE,
-            fillColor:color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:8
-          });
+          s.color=color;
+          if(s._customImg||s._icon){ if(typeof _pgApplyColor==='function') _pgApplyColor(multiSelections.indexOf(s),color); }
+          else { s.overlay.setIcon(_pinIcon(color)); }
         }catch(e){}
       }
     });
@@ -17986,21 +17987,13 @@ function _pgCustomizePin(pi){
     h+='<div onclick="_pgApplyColor('+pi+',\''+c+'\')" style="width:22px;height:22px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid '+(c===sel.color?'#1d1d1f':'transparent')+'"></div>';
   });
   h+='</div>';
-  // --- Emoji tabs ---
+  // --- Iconos (TODOS juntos, sin secciones) ---
   h+='<div style="font-size:10px;font-weight:600;color:#1d1d1f;margin-bottom:4px">Icono</div>';
-  h+='<div style="display:flex;gap:1px;margin-bottom:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px" id="pc-emoji-tabs">';
-  pinEmojiCategories.forEach(function(cat,ci){
-    h+='<div onclick="_pcSwitchTab('+ci+')" data-tab="'+ci+'" class="pc-tab" style="padding:4px 6px;border-radius:5px;cursor:pointer;font-size:13px;flex-shrink:0;border:1px solid '+(ci===0?'#6D28D9':'#e2e8f0')+';background:'+(ci===0?'#ede9fe':'#fff')+'" title="'+cat.name+'">'+cat.icon+'</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;max-height:170px;overflow-y:auto">';
+  pinIconsAll.forEach(function(em){
+    h+='<div onclick="_pgApplyIcon('+pi+',\''+em+'\');_pcHighlightSelected(this)" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;font-size:18px;background:#f5f5f7;border:1px solid rgba(0,0,0,.06)" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</div>';
   });
   h+='</div>';
-  // Emoji grids per category
-  pinEmojiCategories.forEach(function(cat,ci){
-    h+='<div id="pc-emoji-grid-'+ci+'" style="display:'+(ci===0?'flex':'none')+';flex-wrap:wrap;gap:2px;margin-bottom:6px;max-height:140px;overflow-y:auto">';
-    cat.emojis.forEach(function(em){
-      h+='<div onclick="_pgApplyIcon('+pi+',\''+em+'\');_pcHighlightSelected(this)" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:5px;cursor:pointer;font-size:16px;background:#f5f5f7;border:1px solid rgba(0,0,0,.06);transition:transform .1s" onmouseover="this.style.transform=\'scale(1.25)\'" onmouseout="this.style.transform=\'scale(1)\'">'+em+'</div>';
-    });
-    h+='</div>';
-  });
   // --- Import image from device ---
   h+='<div style="font-size:10px;font-weight:600;color:#1d1d1f;margin-bottom:4px;margin-top:6px">Imagen personalizada</div>';
   h+='<div style="display:flex;gap:6px;align-items:center">';
@@ -18139,12 +18132,11 @@ function _pgBulkCustomize(gid){
   });
   h+='</div>';
   h+='<input type="hidden" id="pg-bulk-color" value="">';
-  // --- Icono / Emoji (aplica a todos al instante) ---
+  // --- Icono / Emoji (todos juntos; aplica a todo el grupo al instante) ---
   h+='<div style="font-size:10px;font-weight:600;color:#1d1d1f;margin-bottom:4px">Icono / Emoji (para todos)</div>';
-  h+='<div style="display:flex;gap:1px;margin-bottom:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px">';
-  pinEmojiCategories.forEach(function(cat,ci){ h+='<div onclick="_pcbSwitchTab('+ci+')" class="pcb-tab" style="padding:4px 6px;border-radius:5px;cursor:pointer;font-size:13px;flex-shrink:0;border:1px solid '+(ci===0?'#6D28D9':'#e2e8f0')+';background:'+(ci===0?'#ede9fe':'#fff')+'" title="'+cat.name+'">'+cat.icon+'</div>'; });
+  h+='<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;max-height:130px;overflow-y:auto">';
+  pinIconsAll.forEach(function(em){ h+='<div onclick="_pgApplyIconBulk('+gid+',\''+em+'\')" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;font-size:16px;background:#f5f5f7;border:1px solid rgba(0,0,0,.06)">'+em+'</div>'; });
   h+='</div>';
-  pinEmojiCategories.forEach(function(cat,ci){ h+='<div id="pcb-emoji-grid-'+ci+'" style="display:'+(ci===0?'flex':'none')+';flex-wrap:wrap;gap:2px;margin-bottom:8px;max-height:110px;overflow-y:auto">'; cat.emojis.forEach(function(em){ h+='<div onclick="_pgApplyIconBulk('+gid+',\''+em+'\')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:5px;cursor:pointer;font-size:15px;background:#f5f5f7;border:1px solid rgba(0,0,0,.06)">'+em+'</div>'; }); h+='</div>'; });
   h+='<div id="pg-bulk-preview" style="text-align:center;padding:6px;background:#f5f5f7;border-radius:6px;font-size:11px;color:#6D28D9;font-weight:600;margin-bottom:10px">Selecciona tipo, color o icono</div>';
   h+='<button onclick="_pgApplyBulk('+grp.id+')" style="width:100%;padding:10px;background:linear-gradient(135deg,#6D28D9,#8B3A9F);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✓ Aplicar a todos</button>';
   h+='</div>';
