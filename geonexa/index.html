@@ -19133,6 +19133,7 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
         setTimeout(function(){
           state.pins.forEach(function(p){
             try{
+              if(!p || p.a==null || p.o==null || p.t) return; // r50: formato full lo restaura loadSharedState
               _msAddImportedPin(p.a, p.o, p.n || ('Pin '+(multiSelections.length+1)));
               var idx = multiSelections.length - 1;
               var sel = multiSelections[idx];
