@@ -268,6 +268,7 @@ select:focus{border-color:#0071e3}
   <button class="tb" id="btn-polygon" data-tip="Poligono">&#x2B1F;<span class="tb-lbl">Polígono</span></button>
   <button class="tb" id="btn-route" data-tip="Ruta">&#x1F6E3;&#xFE0F;<span class="tb-lbl">Ruta</span></button>
   <button class="tb" id="btn-import" data-tip="Importar ubicaciones" onclick="_showImportMenu(this,event)">&#x1F4CE;<span class="tb-lbl">Importar</span></button>
+  <button class="tb" id="btn-pinstyle" data-tip="Personalizar pines (icono, color, imagen)" onclick="(function(){var p=document.getElementById('pin-config-panel');if(p){p.remove();window._pinConfigVisible=false;}else if(typeof showPinConfig==='function'){showPinConfig();}})()">&#x1F3A8;<span class="tb-lbl">Pines</span></button>
   <div class="sep"></div>
   <div class="tb-group-title">Map</div>
   <button class="tb" id="btn-satellite" data-tip="Satelite">&#x1F6F0;&#xFE0F;<span class="tb-lbl">Satélite</span></button>
@@ -17488,6 +17489,13 @@ function setPinIcon(icon){
   currentPinIcon=icon;
   window._currentPinCustomImg=null; // Clear custom image when icon selected
   showPinConfig(); // Re-render
+  // Aplicar TAMBIÉN el icono a los pines ya colocados (marcadores de multiselección),
+  // igual que setPinColor aplica el color. Así "cambiar el icono" afecta a los pines existentes.
+  try{
+    if(typeof multiSelections!=='undefined' && typeof window._pgApplyIcon==='function'){
+      multiSelections.forEach(function(s,i){ if(s&&s.type==='marker'){ try{ window._pgApplyIcon(i, icon); }catch(e){} } });
+    }
+  }catch(e){}
 }
 // Global pin config: tab switcher
 function _pcgSwitchTab(idx){
