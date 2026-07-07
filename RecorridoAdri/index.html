@@ -273,7 +273,7 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 
 .chain-km{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:#fff;
   margin:0 6px 6px 0;padding:5px 10px;border-radius:999px}
-.chain-wm{background:#0053e2}.chain-ch{background:#E4022B}.chain-cm{background:#E2001A}.chain-co{background:#005DAA}.chain-so{background:#D52B1E}.chain-ba{background:#E4002B}.chain-mg{background:#E30613}
+.chip-logo{background:#fff;color:#201040;gap:6px}
 .sp-chains{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
 
 .chain-km{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--mist);margin-right:8px}
@@ -330,6 +330,10 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
   .cart-actions{flex-direction:column}
 }
 
+.store-logo-pin{width:40px;height:28px;border-radius:7px;background:#fff center/78% no-repeat;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.9);cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.store-logo-pin.wm{background:#0053e2}
 /* geonexa iframe (interfaz real connectia.mx) */
 .geo-map-mock iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:var(--r);background:#150a30}
 
@@ -1146,22 +1150,38 @@ const S = {
 
 /* Cadenas retail del corredor — coordenadas reales INEGI DENUE 2024 */
 const TIENDAS=[
- {n:"Sam's Club Jesús del Monte",lat:19.39847,lng:-99.28789,c:'wm'},
- {n:'Walmart Supercenter Jesús del Monte',lat:19.39992,lng:-99.28807,c:'wm'},
- {n:'Walmart Central Interlomas',lat:19.39583,lng:-99.28908,c:'wm'},
- {n:'Walmart Express F. de las Lomas',lat:19.39490,lng:-99.29001,c:'wm'},
- {n:'Walmart Supercenter Magnocentro',lat:19.40380,lng:-99.27154,c:'wm'},
- {n:'Walmart Express Vista Hermosa',lat:19.37323,lng:-99.27879,c:'wm'},
- {n:'Walmart Express Lomas Anáhuac',lat:19.40622,lng:-99.25667,c:'wm'},
- {n:'Chedraui Palmas Hills',lat:19.39359,lng:-99.28173,c:'ch'},
- {n:'Chedraui Interlomas',lat:19.40133,lng:-99.27078,c:'ch'},
- {n:'Superche Tecamachalco',lat:19.41115,lng:-99.25065,c:'ch'},
- {n:'Chedraui Selecto Santa Fe',lat:19.36218,lng:-99.27575,c:'ch'},
- {n:'La Comer Magnocentro',lat:19.39943,lng:-99.27475,c:'cm'},
- {n:'Fresko Jesús del Monte',lat:19.38890,lng:-99.29267,c:'cm'},
- {n:'Fresko Pabellón Bosques',lat:19.38252,lng:-99.26741,c:'cm'},
- {n:'Costco Interlomas',lat:19.40419,lng:-99.27177,c:'co'},
- {n:'Costco Magnocentro',lat:19.40181,lng:-99.27618,c:'co'}
+ {n:'Superama Jesús del Monte',lat:19.39507,lng:-99.28916,c:'wm'},
+ {n:'Chedraui',lat:19.40241,lng:-99.26965,c:'ch'},
+ {n:'COSTCO Interlomas',lat:19.40382,lng:-99.27343,c:'co'},
+ {n:'Walmart Supercenter',lat:19.39876,lng:-99.28892,c:'wm'},
+ {n:'Walmart Supercenter',lat:19.4055,lng:-99.27373,c:'wm'},
+ {n:'Fresko',lat:19.38886,lng:-99.29364,c:'cm'},
+ {n:'Fresko',lat:19.38316,lng:-99.26885,c:'cm'},
+ {n:'Walmart Express',lat:19.37289,lng:-99.27897,c:'wm'},
+ {n:'Superama Lomas Anáhuac',lat:19.4067,lng:-99.25679,c:'wm'},
+ {n:'Chedraui',lat:19.41127,lng:-99.25077,c:'ch'},
+ {n:'Superama',lat:19.4225,lng:-99.2601,c:'wm'},
+ {n:'Walmart Express',lat:19.38874,lng:-99.24776,c:'wm'},
+ {n:'City Market',lat:19.38878,lng:-99.24766,c:'cm'},
+ {n:'Walmart Supercenter',lat:19.37741,lng:-99.25458,c:'wm'},
+ {n:'Walmart Supercenter',lat:19.37715,lng:-99.25447,c:'wm'},
+ {n:'Walmart Supercenter',lat:19.36402,lng:-99.28865,c:'wm'},
+ {n:'Chedraui',lat:19.3686,lng:-99.25835,c:'ch'},
+ {n:'Selecto Chedraui',lat:19.36022,lng:-99.27403,c:'ch'},
+ {n:'City Market',lat:19.35806,lng:-99.27234,c:'cm'},
+ {n:'Chedraui',lat:19.36028,lng:-99.2931,c:'ch'},
+ {n:'Walmart Express',lat:19.40715,lng:-99.23899,c:'wm'},
+ {n:'Chedraui',lat:19.35981,lng:-99.29368,c:'ch'},
+ {n:'Walmart Express',lat:19.35594,lng:-99.2767,c:'wm'},
+ {n:'Chedraui',lat:19.3558,lng:-99.29894,c:'ch'},
+ {n:'Fresko',lat:19.42158,lng:-99.23808,c:'cm'},
+ {n:'Walmart Express',lat:19.42223,lng:-99.23742,c:'wm'},
+ {n:'Soriana Santa Lucía',lat:19.36499,lng:-99.24153,c:'so'},
+ {n:'Bodega Aurrera',lat:19.44034,lng:-99.24877,c:'ba'},
+ {n:'Bodega Aurrera Río Hondo',lat:19.44006,lng:-99.24756,c:'ba'},
+ {n:'Bodega Aurrera',lat:19.44452,lng:-99.25662,c:'ba'},
+ {n:'Walmart Express',lat:19.41569,lng:-99.22618,c:'wm'},
+ {n:'Bodega Aurrera',lat:19.38756,lng:-99.22296,c:'ba'}
 ];
 try{ (JSON.parse(localStorage.getItem('cxw_favs')||'[]')).forEach(f=>S.favs.add(f)); }catch(e){}
 try{ S.cartEstado=JSON.parse(localStorage.getItem('cxw_estado')||'{}'); }catch(e){}
@@ -1257,10 +1277,9 @@ function initMap(){
       S.carMarker=new maplibregl.Marker({element:car}).setLngLat(ROUTE[0]).addTo(S.map);
       /* tiendas retail (Walmart · Soriana · Chedraui) */
       TIENDAS.forEach(t=>{
-        const el=document.createElement('div'); el.className='store-pin '+t.c;
-        if(t.c==='wm') el.innerHTML='<svg viewBox="0 0 532.262 600" style="width:14px;height:14px;fill:#FFC220"><use href="#wm-spark"/></svg>';
-        if(t.c==='cm') el.textContent='LC';
-        if(t.c==='co') el.textContent='CO';
+        const el=document.createElement('div'); el.className='store-logo-pin';
+        if(t.c==='wm'){ el.classList.add('wm'); el.innerHTML='<svg viewBox="0 0 532.262 600" style="width:16px;height:16px;fill:#FFC220"><use href="#wm-spark"/></svg>'; }
+        else if(CHAIN_LOGO[t.c]){ el.style.backgroundImage='url('+CHAIN_LOGO[t.c]+')'; }
         el.onclick=()=>toast(t.n);
         new maplibregl.Marker({element:el}).setLngLat([t.lng,t.lat]).addTo(S.map);
       });
@@ -1449,7 +1468,7 @@ function checkProximity(pos){
       if(!S.history.includes(nearest.id)) S.history.push(nearest.id);
       if(pin){ pin.classList.remove('near'); pin.classList.add('visited'); }
       renderSitios(); flashChains(nearest);
-      if(S.sim.on) openStreet360(nearest);
+      if(S.sim.on && !S.realGps) openStreet360(nearest);
     } else if(S.popupPoi!==nearest.id){ showGpsPopup(nearest,1); }
   } else if(S.popupPoi && nd>220){ hideGpsPopup(); document.querySelectorAll('.poi-pin.near').forEach(p=>p.classList.remove('near')); }
 }
@@ -1470,7 +1489,10 @@ function showGpsPopup(p,level){
   $('gps-popup').dataset.poi=p.id;
   $('gpsp-sem').innerHTML=semaforoHtml(p.estatus);
   var _gp=document.querySelector('#gps-popup .card');
-  if(_gp) _gp.onclick=function(){ hideGpsPopup(); openPoi(p.id); };
+  if(_gp) _gp.onclick=function(){
+    if(S.sim.on){ clearInterval(S.sim.timer); S.sim.on=false; S.sim.paused=true; const b=$('play-btn'); if(b) b.textContent='▶'; }
+    hideGpsPopup(); openPoi(p.id);
+  };
   $('gps-popup').classList.add('show');
   clearTimeout(S._pt); S._pt=setTimeout(hideGpsPopup, level===1?14000:20000);
 }
@@ -1649,7 +1671,7 @@ function openCarrito(){
        <div class="chk-row chk-total"><span>TOTAL MENSUAL</span><strong>${fmtMXN(subtot('reservar')+subtot('propuesta'))}</strong></div>
      </div>
      <div class="mt20" style="display:flex;gap:12px;flex-wrap:wrap">
-       <button class="btn primary" ${Object.keys(S.cartEstado).some(k=>S.favs.has(k))?'':'disabled style="opacity:.4"'} onclick="openCheckout()">VER CHECKOUT</button>
+       <button class="btn primary" ${Object.keys(S.cartEstado).some(k=>S.favs.has(k))?'':'disabled style="opacity:.4"'} onclick="askMore()">VER CHECKOUT</button>
        <button class="btn ghost" onclick="closeSheet();go('mapa')">SEGUIR EXPLORANDO</button>
      </div>
    </div>`);
@@ -1659,11 +1681,11 @@ function setEstado(id,tipo){
   S.cartEstado[id]=(S.cartEstado[id]===tipo?null:tipo);
   if(!S.cartEstado[id]) delete S.cartEstado[id];
   saveEstado(); openCarrito();
-  if(S.cartEstado[id]) setTimeout(()=>$('push-note').classList.add('show'),350);
 }
 function pushSi(){ $('push-note').classList.remove('show'); closeSheet(); go('mapa');
   const sp=$('sitios-panel'); if(sp) sp.classList.remove('hide'); }
 function pushNo(){ $('push-note').classList.remove('show'); openCheckout(); }
+function askMore(){ $('push-note').classList.add('show'); }
 function openCheckout(){
   const res=cartItems().filter(x=>S.cartEstado[x.id]==='reservar');
   const blk=cartItems().filter(x=>S.cartEstado[x.id]==='propuesta');
@@ -1749,7 +1771,8 @@ function flujoMes(p){
   const m=p.imp||0;
   return (m>=1e6?(m/1e6).toFixed(1).replace('.0','')+' M':Math.round(m/1e3)+' K')+' impactos/mes';
 }
-const CHAIN_META={wm:['#0053e2','Walmart'],ch:['#E4022B','Chedraui'],cm:['#E2001A','La Comer'],co:['#005DAA','Costco'],so:['#D52B1E','Soriana'],ba:['#E4002B','Bodega Aurrerá'],mg:['#E30613','Mega']};
+const CHAIN_META={wm:['#0053e2','Walmart'],ch:['#0071CE','Chedraui'],cm:['#E2001A','La Comer'],co:['#005DAA','Costco'],so:['#8DC63F','Soriana'],ba:['#E4002B','Bodega Aurrerá']};
+const CHAIN_LOGO={ch:'assets/logos/ch.png',cm:'assets/logos/cm.png',co:'assets/logos/co.png',so:'assets/logos/so.png',ba:'assets/logos/ba.png'};
 function nearestChainsShort(p){
   const res={};
   TIENDAS.forEach(t=>{ const d=hav([p.lng,p.lat],[t.lng,t.lat]); if(!res[t.c]||d<res[t.c].d) res[t.c]={d}; });
@@ -1757,8 +1780,8 @@ function nearestChainsShort(p){
   const others = Object.keys(res).filter(c=>c!=='wm').map(c=>[c,res[c].d]).sort((a,b)=>a[1]-b[1]).slice(0,2);
   return wm.concat(others).map(([c,d])=>{
     const [col,nm]=CHAIN_META[c];
-    const ico = c==='wm' ? '<svg viewBox="0 0 532.262 600" style="width:11px;height:11px;fill:#FFC220;vertical-align:-1px"><use href="#wm-spark"/></svg>' : '';
-    return '<span class="chain-km chain-'+c+'">'+ico+' '+nm.split(' ')[0]+' '+(d/1000).toFixed(1)+'km</span>';
+    const logo = c==='wm' ? '<svg viewBox="0 0 532.262 600" style="width:12px;height:12px;fill:#FFC220"><use href="#wm-spark"/></svg>' : '<img src="'+CHAIN_LOGO[c]+'" style="height:13px;width:auto;vertical-align:middle">';
+    return '<span class="chain-km chip-logo">'+logo+' '+(d/1000).toFixed(1)+'km</span>';
   }).join('');
 }
 function nearestChains(p){
@@ -1767,10 +1790,10 @@ function nearestChains(p){
     if(!res[t.c]||d<res[t.c].d) res[t.c]={d,n:t.n}; });
   return Object.keys(CHAIN_META).map(c=>{ if(!res[c]||res[c].d>7000) return '';
     const km=(res[c].d/1000).toFixed(1); const [col,nm]=CHAIN_META[c];
-    const ico = c==='wm'
-      ? '<svg viewBox="0 0 532.262 600" style="width:12px;height:12px;fill:#FFC220;vertical-align:-1px"><use href="#wm-spark"/></svg>'
-      : '';
-    return '<span class="chain-km chain-'+c+'">'+ico+' '+nm+' · '+km+' km</span>'; }).join('');
+    const logo = c==='wm'
+      ? '<svg viewBox="0 0 532.262 600" style="width:14px;height:14px;fill:#FFC220"><use href="#wm-spark"/></svg>'
+      : '<img src="'+CHAIN_LOGO[c]+'" style="height:15px;width:auto;vertical-align:middle">';
+    return '<span class="chain-km chip-logo">'+logo+' '+nm+' · '+km+' km</span>'; }).join('');
 }
 function renderSitios(){
   const el=$('sp-list'); if(!el) return;
