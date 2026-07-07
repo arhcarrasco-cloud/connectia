@@ -107,6 +107,13 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 .map-overlay-top{position:absolute;top:26px;left:26px;right:26px;display:flex;justify-content:space-between;
   align-items:flex-start;pointer-events:none;z-index:20;gap:20px}
 .map-overlay-top .card{pointer-events:auto;padding:12px 18px}
+.trip-stats.mini{padding:7px 12px;gap:14px;align-items:center}
+.trip-stats.mini .stat .val{font-size:14px;font-weight:800;white-space:nowrap}
+.trip-stats.mini .stat .val small{font-size:9px;font-weight:600;color:var(--mist);margin-left:1px}
+.trip-stats.mini .gps-badge{padding:4px 8px;font-size:8px}
+.map-back{pointer-events:auto;width:40px;height:40px;flex:none;border-radius:50%;border:1px solid var(--glass-border);
+  background:var(--glass);backdrop-filter:blur(12px);color:#fff;font-size:22px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;line-height:0}
 .trip-stats{display:flex;gap:22px}
 .stat .lbl{font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--violet-hot)}
 .stat .val{font-size:18px;font-weight:800;margin-top:3px}
@@ -133,6 +140,7 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 .progress-fill{height:100%;width:0%;border-radius:999px;background:var(--grad-active);transition:width .8s ease}
 .seek-wrap{display:flex;align-items:center;gap:12px;margin-top:8px}
 .sim-ctl{display:flex;gap:6px}
+.sim-mult{min-width:46px;font-weight:800;color:var(--lime)!important}
 .sim-ctl button{width:44px;height:40px;border-radius:10px;border:1px solid var(--glass-border);
   background:rgba(255,255,255,.06);color:#fff;font-size:15px;cursor:pointer}
 #sim-seek{position:absolute;inset:-8px 0;width:100%;opacity:0;cursor:pointer}
@@ -742,12 +750,14 @@ nav#bottomnav.open{transform:none}
   <div id="map"></div>
   <div class="card offline-note" id="offline-note">⚠ Sin conexión — mostrando ruta guardada</div>
   <div class="map-overlay-top">
-    <div class="card trip-stats">
-      <div class="stat"><div class="lbl">Tiempo restante · tráfico</div><div class="val" id="st-eta">— <small>min</small></div></div>
-      <div class="stat"><div class="lbl">Distancia recorrida</div><div class="val" id="st-dist">0.0 <small>km</small></div></div>
-      <div class="stat"><div class="lbl">Puntos visitados</div><div class="val" id="st-visited">0<small>/8</small></div></div>
-      <div class="stat"><div class="lbl">GPS</div><div class="gps-badge searching" id="gps-badge" style="margin-top:4px">
-        <span class="pulse-dot"></span><span id="gps-badge-txt">BUSCANDO</span></div></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="map-back" onclick="go('inicio')" aria-label="Regresar">‹</button>
+      <div class="card trip-stats mini">
+        <div class="stat"><div class="val" id="st-eta">—<small>min</small></div></div>
+        <div class="stat"><div class="val" id="st-dist">0.0<small>km</small></div></div>
+        <div class="stat"><div class="val" id="st-visited">0<small>/8</small></div></div>
+        <div class="gps-badge searching" id="gps-badge"><span class="pulse-dot"></span><span id="gps-badge-txt">GPS</span></div>
+      </div>
     </div>
     <div class="card next-poi-chip clickable" onclick="nextPoiFicha()">
       <svg class="spark-mini spark-svg" viewBox="0 0 532.262 600"><use href="#wm-spark"/></svg>
@@ -776,9 +786,10 @@ nav#bottomnav.open{transform:none}
     <div class="progress-lbls"><span>Inicio · Corporativo Walmart</span><span id="prog-pct">0%</span><span>Cierre · Interlomas</span></div>
     <div class="seek-wrap">
       <div class="sim-ctl">
-        <button onclick="simSkip(-1)" aria-label="Regresar">⏪</button>
+        <button onclick="simSpeedDown()" aria-label="Más lento">⏪</button>
         <button onclick="togglePlay()" aria-label="Pausa/Play">⏯</button>
-        <button onclick="simSkip(1)" aria-label="Adelantar">⏩</button>
+        <button onclick="simSpeedUp()" aria-label="Más rápido">⏩</button>
+        <button class="sim-mult" id="sim-mult" onclick="simSpeedUp()">1x</button>
       </div>
       <div class="progress-bar" style="flex:1;position:relative">
         <div class="progress-fill" id="prog-fill"></div>
@@ -1348,7 +1359,7 @@ function togglePlay(){
   verRecorrido();
 }
 function tick(){
-  const sim=S.sim, mps=sim.speed/3.6*0.12*14; /* velocidad demo acelerada */
+  const sim=S.sim, mps=sim.speed/3.6*0.12*3.5*(S.simMult||1); /* base lento × multiplicador */
   sim.t+=mps;
   while(sim.seg<SEGLEN.length && sim.t>=SEGLEN[sim.seg]){ sim.t-=SEGLEN[sim.seg]; sim.seg++; }
   if(sim.seg>=SEGLEN.length){ finishTour(); return; }
@@ -1372,9 +1383,9 @@ function updateCar(pos){
   const pct=Math.min(100,Math.round(S.sim.dist/TOTAL*100));
   $('prog-fill').style.width=pct+'%'; $('prog-pct').textContent=pct+'%';
   const sk=$('sim-seek'); if(sk) sk.value=Math.round(S.sim.dist/TOTAL*1000);
-  $('st-dist').innerHTML=(S.sim.dist/1000).toFixed(1)+' <small>km</small>';
+  $('st-dist').innerHTML=(S.sim.dist/1000).toFixed(1)+'<small>km</small>';
   const remMin=Math.max(0,Math.round((TOTAL-S.sim.dist)/1000/(trafficSpeed()/60)));
-  $('st-eta').innerHTML=remMin+' <small>min</small>';
+  $('st-eta').innerHTML=remMin+'<small>min</small>';
   $('st-visited').innerHTML=S.visited.size+'<small>/'+POIS.length+'</small>';
   const np=nextPoi(); $('next-poi-name').textContent=np?np.nombre:'Recorrido completado';
   checkProximity(pos);
@@ -1389,6 +1400,10 @@ function posAtDist(d){
   return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
 }
 function ensureSim(){ if(!S.sim.on && !S.sim.paused){ verRecorrido(); togglePlay(); } }
+const SIM_MULTS=[1,2,4,8];
+function setMult(m){ S.simMult=m; const el=$('sim-mult'); if(el) el.textContent=m+'x'; toast('Velocidad '+m+'x'); }
+function simSpeedUp(){ ensureSim(); const i=SIM_MULTS.indexOf(S.simMult||1); setMult(SIM_MULTS[Math.min(i+1,SIM_MULTS.length-1)]); }
+function simSpeedDown(){ ensureSim(); const i=SIM_MULTS.indexOf(S.simMult||1); setMult(SIM_MULTS[Math.max(i-1,0)]); }
 function simSkip(dir){ ensureSim(); updateCar(posAtDist(S.sim.dist + dir*400)); }
 function simSeek(frac){ ensureSim(); updateCar(posAtDist(frac*TOTAL)); }
 function trafficSpeed(){ const h=new Date().getHours();
