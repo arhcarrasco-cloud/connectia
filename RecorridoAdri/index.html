@@ -12,6 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,300;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 /* ═══════════════ CONNECTIA V3 DESIGN TOKENS ═══════════════ */
 :root{
@@ -1709,6 +1711,59 @@ function openCheckout(){
      </div>
    </div>`);
 }
+function buildOOHPdf(res,blk){
+  try{
+    const {jsPDF}=window.jspdf; const doc=new jsPDF('l','pt','a4');
+    const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight();
+    const items=res.concat(blk);
+    // Portada
+    doc.setFillColor(32,16,64); doc.rect(0,0,W,H,'F');
+    doc.setFillColor(96,48,160); doc.rect(0,H-120,W,120,'F');
+    doc.setTextColor(123,63,242); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+    doc.text('CONNECTIA × WALMART · PROPUESTA OUT OF NOISE',60,90);
+    doc.setTextColor(255,255,255); doc.setFontSize(40);
+    doc.text('Connectia × Walmart',60,H/2-10);
+    doc.setFontSize(15); doc.setFont('helvetica','normal');
+    doc.text('Recorrido Interlomas · '+items.length+' sitios seleccionados',60,H/2+24);
+    doc.setFontSize(10); doc.text('everything is connected.',60,H-50);
+    // Una página por sitio
+    items.forEach(x=>{
+      doc.addPage();
+      doc.setFillColor(32,16,64); doc.rect(0,0,W,H,'F');
+      doc.setTextColor(123,63,242); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+      doc.text('CONNECTIA × WALMART',60,60);
+      doc.setTextColor(255,255,255); doc.setFontSize(24);
+      doc.text(String(x.nombre||x.titulo).substring(0,48),60,92);
+      const it=itemById(x.id)||{};
+      const img=it.fotoWm||it.foto;
+      const drawText=()=>{
+        let y=H-150; doc.setFontSize(12); doc.setTextColor(230,230,240); doc.setFont('helvetica','normal');
+        doc.text('Tipo: '+(it.tipo||'—'),60,y);
+        doc.text('Medidas: '+(it.medidas||'—'),60,y+22);
+        doc.text('Impactos: '+(it.imp?(it.imp>=1e6?(it.imp/1e6).toFixed(1)+' M/mes':Math.round(it.imp/1e3)+' K/mes'):'—'),60,y+44);
+        doc.setTextColor(255,194,32); doc.setFont('helvetica','bold'); doc.setFontSize(16);
+        doc.text('Tarifa: '+fmtMXN(x.tarifa)+' /mes',60,y+72);
+      };
+      if(img){ const im=new Image(); }
+      drawText();
+    });
+    return doc.output('datauristring').split(',')[1];
+  }catch(e){ return null; }
+}
+function buildOOHXlsx(res,blk){
+  try{
+    const rows=[['CLAVE','SITIO','TIPO','MEDIDAS','IMPACTOS/MES','TARIFA MENSUAL','ESTATUS']];
+    const add=(arr,est)=>arr.forEach(x=>{ const it=itemById(x.id)||{};
+      rows.push([x.id, x.nombre||x.titulo, it.tipo||'', it.medidas||'', it.imp||'', x.tarifa||0, est]); });
+    add(res,'RESERVADO'); add(blk,'EN PROPUESTA');
+    const tot=res.concat(blk).reduce((a,x)=>a+(x.tarifa||0),0);
+    rows.push([]); rows.push(['','','','','TOTAL MENSUAL',tot,'']);
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:14},{wch:34},{wch:16},{wch:20},{wch:16},{wch:16},{wch:14}];
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Inventario OOH');
+    return XLSX.write(wb,{type:'base64',bookType:'xlsx'});
+  }catch(e){ return null; }
+}
 function submitCheckout(){
   const em=($('chk-email').value||'').trim();
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ toast('Ingresa un correo válido'); return; }
@@ -1716,6 +1771,8 @@ function submitCheckout(){
     reservados:cartItems().filter(x=>S.cartEstado[x.id]==='reservar').map(x=>({id:x.id,nombre:x.nombre||x.titulo,tarifa:x.tarifa||0})),
     bloqueados:cartItems().filter(x=>S.cartEstado[x.id]==='propuesta').map(x=>({id:x.id,nombre:x.nombre||x.titulo,tarifa:x.tarifa||0})),
     total:subtot('reservar')+subtot('propuesta')};
+  pay.pdf=buildOOHPdf(pay.reservados,pay.bloqueados);
+  pay.xlsx=buildOOHXlsx(pay.reservados,pay.bloqueados);
   try{ fetch(FN_CHECKOUT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pay)}).catch(()=>{}); }catch(e){}
   openSheet(`
    <div class="gracias-box">
