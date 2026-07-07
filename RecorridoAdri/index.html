@@ -1042,8 +1042,8 @@ const POIS = [
   reco:'Paquete integral: landmark + DOOH 3D + FOOH. Temporalidad mínima 3 meses.',
   campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:250,
   foto:'assets/sitios/GLORIETA-LMK.jpg',fotoWm:'assets/sitios/GLORIETA-LMK-wm.jpg'},
- {id:'EEM-18177-B',tarifa:0,estatus:'disponible',nombre:'Pantalla LED Toreo · Periférico',lat:19.460182,lng:-99.222014,tipo:'Pantalla LED digital',cat:'recorrido',
-  medidas:'17.28 × 8.64 m',imp:0,audiencia:'Vehicular · Periférico / Toreo',impacto:'alto',
+ {id:'EEM-18177-B',tarifa:1000000,estatus:'disponible',nombre:'Pantalla LED Toreo · Periférico',lat:19.460182,lng:-99.222014,tipo:'Pantalla LED digital',cat:'recorrido',
+  medidas:'17.28 × 8.64 m',imp:6300000,audiencia:'Vehicular · Periférico / Toreo',impacto:'alto',
   desc:'Pantalla digital sobre Periférico (Blvd. Ávila Camacho) y Av. Emiliano Zapata, límite CDMX-Naucalpan (Toreo); vista de sur a norte hacia Ciudad Satélite.',
   beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
   reco:'Spot de 10 s con movimiento; hasta 6 clientes en rotación por minuto.',
@@ -1718,7 +1718,7 @@ function openMockup(id){
   const m=MOCKUPS.find(x=>x.id===id); if(!m) return;
   const tarifaTxt=m.tarifa?fmtMXN(m.tarifa):'Cotizar';
   const nivel=m.imp?(m.imp==='tactico'?'Táctico':m.imp.charAt(0).toUpperCase()+m.imp.slice(1)):'Alto';
-  const geo='https://www.connectia.mx/geonexa?q='+encodeURIComponent(m.dir||m.ubic||m.titulo);
+  const geo='https://connectia.mx/geonexa/?lat='+m.lat+'&lng='+m.lng+'&r=500';
   openSheet(`
    <div style="aspect-ratio:16/7;position:relative;overflow:hidden;background:#150a30">${m.foto?`<img src="${m.fotoWm||m.foto}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" alt="">`:oohArt(m)}</div>
    <div style="padding:34px 44px 44px">
