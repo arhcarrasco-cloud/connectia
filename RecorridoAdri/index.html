@@ -279,8 +279,13 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 
 .chain-km{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:#fff;
   margin:0 6px 6px 0;padding:5px 10px;border-radius:999px}
-.chip-logo{background:#fff;color:#201040;gap:6px;padding:5px 11px}
+.chip-logo{background:rgba(32,16,64,.9);color:#fff;gap:7px;padding:5px 11px;border:1px solid rgba(123,63,242,.45)}
 .chip-logo img{height:15px!important;width:auto;vertical-align:middle;object-fit:contain}
+.prev-badge{background:rgba(20,8,40,.72);color:#fff;font-size:10px;font-weight:800;letter-spacing:.4px;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.28)}
+.lmk-nav{display:flex;align-items:center;gap:5px;padding:3px 8px 3px 4px;border-radius:20px;background:rgba(20,10,40,.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);opacity:0;transform:translateY(4px) scale(.85);transition:opacity .7s ease,transform .7s ease;pointer-events:none;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.lmk-nav .em{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;background:rgba(123,63,242,.35)}
+.lmk-nav .tx{color:rgba(255,255,255,.92);font-size:10.5px;font-weight:700;max-width:0;overflow:hidden;opacity:0;transition:max-width .7s ease,opacity .7s ease}
+.lmk-nav.near .tx{max-width:130px;opacity:1}
 .sp-chains{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
 
 .chain-km{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--mist);margin-right:8px}
@@ -1088,22 +1093,57 @@ const ROUTE = [[-99.2155,19.4598],[-99.271914,19.402051],[-99.270725,19.399222],
 const CATS = [['todos','Todos']];
 const MOCKUPS = [];
 
+/* ═══ lugares de interés en la navegación (aparecen/desaparecen sutil) ═══ */
+const LANDMARKS_NAV = [
+ {n:'Centro Comercial Interlomas',ic:'🏬',lat:19.3963,lng:-99.2884},
+ {n:'Paseo Interlomas',ic:'🛍️',lat:19.3958,lng:-99.2810},
+ {n:'Hospital Ángeles Interlomas',ic:'🏥',lat:19.3972,lng:-99.2822},
+ {n:'Plaza Magnocentro',ic:'🏢',lat:19.4012,lng:-99.2718},
+ {n:'Glorieta Interlomas',ic:'🗿',lat:19.3900,lng:-99.2925},
+ {n:'Bosques de las Lomas',ic:'🌳',lat:19.3882,lng:-99.2786},
+ {n:'Torre Esmeralda',ic:'🏢',lat:19.3995,lng:-99.2705},
+ {n:'Parque Toreo',ic:'🏟️',lat:19.4585,lng:-99.2205},
+ {n:'Ciudad Satélite',ic:'🏙️',lat:19.5085,lng:-99.2380}
+];
+let NAV_MARKERS=[];
+function buildNavLandmarks(){
+  if(!S.map) return; NAV_MARKERS.forEach(m=>m.marker.remove()); NAV_MARKERS=[];
+  LANDMARKS_NAV.forEach(l=>{
+    const el=document.createElement('div'); el.className='lmk-nav';
+    el.innerHTML='<span class="em">'+l.ic+'</span><span class="tx">'+l.n+'</span>';
+    const marker=new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([l.lng,l.lat]).addTo(S.map);
+    NAV_MARKERS.push({el,marker,l});
+  });
+}
+function updateNavLandmarks(pos){
+  if(!NAV_MARKERS.length) return;
+  NAV_MARKERS.forEach(o=>{
+    const d=hav(pos,[o.l.lng,o.l.lat]);
+    if(d<520){ const near=d<300; o.el.style.opacity=Math.max(.35,1-d/620).toFixed(2); o.el.style.transform='translateY(0) scale(1)'; o.el.classList.toggle('near',near); }
+    else { o.el.style.opacity='0'; o.el.style.transform='translateY(4px) scale(.85)'; o.el.classList.remove('near'); }
+  });
+}
+
 /* ═══════════════ VIDEOS ═══════════════ */
 const VIDEOS = [
- {id:'v1',titulo:'Branding Fleet Walmart',dur:'',cat:'Walmart',drive:'1EUW8o3la92XQQX2de9cDmnjtrA8PZKGV',
-  desc:'Wrap completo de la flotilla Walmart — cada camión un medio rodante circulando todo México.'},
- {id:'v2',titulo:'Branding Sam\'s Club',dur:'',cat:'Sam\'s Club',drive:'1M475XIrdciRuVXyVS3jDTT-3kLaF6ncZ',
-  desc:'Presencia de marca Sam\'s Club en punto de venta y ciudad.'},
- {id:'v3',titulo:'Branding Bodega Aurrerá',dur:'',cat:'Bodega Aurrerá',drive:'1hViieWdHEcoSZb5QO-s1awWkPDkjZyqW',
-  desc:'Activación y branding Bodega Aurrerá.'},
+ {id:'v7',titulo:'Lala · Landmark Reforma',dur:'',cat:'Landmark',drive:'1D0DnEIbXdSnb0J0N5GKAs-VMKwn68Jm9',
+  desc:'Celebración Lala 100 · landmark en Reforma.'},
+ {id:'v11',titulo:'Mega Valla · Churubusco',dur:'',cat:'Landmark',drive:'10XR-D7nKMJaNoZANdOtn1wy-be7IOmV5',
+  desc:'Mega valla monumental sobre Churubusco — 108 m de dominio visual.'},
+ {id:'v12',titulo:'Landmark Interlomas · Glorieta',dur:'',cat:'Landmark',drive:'1j39WRWnWdPxVB92duriDzOGeuwipq76d',
+  desc:'Landmark volumétrico en la Glorieta de Interlomas.'},
  {id:'v4',titulo:'Tequila Patrón · Landmark',dur:'',cat:'Landmark',drive:'1In5Oz_JEkVK8DWIszXJCQGxa-paNgx0l',
   desc:'Doble muro landmark frente a Parque Toreo.'},
  {id:'v5',titulo:'Banamex · Ad Truck + Influencers',dur:'',cat:'Mobility',drive:'1e3HWeJKBh0052S70DXs6I4zAa0dfay2d',
   desc:'Mobility OOH activado con creadores locales sobre Reforma.'},
  {id:'v6',titulo:'Banco Azteca · Metro CDMX',dur:'',cat:'Indoor',drive:'10A00FDJWichuU0g3XKVsht4Jm8bwAQ7F',
   desc:'Toma del Metro CDMX con presencia masiva en estaciones y vagones.'},
- {id:'v7',titulo:'Lala · Landmark Reforma',dur:'',cat:'Landmark',drive:'1D0DnEIbXdSnb0J0N5GKAs-VMKwn68Jm9',
-  desc:'Celebración Lala 100 · landmark en Reforma.'},
+ {id:'v1',titulo:'Branding Fleet Walmart',dur:'',cat:'Walmart',drive:'1EUW8o3la92XQQX2de9cDmnjtrA8PZKGV',
+  desc:'Wrap completo de la flotilla Walmart — cada camión un medio rodante circulando todo México.'},
+ {id:'v2',titulo:'Branding Sam\'s Club',dur:'',cat:'Sam\'s Club',drive:'1M475XIrdciRuVXyVS3jDTT-3kLaF6ncZ',
+  desc:'Presencia de marca Sam\'s Club en punto de venta y ciudad.'},
+ {id:'v3',titulo:'Branding Bodega Aurrerá',dur:'',cat:'Bodega Aurrerá',drive:'1hViieWdHEcoSZb5QO-s1awWkPDkjZyqW',
+  desc:'Activación y branding Bodega Aurrerá.'},
  {id:'v8',titulo:'Sam\'s Club · Apertura',dur:'',cat:'Retail',drive:'1lZAh131Ss5KKauwcg0Go1jxU9v4NKKT8',
   desc:'Activación 360° para apertura con foco en tráfico día 1.'},
  {id:'v9',titulo:'Flying Display · Home Depot',dur:'',cat:'Innovación',drive:'1qzMdoKop0kwhNH8dB7xf7XJnD4tI6JSe',
@@ -1314,6 +1354,7 @@ function initMap(){
       corpEl.innerHTML='<svg viewBox="0 0 532.262 600" style="width:20px;height:20px;fill:#FFC220"><use href="#wm-spark"/></svg>';
       corpEl.onclick=()=>toast('Corporativo Walmart de México · Toreo — inicio del recorrido');
       new maplibregl.Marker({element:corpEl}).setLngLat([-99.2155,19.4598]).addTo(S.map);
+      buildNavLandmarks();
       setGps('activo');
       setDrivePath();
       buildSeekMarks();
@@ -1425,6 +1466,7 @@ function updateCar(pos){
       S.map.easeTo({center:pos,duration:500});
     }
   }
+  updateNavLandmarks(pos);
   S.lastPos=pos;
   const pct=Math.min(100,Math.round(S.sim.dist/TOTAL*100));
   $('prog-fill').style.width=pct+'%'; $('prog-pct').textContent=pct+'%';
@@ -1872,6 +1914,7 @@ function flujoMes(p){
 }
 const CHAIN_META={wm:['#0053e2','Walmart'],ch:['#0071CE','Chedraui'],cm:['#E2001A','La Comer'],co:['#005DAA','Costco'],so:['#8DC63F','Soriana'],ba:['#E4002B','Bodega Aurrerá']};
 const CHAIN_LOGO={ch:'assets/logos/ch.png',cm:'assets/logos/cm.png',co:'assets/logos/co.png',so:'assets/logos/so.png',ba:'assets/logos/ba.png'};
+const CHAIN_LOGO_W={ch:'assets/logos/white/chedraui-w.png',cm:'assets/logos/white/lacomer-w.png',co:'assets/logos/white/costco-w.png',so:'assets/logos/white/soriana-w.png',ba:'assets/logos/white/bodega-w.png'};
 function nearestChainsShort(p){
   const res={};
   TIENDAS.forEach(t=>{ const d=hav([p.lng,p.lat],[t.lng,t.lat]); if(!res[t.c]||d<res[t.c].d) res[t.c]={d}; });
@@ -1879,7 +1922,7 @@ function nearestChainsShort(p){
   const others = Object.keys(res).filter(c=>c!=='wm').map(c=>[c,res[c].d]).sort((a,b)=>a[1]-b[1]).slice(0,2);
   return wm.concat(others).map(([c,d])=>{
     const [col,nm]=CHAIN_META[c];
-    const logo = c==='wm' ? '<svg viewBox="0 0 532.262 600" style="width:12px;height:12px;fill:#FFC220"><use href="#wm-spark"/></svg>' : '<img src="'+CHAIN_LOGO[c]+'" style="height:13px;width:auto;vertical-align:middle">';
+    const logo = c==='wm' ? '<svg viewBox="0 0 532.262 600" style="width:12px;height:12px;fill:#fff"><use href="#wm-spark"/></svg>' : '<img src="'+CHAIN_LOGO_W[c]+'" style="height:13px;width:auto;vertical-align:middle">';
     return '<span class="chain-km chip-logo">'+logo+' '+(d/1000).toFixed(1)+'km</span>';
   }).join('');
 }
@@ -1890,8 +1933,8 @@ function nearestChains(p){
   return Object.keys(CHAIN_META).map(c=>{ if(!res[c]||res[c].d>7000) return '';
     const km=(res[c].d/1000).toFixed(1); const [col,nm]=CHAIN_META[c];
     const logo = c==='wm'
-      ? '<svg viewBox="0 0 532.262 600" style="width:14px;height:14px;fill:#FFC220"><use href="#wm-spark"/></svg>'
-      : '<img src="'+CHAIN_LOGO[c]+'" style="height:15px;width:auto;vertical-align:middle">';
+      ? '<svg viewBox="0 0 532.262 600" style="width:14px;height:14px;fill:#fff"><use href="#wm-spark"/></svg>'
+      : '<img src="'+CHAIN_LOGO_W[c]+'" style="height:15px;width:auto;vertical-align:middle">';
     return '<span class="chain-km chip-logo">'+logo+' '+nm+' · '+km+' km</span>'; }).join('');
 }
 function renderSitios(){
@@ -1914,14 +1957,17 @@ function buildVideos(){
   $('video-grid').innerHTML=VIDEOS.map(v=>`
    <div class="card media-card clickable" onclick="openVideo('${v.id}')">
      <div class="media-visual">
-       <div class="art" style="background:linear-gradient(150deg,#241148,#502090,#6030A0)"><div class="dots">${miniDots(6)}</div></div>
+       <div class="art" style="background:linear-gradient(150deg,#241148,#502090,#6030A0)">
+         ${v.drive?`<img src="https://drive.google.com/thumbnail?id=${v.drive}&sz=w640" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<div class="dots">${miniDots(6)}</div>`}
+         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,8,40,.15),rgba(20,8,40,.75))"></div></div>
+       <div style="position:absolute;top:12px;left:12px;z-index:3"><span class="prev-badge">▶ Vista previa</span></div>
        <div style="position:absolute;left:16px;right:16px;bottom:14px;z-index:2">
          <div class="eyebrow on-photo" style="font-size:9px">${v.cat.toUpperCase()}</div>
          <div style="color:#fff;font-weight:800;font-size:15px;text-transform:uppercase;line-height:1.15;margin-top:3px">${v.titulo}</div></div>
        <div class="play-badge"><div class="pb"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></div></div></div>
      <div class="media-body"><h3>${v.titulo}</h3>
        <div class="body" style="font-size:14px">${v.desc}</div>
-       <div class="media-meta"><span class="chip">${v.cat}</span><span class="chip wm">Precargado</span></div></div>
+       <div class="media-meta"><span class="chip">${v.cat}</span><span class="chip wm">Vista previa</span></div></div>
    </div>`).join('');
 }
 let curVideo=null;
