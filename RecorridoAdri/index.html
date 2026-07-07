@@ -1076,16 +1076,26 @@ const MOCKUPS = [];
 
 /* ═══════════════ VIDEOS ═══════════════ */
 const VIDEOS = [
- {id:'v1',titulo:'Everything is connected',dur:'1:45',cat:'Manifiesto',poi:null,
-  desc:'Una visión de cómo la ciudad puede convertirse en una red inteligente de comunicación, datos y puntos de contacto para Walmart.'},
- {id:'v2',titulo:'Out of Noise en movimiento',dur:'1:10',cat:'Formatos',poi:'p1',
-  desc:'Formatos urbanos conectados a rutas, audiencias y momentos de consumo.'},
- {id:'v3',titulo:'Geonexa',dur:'1:30',cat:'Plataforma',poi:null,
-  desc:'La plataforma que permite entender, mapear y activar audiencias en el territorio.'},
- {id:'v4',titulo:'Doble Muro Toreo',dur:'0:45',cat:'Sitio',poi:'p7',
-  desc:'El landmark que domina la entrada norte de la ciudad — visto desde la ruta.'},
- {id:'v6',titulo:'Data y movilidad urbana',dur:'1:20',cat:'Data',poi:null,
-  desc:'Cómo la movilidad de la ciudad se traduce en decisiones de inversión medibles.'}
+ {id:'v1',titulo:'Branding Fleet Walmart',dur:'',cat:'Walmart',drive:'1EUW8o3la92XQQX2de9cDmnjtrA8PZKGV',
+  desc:'Wrap completo de la flotilla Walmart — cada camión un medio rodante circulando todo México.'},
+ {id:'v2',titulo:'Branding Sam\'s Club',dur:'',cat:'Sam\'s Club',drive:'1M475XIrdciRuVXyVS3jDTT-3kLaF6ncZ',
+  desc:'Presencia de marca Sam\'s Club en punto de venta y ciudad.'},
+ {id:'v3',titulo:'Branding Bodega Aurrerá',dur:'',cat:'Bodega Aurrerá',drive:'1hViieWdHEcoSZb5QO-s1awWkPDkjZyqW',
+  desc:'Activación y branding Bodega Aurrerá.'},
+ {id:'v4',titulo:'Tequila Patrón · Landmark',dur:'',cat:'Landmark',drive:'1In5Oz_JEkVK8DWIszXJCQGxa-paNgx0l',
+  desc:'Doble muro landmark frente a Parque Toreo.'},
+ {id:'v5',titulo:'Banamex · Ad Truck + Influencers',dur:'',cat:'Mobility',drive:'1e3HWeJKBh0052S70DXs6I4zAa0dfay2d',
+  desc:'Mobility OOH activado con creadores locales sobre Reforma.'},
+ {id:'v6',titulo:'Banco Azteca · Metro CDMX',dur:'',cat:'Indoor',drive:'10A00FDJWichuU0g3XKVsht4Jm8bwAQ7F',
+  desc:'Toma del Metro CDMX con presencia masiva en estaciones y vagones.'},
+ {id:'v7',titulo:'Lala · Landmark Reforma',dur:'',cat:'Landmark',drive:'1D0DnEIbXdSnb0J0N5GKAs-VMKwn68Jm9',
+  desc:'Celebración Lala 100 · landmark en Reforma.'},
+ {id:'v8',titulo:'Sam\'s Club · Apertura',dur:'',cat:'Retail',drive:'1lZAh131Ss5KKauwcg0Go1jxU9v4NKKT8',
+  desc:'Activación 360° para apertura con foco en tráfico día 1.'},
+ {id:'v9',titulo:'Flying Display · Home Depot',dur:'',cat:'Innovación',drive:'1qzMdoKop0kwhNH8dB7xf7XJnD4tI6JSe',
+  desc:'Flying display — formato aéreo de alto impacto.'},
+ {id:'v10',titulo:'Flying Display · NBA',dur:'',cat:'Sports',drive:'1T1s1aX-s4u4dD3_P1z9bOA2r7gS-DxO0',
+  desc:'Flying display en activación deportiva NBA.'}
 ];
 
 /* ═══════════════ CASOS ═══════════════ */
@@ -1871,10 +1881,10 @@ function toggleSitios(){ const sp=$('sitios-panel'); sp.classList.remove('hide')
 function buildVideos(){
   $('video-grid').innerHTML=VIDEOS.map(v=>`
    <div class="card media-card clickable" onclick="openVideo('${v.id}')">
-     <div class="media-visual"><div class="art" style="background:linear-gradient(150deg,#241148,#6030A0)">
-       <div class="dots">${miniDots(8)}</div></div>
-       <div class="play-badge"><div class="pb"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></div></div>
-       <span class="duration">${v.dur}</span></div>
+     <div class="media-visual">
+       <img src="https://drive.google.com/thumbnail?id=${v.drive}&sz=w640" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
+       <div class="art" style="background:linear-gradient(150deg,#241148,#6030A0);opacity:.25"></div>
+       <div class="play-badge"><div class="pb"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></div></div></div>
      <div class="media-body"><h3>${v.titulo}</h3>
        <div class="body" style="font-size:14px">${v.desc}</div>
        <div class="media-meta"><span class="chip">${v.cat}</span><span class="chip wm">Precargado</span></div></div>
@@ -1900,13 +1910,9 @@ function playCase(cid){
 function openVideo(id){
   const v=VIDEOS.find(x=>x.id===id); if(!v) return; curVideo=v;
   $('pb-title').textContent=v.titulo; $('pb-desc').textContent=v.desc;
-  $('player-stage').innerHTML=`<div class="art" style="position:absolute;inset:0;background:var(--grad-hero)">
-    <div class="dots">${miniDots(24)}</div></div>
-    <div style="position:relative;text-align:center;z-index:2">
-      <div class="eyebrow on-photo">CONNECTIA × WALMART · ${v.cat.toUpperCase()}</div>
-      <h1 style="margin-top:12px">${v.titulo}</h1>
-      <p class="body mt20" style="max-width:700px;margin-left:auto;margin-right:auto">▶ Video demo — en producción el archivo .mp4
-      precargado se reproduce aquí en pantalla completa.</p></div>`;
+  $('player-stage').innerHTML = v.drive
+    ? `<iframe src="https://drive.google.com/file/d/${v.drive}/preview" allow="autoplay; fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>`
+    : `<div class="art" style="position:absolute;inset:0;background:var(--grad-hero)"><div class="dots">${miniDots(24)}</div></div>`;
   $('player').classList.add('show');
 }
 function closePlayer(){ $('player').classList.remove('show'); }
