@@ -1838,21 +1838,22 @@ function openNewsletter(){
    </div>`);
 }
 function downloadSel(tipo){
-  const items=cartItems().filter(x=>S.cartEstado[x.id]===tipo);
-  if(!items.length){ toast('No tienes sitios '+(tipo==='reservar'?'reservados':'en propuesta')); return; }
-  const BASEURL='https://arhcarrasco-cloud.github.io/recorrido-walmart/';
-  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Connectia × Walmart · Sitios</title>
-   <style>body{font-family:Arial,Helvetica,sans-serif;background:#201040;color:#fff;padding:40px;max-width:800px;margin:auto}
-   h1{text-transform:uppercase}.s{background:#2a1656;border-radius:16px;padding:20px;margin:18px 0}
-   img{width:100%;border-radius:12px}.t{color:#FFC220;font-weight:bold}.e{color:#7B3FF2;font-size:11px;letter-spacing:2px;text-transform:uppercase}</style></head>
-   <body><div class="e">CONNECTIA × WALMART · RECORRIDO</div><h1>Sitios ${tipo==='reservar'?'reservados':'en propuesta'}</h1>
-   ${items.map(x=>`<div class="s"><img src="${BASEURL}${(x.fotoWm||x.foto)||''}"><h2>${x.nombre||x.titulo}</h2>
-     <p>${x.tipo||''} · ${x.medidas||''}</p><p class="t">${fmtMXN(x.tarifa)} /mes</p></div>`).join('')}
-   <p><em>El tiempo es lo más valioso que tenemos, gracias por regalarnos un poco de él.<br>— Todo el equipo de Connectia</em></p></body></html>`;
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
-  a.download='connectia-walmart-sitios-'+(tipo==='reservar'?'reservados':'en-propuesta')+'.html';
-  a.click(); toast('Descarga iniciada');
+  const est = tipo==='reservar' ? 'reservar' : 'propuesta';
+  const items=cartItems().filter(x=>S.cartEstado[x.id]===est);
+  if(!items.length){ toast('No tienes sitios '+(est==='reservar'?'reservados':'en propuesta')); return; }
+  const res = est==='reservar' ? items : [];
+  const blk = est==='propuesta' ? items : [];
+  const rows = items.map(x=>({id:x.id,nombre:x.nombre||x.titulo,tarifa:x.tarifa||0}));
+  const pdf = est==='reservar' ? buildOOHPdf(rows,[]) : buildOOHPdf([],rows);
+  const xlsx = est==='reservar' ? buildOOHXlsx(rows,[]) : buildOOHXlsx([],rows);
+  const suf = est==='reservar' ? 'reservados' : 'en-propuesta';
+  const dl=(b64,mime,name)=>{ if(!b64) return; const bin=atob(b64); const arr=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([arr],{type:mime}));
+    a.download=name; a.click(); };
+  dl(pdf,'application/pdf','Connectia-Walmart-'+suf+'.pdf');
+  setTimeout(()=>dl(xlsx,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Connectia-Walmart-'+suf+'.xlsx'),400);
+  toast('Descargando PDF + Excel de sitios '+suf);
 }
 
 /* ═══════════════ VENTANA DE SITIOS DEL RECORRIDO ═══════════════ */
@@ -2105,6 +2106,16 @@ function flashChains(p){
   w.classList.add('show');
   clearTimeout(w._t); w._t=setTimeout(()=>w.classList.remove('show'),4500);
 }
+function handleDownloadParam(){
+  const dl=new URLSearchParams(location.search).get('dl');
+  if(!dl) return;
+  const tipo = dl.indexOf('reserv')>=0 ? 'reservar' : 'propuesta';
+  const run=()=>{ try{ downloadSel(tipo); }catch(e){} };
+  // esperar a que carguen jsPDF/XLSX
+  let tries=0; const t=setInterval(()=>{ tries++;
+    if((window.jspdf&&window.XLSX)||tries>20){ clearInterval(t); $('gate')&&$('gate').classList.add('hide'); setTimeout(run,600); }
+  },300);
+}
 function init(){
   buildNav(); buildOoh(); buildVideos(); buildSoluciones(); buildCasos();
   const _rc=$('ruta-count'); if(_rc) _rc.textContent=POIS.length;
@@ -2120,6 +2131,7 @@ function init(){
     b.onclick=goBack; pad.insertBefore(b, pad.firstChild);
   });
   setTimeout(()=>$('boot').classList.add('hide'),1400);
+  handleDownloadParam();
 }
 window.addEventListener('load',init);
 /* bloquear swipe de navegación / cambio de app en bordes */
