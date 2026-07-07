@@ -1033,7 +1033,7 @@ document.getElementById('wm-logo-slot').innerHTML = WM_LOCKUP;
 
 /* ═══════════════ BASE DE DATOS · PUNTOS DE INTERÉS ═══════════════ */
 const POIS = [
- {id:'EEM-0819-A',tarifa:84000,estatus:'disponible',nombre:'Cubo Digital Magnocentro · Interlomas',lat:19.402051,lng:-99.271914,tipo:'Cubo digital',cat:'recorrido',
+ {id:'EEM-0819-A',tarifa:1000000,estatus:'disponible',nombre:'Cubo Digital Magnocentro · Interlomas',lat:19.402051,lng:-99.271914,tipo:'Cubo digital',cat:'recorrido',
   medidas:'4 caras · hasta 18.7 × 10 m',imp:4000000,audiencia:'NSE ABC+ · AAA · Interlomas',impacto:'alto',
   desc:'Frente a CC Interlomas, Toyota y concesionarias. Cubo digital con exclusividad de categoría.',
   beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
@@ -1101,13 +1101,16 @@ const MOCKUPS = [
  {id:'OPP-MEGA',cat:'mega',titulo:'Mega Valla · Churubusco',ubic:'Calz. de Tlalpan esq. Río Churubusco · CDMX',tarifa:630000,medidas:'108 × 3.05 m',imp:'alto',impMes:1200000,aud:'Vehicular masivo · Calz. Tlalpan',obj:'Cobertura monumental de 108 m',beneficio:'El formato más grande del corredor: dominio visual absoluto para Walmart.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Hot Sale'],foto:'assets/sitios/MPCX-19072-A.jpg',fotoWm:'assets/sitios/MPCX-19072-A.jpg',video:'10XR-D7nKMJaNoZANdOtn1wy-be7IOmV5',dir:'Calz. de Tlalpan esq. Río Churubusco, Coyoacán, CDMX',lat:19.356059,lng:-99.144004},
  {id:'OPP-SAT',cat:'landmark',titulo:'Muro Galerías Satélite · Fachada',ubic:'Periférico Norte · Naucalpan',tarifa:750000,medidas:'44 × 8 m · 3 caras',imp:'alto',impMes:5400000,aud:'NSE ABC+ · Satélite',obj:'Fachada icónica de 3 caras',beneficio:'Presencia dominante en el principal nodo comercial del norte del Valle de México.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Regreso a clases'],foto:'assets/sitios/OPP-SAT.jpg',fotoWm:'assets/sitios/OPP-SAT.jpg',dir:'Periférico Norte, Galerías Satélite, Naucalpan, Edo. Méx.',lat:19.5092,lng:-99.2372},
  {id:'OPP-TOREO',cat:'landmark',titulo:'Landmark Toreo · Periférico',ubic:'Periférico Norte · Toreo',tarifa:462000,medidas:'43.4 × 5.2 m',imp:'alto',impMes:6300000,aud:'Vehicular masivo · Toreo',obj:'Máximos impactos del corredor',beneficio:'La ubicación con más impactos mensuales: entrada a CDMX por Periférico.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Hot Sale'],foto:'assets/sitios/OPP-TOREO.jpg',fotoWm:'assets/sitios/OPP-TOREO.jpg',video:'1In5Oz_JEkVK8DWIszXJCQGxa-paNgx0l',dir:'Blvd. Manuel Ávila Camacho (Periférico), Toreo, Naucalpan',lat:19.4598,lng:-99.2155},
- {id:'OPP-GLORIETA',cat:'landmark',titulo:'Landmark Glorieta Interlomas · Walmart',ubic:'Glorieta Interlomas · Huixquilucan',tarifa:1200000,medidas:'Glorieta 60 × 29 m · Spark 19 m · Pantalla 3D',imp:'alto',impMes:2200000,aud:'NSE ABC+ · corazón de Interlomas',obj:'Landmark volumétrico + DOOH 3D + FOOH',beneficio:'Dominio de marca en el punto más icónico de Interlomas, con producción 3D y viralidad en redes.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],foto:'assets/sitios/GLORIETA-LMK.jpg',fotoWm:'assets/sitios/GLORIETA-LMK.jpg',video:'1j39WRWnWdPxVB92duriDzOGeuwipq76d',dir:'Glorieta Av. San Mateo Santa Rosa / Blvd. Palmas Hills, Interlomas, Huixquilucan',lat:19.39,lng:-99.2925},
- {id:'OPP-PANT3D',cat:'dooh',titulo:'Pantalla 3D · Paseo Interlomas',ubic:'Paseo Interlomas · Huixquilucan',tarifa:0,medidas:'Pantalla LED · DOOH 3D · 2 spots',imp:'alto',impMes:1835257,aud:'Shoppers · Paseo Interlomas',obj:'DOOH 3D con contenido dinámico 24/7',beneficio:'Tecnología 3D de alto impacto a un lado de Plaza Paseo Interlomas.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin'],foto:'assets/sitios/OPP-DOOH.jpg',fotoWm:'assets/sitios/OPP-DOOH.jpg',dir:'Paseo Interlomas, Huixquilucan, Edo. Méx.',lat:19.3958,lng:-99.2810}
+ {id:'OPP-GLORIETA',cat:'landmark',titulo:'Landmark Glorieta Interlomas · Walmart',ubic:'Glorieta Interlomas · Huixquilucan',tarifa:1200000,medidas:'Glorieta 60 × 29 m · Spark 19 m · Pantalla 3D',imp:'alto',impMes:2200000,aud:'NSE ABC+ · corazón de Interlomas',obj:'Landmark volumétrico + DOOH 3D + FOOH',beneficio:'Dominio de marca en el punto más icónico de Interlomas, con producción 3D y viralidad en redes.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],foto:'assets/sitios/GLORIETA-LMK.jpg',fotoWm:'assets/sitios/GLORIETA-LMK.jpg',video:'assets/videos/glorieta.mp4',dir:'Glorieta Av. San Mateo Santa Rosa / Blvd. Palmas Hills, Interlomas, Huixquilucan',lat:19.39,lng:-99.2925},
+ {id:'OPP-PANTALLAS',cat:'dooh',titulo:'Landmark DOOH · 6 Pantallas Premium',ubic:'CDMX & AMCM · 6 ubicaciones',tarifa:0,medidas:'6 pantallas LED · DOOH 3D · 2 spots c/u',imp:'alto',impMes:22000000,aud:'Cobertura metropolitana · NSE ABC+',obj:'Dominio digital 24/7 en 6 puntos premium',beneficio:'Paquete de 6 pantallas DOOH en los cruces más estratégicos de CDMX y AMCM, con arte 3D incluido.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Hot Sale'],foto:'assets/sitios/OPP-PANTALLAS.jpg',fotoWm:'assets/sitios/OPP-PANTALLAS.jpg',gallery:['assets/sitios/PANT-1.jpg','assets/sitios/PANT-2.jpg','assets/sitios/PANT-3.jpg','assets/sitios/PANT-4.jpg','assets/sitios/PANT-5.jpg','assets/sitios/PANT-6.jpg'],pdf:'assets/docs/pantallas-dooh.pdf',dir:'CDMX y Área Metropolitana',lat:19.3958,lng:-99.2810}
 ];
-function playDrive(driveId,titulo){
+function playDrive(src,titulo){
   curVideo={titulo:titulo||'Video',desc:'',poi:null};
   $('pb-title').textContent=titulo||'Video'; $('pb-desc').textContent='';
-  $('player-stage').innerHTML=`<iframe src="https://drive.google.com/file/d/${driveId}/preview" allow="autoplay; fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>`;
+  const isFile=/\.(mp4|webm|mov)(\?|$)/i.test(src)||src.indexOf('/')>-1;
+  $('player-stage').innerHTML=isFile
+    ? `<video src="${src}" controls autoplay playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000"></video>`
+    : `<iframe src="https://drive.google.com/file/d/${src}/preview" allow="autoplay; fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>`;
   $('player').classList.add('show');
 }
 
@@ -1151,7 +1154,7 @@ const VIDEOS = [
   desc:'Celebración Lala 100 · landmark en Reforma.'},
  {id:'v11',titulo:'Mega Valla · Churubusco',dur:'',cat:'Landmark',drive:'10XR-D7nKMJaNoZANdOtn1wy-be7IOmV5',poster:'assets/sitios/MPCX-19072-A.jpg',
   desc:'Mega valla monumental sobre Churubusco — 108 m de dominio visual.'},
- {id:'v12',titulo:'Landmark Interlomas · Glorieta',dur:'',cat:'Landmark',drive:'1j39WRWnWdPxVB92duriDzOGeuwipq76d',poster:'assets/sitios/GLORIETA-LMK.jpg',
+ {id:'v12',titulo:'Landmark Interlomas · Glorieta',dur:'',cat:'Landmark',mp4:'assets/videos/glorieta.mp4',poster:'assets/sitios/GLORIETA-LMK.jpg',
   desc:'Landmark volumétrico en la Glorieta de Interlomas.'},
  {id:'v4',titulo:'Tequila Patrón · Landmark',dur:'',cat:'Landmark',drive:'1In5Oz_JEkVK8DWIszXJCQGxa-paNgx0l',
   desc:'Doble muro landmark frente a Parque Toreo.'},
@@ -1750,8 +1753,11 @@ function openMockup(id){
      <div class="mt20"><div class="eyebrow">CAMPAÑAS SUGERIDAS</div>
      <div class="media-meta mt10">${(m.campanas||[]).map(c=>`<span class="chip wm">${c}</span>`).join('')}</div></div>
      <div class="semaforo mt20">${semaforoHtml(m.estatus||'disponible')}</div>
+     ${m.gallery&&m.gallery.length?`<div class="mt20"><div class="eyebrow">PANTALLAS DEL PAQUETE</div>
+       <div class="mt10" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${m.gallery.map(g=>`<img src="${g}" style="width:100%;height:96px;object-fit:cover;border-radius:10px" alt="">`).join('')}</div></div>`:''}
      <div class="mt30" style="display:flex;gap:14px;flex-wrap:wrap">
        ${m.video?`<button class="btn primary" onclick="playDrive('${m.video}','${m.titulo.replace(/'/g,'')}')">▶ VER VIDEO</button>`:''}
+       ${m.pdf?`<button class="btn primary" onclick="window.open('${m.pdf}','_blank')">VER PRESENTACIÓN</button>`:''}
        <button class="btn ghost" onclick="window.open('${geo}','_blank')">VER EN MAPA</button>
        <button class="btn ghost" onclick="addSel('${m.id}','${m.titulo.replace(/'/g,'')}')">AGREGAR A SELECCIÓN</button>
      </div>
@@ -2036,7 +2042,9 @@ function playCase(cid){
 function openVideo(id){
   const v=VIDEOS.find(x=>x.id===id); if(!v) return; curVideo=v;
   $('pb-title').textContent=v.titulo; $('pb-desc').textContent=v.desc;
-  $('player-stage').innerHTML = v.drive
+  $('player-stage').innerHTML = v.mp4
+    ? `<video src="${v.mp4}" controls autoplay playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000"></video>`
+    : v.drive
     ? `<iframe src="https://drive.google.com/file/d/${v.drive}/preview" allow="autoplay; fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>`
     : `<div class="art" style="position:absolute;inset:0;background:var(--grad-hero)"><div class="dots">${miniDots(24)}</div></div>`;
   $('player').classList.add('show');
