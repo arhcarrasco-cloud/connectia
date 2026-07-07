@@ -157,6 +157,7 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 .car-marker{width:66px;height:66px;z-index:5;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,.06);
   box-shadow:0 0 0 10px rgba(0,83,226,.18),0 8px 24px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
 .car-marker svg{width:44px;height:auto}
+.car-inner{display:flex;align-items:center;justify-content:center;transition:transform .5s ease}
 .poi-pin{width:44px;height:44px;background:var(--brand);border:2.5px solid #fff;
   border-radius:50% 50% 50% 0;transform:rotate(-45deg);transform-origin:center;
   box-shadow:0 6px 16px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;
@@ -282,10 +283,9 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 .chip-logo{background:rgba(32,16,64,.9);color:#fff;gap:7px;padding:5px 11px;border:1px solid rgba(123,63,242,.45)}
 .chip-logo img{height:15px!important;width:auto;vertical-align:middle;object-fit:contain}
 .prev-badge{background:rgba(20,8,40,.72);color:#fff;font-size:10px;font-weight:800;letter-spacing:.4px;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.28)}
-.lmk-nav{display:flex;align-items:center;gap:5px;padding:3px 8px 3px 4px;border-radius:20px;background:rgba(20,10,40,.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);opacity:0;transform:translateY(4px) scale(.85);transition:opacity .7s ease,transform .7s ease;pointer-events:none;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.25)}
-.lmk-nav .em{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;background:rgba(123,63,242,.35)}
-.lmk-nav .tx{color:rgba(255,255,255,.92);font-size:10.5px;font-weight:700;max-width:0;overflow:hidden;opacity:0;transition:max-width .7s ease,opacity .7s ease}
-.lmk-nav.near .tx{max-width:130px;opacity:1}
+.lmk-nav{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:20px;background:rgba(20,10,40,.62);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);pointer-events:none;white-space:nowrap;box-shadow:0 3px 9px rgba(0,0,0,.22)}
+.lmk-nav .tx{color:rgba(255,255,255,.92);font-size:10.5px;font-weight:700}
+.lmk-nav .km{color:#FFC220;font-size:9.5px;font-weight:800;letter-spacing:.2px}
 .sp-chains{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
 
 .chain-km{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--mist);margin-right:8px}
@@ -346,6 +346,8 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
   box-shadow:0 2px 8px rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.9);cursor:pointer;
   display:flex;align-items:center;justify-content:center}
 .store-logo-pin.wm{background:#0053e2}
+.store-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.store-km{background:rgba(20,10,40,.82);color:#FFC220;font-size:8.5px;font-weight:800;padding:1px 5px;border-radius:8px;line-height:1.4;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.35)}
 /* geonexa iframe (interfaz real connectia.mx) */
 .geo-map-mock iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:var(--r);background:#150a30}
 
@@ -787,7 +789,7 @@ nav#bottomnav.open{transform:none}
   <div class="card sitios-panel" id="sitios-panel">
     <div class="sp-head" onclick="toggleSitiosOpen()">
       <div class="sp-head-t">📍 SITIOS DEL RECORRIDO · <span id="sp-count">7</span></div>
-      <span class="sp-arrow">▼</span>
+      <span class="sp-arrow">▲</span>
     </div>
     <div class="sp-body">
       <div style="font-size:12px;color:var(--mist);padding:2px 4px 8px">Toca un sitio para ver su ficha — se marcan en verde al pasar.</div>
@@ -857,7 +859,6 @@ nav#bottomnav.open{transform:none}
     <div class="section-head">
       <div class="eyebrow">CONNECTIA × WALMART · CONTENIDO</div>
       <h1>VIDEOS</h1>
-      <p class="body section-sub">Manifiesto, formatos en movimiento, Geonexa y casos — precargados para verse sin conexión.</p>
     </div>
     <div class="grid cols3" id="video-grid"></div>
   </div>
@@ -915,7 +916,6 @@ nav#bottomnav.open{transform:none}
     <div class="mt40" style="display:flex;gap:16px;flex-wrap:wrap">
       <button class="btn primary" onclick="go('geonexa')">VER OPORTUNIDADES POR ZONA</button>
       <button class="btn ghost" onclick="go('ooh')">EXPLORAR SITIOS</button>
-      <button class="btn ghost" onclick="go('casos')">VER CASOS APLICABLES</button>
     </div>
     <p class="aforismo mt40">Cada tienda es un centro de gravedad. Cada ruta, una conversación.</p>
   </div>
@@ -1030,7 +1030,7 @@ document.getElementById('wm-logo-slot').innerHTML = WM_LOCKUP;
 const POIS = [
  {id:'EEM-0819-A',tarifa:1000000,estatus:'disponible',nombre:'Cubo Digital Magnocentro · Interlomas',lat:19.402051,lng:-99.271914,tipo:'Cubo digital',cat:'recorrido',
   medidas:'4 caras · hasta 18.7 × 10 m',imp:4000000,audiencia:'NSE ABC+ · AAA · Interlomas',impacto:'alto',
-  desc:'Frente a CC Interlomas, Toyota y agencias. Cubo digital con exclusividad de categoría.',
+  desc:'Frente a CC Interlomas, Toyota y concesionarias. Cubo digital con exclusividad de categoría.',
   beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
   reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
   campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:200,
@@ -1090,47 +1090,63 @@ const POIS = [
 const ROUTE = [[-99.2155,19.4598],[-99.271914,19.402051],[-99.270725,19.399222],[-99.281112,19.396232],[-99.2816,19.3968],[-99.288435,19.396262],[-99.278823,19.387794],[-99.2786,19.388173]];
 
 /* ═══════════════ MOCKUPS OOH ═══════════════ */
-const CATS = [['todos','Todos']];
-const MOCKUPS = [];
+const CATS = [['todos','Todos'],['landmark','Landmarks'],['mega','Mega vallas'],['dooh','Pantallas 3D']];
+const MOCKUPS = [
+ {id:'OPP-HAMB',cat:'landmark',titulo:'Landmark Hambúrgo · Col. Juárez',ubic:'Hamburgo esq. Florencia · CDMX',tarifa:750000,medidas:'12.9 × 7.2 m · Pantalla LED',imp:'alto',impMes:4100000,aud:'NSE C+/C · Roma–Condesa',obj:'Dominio digital 24/7 en corredor cultural',beneficio:'Presencia premium de Walmart en el corredor Reforma–Juárez con audiencia de alto valor.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],foto:'assets/sitios/OPP-HAMB.jpg',fotoWm:'assets/sitios/OPP-HAMB.jpg',dir:'Hamburgo esq. Florencia, Col. Juárez, CDMX',lat:19.42531,lng:-99.16688},
+ {id:'OPP-MEGA',cat:'mega',titulo:'Mega Valla · Churubusco',ubic:'Calz. de Tlalpan esq. Río Churubusco · CDMX',tarifa:630000,medidas:'108 × 3.05 m',imp:'alto',impMes:1200000,aud:'Vehicular masivo · Calz. Tlalpan',obj:'Cobertura monumental de 108 m',beneficio:'El formato más grande del corredor: dominio visual absoluto para Walmart.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Hot Sale'],foto:'assets/sitios/MPCX-19072-A.jpg',fotoWm:'assets/sitios/MPCX-19072-A.jpg',video:'10XR-D7nKMJaNoZANdOtn1wy-be7IOmV5',dir:'Calz. de Tlalpan esq. Río Churubusco, Coyoacán, CDMX',lat:19.356059,lng:-99.144004},
+ {id:'OPP-SAT',cat:'landmark',titulo:'Muro Galerías Satélite · Fachada',ubic:'Periférico Norte · Naucalpan',tarifa:750000,medidas:'44 × 8 m · 3 caras',imp:'alto',impMes:5400000,aud:'NSE ABC+ · Satélite',obj:'Fachada icónica de 3 caras',beneficio:'Presencia dominante en el principal nodo comercial del norte del Valle de México.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Regreso a clases'],foto:'assets/sitios/OPP-SAT.jpg',fotoWm:'assets/sitios/OPP-SAT.jpg',dir:'Periférico Norte, Galerías Satélite, Naucalpan, Edo. Méx.',lat:19.5092,lng:-99.2372},
+ {id:'OPP-TOREO',cat:'landmark',titulo:'Landmark Toreo · Periférico',ubic:'Periférico Norte · Toreo',tarifa:462000,medidas:'43.4 × 5.2 m',imp:'alto',impMes:6300000,aud:'Vehicular masivo · Toreo',obj:'Máximos impactos del corredor',beneficio:'La ubicación con más impactos mensuales: entrada a CDMX por Periférico.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Hot Sale'],foto:'assets/sitios/OPP-TOREO.jpg',fotoWm:'assets/sitios/OPP-TOREO.jpg',video:'1In5Oz_JEkVK8DWIszXJCQGxa-paNgx0l',dir:'Blvd. Manuel Ávila Camacho (Periférico), Toreo, Naucalpan',lat:19.4598,lng:-99.2155},
+ {id:'OPP-GLORIETA',cat:'landmark',titulo:'Landmark Glorieta Interlomas · Walmart',ubic:'Glorieta Interlomas · Huixquilucan',tarifa:1200000,medidas:'Glorieta 60 × 29 m · Spark 19 m · Pantalla 3D',imp:'alto',impMes:2200000,aud:'NSE ABC+ · corazón de Interlomas',obj:'Landmark volumétrico + DOOH 3D + FOOH',beneficio:'Dominio de marca en el punto más icónico de Interlomas, con producción 3D y viralidad en redes.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],foto:'assets/sitios/GLORIETA-LMK.jpg',fotoWm:'assets/sitios/GLORIETA-LMK.jpg',video:'1j39WRWnWdPxVB92duriDzOGeuwipq76d',dir:'Glorieta Av. San Mateo Santa Rosa / Blvd. Palmas Hills, Interlomas, Huixquilucan',lat:19.39,lng:-99.2925},
+ {id:'OPP-PANT3D',cat:'dooh',titulo:'Pantalla 3D · Paseo Interlomas',ubic:'Paseo Interlomas · Huixquilucan',tarifa:0,medidas:'Pantalla LED · DOOH 3D · 2 spots',imp:'alto',impMes:1835257,aud:'Shoppers · Paseo Interlomas',obj:'DOOH 3D con contenido dinámico 24/7',beneficio:'Tecnología 3D de alto impacto a un lado de Plaza Paseo Interlomas.',estatus:'disponible',campanas:['Precios bajos todos los días','Buen Fin'],foto:'assets/sitios/OPP-DOOH.jpg',fotoWm:'assets/sitios/OPP-DOOH.jpg',dir:'Paseo Interlomas, Huixquilucan, Edo. Méx.',lat:19.3958,lng:-99.2810}
+];
+function playDrive(driveId,titulo){
+  curVideo={titulo:titulo||'Video',desc:'',poi:null};
+  $('pb-title').textContent=titulo||'Video'; $('pb-desc').textContent='';
+  $('player-stage').innerHTML=`<iframe src="https://drive.google.com/file/d/${driveId}/preview" allow="autoplay; fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>`;
+  $('player').classList.add('show');
+}
 
-/* ═══ lugares de interés en la navegación (aparecen/desaparecen sutil) ═══ */
+/* ═══ lugares de interés en la navegación — FIJOS, solo texto + km al sitio más cercano ═══ */
 const LANDMARKS_NAV = [
- {n:'Centro Comercial Interlomas',ic:'🏬',lat:19.3963,lng:-99.2884},
- {n:'Paseo Interlomas',ic:'🛍️',lat:19.3958,lng:-99.2810},
- {n:'Hospital Ángeles Interlomas',ic:'🏥',lat:19.3972,lng:-99.2822},
- {n:'Plaza Magnocentro',ic:'🏢',lat:19.4012,lng:-99.2718},
- {n:'Glorieta Interlomas',ic:'🗿',lat:19.3900,lng:-99.2925},
- {n:'Bosques de las Lomas',ic:'🌳',lat:19.3882,lng:-99.2786},
- {n:'Torre Esmeralda',ic:'🏢',lat:19.3995,lng:-99.2705},
- {n:'Parque Toreo',ic:'🏟️',lat:19.4585,lng:-99.2205},
- {n:'Ciudad Satélite',ic:'🏙️',lat:19.5085,lng:-99.2380}
+ {n:'Centro Comercial Interlomas',lat:19.3963,lng:-99.2884},
+ {n:'Paseo Interlomas',lat:19.3958,lng:-99.2810},
+ {n:'Hospital Ángeles Interlomas',lat:19.3972,lng:-99.2822},
+ {n:'Plaza Magnocentro',lat:19.4012,lng:-99.2718},
+ {n:'Glorieta Interlomas',lat:19.3900,lng:-99.2925},
+ {n:'Bosques de las Lomas',lat:19.3882,lng:-99.2786},
+ {n:'Torre Esmeralda',lat:19.3995,lng:-99.2705},
+ {n:'Universidad Anáhuac',lat:19.3846,lng:-99.2842},
+ {n:'Palmas Hills',lat:19.3925,lng:-99.2960},
+ {n:'Jesús del Monte',lat:19.3775,lng:-99.2860},
+ {n:'La Herradura',lat:19.3830,lng:-99.2600},
+ {n:'Tecamachalco',lat:19.4030,lng:-99.2560},
+ {n:'Parque Toreo',lat:19.4585,lng:-99.2205},
+ {n:'Ciudad Satélite',lat:19.5085,lng:-99.2380}
 ];
 let NAV_MARKERS=[];
+function kmToNearestSite(l){
+  let best=Infinity; POIS.forEach(p=>{ const d=hav([l.lng,l.lat],[p.lng,p.lat]); if(d<best) best=d; });
+  return best;
+}
 function buildNavLandmarks(){
   if(!S.map) return; NAV_MARKERS.forEach(m=>m.marker.remove()); NAV_MARKERS=[];
   LANDMARKS_NAV.forEach(l=>{
+    const km=(kmToNearestSite(l)/1000).toFixed(1);
     const el=document.createElement('div'); el.className='lmk-nav';
-    el.innerHTML='<span class="em">'+l.ic+'</span><span class="tx">'+l.n+'</span>';
+    el.innerHTML='<span class="tx">'+l.n+'</span><span class="km">'+km+' km</span>';
     const marker=new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([l.lng,l.lat]).addTo(S.map);
     NAV_MARKERS.push({el,marker,l});
   });
 }
-function updateNavLandmarks(pos){
-  if(!NAV_MARKERS.length) return;
-  NAV_MARKERS.forEach(o=>{
-    const d=hav(pos,[o.l.lng,o.l.lat]);
-    if(d<520){ const near=d<300; o.el.style.opacity=Math.max(.35,1-d/620).toFixed(2); o.el.style.transform='translateY(0) scale(1)'; o.el.classList.toggle('near',near); }
-    else { o.el.style.opacity='0'; o.el.style.transform='translateY(4px) scale(.85)'; o.el.classList.remove('near'); }
-  });
-}
+function updateNavLandmarks(){ /* fijos: sin cambios durante la navegación */ }
 
 /* ═══════════════ VIDEOS ═══════════════ */
 const VIDEOS = [
  {id:'v7',titulo:'Lala · Landmark Reforma',dur:'',cat:'Landmark',drive:'1D0DnEIbXdSnb0J0N5GKAs-VMKwn68Jm9',
   desc:'Celebración Lala 100 · landmark en Reforma.'},
- {id:'v11',titulo:'Mega Valla · Churubusco',dur:'',cat:'Landmark',drive:'10XR-D7nKMJaNoZANdOtn1wy-be7IOmV5',
+ {id:'v11',titulo:'Mega Valla · Churubusco',dur:'',cat:'Landmark',drive:'10XR-D7nKMJaNoZANdOtn1wy-be7IOmV5',poster:'assets/sitios/MPCX-19072-A.jpg',
   desc:'Mega valla monumental sobre Churubusco — 108 m de dominio visual.'},
- {id:'v12',titulo:'Landmark Interlomas · Glorieta',dur:'',cat:'Landmark',drive:'1j39WRWnWdPxVB92duriDzOGeuwipq76d',
+ {id:'v12',titulo:'Landmark Interlomas · Glorieta',dur:'',cat:'Landmark',drive:'1j39WRWnWdPxVB92duriDzOGeuwipq76d',poster:'assets/sitios/GLORIETA-LMK.jpg',
   desc:'Landmark volumétrico en la Glorieta de Interlomas.'},
  {id:'v4',titulo:'Tequila Patrón · Landmark',dur:'',cat:'Landmark',drive:'1In5Oz_JEkVK8DWIszXJCQGxa-paNgx0l',
   desc:'Doble muro landmark frente a Parque Toreo.'},
@@ -1266,8 +1282,7 @@ const NAV = [
  ['mapa','Mapa','M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3zM9 7v13M15 4v13'],
  ['ooh','Oportunidades','M12 21a9 9 0 110-18 9 9 0 010 18zM12 17a5 5 0 110-10 5 5 0 010 10zM12 13a1 1 0 110-2 1 1 0 010 2z'],
  ['videos','Videos','M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zM10 9l5 3-5 3z'],
- ['geonexa','Geonexa','M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11zM12 12a2 2 0 100-4 2 2 0 000 4z'],
- ['casos','Casos','M8 21h8M12 17v4M6 3h12v6a6 6 0 01-12 0zM6 5H3v2a4 4 0 004 4M18 5h3v2a4 4 0 01-4 4']
+ ['geonexa','Geonexa','M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11zM12 12a2 2 0 100-4 2 2 0 000 4z']
 ];
 function buildNav(){
   $('bottomnav').innerHTML = NAV.map(([id,lbl,d])=>
@@ -1333,21 +1348,26 @@ function initMap(){
       });
       /* auto */
       const car=document.createElement('div'); car.className='car-marker';
-      car.innerHTML=`<svg viewBox="0 0 64 42">
+      car.innerHTML=`<div class="car-inner"><svg viewBox="0 0 64 42">
         <path d="M6 26c0-3 1.5-5 4.5-5.6l4.8-1 5.2-6.8c1.2-1.6 3-2.6 5-2.6h14c2 0 3.9 1 5 2.7l4.6 6.7 5.4 1.1c3 .6 4.5 2.6 4.5 5.5v5.5c0 1.6-1.3 2.9-2.9 2.9H8.9A2.9 2.9 0 016 31.5z" fill="#0053e2"/>
         <path d="M23 13.5h6.5V19H18.6zM32.5 13.5H39c.7 0 1.4.4 1.8 1l3 4.5h-11.3z" fill="#cfe0ff"/>
         <circle cx="17" cy="34" r="6" fill="#201040"/><circle cx="17" cy="34" r="2.6" fill="#E9E6F0"/>
         <circle cx="47" cy="34" r="6" fill="#201040"/><circle cx="47" cy="34" r="2.6" fill="#E9E6F0"/>
         <use href="#wm-spark" fill="#FFC220" transform="translate(27.5,21) scale(0.017)"/>
-      </svg>`;
+      </svg></div>`;
       S.carMarker=new maplibregl.Marker({element:car}).setLngLat(ROUTE[0]).addTo(S.map);
       /* tiendas retail (Walmart · Soriana · Chedraui) */
       TIENDAS.forEach(t=>{
+        let best=Infinity; POIS.forEach(p=>{ const d=hav([t.lng,t.lat],[p.lng,p.lat]); if(d<best) best=d; });
+        const km=(best/1000).toFixed(1);
+        const wrap=document.createElement('div'); wrap.className='store-wrap';
         const el=document.createElement('div'); el.className='store-logo-pin';
         if(t.c==='wm'){ el.classList.add('wm'); el.innerHTML='<svg viewBox="0 0 532.262 600" style="width:16px;height:16px;fill:#FFC220"><use href="#wm-spark"/></svg>'; }
         else if(CHAIN_LOGO[t.c]){ el.style.backgroundImage='url('+CHAIN_LOGO[t.c]+')'; }
-        el.onclick=()=>toast(t.n);
-        new maplibregl.Marker({element:el}).setLngLat([t.lng,t.lat]).addTo(S.map);
+        wrap.appendChild(el);
+        const kmb=document.createElement('div'); kmb.className='store-km'; kmb.textContent=km+' km'; wrap.appendChild(kmb);
+        wrap.onclick=()=>toast(t.n+' · a '+km+' km del sitio más cercano');
+        new maplibregl.Marker({element:wrap}).setLngLat([t.lng,t.lat]).addTo(S.map);
       });
       const corpEl=document.createElement('div'); corpEl.className='store-pin wm';
       corpEl.style.width='34px'; corpEl.style.height='34px'; corpEl.style.border='3px solid #FFC220';
@@ -1458,7 +1478,9 @@ function tick(){
 function updateCar(pos){
   if(S.carMarker){ S.carMarker.setLngLat(pos);
     const bb=(S.lastPos&&hav(S.lastPos,pos)>1)?brg(S.lastPos,pos):null;
-    if(bb!==null){ const e=S.carMarker.getElement(); if(e) e.style.transform=(e.style.transform||'').replace(/rotate\([^)]*\)/,'')+' rotate('+bb+'deg)'; } }
+    const inner=S.carMarker.getElement().querySelector('.car-inner');
+    /* con nav3d el mapa gira a la dirección → el auto siempre apunta hacia arriba (no se voltea) */
+    if(inner){ inner.style.transform='rotate('+(S.nav3d?0:(bb!==null?bb:0))+'deg)'; } }
   if(S.map && S.screen==='mapa' && S.follow!==false && !S.map.isMoving()){
     if(S.nav3d && S.lastPos && hav(S.lastPos,pos)>2){
       S.map.easeTo({center:pos,bearing:brg(S.lastPos,pos),duration:500});
@@ -1493,7 +1515,7 @@ function setMult(m){ S.simMult=m; const el=$('sim-mult'); if(el) el.textContent=
 function simSpeedUp(){ ensureSim(); const i=SIM_MULTS.indexOf(S.simMult||1); setMult(SIM_MULTS[Math.min(i+1,SIM_MULTS.length-1)]); }
 function simSpeedDown(){ ensureSim(); const i=SIM_MULTS.indexOf(S.simMult||1); setMult(SIM_MULTS[Math.max(i-1,0)]); }
 function simSkip(dir){ ensureSim(); updateCar(posAtDist(S.sim.dist + dir*400)); }
-function simSeek(frac){ ensureSim(); updateCar(posAtDist(frac*TOTAL)); }
+function simSeek(frac){ ensureSim(); const pos=posAtDist(frac*TOTAL); S.follow=true; updateCar(pos); if(S.map) S.map.easeTo({center:pos,duration:250}); }
 function poiDistOnRoute(poi){
   // distancia acumulada al punto de DRIVE más cercano al POI
   let best=1e9,bi=0,acc=0,accBest=0;
@@ -1506,8 +1528,9 @@ function poiDistOnRoute(poi){
 }
 function buildSeekMarks(){
   const el=$('seek-marks'); if(!el||!TOTAL) return;
-  el.innerHTML=POIS.map(p=>{ const f=Math.max(0,Math.min(1,poiDistOnRoute(p)/TOTAL));
-    return '<span class="mk" data-id="'+p.id+'" style="left:'+(f*100).toFixed(1)+'%"></span>'; }).join('');
+  const arr=POIS.map(p=>({id:p.id,pct:Math.max(0,Math.min(100,poiDistOnRoute(p)/TOTAL*100))})).sort((a,b)=>a.pct-b.pct);
+  for(let i=1;i<arr.length;i++){ if(arr[i].pct-arr[i-1].pct<2.2) arr[i].pct=Math.min(100,arr[i-1].pct+2.2); } /* separa marcas encimadas (Paseo) */
+  el.innerHTML=arr.map(m=>'<span class="mk" data-id="'+m.id+'" style="left:'+m.pct.toFixed(1)+'%"></span>').join('');
 }
 function trafficSpeed(){ const h=new Date().getHours();
   if((h>=7&&h<10)||(h>=17&&h<20)) return 14;   /* hora pico CDMX */
@@ -1646,7 +1669,7 @@ function buildOoh(){
       </div>
       <div class="media-body"><h3>${m.titulo}</h3>
         <div class="body" style="font-size:14px">${m.ubic}</div>
-        <div class="media-meta"><span class="chip wm">${fmtMXN(m.tarifa)} /mes</span><span class="chip impact-${m.imp}">Impacto ${m.imp==='tactico'?'táctico':m.imp}</span>
+        <div class="media-meta"><span class="chip wm">${m.tarifa?fmtMXN(m.tarifa)+' /mes':'Cotizar'}</span><span class="chip impact-${m.imp}">Impacto ${m.imp==='tactico'?'táctico':m.imp}</span>
         <span class="chip">${m.medidas}</span></div></div>
     </div>`).join('');
 }
@@ -1685,8 +1708,6 @@ function openPoi(id,mockFirst){
      <div class="semaforo mt20">${semaforoHtml(p.estatus)}</div>
      <div class="mt20"><div class="eyebrow">CADENAS CERCANAS</div>
        <div class="mt10" style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px;font-weight:700">${nearestChains(p)}</div></div>
-     <div class="mt20"><div class="eyebrow">CADENAS CERCANAS</div>
-       <div class="mt10" style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px;font-weight:700">${nearestChains(p)}</div></div>
      <div class="mt30" style="display:flex;gap:14px;flex-wrap:wrap">
        <button class="btn ghost" onclick="closeSheet();go('mapa');S.map&&S.map.flyTo({center:[${p.lng},${p.lat}],zoom:16,duration:900})">VER EN MAPA</button>
        <button class="btn primary" onclick="toggleFav('${p.id}');">♥ GUARDAR EN CARRITO</button>
@@ -1695,18 +1716,23 @@ function openPoi(id,mockFirst){
 }
 function openMockup(id){
   const m=MOCKUPS.find(x=>x.id===id); if(!m) return;
+  const tarifaTxt=m.tarifa?fmtMXN(m.tarifa):'Cotizar';
+  const nivel=m.imp?(m.imp==='tactico'?'Táctico':m.imp.charAt(0).toUpperCase()+m.imp.slice(1)):'Alto';
+  const geo='https://www.connectia.mx/geonexa?q='+encodeURIComponent(m.dir||m.ubic||m.titulo);
   openSheet(`
-   <div style="aspect-ratio:16/6;position:relative;overflow:hidden;background:#150a30">${m.foto?`<img id="mock-foto" src="${m.fotoWm||m.foto}" data-real="${m.foto}" data-wm="${m.fotoWm||''}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" alt="">`:oohArt(m)}</div>
+   <div style="aspect-ratio:16/7;position:relative;overflow:hidden;background:#150a30">${m.foto?`<img src="${m.fotoWm||m.foto}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" alt="">`:oohArt(m)}</div>
    <div style="padding:34px 44px 44px">
-     <div class="eyebrow">MOCKUP · CONNECTIA × WALMART</div>
+     <div class="eyebrow">OPORTUNIDAD · CONNECTIA × WALMART</div>
      <h2 style="margin-top:8px">${m.titulo}</h2>
-     ${statRow([['Tarifa mensual',fmtMXN(m.tarifa)],['Ubicación',m.ubic],['Medidas',m.medidas],['Audiencia',m.aud],['Objetivo',m.obj]])}
+     <p class="body mt10">${m.ubic} · ${m.medidas}</p>
+     ${statRow([['Tarifa mensual',tarifaTxt],['Impactos mensuales',m.impMes?(m.impMes>=1e6?(m.impMes/1e6).toFixed(1).replace('.0','')+' M':Math.round(m.impMes/1e3)+' K'):'—'],['Audiencia',m.aud],['Nivel de impacto',nivel]])}
+     <div class="mt20"><div class="eyebrow">BENEFICIO PARA WALMART</div><p class="body mt10">${m.beneficio||''}</p></div>
      <div class="mt20"><div class="eyebrow">CAMPAÑAS SUGERIDAS</div>
-     <div class="media-meta mt10">${m.campanas.map(c=>`<span class="chip wm">${c}</span>`).join('')}
-       <span class="chip">Temporadas: Regreso a clases · Navidad · Hot Sale · Buen Fin</span></div></div>
+     <div class="media-meta mt10">${(m.campanas||[]).map(c=>`<span class="chip wm">${c}</span>`).join('')}</div></div>
+     <div class="semaforo mt20">${semaforoHtml(m.estatus||'disponible')}</div>
      <div class="mt30" style="display:flex;gap:14px;flex-wrap:wrap">
-       ${m.fotoWm?`<button class="btn primary" onclick="toggleMock()">VER ANTES / DESPUÉS</button>`:''}
-       ${m.poi?`<button class="btn ghost" onclick="closeSheet();go('mapa');const p=POIS.find(x=>x.id==='${m.poi}');S.map&&S.map.flyTo({center:[p.lng,p.lat],zoom:16,duration:900})">VER UBICACIÓN EN MAPA</button>`:''}
+       ${m.video?`<button class="btn primary" onclick="playDrive('${m.video}','${m.titulo.replace(/'/g,'')}')">▶ VER VIDEO</button>`:''}
+       <button class="btn ghost" onclick="window.open('${geo}','_blank')">VER EN MAPA</button>
        <button class="btn ghost" onclick="addSel('${m.id}','${m.titulo.replace(/'/g,'')}')">AGREGAR A SELECCIÓN</button>
      </div>
    </div>`);
@@ -1958,7 +1984,7 @@ function buildVideos(){
    <div class="card media-card clickable" onclick="openVideo('${v.id}')">
      <div class="media-visual">
        <div class="art" style="background:linear-gradient(150deg,#241148,#502090,#6030A0)">
-         ${v.drive?`<img src="https://drive.google.com/thumbnail?id=${v.drive}&sz=w640" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<div class="dots">${miniDots(6)}</div>`}
+         ${(v.poster||v.drive)?`<img src="${v.poster?v.poster:'https://drive.google.com/thumbnail?id='+v.drive+'&sz=w640'}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<div class="dots">${miniDots(6)}</div>`}
          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,8,40,.15),rgba(20,8,40,.75))"></div></div>
        <div style="position:absolute;top:12px;left:12px;z-index:3"><span class="prev-badge">▶ Vista previa</span></div>
        <div style="position:absolute;left:16px;right:16px;bottom:14px;z-index:2">
