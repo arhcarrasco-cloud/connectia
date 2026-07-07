@@ -279,8 +279,8 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 
 .chain-km{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:#fff;
   margin:0 6px 6px 0;padding:5px 10px;border-radius:999px}
-.chip-logo{background:var(--brand);color:#fff;gap:7px;border:1px solid rgba(255,255,255,.25)}
-.chip-logo img{filter:brightness(0) invert(1);opacity:.95}
+.chip-logo{background:#fff;color:#201040;gap:6px;padding:5px 11px}
+.chip-logo img{height:15px!important;width:auto;vertical-align:middle;object-fit:contain}
 .sp-chains{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
 
 .chain-km{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--mist);margin-right:8px}
@@ -536,7 +536,10 @@ nav#bottomnav.open{transform:none}
 .sitios-panel .sp-arrow{color:#fff}
 .sitios-panel.open .sp-body{background:var(--glass);border:1px solid var(--glass-border);border-radius:18px;
   margin-top:8px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-.sp-arrow{margin-left:auto;transition:transform .3s;font-size:14px;color:var(--violet-hot)}
+@keyframes sp-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+.sp-arrow{margin-left:auto;transition:transform .3s;font-size:18px;font-weight:900;color:#fff;
+  animation:sp-bounce 1s ease-in-out infinite;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.sitios-panel.open .sp-arrow{animation:none}
 .sitios-panel.open .sp-arrow{transform:rotate(180deg)}
 .sitios-panel.open{width:400px;max-height:46%}
 .sitios-panel .sp-body{overflow-y:auto;padding:0 14px 12px}
@@ -2105,6 +2108,10 @@ function flashChains(p){
   w.classList.add('show');
   clearTimeout(w._t); w._t=setTimeout(()=>w.classList.remove('show'),4500);
 }
+function handleViewParam(){
+  const v=new URLSearchParams(location.search).get('view');
+  if(v==='mapa'){ const g=$('gate'); if(g) g.classList.add('hide'); setTimeout(()=>{ go('mapa'); fitRoute&&fitRoute(); },500); }
+}
 function handleDownloadParam(){
   const dl=new URLSearchParams(location.search).get('dl');
   if(!dl) return;
@@ -2131,6 +2138,7 @@ function init(){
   });
   setTimeout(()=>$('boot').classList.add('hide'),1400);
   handleDownloadParam();
+  handleViewParam();
 }
 window.addEventListener('load',init);
 /* bloquear swipe de navegación / cambio de app en bordes */
