@@ -1586,7 +1586,7 @@ function onOverlayComplete(event){
           if(s.overlay.setOptions&&s.type!==google.maps.drawing.OverlayType.MARKER){
             s.overlay.setOptions({editable:true,clickable:false,zIndex:50});
           }else if(s.type===google.maps.drawing.OverlayType.MARKER){
-            if(s.overlay.setClickable)s.overlay.setClickable(false);
+            if(s.overlay.setClickable)s.overlay.setClickable(true); // pines siempre clicables (personalizar/clic derecho/Shift)
             if(s.overlay.setZIndex)s.overlay.setZIndex(50);
           }
         }catch(e){}
@@ -4683,11 +4683,14 @@ function _setOverlaysClickable(clickable){
   var singleZ=clickable?100:1; // single/geo overlays can go lower
   var _setMS=function(ov){
     if(!ov)return;
-    // Use individual setters for markers (no setOptions), setOptions for shapes
+    // Los MARCADORES (pines) se mantienen SIEMPRE clicables para permitir
+    // personalizar / reporte / clic derecho / Shift+clic, aunque se esté dibujando.
+    var _isMk=(typeof ov.getPosition==='function' && !ov.getRadius && !ov.getBounds && !ov.getPath);
+    var _clk=_isMk?true:clickable;
     try{
-      if(ov.setOptions)ov.setOptions({clickable:clickable,zIndex:msZ});
+      if(ov.setOptions)ov.setOptions({clickable:_clk,zIndex:msZ});
       else{
-        if(ov.setClickable)ov.setClickable(clickable);
+        if(ov.setClickable)ov.setClickable(_clk);
         if(ov.setZIndex)ov.setZIndex(msZ);
       }
     }catch(e){}
