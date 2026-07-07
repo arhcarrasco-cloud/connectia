@@ -141,6 +141,10 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 .progress-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:10px}
 .progress-fill{height:100%;width:0%;border-radius:999px;background:var(--grad-active);transition:width .8s ease}
 .seek-wrap{display:flex;align-items:center;gap:12px;margin-top:8px}
+#seek-marks{position:absolute;inset:0;pointer-events:none}
+#seek-marks .mk{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;
+  background:var(--wm-spark);border:2px solid #201040;box-shadow:0 0 0 1px var(--wm-spark)}
+#seek-marks .mk.done{background:#1f9d55}
 .sim-ctl{display:flex;gap:6px}
 .sim-mult{min-width:46px;font-weight:800;color:var(--lime)!important}
 .sim-ctl button{width:44px;height:40px;border-radius:10px;border:1px solid var(--glass-border);
@@ -275,7 +279,8 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 
 .chain-km{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:#fff;
   margin:0 6px 6px 0;padding:5px 10px;border-radius:999px}
-.chip-logo{background:#fff;color:#201040;gap:6px}
+.chip-logo{background:var(--brand);color:#fff;gap:7px;border:1px solid rgba(255,255,255,.25)}
+.chip-logo img{filter:brightness(0) invert(1);opacity:.95}
 .sp-chains{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
 
 .chain-km{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--mist);margin-right:8px}
@@ -799,6 +804,7 @@ nav#bottomnav.open{transform:none}
       </div>
       <div class="progress-bar" style="flex:1;position:relative">
         <div class="progress-fill" id="prog-fill"></div>
+        <div id="seek-marks"></div>
         <input type="range" id="sim-seek" min="0" max="1000" value="0" oninput="simSeek(this.value/1000)">
       </div>
     </div>
@@ -973,7 +979,6 @@ nav#bottomnav.open{transform:none}
     <button class="btn sm ghost" onclick="closePlayer()">← VOLVER</button>
     <div class="pb-info"><div class="pb-title" id="pb-title"></div><div class="pb-desc" id="pb-desc"></div></div>
     <button class="btn sm ghost" onclick="toast('Guardado en tu selección')">GUARDAR</button>
-    <button class="btn sm ghost" onclick="playerToMap()">VER EN MAPA</button>
   </div>
 </div>
 
@@ -1302,6 +1307,7 @@ function initMap(){
       new maplibregl.Marker({element:corpEl}).setLngLat([-99.2155,19.4598]).addTo(S.map);
       setGps('activo');
       setDrivePath();
+      buildSeekMarks();
       S.follow=true;
       const stopFollow=(e)=>{ if(e && e.originalEvent) S.follow=false; };
       S.map.on('dragstart',stopFollow); S.map.on('zoomstart',stopFollow); S.map.on('rotatestart',stopFollow);
@@ -1431,12 +1437,27 @@ function posAtDist(d){
   return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
 }
 function ensureSim(){ if(!S.sim.on && !S.sim.paused){ verRecorrido(); togglePlay(); } }
-const SIM_MULTS=[1,2,4,8];
-function setMult(m){ S.simMult=m; const el=$('sim-mult'); if(el) el.textContent=m+'x'; toast('Velocidad '+m+'x'); }
+const SIM_MULTS=[0.25,0.5,1,2,4,8];
+function setMult(m){ S.simMult=m; const el=$('sim-mult'); if(el) el.textContent=(m<1?m:m+'')+'x'; toast('Velocidad '+m+'x'); }
 function simSpeedUp(){ ensureSim(); const i=SIM_MULTS.indexOf(S.simMult||1); setMult(SIM_MULTS[Math.min(i+1,SIM_MULTS.length-1)]); }
 function simSpeedDown(){ ensureSim(); const i=SIM_MULTS.indexOf(S.simMult||1); setMult(SIM_MULTS[Math.max(i-1,0)]); }
 function simSkip(dir){ ensureSim(); updateCar(posAtDist(S.sim.dist + dir*400)); }
 function simSeek(frac){ ensureSim(); updateCar(posAtDist(frac*TOTAL)); }
+function poiDistOnRoute(poi){
+  // distancia acumulada al punto de DRIVE más cercano al POI
+  let best=1e9,bi=0,acc=0,accBest=0;
+  for(let i=0;i<DRIVE.length;i++){
+    if(i>0) acc+=SEGLEN[i-1];
+    const d=hav([DRIVE[i][0],DRIVE[i][1]],[poi.lng,poi.lat]);
+    if(d<best){ best=d; accBest=acc; }
+  }
+  return accBest;
+}
+function buildSeekMarks(){
+  const el=$('seek-marks'); if(!el||!TOTAL) return;
+  el.innerHTML=POIS.map(p=>{ const f=Math.max(0,Math.min(1,poiDistOnRoute(p)/TOTAL));
+    return '<span class="mk" data-id="'+p.id+'" style="left:'+(f*100).toFixed(1)+'%"></span>'; }).join('');
+}
 function trafficSpeed(){ const h=new Date().getHours();
   if((h>=7&&h<10)||(h>=17&&h<20)) return 14;   /* hora pico CDMX */
   if(h>=10&&h<17) return 19;
@@ -1480,6 +1501,7 @@ function checkProximity(pos){
       if(!S.history.includes(nearest.id)) S.history.push(nearest.id);
       if(pin){ pin.classList.remove('near'); pin.classList.add('visited'); }
       renderSitios(); flashChains(nearest);
+      try{ const mk=document.querySelector('#seek-marks .mk[data-id="'+nearest.id+'"]'); if(mk) mk.classList.add('done'); }catch(e){}
       if(S.sim.on && !S.realGps) openStreet360(nearest);
     } else if(S.popupPoi!==nearest.id){ showGpsPopup(nearest,1); }
   } else if(S.popupPoi && nd>220){ hideGpsPopup(); document.querySelectorAll('.poi-pin.near').forEach(p=>p.classList.remove('near')); }
@@ -1787,10 +1809,10 @@ function submitCheckout(){
   openSheet(`
    <div class="gracias-box">
      <div class="eyebrow">CONNECTIA × WALMART</div>
-     <h2 class="mt10">GRACIAS</h2>
-     <p class="aforismo">«El tiempo es lo más valioso que tenemos, gracias por regalarnos un poco de él.»</p>
+     <h2 class="mt10">GRACIAS, ${GATE_NAME.toUpperCase()}</h2>
+     <p class="aforismo">«El tiempo es lo más valioso que tenemos, ${GATE_NAME}, gracias por regalarnos un poco de él.»</p>
      <p class="body mt10">Atentamente, todo el equipo de Connectia.</p>
-     <p class="body mt20" style="font-size:13px">Enviamos tu newsletter con la selección a <strong>${em}</strong></p>
+     <p class="body mt20" style="font-size:13px">Enviamos tu propuesta OOH (PDF + Excel) a <strong>${em}</strong></p>
      <div class="mt30" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
        <button class="btn ghost" onclick="closeSheet()">CERRAR</button>
      </div>
@@ -1882,8 +1904,10 @@ function buildVideos(){
   $('video-grid').innerHTML=VIDEOS.map(v=>`
    <div class="card media-card clickable" onclick="openVideo('${v.id}')">
      <div class="media-visual">
-       <img src="https://drive.google.com/thumbnail?id=${v.drive}&sz=w640" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
-       <div class="art" style="background:linear-gradient(150deg,#241148,#6030A0);opacity:.25"></div>
+       <div class="art" style="background:linear-gradient(150deg,#241148,#502090,#6030A0)"><div class="dots">${miniDots(6)}</div></div>
+       <div style="position:absolute;left:16px;right:16px;bottom:14px;z-index:2">
+         <div class="eyebrow on-photo" style="font-size:9px">${v.cat.toUpperCase()}</div>
+         <div style="color:#fff;font-weight:800;font-size:15px;text-transform:uppercase;line-height:1.15;margin-top:3px">${v.titulo}</div></div>
        <div class="play-badge"><div class="pb"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></div></div></div>
      <div class="media-body"><h3>${v.titulo}</h3>
        <div class="body" style="font-size:14px">${v.desc}</div>
@@ -1915,7 +1939,7 @@ function openVideo(id){
     : `<div class="art" style="position:absolute;inset:0;background:var(--grad-hero)"><div class="dots">${miniDots(24)}</div></div>`;
   $('player').classList.add('show');
 }
-function closePlayer(){ $('player').classList.remove('show'); }
+function closePlayer(){ $('player').classList.remove('show'); const st=$('player-stage'); if(st) st.innerHTML=''; }
 function playerToMap(){ closePlayer();
   if(curVideo&&curVideo.poi){ const p=POIS.find(x=>x.id===curVideo.poi);
     go('mapa'); if(p&&S.map) S.map.flyTo({center:[p.lng,p.lat],zoom:16,duration:900}); }
@@ -2098,6 +2122,13 @@ function init(){
   setTimeout(()=>$('boot').classList.add('hide'),1400);
 }
 window.addEventListener('load',init);
+/* bloquear swipe de navegación / cambio de app en bordes */
+document.addEventListener('touchmove',function(e){ if(e.touches.length>1) e.preventDefault(); },{passive:false});
+document.addEventListener('touchstart',function(e){
+  const t=e.touches[0]; if(t && (t.clientX<18 || t.clientX>window.innerWidth-18)) { e.preventDefault(); }
+},{passive:false});
+history.pushState(null,'',location.href);
+window.addEventListener('popstate',function(){ history.pushState(null,'',location.href); });
 
 </script>
 </body>
