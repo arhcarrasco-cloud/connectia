@@ -283,6 +283,10 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 .chip-logo{background:rgba(32,16,64,.9);color:#fff;gap:7px;padding:5px 11px;border:1px solid rgba(123,63,242,.45)}
 .chip-logo img{height:15px!important;width:auto;vertical-align:middle;object-fit:contain}
 .prev-badge{background:rgba(20,8,40,.72);color:#fff;font-size:10px;font-weight:800;letter-spacing:.4px;padding:4px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.28)}
+.poi-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:46px;height:46px;border-radius:50%;border:none;background:rgba(20,10,40,.62);color:#fff;font-size:28px;font-weight:700;line-height:1;cursor:pointer;backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
+.poi-nav:hover{background:rgba(96,48,160,.85)}
+.poi-nav.prev{left:16px}.poi-nav.next{right:16px}
+.poi-count{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:5;background:rgba(20,10,40,.7);color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px}
 .lmk-nav{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:20px;background:rgba(20,10,40,.62);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);pointer-events:none;white-space:nowrap;box-shadow:0 3px 9px rgba(0,0,0,.22)}
 .lmk-nav .tx{color:rgba(255,255,255,.92);font-size:10.5px;font-weight:700}
 .lmk-nav .km{color:#FFC220;font-size:9.5px;font-weight:800;letter-spacing:.2px}
@@ -802,6 +806,7 @@ nav#bottomnav.open{transform:none}
     <button class="map-btn" onclick="mapZoom(-1)" aria-label="Alejar">－</button>
     <button class="map-btn" onclick="centerCar()" aria-label="Centrar ubicación">◉</button>
     <button class="map-btn" onclick="fitRoute()" aria-label="Ver ruta completa">⛶</button>
+    <button class="map-btn waze" onclick="openWaze()" aria-label="Abrir ruta en Waze" title="Abrir en Waze">W</button>
   </div>
   <div class="card progress-track">
     <div class="progress-lbls"><span>Inicio · Corporativo Walmart</span><span id="prog-pct">0%</span><span>Cierre · Interlomas</span></div>
@@ -1028,7 +1033,7 @@ document.getElementById('wm-logo-slot').innerHTML = WM_LOCKUP;
 
 /* ═══════════════ BASE DE DATOS · PUNTOS DE INTERÉS ═══════════════ */
 const POIS = [
- {id:'EEM-0819-A',tarifa:1000000,estatus:'disponible',nombre:'Cubo Digital Magnocentro · Interlomas',lat:19.402051,lng:-99.271914,tipo:'Cubo digital',cat:'recorrido',
+ {id:'EEM-0819-A',tarifa:84000,estatus:'disponible',nombre:'Cubo Digital Magnocentro · Interlomas',lat:19.402051,lng:-99.271914,tipo:'Cubo digital',cat:'recorrido',
   medidas:'4 caras · hasta 18.7 × 10 m',imp:4000000,audiencia:'NSE ABC+ · AAA · Interlomas',impacto:'alto',
   desc:'Frente a CC Interlomas, Toyota y concesionarias. Cubo digital con exclusividad de categoría.',
   beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
@@ -1049,35 +1054,35 @@ const POIS = [
   reco:'Spot de 10 s con movimiento; hasta 6 clientes en rotación por minuto.',
   campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:200,
   foto:'assets/sitios/EEM-18177-B.jpg',fotoWm:'assets/sitios/EEM-18177-B-wm.jpg'},
- {id:'EEM-17672-A',tarifa:480000,estatus:'disponible',nombre:'Pantalla LED Paseo Interlomas',lat:19.396232,lng:-99.281112,tipo:'Pantalla LED · puente',cat:'recorrido',
+ {id:'EEM-17672-A',tarifa:78400,estatus:'disponible',nombre:'Pantalla LED Paseo Interlomas',lat:19.396232,lng:-99.281112,tipo:'Pantalla LED · puente',cat:'recorrido',
   medidas:'15.36 × 3.84 m',imp:1835257,audiencia:'Shoppers · frente a Liverpool',impacto:'medio',
   desc:'Frente a Liverpool y CC Paseo Interlomas.',
   beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
   reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
   campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:150,
   foto:'assets/sitios/EEM-17672-A.jpg',fotoWm:'assets/sitios/EEM-17672-A-wm.jpg'},
- {id:'EEM-17672-B',tarifa:320000,estatus:'disponible',nombre:'Puente Paseo Interlomas',lat:19.3968,lng:-99.2816,tipo:'Puente peatonal',cat:'recorrido',
+ {id:'EEM-17672-B',tarifa:70000,estatus:'disponible',nombre:'Puente Paseo Interlomas',lat:19.3968,lng:-99.2816,tipo:'Puente peatonal',cat:'recorrido',
   medidas:'15.10 × 3.80 m',imp:900000,audiencia:'Vehicular · Hospital Ángeles',impacto:'tactico',
   desc:'Frente a Hospital Ángeles Interlomas y Paseo Interlomas; lona front con jareta oculta.',
   beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
   reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
   campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:150,
   foto:'assets/sitios/EEM-17672-B.jpg',fotoWm:'assets/sitios/EEM-17672-B-wm.jpg'},
- {id:'BEM-17344-A',tarifa:350000,estatus:'disponible',nombre:'Muro CC Interlomas',lat:19.396262,lng:-99.288435,tipo:'Muro',cat:'recorrido',
+ {id:'BEM-17344-A',tarifa:392000,estatus:'disponible',nombre:'Muro CC Interlomas',lat:19.396262,lng:-99.288435,tipo:'Muro',cat:'recorrido',
   medidas:'8.00 × 15.00 m',imp:1100000,audiencia:'Shoppers · entrada principal',impacto:'tactico',
   desc:'Entrada principal del Centro Comercial Interlomas.',
   beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
   reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
   campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:150,
   foto:'assets/sitios/BEM-17344-A.jpg',fotoWm:'assets/sitios/BEM-17344-A-wm.jpg'},
- {id:'EEM-17427-B',tarifa:280000,estatus:'disponible',nombre:'Puente Hueyetlaco',lat:19.387794,lng:-99.278823,tipo:'Puente peatonal',cat:'recorrido',
+ {id:'EEM-17427-B',tarifa:145600,estatus:'disponible',nombre:'Puente Hueyetlaco',lat:19.387794,lng:-99.278823,tipo:'Puente peatonal',cat:'recorrido',
   medidas:'10.60 × 5.20 m',imp:850000,audiencia:'Vehicular · Santa Fe-Interlomas',impacto:'tactico',
   desc:'Circulación de Santa Fe hacia Interlomas.',
   beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
   reco:'Creatividad de precio/temporada adaptada al formato; rotación por campaña.',
   campanas:['Precios bajos todos los días','Buen Fin','Walmart Pass'],radio:150,
   foto:'assets/sitios/EEM-17427-B.jpg',fotoWm:'assets/sitios/EEM-17427-B-wm.jpg'},
- {id:'EEM-15935-B',tarifa:420000,estatus:'disponible',nombre:'Unipolar Vialidad de la Barranca',lat:19.388173,lng:-99.2786,tipo:'Unipolar',cat:'recorrido',
+ {id:'EEM-15935-B',tarifa:156800,estatus:'disponible',nombre:'Unipolar Vialidad de la Barranca',lat:19.388173,lng:-99.2786,tipo:'Unipolar',cat:'recorrido',
   medidas:'12.90 × 10.80 m',imp:1400000,audiencia:'Alta plusvalía · Bosque de las Lomas',impacto:'medio',
   desc:'Sobre Vialidad de la Barranca hacia Santa Fe y Bosques; iluminado.',
   beneficio:'Presencia Walmart en un punto de alto flujo con cobertura estratégica de la zona.',
@@ -1399,6 +1404,14 @@ function setGps(mode){
 }
 function mapZoom(d){ if(S.map) S.map.zoomTo(S.map.getZoom()+d,{duration:400}); }
 function centerCar(){ S.follow=true; if(S.map&&S.carMarker) S.map.flyTo({center:S.carMarker.getLngLat(),duration:700}); }
+/* Abrir la MISMA ruta del recorrido en Waze (inicio Corporativo Toreo → sitios Interlomas) */
+const WAZE_ROUTE=(typeof ROUTE_REAL!=='undefined'?ROUTE_REAL:[]);
+function openWaze(){
+  const R=WAZE_ROUTE; if(!R||!R.length){ return; }
+  const end=R[R.length-1]; // destino: cierre en Interlomas
+  const url='https://www.waze.com/live-map/directions?to=ll.'+end[1]+'%2C'+end[0]+'&from=ll.'+R[0][1]+'%2C'+R[0][0]+'&navigate=yes';
+  window.open(url,'_blank');
+}
 function fitRoute(){ if(!S.map) return;
   const b=new maplibregl.LngLatBounds(); ROUTE.forEach(c=>b.extend(c));
   S.map.fitBounds(b,{padding:{top:160,bottom:160,left:80,right:80},duration:1000}); }
@@ -1692,14 +1705,21 @@ function statRow(pairs){ return `<div style="display:grid;grid-template-columns:
 
 function openPoi(id,mockFirst){
   const p=POIS.find(x=>x.id===id); if(!p) return;
+  const list=POIS; const idx=list.findIndex(x=>x.id===id); const n=list.length;
+  const prevId=list[(idx-1+n)%n].id, nextId=list[(idx+1)%n].id;
   const art = (p.fotoWm||p.foto)
     ? `<img src="${p.fotoWm||p.foto}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain" alt="">`
     : oohArt({grad:'linear-gradient(160deg,#2a1656,#502090)',copy:p.nombre});
   openSheet(`
-   <div style="aspect-ratio:16/8;position:relative;overflow:hidden;background:#0b0620">${art}</div>
+   <div style="aspect-ratio:16/8;position:relative;overflow:hidden;background:#0b0620">${art}
+     <button class="poi-nav prev" onclick="openPoi('${prevId}')" title="Anterior">‹</button>
+     <button class="poi-nav next" onclick="openPoi('${nextId}')" title="Siguiente">›</button>
+     <div class="poi-count">${idx+1} / ${n}</div>
+   </div>
    <div style="padding:34px 44px 44px">
      <div class="eyebrow">${p.tipo.toUpperCase()} · ${p.medidas}</div>
      <h2 style="margin-top:8px">${p.nombre}</h2>
+     <div style="margin-top:10px;display:inline-block;background:var(--violet,#6030A0);color:#fff;font-weight:800;font-size:20px;padding:8px 16px;border-radius:12px">${fmtMXN(p.tarifa)} <span style="font-size:13px;font-weight:600;opacity:.85">/mes</span></div>
      <p class="body mt10">${p.desc}</p>
      ${statRow([['Tarifa mensual',fmtMXN(p.tarifa)],['Impactos mensuales',flujoMes(p)],['Audiencia',p.audiencia],['Nivel de impacto',p.impacto==='tactico'?'Táctico':p.impacto.charAt(0).toUpperCase()+p.impacto.slice(1)]])}
      <div class="mt20"><div class="eyebrow">BENEFICIO PARA WALMART</div><p class="body mt10">${p.beneficio}</p></div>
