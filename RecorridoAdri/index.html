@@ -497,10 +497,10 @@ nav#bottomnav{position:absolute;left:0;right:0;bottom:0;height:var(--nav-h);z-in
 #gate.hide{display:none}
 #gate-title{font-weight:900;font-size:clamp(40px,7vw,84px);letter-spacing:-.03em;color:#fff;text-transform:uppercase}
 /* menú de 3 puntos + nav oculta */
-#back-fab{position:absolute;top:18px;left:76px;z-index:80;height:48px;padding:0 18px;border-radius:999px;
-  border:1px solid var(--glass-border);background:var(--glass);backdrop-filter:blur(12px);color:#fff;
-  font-size:14px;font-weight:700;cursor:pointer;display:none}
-#back-fab.show{display:block}
+.back-inflow{display:inline-flex;align-items:center;gap:6px;height:46px;padding:0 20px;margin-bottom:22px;
+  border-radius:999px;border:1px solid var(--glass-border);background:rgba(255,255,255,.06);color:#fff;
+  font-family:inherit;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
+.back-inflow:active{background:var(--brand)}
 #menu-fab{position:absolute;top:18px;left:18px;z-index:80;width:48px;height:48px;border-radius:50%;
   border:1px solid var(--glass-border);background:var(--glass);backdrop-filter:blur(12px);color:#fff;
   font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:0}
@@ -963,7 +963,6 @@ nav#bottomnav.open{transform:none}
 </div>
 
 <button id="menu-fab" onclick="toggleNav()" aria-label="Menú">⋮</button>
-<button id="back-fab" onclick="goBack()" aria-label="Regresar">‹ Regresar</button>
 <button id="cart-fab" onclick="openCarrito()" aria-label="Carrito">
   <svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/>
   <path d="M3 3h2.5l2.2 11.5a1.5 1.5 0 001.5 1.2h7.9a1.5 1.5 0 001.5-1.2L20.5 7H6"/></svg>
@@ -1187,7 +1186,6 @@ function go(id){
   scr.classList.add('active'); S.screen=id;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   const nb=$('nav-'+id); if(nb) nb.classList.add('active');
-  const bf=$('back-fab'); if(bf) bf.classList.toggle('show', id!=='inicio' && id!=='mapa');
   if(id==='mapa'&&S.map){ setTimeout(()=>S.map.resize(),80); }
   const wm=$('cx-watermark');
   if(wm){ const light=(id==='mapa'); wm.src='assets/'+(light?'connectia-violet.png':'connectia-white.png'); wm.style.opacity=light?'.65':'.5'; }
@@ -1261,11 +1259,12 @@ function initMap(){
       corpEl.onclick=()=>toast('Corporativo Walmart de México · Toreo — inicio del recorrido');
       new maplibregl.Marker({element:corpEl}).setLngLat([-99.2155,19.4598]).addTo(S.map);
       setGps('activo');
+      setDrivePath();
       S.follow=true;
       const stopFollow=(e)=>{ if(e && e.originalEvent) S.follow=false; };
       S.map.on('dragstart',stopFollow); S.map.on('zoomstart',stopFollow); S.map.on('rotatestart',stopFollow);
       /* carro 2D Walmart (SVG marker, siempre visible) */
-      S.car3d={lng:ROUTE[0][0],lat:ROUTE[0][1],bearing:0};
+      S.car3d={lng:DRIVE[0][0],lat:DRIVE[0][1],bearing:0};
     });
     S.map.on('error',()=>{ if(!S.mapReady && !S._retryStyle){ S._retryStyle=true;
       try{ S.map.setStyle('https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'); }catch(e){} } });
@@ -1293,8 +1292,14 @@ function hav(a,b){ const R=6371000,rad=x=>x*Math.PI/180;
   const dLat=rad(b[1]-a[1]),dLng=rad(b[0]-a[0]);
   const h=Math.sin(dLat/2)**2+Math.cos(rad(a[1]))*Math.cos(rad(b[1]))*Math.sin(dLng/2)**2;
   return 2*R*Math.asin(Math.sqrt(h)); }
-const SEGLEN=ROUTE.slice(1).map((c,i)=>hav(ROUTE[i],c));
-const TOTAL=SEGLEN.reduce((a,b)=>a+b,0);
+let DRIVE=ROUTE, SEGLEN=ROUTE.slice(1).map((c,i)=>hav(ROUTE[i],c)), TOTAL=SEGLEN.reduce((a,b)=>a+b,0);
+function setDrivePath(){
+  if(typeof ROUTE_REAL!=='undefined' && ROUTE_REAL.length>2){
+    DRIVE=ROUTE_REAL;
+    SEGLEN=DRIVE.slice(1).map((c,i)=>hav(DRIVE[i],c));
+    TOTAL=SEGLEN.reduce((a,b)=>a+b,0);
+  }
+}
 
 /* ═══════════════ RECORRIDO ═══════════════ */
 /* INICIAR RECORRIDO = ubicación GPS en tiempo real */
@@ -1347,7 +1352,7 @@ function tick(){
   sim.t+=mps;
   while(sim.seg<SEGLEN.length && sim.t>=SEGLEN[sim.seg]){ sim.t-=SEGLEN[sim.seg]; sim.seg++; }
   if(sim.seg>=SEGLEN.length){ finishTour(); return; }
-  const a=ROUTE[sim.seg], b=ROUTE[sim.seg+1], f=SEGLEN[sim.seg]?sim.t/SEGLEN[sim.seg]:0;
+  const a=DRIVE[sim.seg], b=DRIVE[sim.seg+1], f=SEGLEN[sim.seg]?sim.t/SEGLEN[sim.seg]:0;
   const pos=[a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
   sim.dist=SEGLEN.slice(0,sim.seg).reduce((x,y)=>x+y,0)+sim.t;
   updateCar(pos);
@@ -1380,7 +1385,7 @@ function posAtDist(d){
   while(seg<SEGLEN.length && t>=SEGLEN[seg]){ t-=SEGLEN[seg]; seg++; }
   if(seg>=SEGLEN.length){ seg=SEGLEN.length-1; t=SEGLEN[seg]; }
   S.sim.seg=seg; S.sim.t=t; S.sim.dist=d;
-  const a=ROUTE[seg], b=ROUTE[seg+1], f=SEGLEN[seg]?t/SEGLEN[seg]:0;
+  const a=DRIVE[seg], b=DRIVE[seg+1], f=SEGLEN[seg]?t/SEGLEN[seg]:0;
   return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
 }
 function ensureSim(){ if(!S.sim.on && !S.sim.paused){ verRecorrido(); togglePlay(); } }
@@ -1912,7 +1917,7 @@ function enterGate(){
   try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }catch(e){}
   toast('Bienvenida '+GATE_NAME+' ✨');
 }
-const KIOSK_PIN='2468'; /* código para desbloquear — cámbialo aquí */
+const KIOSK_PIN='2588'; /* código para desbloquear — cámbialo aquí */
 let _pin='';
 function lockKiosk(){
   try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }catch(e){}
@@ -1984,6 +1989,11 @@ function init(){
   const spc=$('sp-count'); if(spc) spc.textContent=POIS.length;
   renderSitios();
   initMap();
+  document.querySelectorAll('.screen-pad').forEach(pad=>{
+    if(pad.querySelector('.back-inflow')) return;
+    const b=document.createElement('button'); b.className='back-inflow'; b.innerHTML='‹ Regresar';
+    b.onclick=goBack; pad.insertBefore(b, pad.firstChild);
+  });
   setTimeout(()=>$('boot').classList.add('hide'),1400);
 }
 window.addEventListener('load',init);
