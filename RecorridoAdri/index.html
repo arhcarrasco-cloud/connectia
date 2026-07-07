@@ -227,15 +227,21 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 .sitios-panel.hide{opacity:0;pointer-events:none;transform:translateY(16px)}
 .sitios-panel .sp-title{padding:0 10px 10px;flex:none}
 .sp-list{overflow-y:auto;-webkit-overflow-scrolling:touch}
-.sp-item{display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:14px;cursor:pointer;min-height:64px}
+.sp-item{display:flex;align-items:center;gap:11px;padding:10px 8px;border-radius:12px;cursor:pointer;min-height:64px}
 .sp-item:active{background:rgba(123,63,242,.18)}
 .sp-item + .sp-item{border-top:1px solid rgba(123,63,242,.15)}
 .sp-num{width:34px;height:34px;flex:none;border-radius:50%;background:var(--grad-active);color:#fff;
   display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
 .sp-item.visitado .sp-num{background:#1f9d55}
 .sp-item.visitado .sp-name{color:#7ee2a8}
-.sp-thumb{width:58px;height:42px;border-radius:8px;object-fit:cover;flex:none;background:#150a30}
-.sp-info{flex:1;min-width:0}
+.sp-thumb{width:52px;height:52px;border-radius:8px;object-fit:cover;flex:none;background:#150a30}
+.sp-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.sp-l1{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.sp-l2{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sp-l1 .sp-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-l1 .sp-tarifa{flex:none;font-size:12px}
+.sp-l2 .sp-imp{font-size:11.5px}
+.sp-l2 .sp-sem .sem-lbl{font-size:8px}
 .sp-name{font-weight:700;font-size:14.5px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-meta{font-size:12px;color:var(--mist);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-imp{font-size:12.5px;font-weight:800;color:var(--lime);margin-top:2px;letter-spacing:.02em}
@@ -259,7 +265,7 @@ h3{font-size:clamp(17px,1.8vw,22px);font-weight:600;text-transform:uppercase}
 
 .chain-km{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:#fff;
   margin:0 6px 6px 0;padding:5px 10px;border-radius:999px}
-.chain-wm{background:#0053e2}.chain-ch{background:#E4022B}.chain-cm{background:#E2001A}.chain-co{background:#005DAA}
+.chain-wm{background:#0053e2}.chain-ch{background:#E4022B}.chain-cm{background:#E2001A}.chain-co{background:#005DAA}.chain-so{background:#D52B1E}.chain-ba{background:#E4002B}.chain-mg{background:#E30613}
 .sp-chains{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
 
 .chain-km{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--mist);margin-right:8px}
@@ -491,6 +497,10 @@ nav#bottomnav{position:absolute;left:0;right:0;bottom:0;height:var(--nav-h);z-in
 #gate.hide{display:none}
 #gate-title{font-weight:900;font-size:clamp(40px,7vw,84px);letter-spacing:-.03em;color:#fff;text-transform:uppercase}
 /* menú de 3 puntos + nav oculta */
+#back-fab{position:absolute;top:18px;left:76px;z-index:80;height:48px;padding:0 18px;border-radius:999px;
+  border:1px solid var(--glass-border);background:var(--glass);backdrop-filter:blur(12px);color:#fff;
+  font-size:14px;font-weight:700;cursor:pointer;display:none}
+#back-fab.show{display:block}
 #menu-fab{position:absolute;top:18px;left:18px;z-index:80;width:48px;height:48px;border-radius:50%;
   border:1px solid var(--glass-border);background:var(--glass);backdrop-filter:blur(12px);color:#fff;
   font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:0}
@@ -512,12 +522,12 @@ nav#bottomnav.open{transform:none}
 .sitios-panel.open{width:400px;max-height:46%}
 .sitios-panel .sp-body{overflow-y:auto;padding:0 14px 12px}
 /* popup proximidad = pill compacto en todas las versiones */
-#gps-popup{width:auto;max-width:420px;left:auto;right:106px;bottom:262px}
-#gps-popup .card{padding:6px 14px 6px 6px;gap:10px;flex-direction:row;align-items:center;border-radius:999px;cursor:pointer}
-.gpsp-photo{width:44px;height:44px;min-height:44px;border-radius:50%;flex:none}
+#gps-popup{width:auto;max-width:480px;left:auto;right:106px;bottom:262px}
+#gps-popup .card{padding:9px 20px 9px 9px;gap:13px;flex-direction:row;align-items:center;border-radius:999px;cursor:pointer}
+.gpsp-photo{width:62px;height:62px;min-height:62px;border-radius:50%;flex:none}
 .gpsp-body{gap:1px}
 .gpsp-eyebrow{display:none}
-.gpsp-title{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.gpsp-title{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
 .gpsp-tarifa{font-size:11px}
 #gps-popup .semaforo .sem-lbl{display:none}
 #gps-popup .sem-dot{width:8px;height:8px}
@@ -815,7 +825,7 @@ nav#bottomnav.open{transform:none}
   <div class="screen-pad">
     <div class="section-head">
       <div class="eyebrow">CONNECTIA × WALMART · CONTENIDO</div>
-      <h1>VIDEOS DEL RECORRIDO</h1>
+      <h1>VIDEOS</h1>
       <p class="body section-sub">Manifiesto, formatos en movimiento, Geonexa y casos — precargados para verse sin conexión.</p>
     </div>
     <div class="grid cols3" id="video-grid"></div>
@@ -893,10 +903,6 @@ nav#bottomnav.open{transform:none}
       <iframe src="https://connectia.mx/geonexa" title="Geonexa · connectia.mx" loading="lazy"
         allow="geolocation"></iframe>
     </div>
-    <div class="mt30" style="display:flex;gap:16px;flex-wrap:wrap">
-      <button class="btn primary" onclick="toast('Selección exportada al resumen ejecutivo')">EXPORTAR SELECCIÓN</button>
-      <button class="btn ghost" onclick="toast('Impacto estimado: cobertura ABC+ en 3 zonas prioritarias')">VER IMPACTO ESTIMADO</button>
-    </div>
     <p class="aforismo mt40">Geonexa transforma el territorio en una herramienta de planeación estratégica.</p>
   </div>
 </section>
@@ -957,6 +963,7 @@ nav#bottomnav.open{transform:none}
 </div>
 
 <button id="menu-fab" onclick="toggleNav()" aria-label="Menú">⋮</button>
+<button id="back-fab" onclick="goBack()" aria-label="Regresar">‹ Regresar</button>
 <button id="cart-fab" onclick="openCarrito()" aria-label="Carrito">
   <svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/>
   <path d="M3 3h2.5l2.2 11.5a1.5 1.5 0 001.5 1.2h7.9a1.5 1.5 0 001.5-1.2L20.5 7H6"/></svg>
@@ -1171,13 +1178,16 @@ function buildNav(){
     `<button class="nav-item${id===S.screen?' active':''}" id="nav-${id}" onclick="navTap('${id}')">
      <svg viewBox="0 0 24 24"><path d="${d}"/></svg><span>${lbl}</span></button>`).join('');
 }
-function navTap(id){ $('bottomnav').classList.remove('open'); go(id); }
+function navTap(id){ $('bottomnav').classList.remove('open'); S.navStack=[]; go(id); }
+function goBack(){ const st=S.navStack||[]; const prev=st.pop()||'mapa'; go(prev); S.navStack=st; }
 function go(id){
+  if(S.screen && S.screen!==id){ S.navStack=S.navStack||[]; S.navStack.push(S.screen); }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const scr=$('scr-'+id); if(!scr) return;
   scr.classList.add('active'); S.screen=id;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   const nb=$('nav-'+id); if(nb) nb.classList.add('active');
+  const bf=$('back-fab'); if(bf) bf.classList.toggle('show', id!=='inicio' && id!=='mapa');
   if(id==='mapa'&&S.map){ setTimeout(()=>S.map.resize(),80); }
   const wm=$('cx-watermark');
   if(wm){ const light=(id==='mapa'); wm.src='assets/'+(light?'connectia-violet.png':'connectia-white.png'); wm.style.opacity=light?'.65':'.5'; }
@@ -1251,6 +1261,9 @@ function initMap(){
       corpEl.onclick=()=>toast('Corporativo Walmart de México · Toreo — inicio del recorrido');
       new maplibregl.Marker({element:corpEl}).setLngLat([-99.2155,19.4598]).addTo(S.map);
       setGps('activo');
+      S.follow=true;
+      const stopFollow=(e)=>{ if(e && e.originalEvent) S.follow=false; };
+      S.map.on('dragstart',stopFollow); S.map.on('zoomstart',stopFollow); S.map.on('rotatestart',stopFollow);
       /* carro 2D Walmart (SVG marker, siempre visible) */
       S.car3d={lng:ROUTE[0][0],lat:ROUTE[0][1],bearing:0};
     });
@@ -1268,7 +1281,7 @@ function setGps(mode){
   else{ b.classList.add('searching'); t.textContent='BUSCANDO'; }
 }
 function mapZoom(d){ if(S.map) S.map.zoomTo(S.map.getZoom()+d,{duration:400}); }
-function centerCar(){ if(S.map&&S.carMarker) S.map.flyTo({center:S.carMarker.getLngLat(),zoom:15.5,duration:900}); }
+function centerCar(){ S.follow=true; if(S.map&&S.carMarker) S.map.flyTo({center:S.carMarker.getLngLat(),duration:700}); }
 function fitRoute(){ if(!S.map) return;
   const b=new maplibregl.LngLatBounds(); ROUTE.forEach(c=>b.extend(c));
   S.map.fitBounds(b,{padding:{top:160,bottom:160,left:80,right:80},duration:1000}); }
@@ -1343,11 +1356,11 @@ function updateCar(pos){
   if(S.carMarker){ S.carMarker.setLngLat(pos);
     const bb=(S.lastPos&&hav(S.lastPos,pos)>1)?brg(S.lastPos,pos):null;
     if(bb!==null){ const e=S.carMarker.getElement(); if(e) e.style.transform=(e.style.transform||'').replace(/rotate\([^)]*\)/,'')+' rotate('+bb+'deg)'; } }
-  if(S.map && S.screen==='mapa' && !S.map.isMoving()){
+  if(S.map && S.screen==='mapa' && S.follow!==false && !S.map.isMoving()){
     if(S.nav3d && S.lastPos && hav(S.lastPos,pos)>2){
-      S.map.easeTo({center:pos,bearing:brg(S.lastPos,pos),pitch:60,zoom:16.4,duration:600});
+      S.map.easeTo({center:pos,bearing:brg(S.lastPos,pos),duration:500});
     } else {
-      S.map.easeTo({center:pos,duration:600});
+      S.map.easeTo({center:pos,duration:500});
     }
   }
   S.lastPos=pos;
@@ -1716,12 +1729,23 @@ function flujoMes(p){
   const m=p.imp||0;
   return (m>=1e6?(m/1e6).toFixed(1).replace('.0','')+' M':Math.round(m/1e3)+' K')+' impactos/mes';
 }
-const CHAIN_META={wm:['#0053e2','Walmart'],ch:['#E4022B','Chedraui'],cm:['#E2001A','La Comer'],co:['#005DAA','Costco']};
+const CHAIN_META={wm:['#0053e2','Walmart'],ch:['#E4022B','Chedraui'],cm:['#E2001A','La Comer'],co:['#005DAA','Costco'],so:['#D52B1E','Soriana'],ba:['#E4002B','Bodega Aurrerá'],mg:['#E30613','Mega']};
+function nearestChainsShort(p){
+  const res={};
+  TIENDAS.forEach(t=>{ const d=hav([p.lng,p.lat],[t.lng,t.lat]); if(!res[t.c]||d<res[t.c].d) res[t.c]={d}; });
+  const wm = res.wm ? [['wm',res.wm.d]] : [];
+  const others = Object.keys(res).filter(c=>c!=='wm').map(c=>[c,res[c].d]).sort((a,b)=>a[1]-b[1]).slice(0,2);
+  return wm.concat(others).map(([c,d])=>{
+    const [col,nm]=CHAIN_META[c];
+    const ico = c==='wm' ? '<svg viewBox="0 0 532.262 600" style="width:11px;height:11px;fill:#FFC220;vertical-align:-1px"><use href="#wm-spark"/></svg>' : '';
+    return '<span class="chain-km chain-'+c+'">'+ico+' '+nm.split(' ')[0]+' '+(d/1000).toFixed(1)+'km</span>';
+  }).join('');
+}
 function nearestChains(p){
   const res={};
   TIENDAS.forEach(t=>{ const d=hav([p.lng,p.lat],[t.lng,t.lat]);
     if(!res[t.c]||d<res[t.c].d) res[t.c]={d,n:t.n}; });
-  return ['wm','ch','cm','co'].map(c=>{ if(!res[c]) return '';
+  return Object.keys(CHAIN_META).map(c=>{ if(!res[c]||res[c].d>7000) return '';
     const km=(res[c].d/1000).toFixed(1); const [col,nm]=CHAIN_META[c];
     const ico = c==='wm'
       ? '<svg viewBox="0 0 532.262 600" style="width:12px;height:12px;fill:#FFC220;vertical-align:-1px"><use href="#wm-spark"/></svg>'
@@ -1734,13 +1758,10 @@ function renderSitios(){
    <div class="sp-item${S.visited.has(p.id)?' visitado':''}" onclick="openPoi('${p.id}')">
      <div class="sp-num">${S.visited.has(p.id)?'✓':String(i+1).padStart(2,'0')}</div>
      <img class="sp-thumb" src="${p.fotoWm||p.foto||''}" alt="">
-     <div class="sp-info"><div class="sp-name">${p.nombre}</div>
-       <div class="sp-meta">${p.tipo}</div>
-       <div class="sp-imp"><strong>${flujoMes(p)}</strong></div>
-       <div class="sp-tarifa">${fmtMXN(p.tarifa)} /mes</div>
-       <div class="sp-sem">${semaforoHtml(p.estatus)}</div>
-       <div class="sp-chains">${nearestChains(p)}</div>
-       <div class="sp-chains">${nearestChains(p)}</div></div>
+     <div class="sp-info">
+       <div class="sp-l1"><span class="sp-name">${p.nombre}</span><span class="sp-tarifa">${fmtMXN(p.tarifa)}/mes</span></div>
+       <div class="sp-l2"><span class="sp-imp">${flujoMes(p)}</span><span class="sp-sem">${semaforoHtml(p.estatus)}</span></div>
+     </div>
      <button class="sp-fav${S.favs.has(p.id)?' on':''}" onclick="event.stopPropagation();toggleFav('${p.id}')">♥</button>
    </div>`).join('');
 }
@@ -1945,7 +1966,7 @@ const LUGARES=[
 ];
 function nearestLugares(p){
   return LUGARES.map(l=>({n:l.n,d:hav([p.lng,p.lat],[l.lng,l.lat])}))
-    .filter(x=>x.d<=3000).sort((a,b)=>a.d-b.d).slice(0,2)
+    .filter(x=>x.d<=7000).sort((a,b)=>a.d-b.d).slice(0,2)
     .map(x=>`<span class="chain-km">🏬 ${x.n} · ${(x.d/1000).toFixed(1)} km</span>`).join('');
 }
 function flashChains(p){
