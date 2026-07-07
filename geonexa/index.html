@@ -35505,7 +35505,7 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
     var s = (typeof captureMapState==='function')? captureMapState() : {};
     try{ if(typeof currentOverlay!=='undefined' && currentOverlay && currentOverlay.getMap && currentOverlay.getMap()){ var ser=_serializeOverlay(currentOverlay); if(ser) s.sel=ser; } }catch(e){}
     try{
-      if(typeof multiSelections!=='undefined' && multiSelections && multiSelections.length){
+      if((!s.pins || !s.pins.length) && typeof multiSelections!=='undefined' && multiSelections && multiSelections.length){
         var pins=[]; for(var i=0;i<multiSelections.length && pins.length<200;i++){ var p=_serializePin(multiSelections[i]); if(p) pins.push(p); }
         if(pins.length) s.pins=pins;
       }
