@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<base href="https://connectia.mx/RecorridoAdri/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2150,7 +2151,7 @@ function exportResumen(){
 }
 
 /* ═══════════════ INIT ═══════════════ */
-const GATE_NAME=(new URLSearchParams(location.search).get('n'))||'Adri'; /* liga por persona: ?n=Moni */
+const GATE_NAME=(new URLSearchParams(location.search).get('n'))||'Ana'; /* liga por persona: ?n=Moni */
 function initGate(){
   bigDots($('gate-dots'),40,true);
   $('gate-title').textContent='BIENVENIDA '+GATE_NAME.toUpperCase();
