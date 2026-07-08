@@ -1283,7 +1283,7 @@ const TIENDAS=[
  {n:'Bodega Aurrera',lat:19.38756,lng:-99.22296,c:'ba'}
 ];
 /* reset one-shot: empezar desde cero (vacía favoritos/carrito previos) */
-try{ if(localStorage.getItem('cxw_ver')!=='2026-07-08'){ localStorage.removeItem('cxw_favs'); localStorage.removeItem('cxw_estado'); localStorage.setItem('cxw_ver','2026-07-08'); } }catch(e){}
+try{ if(localStorage.getItem('cxw_ver')!=='2026-07-08c'){ localStorage.removeItem('cxw_favs'); localStorage.removeItem('cxw_estado'); localStorage.setItem('cxw_ver','2026-07-08c'); } }catch(e){}
 try{ (JSON.parse(localStorage.getItem('cxw_favs')||'[]')).forEach(f=>S.favs.add(f)); }catch(e){}
 try{ S.cartEstado=JSON.parse(localStorage.getItem('cxw_estado')||'{}'); }catch(e){}
 function saveEstado(){ try{ localStorage.setItem('cxw_estado',JSON.stringify(S.cartEstado)); }catch(e){} }
