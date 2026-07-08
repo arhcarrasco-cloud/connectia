@@ -1762,7 +1762,7 @@ function openMockup(id){
      <div class="media-meta mt10">${(m.campanas||[]).map(c=>`<span class="chip wm">${c}</span>`).join('')}</div></div>
      <div class="semaforo mt20">${semaforoHtml(m.estatus||'disponible')}</div>
      ${m.gallery&&m.gallery.length?`<div class="mt20"><div class="eyebrow">PANTALLAS DEL PAQUETE</div>
-       <div class="mt10" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${m.gallery.map(g=>`<img src="${g}" style="width:100%;height:96px;object-fit:cover;border-radius:10px" alt="">`).join('')}</div></div>`:''}
+       <div class="mt10" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${m.gallery.map(g=>`<div style="width:100%;aspect-ratio:16/10;background:#0b0620;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center"><img src="${g}" style="width:100%;height:100%;object-fit:contain" alt=""></div>`).join('')}</div></div>`:''}
      <div class="mt30" style="display:flex;gap:14px;flex-wrap:wrap">
        ${m.video?`<button class="btn primary" onclick="playDrive('${m.video}','${m.titulo.replace(/'/g,'')}')">▶ VER VIDEO</button>`:''}
        ${m.pdf?`<button class="btn primary" onclick="window.open('${m.pdf}','_blank')">VER PRESENTACIÓN</button>`:''}
