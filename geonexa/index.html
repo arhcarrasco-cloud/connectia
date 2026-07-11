@@ -230,7 +230,7 @@ select:focus{border-color:#0071e3}
 <div id="map"></div>
 
 <div id="topbar">
-  <div class="logo" style="cursor:pointer;display:flex;align-items:center" onclick="_showMainMenu()"><img src="../assets/logo-oficial.svg" alt="connectia" style="height:40px;display:block"></div>
+  <div class="logo" style="cursor:pointer;display:flex;align-items:center" onclick="_showMainMenu()"><img src="../assets/logo-horizontal.svg" alt="connectia" style="height:26px;display:block"></div>
   <!-- Horizontal top menu -->
   <div id="top-menu" style="display:flex;gap:2px;margin-right:6px">
     <div class="tmenu-item" onclick="_showMainMenu()">Archivo ▾</div>
@@ -19746,6 +19746,61 @@ setTimeout(function(){if(typeof makeDraggable==='function')makeDraggable('report
       install();
     }
   }, 250);
+})();
+</script>
+
+<!-- ============================================================ -->
+<!-- CONNECTIA BULK IMPORT GUARD                                  -->
+<!-- Evita que importar muchos sitios (Excel/CSV) congele la      -->
+<!-- pestaña: analyzeMultiSelection llama showMultiSelectReport   -->
+<!-- por CADA pin y ese panel reconstruye TODAS las tarjetas      -->
+<!-- (O(n^2)). Con >=30 filas se pospone el render y se hace UNO  -->
+<!-- solo al final; llamadas tardías (geocode async) se agrupan.  -->
+<!-- Aditivo: no modifica funciones existentes, solo las envuelve.-->
+<!-- ============================================================ -->
+<script id="connectia-bulk-import-guard">
+(function(){
+  'use strict';
+  var THRESHOLD=30, DEBOUNCE_MS=400;
+  function install(){
+    if(window.__connectiaBulkGuardInstalled) return true;
+    if(typeof window.showMultiSelectReport!=='function') return false;
+    if(typeof window._msProcessImportRows!=='function') return false;
+    if(!window.__connectiaSmartImportInstalled) return false; // envolver por fuera del smart-import
+    window.__connectiaBulkGuardInstalled=true;
+    var origShow=window.showMultiSelectReport;
+    var origProcess=window._msProcessImportRows;
+    var pending=false, timer=null, lastArgs=null;
+    function renderNow(){
+      pending=false;
+      if(timer){clearTimeout(timer);timer=null;}
+      try{origShow.apply(null,lastArgs||[]);}catch(e){console.warn('[bulk-guard] render:',e);}
+    }
+    window.showMultiSelectReport=function(){
+      lastArgs=arguments;
+      // Durante el loop de import masivo: no renderizar (se hace 1 vez al final)
+      if(window.__msBulkImportActive){pending=true;return;}
+      // Con muchas selecciones (p.ej. callbacks async de geocode): agrupar renders
+      var many=(typeof multiSelections!=='undefined'&&multiSelections&&multiSelections.length>=THRESHOLD);
+      if(!many)return origShow.apply(this,arguments);
+      pending=true;
+      if(timer)clearTimeout(timer);
+      timer=setTimeout(renderNow,DEBOUNCE_MS);
+    };
+    window._msProcessImportRows=function(rows){
+      if(!rows||rows.length<THRESHOLD)return origProcess.apply(this,arguments);
+      window.__msBulkImportActive=true;
+      if(typeof setStatus==='function')try{setStatus('Importando '+rows.length+' sitios, un momento...');}catch(e){}
+      try{
+        return origProcess.apply(this,arguments);
+      }finally{
+        window.__msBulkImportActive=false;
+        if(pending)setTimeout(renderNow,50);
+      }
+    };
+    return true;
+  }
+  var _iv=setInterval(function(){ if(install())clearInterval(_iv); },300);
 })();
 </script>
 
