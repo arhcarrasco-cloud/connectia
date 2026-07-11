@@ -387,7 +387,7 @@ class BigBang {
     this.logoLoaded = false;
     this.logoImg = new Image();
     this.logoImg.onload = () => { this.logoLoaded = true; };
-    this.logoImg.src = '../assets/logo-white.svg';
+    this.logoImg.src = '../assets/logo-oficial-white.png';
     this.resize();
   }
   resize() {
