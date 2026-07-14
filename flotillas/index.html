@@ -3,11 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="refresh" content="0;url=https://flotillas.connectia.mx/flotillas/">
+<!-- LIGA UNICA de la plataforma Flotillas: https://flotillas.connectia.mx
+     Este archivo solo existe para que la URL vieja connectia.mx/flotillas
+     no muera. GitHub Pages no puede emitir un 301 real, por eso es meta
+     refresh + canonical. No agregar aqui nada de la app. -->
+<link rel="canonical" href="https://flotillas.connectia.mx">
+<meta name="robots" content="noindex,follow">
+<meta http-equiv="refresh" content="0;url=https://flotillas.connectia.mx">
 <title>Connectia Flotillas</title>
-<script>location.replace("https://flotillas.connectia.mx/flotillas/");</script>
+<script>location.replace("https://flotillas.connectia.mx" + location.search + location.hash);</script>
 </head>
 <body>
-<p>Redirigiendo a <a href="https://flotillas.connectia.mx/flotillas/">Connectia Flotillas</a>...</p>
+<p>Redirigiendo a <a href="https://flotillas.connectia.mx">Connectia Flotillas</a>...</p>
 </body>
 </html>
