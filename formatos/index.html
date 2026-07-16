@@ -405,7 +405,7 @@ function topbar(){
     <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
       <div class="wordmark light" style="cursor:pointer" data-go="landing">connectia</div>
       <div class="nav">
-        <button class="navlink ${STATE.view==='landing'?'active':''}" data-go="landing">Formatos</button>
+        <button class="navlink ${STATE.view==='landing'?'active':''}" data-go="landing">${esc(tituloSeccion())}</button>
         <button class="navlink ${STATE.view==='misformatos'?'active':''}" data-go="misformatos">Mis solicitudes</button>
         ${isApprover()?`<button class="navlink ${STATE.view==='aprobaciones'?'active':''}" data-go="aprobaciones">Aprobaciones <span id="apbadge"></span></button>`:''}
         ${['finanzas','admin'].includes(p.role)?`<button class="navlink ${STATE.view==='finanzas'?'active':''}" data-go="finanzas">Finanzas <span id="fzbadge"></span></button>`:''}
@@ -636,10 +636,18 @@ async function renderFinanzas(){
 async function updateApBadge(){if(!isApprover())return;const el=$('#apbadge');if(!el)return;const n=(await pendientesQuery()).data.length;if(n>0)el.innerHTML=`<span style="background:var(--lime);color:var(--ink);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:4px">${n}</span>`;}
 
 /* =================== LANDING =================== */
+// Gastos y Administración son secciones propias del menú de Organización del ERP.
+// Cada una entra con ?grupo=... y ve SOLO lo suyo. Sin parámetro se muestran las dos.
 const GRUPOS=[
-  {k:'gastos',         num:'02', titulo:'Gastos',         sub:'Dinero que sale: lo que pides por adelantado, lo que te reponen y lo que hay que comprar.'},
-  {k:'administracion', num:'03', titulo:'Administración',  sub:'Equipo, resguardos y control interno.'}
+  {k:'gastos',         num:'01', titulo:'Gastos',         sub:'Dinero que sale: lo que pides por adelantado, lo que te reponen y lo que hay que comprar.'},
+  {k:'administracion', num:'02', titulo:'Administración',  sub:'Equipo, resguardos y control interno.'}
 ];
+function grupoActivo(){
+  try{ const g=new URLSearchParams(location.search).get('grupo');
+       return GRUPOS.some(x=>x.k===g) ? g : null; }catch(e){ return null; }
+}
+function gruposVisibles(){ const g=grupoActivo(); return g?GRUPOS.filter(x=>x.k===g):GRUPOS; }
+function tituloSeccion(){ const g=grupoActivo(); const x=GRUPOS.find(y=>y.k===g); return x?x.titulo:'Formatos'; }
 function cardHtml(ft){
   const chain=(ft.approval_chain||[]).map(r=>`<span class="step">${ROLES[r]||r}</span>`).join('<span>→</span>');
   const ready=ft.active&&FORM_SCHEMAS[ft.slug];
@@ -652,24 +660,30 @@ function cardHtml(ft){
   </div>`;
 }
 function renderLanding(){
-  const secciones=GRUPOS.map(g=>{
+  const gAct=grupoActivo();
+  const vis=gruposVisibles();
+  const secciones=vis.map(g=>{
     const fts=STATE.formTypes.filter(f=>(f.grupo||'gastos')===g.k);
     if(!fts.length)return '';
+    // Con un solo grupo el título ya está en el hero: no lo repetimos.
     return `<div class="section"><div class="container">
-      <div class="eyebrow">${g.num} · ${esc(g.titulo)}</div>
+      ${gAct?'':`<div class="eyebrow">${g.num} · ${esc(g.titulo)}</div>
       <h2 style="font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:6px">${esc(g.titulo)}</h2>
-      <p style="color:var(--slate);font-size:14px;margin:4px 0 2px;max-width:620px">${esc(g.sub)}</p>
+      <p style="color:var(--slate);font-size:14px;margin:4px 0 2px;max-width:620px">${esc(g.sub)}</p>`}
       <div class="grid" data-grupo="${g.k}"></div>
     </div></div>`;
   }).join('');
+  const hero=gAct
+    ? {titulo:vis[0].titulo, sub:vis[0].sub}
+    : {titulo:'Tus formatos, ahora digitales.', sub:'Llena, firma y manda a aprobación sin papel. Cada formato vive en su propio espacio y queda guardado en el histórico.'};
   app.innerHTML=`${topbar()}
   <div class="hero"><div class="container"><div class="num">01</div>
     <div class="eyebrow" style="color:var(--lime)">Organización · Recursos Humanos</div>
-    <h1>Tus formatos, ahora digitales.</h1>
-    <p>Llena, firma y manda a aprobación sin papel. Cada formato vive en su propio espacio y queda guardado en el histórico.</p>
+    <h1>${esc(hero.titulo)}</h1>
+    <p>${esc(hero.sub)}</p>
   </div></div>
   ${secciones}
-  <div class="section" style="padding-top:0"><div class="container">
+  ${gAct==='administracion'?'':`<div class="section" style="padding-top:0"><div class="container">
     <div class="fiscalbox">
       <div>
         <div class="eyebrow">Datos para facturar</div>
@@ -687,10 +701,10 @@ function renderLanding(){
         <button class="btn-line btn-sm" id="copyFiscal">Copiar datos</button>
       </div>
     </div>
-  </div></div>
+  </div></div>`}
   <div class="foot-aphorism">hola@connectia.mx · Cultural marketing · MX · <i>La marca aparece donde importa, no donde sobra.</i></div>`;
   bindTop();
-  GRUPOS.forEach(g=>{
+  vis.forEach(g=>{
     const cont=document.querySelector(`[data-grupo="${g.k}"]`); if(!cont)return;
     cont.innerHTML=STATE.formTypes.filter(f=>(f.grupo||'gastos')===g.k).map(cardHtml).join('');
   });
