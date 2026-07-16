@@ -129,6 +129,9 @@ tbody td input,tbody td select{padding:8px 9px;border-radius:8px;font-size:13px}
 .modal-bg{position:fixed;inset:0;background:rgba(10,1,24,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
 .modal{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:460px}
 .modal h3{font-size:20px;font-weight:700;margin-bottom:6px}
+.mrow{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13px}
+.mrow:hover{background:var(--paper)}
+.mrow input{width:16px;height:16px;accent-color:var(--violet);flex:none;cursor:pointer}
 .sigpad{border:1.5px dashed var(--mist);border-radius:12px;touch-action:none;width:100%;height:180px;background:#fff;cursor:crosshair}
 .seg{display:flex;background:var(--mist);border-radius:12px;padding:4px;margin:14px 0}
 .seg button{flex:1;background:transparent;color:var(--slate);padding:9px;font-size:13px}
@@ -446,6 +449,8 @@ function renderNuevo(slug){
 
     <div style="display:flex;gap:12px;flex-wrap:wrap">
       <button class="btn-line" id="saveDraft">Guardar borrador</button>
+      <button class="btn-line" id="shareDraft">✉️ Enviar borrador</button>
+      <button class="btn-line" id="dlDraft">⬇︎ Descargar PDF</button>
       <button class="btn-primary" id="sendBtn">Firmar y enviar a aprobación →</button>
     </div></div></div>`;
   bindTop();
@@ -463,7 +468,96 @@ function renderNuevo(slug){
     dz.addEventListener('drop',e=>handleFiles(e.dataTransfer.files));
   }
   $('#saveDraft').onclick=()=>saveDraft(true);
+  $('#shareDraft').onclick=()=>openShareModal();
+  $('#dlDraft').onclick=()=>descargarPdf();
   $('#sendBtn').onclick=()=>enviar(slug);
+}
+
+/* =================== BORRADOR: compartir / descargar =================== */
+const FN_URL=SUPABASE_URL+'/functions/v1/enviar-contrato';
+async function callFn(payload){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)  { toast('Tu sesión expiró. Vuelve a entrar.'); return null; }
+  const r=await fetch(FN_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify(payload)});
+  let j=null; try{ j=await r.json(); }catch(_e){}
+  if(!r.ok){ toast((j&&j.error)||'Error del servidor'); return null; }
+  return j;
+}
+function pdfDownload(b64,folio){
+  const bin=atob(b64);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);
+  const url=URL.createObjectURL(new Blob([a],{type:'application/pdf'}));
+  const el=document.createElement('a');el.href=url;el.download=(folio||'documento')+'.pdf';document.body.appendChild(el);el.click();el.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+}
+async function descargarPdf(){
+  const id=await saveDraft(false);
+  if(!id){toast('Guarda algo primero');return;}
+  toast('Generando PDF…');
+  const j=await callFn({type:'descargar',submission_id:id});
+  if(!j||!j.pdf)return;
+  pdfDownload(j.pdf,j.folio);toast('PDF descargado ✓');
+}
+async function loadMiembros(){
+  if(STATE.miembros)return STATE.miembros;
+  const [{data:pf},{data:os}]=await Promise.all([
+    db.from('profiles').select('full_name,email,role'),
+    db.from('org_seed').select('full_name,email,role')]);
+  const map=new Map();
+  for(const r of [].concat(os||[],pf||[])) if(r.email) map.set(r.email.toLowerCase(),{name:r.full_name||r.email,email:r.email.toLowerCase(),role:r.role});
+  const me=(STATE.profile&&STATE.profile.email||'').toLowerCase();
+  STATE.miembros=[...map.values()].filter(m=>m.email!==me).sort((a,b)=>a.name.localeCompare(b.name,'es'));
+  return STATE.miembros;
+}
+async function openShareModal(){
+  const id=await saveDraft(false);
+  if(!id){toast('Guarda algo primero');return;}
+  const ms=await loadMiembros();
+  const ov=document.createElement('div');ov.className='modal-bg';
+  ov.innerHTML=`<div class="modal" style="max-width:520px">
+    <div class="eyebrow">Compartir para revisión</div>
+    <h2 style="margin:6px 0 2px;font-size:22px;font-weight:800;letter-spacing:-.02em">Enviar borrador</h2>
+    <p style="color:var(--slate);font-size:13px;margin-bottom:14px">Se enviará el PDF marcado como <b>borrador</b>. No manda el documento a firma.</p>
+    <div style="max-height:230px;overflow:auto;border:1px solid var(--mist);border-radius:12px;padding:6px 4px">
+      ${ms.map(m=>`<label class="mrow"><input type="checkbox" value="${esc(m.email)}"/><span><b>${esc(m.name)}</b><br/><span style="color:var(--slate);font-size:12px">${esc(m.email)} · ${esc(ROLES[m.role]||m.role||'')}</span></span></label>`).join('')}
+    </div>
+    <div class="field" style="margin-top:14px"><label>Otros correos (separa con coma)</label>
+      <input id="extraMails" placeholder="contador@despacho.com, proveedor@empresa.mx"/></div>
+    <div id="shareMsg" style="font-size:12px;color:var(--slate);margin-top:8px">Máximo 10 destinatarios.</div>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn-primary" id="doShare">Enviar borrador →</button>
+      <button class="btn-line" id="cancelShare">Cancelar</button></div></div>`;
+  document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.querySelector('#cancelShare').onclick=close;
+  ov.onclick=e=>{if(e.target===ov)close();};
+  ov.querySelector('#doShare').onclick=async()=>{
+    const chk=[...ov.querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value);
+    const extra=(ov.querySelector('#extraMails').value||'').split(/[,;\s]+/).filter(Boolean);
+    const to=[...new Set(chk.concat(extra).map(e=>e.trim().toLowerCase()))].filter(e=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e));
+    if(!to.length){ov.querySelector('#shareMsg').innerHTML='<span style="color:#C0392B">Elige al menos un destinatario válido.</span>';return;}
+    if(to.length>10){ov.querySelector('#shareMsg').innerHTML='<span style="color:#C0392B">Máximo 10 destinatarios ('+to.length+' seleccionados).</span>';return;}
+    const b=ov.querySelector('#doShare');b.disabled=true;b.textContent='Enviando…';
+    const j=await callFn({type:'borrador',submission_id:id,to});
+    if(!j){b.disabled=false;b.textContent='Enviar borrador →';return;}
+    close();shareOkModal(j,to);
+  };
+}
+function shareOkModal(j,to){
+  const ov=document.createElement('div');ov.className='modal-bg';
+  ov.innerHTML=`<div class="modal" style="max-width:460px;text-align:center">
+    <div style="font-size:44px">✅</div>
+    <h2 style="margin:8px 0 4px;font-size:22px;font-weight:800;letter-spacing:-.02em">Borrador enviado</h2>
+    <p style="color:var(--slate);font-size:13px">Se mandó a <b>${to.length}</b> ${to.length===1?'persona':'personas'} con el PDF adjunto.</p>
+    <div style="background:var(--paper);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--slate);margin:12px 0;text-align:left">${to.map(esc).join('<br/>')}</div>
+    <p style="color:var(--slate);font-size:13px;margin-bottom:14px">¿Quieres también una copia?</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-primary" id="okDl">⬇︎ Descargar PDF</button>
+      <button class="btn-line" id="okClose">Listo</button></div></div>`;
+  document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.querySelector('#okClose').onclick=close;
+  ov.onclick=e=>{if(e.target===ov)close();};
+  ov.querySelector('#okDl').onclick=()=>{ if(j.pdf){pdfDownload(j.pdf,j.folio);toast('PDF descargado ✓');} close(); };
 }
 function fieldHtml(f,p){
   const val=f.today?new Date().toISOString().slice(0,10):(f.from&&p?(p[f.from]||''):'');
