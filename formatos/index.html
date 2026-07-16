@@ -227,6 +227,31 @@ const FORM_SCHEMAS={
     fields:[{k:'entregado_por',label:'Entrega — La Empresa (Sistemas / Admin)',ph:'Nombre de quien entrega'}],
     attachments:true,attachReq:false,
     sign:{title:'Recibo y resguardo (colaborador)',text:'Acepto las condiciones y recibo el equipo a entera satisfacción.'}
+  },
+  viaticos:{
+    intro:'Solicita por adelantado el dinero de un viaje o comisión. A tu regreso lo compruebas con facturas.',
+    eyebrow:'Recursos Humanos · Administración',
+    header:[
+      {k:'nombre',label:'Nombre del colaborador',from:'full_name'},
+      {k:'fecha_solicitud',label:'Fecha de solicitud',type:'date',today:true},
+      {k:'area',label:'Área / Departamento',from:'department'},
+      {k:'puesto',label:'Puesto',from:'position'},
+      {k:'destino',label:'Destino',ph:'Ej. Monterrey, N.L.'},
+      {k:'motivo',label:'Motivo del viaje',ph:'Ej. Junta con cliente / montaje de campaña'},
+      {k:'fecha_salida',label:'Fecha de salida',type:'date'},
+      {k:'fecha_regreso',label:'Fecha de regreso',type:'date'}],
+    table:{key:'conceptos',title:'Desglose del anticipo',addLabel:'+ Agregar concepto',req:'importe',cols:[
+      {k:'concepto',label:'Concepto',type:'select',options:['Transporte aéreo','Transporte terrestre','Hospedaje','Alimentos','Combustible','Casetas / Peaje','Taxi / Uber','Estacionamiento','Otros'],w:'170px'},
+      {k:'descripcion',label:'Descripción / Detalle'},
+      {k:'fecha',label:'Fecha estimada',type:'date',w:'140px'},
+      {k:'importe',label:'Importe (MXN)',type:'number',w:'130px',sum:true}]},
+    total:{label:'Total del anticipo solicitado',sumCol:'importe',letra:true},
+    fields:[
+      {k:'clabe',label:'Banco / CLABE para depósito',ph:'Banco · CLABE 18 dígitos',req:true},
+      {k:'fecha_comprobacion',label:'Fecha compromiso de comprobación',type:'date'}],
+    legal:{title:'Compromiso de comprobación',text:'El colaborador recibe el presente anticipo únicamente para cubrir los gastos del viaje o comisión descritos y se compromete a comprobarlo con facturas (PDF y XML) a nombre de FACILITADORES PUBLICITARIOS HS, S.A. DE C.V. dentro de los 5 días hábiles posteriores a su regreso, o en la fecha compromiso señalada. Los importes no comprobados o no ejercidos deberán reintegrarse en ese mismo plazo; de no hacerlo, podrán descontarse de la siguiente dispersión previo acuerdo entre las partes. Los gastos ajenos al motivo autorizado no serán reconocidos.'},
+    attachments:true,attachReq:false,
+    sign:{title:'Firma del solicitante',text:'Solicito el anticipo de viáticos y acepto el compromiso de comprobación.'}
   }
 };
 
