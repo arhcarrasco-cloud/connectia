@@ -129,6 +129,14 @@ tbody td input,tbody td select{padding:8px 9px;border-radius:8px;font-size:13px}
 .modal-bg{position:fixed;inset:0;background:rgba(10,1,24,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
 .modal{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:460px}
 .modal h3{font-size:20px;font-weight:700;margin-bottom:6px}
+.warnbox{background:#FFF8E6;border:1px solid #F0DFA8;border-radius:12px;padding:14px 16px;font-size:13px;color:#6B5200;line-height:1.55;margin-bottom:14px}
+.warnbox b{color:#4A3800}
+.warnbox li{margin-bottom:3px}
+.fiscalbox{display:flex;gap:24px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;background:var(--paper);border:1px solid var(--mist);border-left:4px solid var(--violet);border-radius:16px;padding:20px 24px}
+.fiscal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px}
+.fiscal-grid span{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--slate)}
+.fiscal-grid b{font-size:13.5px;color:var(--ink);font-weight:600}
+@media(max-width:680px){.fiscal-grid{grid-template-columns:1fr}}
 .mrow{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13px}
 .mrow:hover{background:var(--paper)}
 .mrow input{width:16px;height:16px;accent-color:var(--violet);flex:none;cursor:pointer}
@@ -152,7 +160,11 @@ tbody td input,tbody td select{padding:8px 9px;border-radius:8px;font-size:13px}
 <script>
 const SUPABASE_URL="https://mduxlmnlwycwknyapwsx.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kdXhsbW5sd3ljd2tueWFwd3N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NDI1NTcsImV4cCI6MjA5MTQxODU1N30.UYL47zkWp8Zzgg8-opN1DwMczkyeTcMwPfUhhbCsSPc";
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+// Sesion siempre guardada: no se pide login otra vez al volver ni al recargar.
+// OJO: no cambiar storageKey (el default es sb-<ref>-auth-token); cambiarlo tira las sesiones vivas.
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage}
+});
 const db=sb.schema('formatos');
 const BUCKET='formatos-adjuntos';
 let STATE={user:null,profile:null,formTypes:[],view:'landing',draft:null,rows:[],atts:[],slug:null};
@@ -276,11 +288,21 @@ async function init(){
   // No volver a llamar getSession() en caliente: se cuelga (deadlock de navigator.locks en supabase-js v2).
   sb.auth.onAuthStateChange((_e,s)=>{ STATE.token=s?s.access_token:null; });
   const {data:{session}}=await sb.auth.getSession();
-  if(session){STATE.user=session.user;STATE.token=session.access_token;await loadProfile();await loadFormTypes();}
+  if(session){STATE.user=session.user;STATE.token=session.access_token;await loadProfile();await loadFormTypes();await loadCfg();}
   route();
 }
 async function loadProfile(){const {data}=await db.from('profiles').select('*').eq('id',STATE.user.id).maybeSingle();STATE.profile=data;}
 async function loadFormTypes(){const {data}=await db.from('form_types').select('*').order('sort_order');STATE.formTypes=(data||[]).filter(f=>f.active||STATE.profile?.role==='admin');}
+// Datos fiscales de Facilitadores (app_config). Fallback por si la tabla no responde.
+let CFG={razon_social:'FACILITADORES PUBLICITARIOS HS, S.A. DE C.V.',rfc:'FPH181203KA8',
+  regimen_fiscal:'626 - Régimen Simplificado de Confianza',
+  domicilio_fiscal:'Calle Hacienda Temoluco 130, Col. Villa Quietud, Coyoacán, Ciudad de México, C.P. 04960',
+  csf_url:'csf-facilitadores.pdf',csf_vigencia:'Emitida el 17 de abril de 2026'};
+async function loadCfg(){
+  // Vista publica: solo llaves fiscales. app_config NO se expone (guarda webhook_secret).
+  const {data}=await db.from('datos_fiscales').select('key,value');
+  if(data)for(const r of data)CFG[r.key]=r.value;
+}
 function ftBySlug(s){return STATE.formTypes.find(f=>f.slug===s)||{};}
 function isApprover(){return STATE.profile&&['jefe','direccion','finanzas','admin'].includes(STATE.profile.role);}
 function go(v,arg){STATE.view=v;STATE.arg=arg;route();}
@@ -336,7 +358,7 @@ async function doAuth(){
       const {data,error}=await sb.auth.signInWithPassword({email:em,password:pw});
       if(error)throw error;STATE.user=data.user;STATE.token=data.session?data.session.access_token:null;
     }
-    await loadProfile();await loadFormTypes();STATE.view='landing';route();
+    await loadProfile();await loadFormTypes();await loadCfg();STATE.view='landing';route();
   }catch(e){authMsg(e.message||'Error de autenticación','err');btn.disabled=false;btn.textContent=authMode==='login'?'Entrar':'Registrarme';}
 }
 
@@ -389,31 +411,70 @@ function bindTop(){
 async function updateApBadge(){if(!isApprover())return;const el=$('#apbadge');if(!el)return;const n=(await pendientesQuery()).data.length;if(n>0)el.innerHTML=`<span style="background:var(--lime);color:var(--ink);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:4px">${n}</span>`;}
 
 /* =================== LANDING =================== */
+const GRUPOS=[
+  {k:'gastos',         num:'02', titulo:'Gastos',         sub:'Dinero que sale: lo que pides por adelantado, lo que te reponen y lo que hay que comprar.'},
+  {k:'administracion', num:'03', titulo:'Administración',  sub:'Equipo, resguardos y control interno.'}
+];
+function cardHtml(ft){
+  const chain=(ft.approval_chain||[]).map(r=>`<span class="step">${ROLES[r]||r}</span>`).join('<span>→</span>');
+  const ready=ft.active&&FORM_SCHEMAS[ft.slug];
+  return `<div class="card ${ready?'':'disabled'}" ${ready?`data-open="${ft.slug}"`:''}>
+    <div class="accent" style="background:${ft.accent_color}"></div>
+    ${ready?'':'<span class="soon">Próximamente</span>'}
+    <div class="ic">${ft.icon}</div><h3>${esc(ft.name)}</h3><p>${esc(ft.description||'')}</p>
+    <div class="chain">${chain}</div>
+    ${ready?`<button class="btn-primary btn-sm" style="align-self:flex-start;margin-top:6px">Iniciar →</button>`:''}
+  </div>`;
+}
 function renderLanding(){
+  const secciones=GRUPOS.map(g=>{
+    const fts=STATE.formTypes.filter(f=>(f.grupo||'gastos')===g.k);
+    if(!fts.length)return '';
+    return `<div class="section"><div class="container">
+      <div class="eyebrow">${g.num} · ${esc(g.titulo)}</div>
+      <h2 style="font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:6px">${esc(g.titulo)}</h2>
+      <p style="color:var(--slate);font-size:14px;margin:4px 0 2px;max-width:620px">${esc(g.sub)}</p>
+      <div class="grid" data-grupo="${g.k}"></div>
+    </div></div>`;
+  }).join('');
   app.innerHTML=`${topbar()}
   <div class="hero"><div class="container"><div class="num">01</div>
-    <div class="eyebrow" style="color:var(--lime)">Administración · Recursos Humanos</div>
+    <div class="eyebrow" style="color:var(--lime)">Organización · Recursos Humanos</div>
     <h1>Tus formatos, ahora digitales.</h1>
     <p>Llena, firma y manda a aprobación sin papel. Cada formato vive en su propio espacio y queda guardado en el histórico.</p>
   </div></div>
-  <div class="section"><div class="container">
-    <div class="eyebrow">02 · Catálogo</div>
-    <h2 style="font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:6px">Elige un formato</h2>
-    <div class="grid" id="cards"></div>
+  ${secciones}
+  <div class="section" style="padding-top:0"><div class="container">
+    <div class="fiscalbox">
+      <div>
+        <div class="eyebrow">Datos para facturar</div>
+        <h3 style="font-size:17px;font-weight:800;margin:6px 0 8px">${esc(CFG.razon_social||'')}</h3>
+        <div class="fiscal-grid">
+          <div><span>RFC</span><b>${esc(CFG.rfc||'')}</b></div>
+          <div><span>Régimen fiscal</span><b>${esc(CFG.regimen_fiscal||'')}</b></div>
+          <div><span>Uso de CFDI sugerido</span><b>G03 · Gastos en general</b></div>
+          <div style="grid-column:1/-1"><span>Domicilio fiscal</span><b>${esc(CFG.domicilio_fiscal||'')}</b></div>
+        </div>
+        <p style="color:var(--slate);font-size:12px;margin-top:10px">Toda factura de viáticos o reembolso debe ir a nombre de esta razón social. ${esc(CFG.csf_vigencia||'')}.</p>
+      </div>
+      <div style="flex:none;display:flex;flex-direction:column;gap:8px">
+        <button class="btn-primary btn-sm" id="dlCsf">⬇︎ Descargar constancia</button>
+        <button class="btn-line btn-sm" id="copyFiscal">Copiar datos</button>
+      </div>
+    </div>
   </div></div>
   <div class="foot-aphorism">hola@connectia.mx · Cultural marketing · MX · <i>La marca aparece donde importa, no donde sobra.</i></div>`;
   bindTop();
-  $('#cards').innerHTML=STATE.formTypes.map(ft=>{
-    const chain=(ft.approval_chain||[]).map(r=>`<span class="step">${ROLES[r]||r}</span>`).join('<span>→</span>');
-    const ready=ft.active&&FORM_SCHEMAS[ft.slug];
-    return `<div class="card ${ready?'':'disabled'}" ${ready?`data-open="${ft.slug}"`:''}>
-      <div class="accent" style="background:${ft.accent_color}"></div>
-      ${ready?'':'<span class="soon">Próximamente</span>'}
-      <div class="ic">${ft.icon}</div><h3>${esc(ft.name)}</h3><p>${esc(ft.description||'')}</p>
-      <div class="chain">${chain}</div>
-      ${ready?`<button class="btn-primary btn-sm" style="align-self:flex-start;margin-top:6px">Iniciar →</button>`:''}
-    </div>`;}).join('');
-  $('#cards').querySelectorAll('[data-open]').forEach(c=>c.onclick=()=>go('nuevo',c.dataset.open));
+  GRUPOS.forEach(g=>{
+    const cont=document.querySelector(`[data-grupo="${g.k}"]`); if(!cont)return;
+    cont.innerHTML=STATE.formTypes.filter(f=>(f.grupo||'gastos')===g.k).map(cardHtml).join('');
+  });
+  document.querySelectorAll('[data-open]').forEach(c=>c.onclick=()=>go('nuevo',c.dataset.open));
+  const csf=$('#dlCsf'); if(csf)csf.onclick=()=>window.open(CFG.csf_url||'csf-facilitadores.pdf','_blank');
+  const cp=$('#copyFiscal'); if(cp)cp.onclick=async()=>{
+    const t=`${CFG.razon_social}\nRFC: ${CFG.rfc}\nRégimen fiscal: ${CFG.regimen_fiscal}\nDomicilio: ${CFG.domicilio_fiscal}\nUso de CFDI: G03 - Gastos en general`;
+    try{ await navigator.clipboard.writeText(t); toast('Datos fiscales copiados ✓'); }catch(_e){ toast('No se pudo copiar'); }
+  };
 }
 
 /* =================== NUEVO (genérico por esquema) =================== */
@@ -428,6 +489,15 @@ function renderNuevo(slug){
     <h1 style="font-size:30px;font-weight:800;letter-spacing:-.02em;margin:6px 0 4px">${esc(ft.name)}</h1>
     <p style="color:var(--slate);margin-bottom:8px">${esc(sc.intro)}</p>
     <div class="banner">Ruta de aprobación: <b>${esc(chain)}</b>. Firmarás al enviar.</div>
+    ${slug==='viaticos'?`<div class="warnbox">
+      <b>Cómo funciona el anticipo.</b> Al autorizarse, se abre tu periodo de comprobación: <b>7 días naturales contados desde tu fecha de regreso</b>.
+      Dentro de ese plazo subes los comprobantes; al vencer, el expediente <b>se sella y ya no se puede editar</b>.
+      <ul style="margin:8px 0 0 18px;padding:0">
+        <li>Sin comprobantes, <b>no se paga</b>.</li>
+        <li>Si compruebas <b>menos</b> de lo que recibiste, la diferencia se propone como <b>descuento a nómina</b> (Finanzas lo autoriza).</li>
+        <li>Si gastaste <b>de más</b>, se te repone <b>solo la parte facturada</b>.</li>
+        <li>Toda factura va a nombre de <b>${esc(CFG.razon_social||'')}</b> · RFC <b>${esc(CFG.rfc||'')}</b>. <a href="${esc(CFG.csf_url||'csf-facilitadores.pdf')}" target="_blank" style="color:var(--violet);font-weight:600">Descargar constancia</a></li>
+      </ul></div>`:''}
 
     <div class="panel"><h2>Datos del colaborador</h2><div class="ph">Se toman de tu perfil; puedes ajustarlos.</div>
       <div class="fgrid" id="hdr"></div></div>
