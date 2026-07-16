@@ -129,6 +129,18 @@ tbody td input,tbody td select{padding:8px 9px;border-radius:8px;font-size:13px}
 .modal-bg{position:fixed;inset:0;background:rgba(10,1,24,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
 .modal{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:460px}
 .modal h3{font-size:20px;font-weight:700;margin-bottom:6px}
+.plazo{font-size:12px;font-weight:700;border-radius:999px;padding:6px 14px;white-space:nowrap}
+.plazo.ok{background:#E8F7EE;color:#1E8B45}
+.plazo.urge{background:#FFF3D6;color:#8A6100}
+.plazo.venc{background:#FBE9E7;color:#C0392B}
+.prog{height:10px;background:var(--mist);border-radius:999px;overflow:hidden;margin:14px 0 16px}
+.prog-bar{height:100%;border-radius:999px;transition:width .4s ease}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpis span{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--slate);margin-bottom:3px}
+.kpis b{font-size:17px;color:var(--ink);font-weight:800}
+@media(max-width:680px){.kpis{grid-template-columns:1fr 1fr}}
+.st-comprobando{background:#FFF3D6;color:#8A6100}
+.st-sellado{background:#EDE9F6;color:var(--violet)}
 .warnbox{background:#FFF8E6;border:1px solid #F0DFA8;border-radius:12px;padding:14px 16px;font-size:13px;color:#6B5200;line-height:1.55;margin-bottom:14px}
 .warnbox b{color:#4A3800}
 .warnbox li{margin-bottom:3px}
@@ -318,6 +330,8 @@ function route(){
     case 'aprobaciones':return renderAprobaciones();
     case 'nuevo':return renderNuevo(STATE.arg);
     case 'detalle':return renderDetalle(STATE.arg);
+    case 'comprobar':return renderComprobar(STATE.arg);
+    case 'finanzas':return renderFinanzas();
     case 'equipo':return renderEquipo();
     default:return renderLanding();
   }
@@ -394,6 +408,7 @@ function topbar(){
         <button class="navlink ${STATE.view==='landing'?'active':''}" data-go="landing">Formatos</button>
         <button class="navlink ${STATE.view==='misformatos'?'active':''}" data-go="misformatos">Mis solicitudes</button>
         ${isApprover()?`<button class="navlink ${STATE.view==='aprobaciones'?'active':''}" data-go="aprobaciones">Aprobaciones <span id="apbadge"></span></button>`:''}
+        ${['finanzas','admin'].includes(p.role)?`<button class="navlink ${STATE.view==='finanzas'?'active':''}" data-go="finanzas">Finanzas <span id="fzbadge"></span></button>`:''}
         ${p.role==='admin'?`<button class="navlink ${STATE.view==='equipo'?'active':''}" data-go="equipo">Equipo</button>`:''}
       </div>
     </div>
@@ -405,8 +420,215 @@ function topbar(){
 }
 function bindTop(){
   document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
-  const lo=$('#logout');if(lo)lo.onclick=async()=>{await sb.auth.signOut();STATE.user=null;STATE.profile=null;STATE.view='landing';route();};
-  updateApBadge();
+  const lo=$('#logout');if(lo)lo.onclick=async()=>{await sb.auth.signOut();STATE.user=null;STATE.profile=null;STATE.token=null;STATE.view='landing';route();};
+  updateApBadge();updateFzBadge();
+}
+async function updateFzBadge(){
+  if(!['finanzas','admin'].includes(STATE.profile?.role))return;
+  const el=$('#fzbadge');if(!el)return;
+  const [{data:d},{data:f}]=await Promise.all([
+    db.from('descuentos_nomina').select('id').eq('estado','propuesto'),
+    db.from('saldos_favor').select('id').eq('estado','propuesto')]);
+  const n=(d||[]).length+(f||[]).length;
+  if(n>0)el.innerHTML=`<span style="background:var(--lime);color:var(--ink);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:4px">${n}</span>`;
+}
+
+/* =================== COMPROBACION DE VIATICOS =================== */
+const DIA=86400000;
+function diasRestantes(vence){ return Math.ceil((new Date(vence).getTime()-Date.now())/DIA); }
+function plazoTxt(vence){
+  const d=diasRestantes(vence);
+  if(d<0) return {txt:'Plazo vencido', cls:'venc'};
+  if(d===0)return {txt:'Vence hoy', cls:'venc'};
+  if(d===1)return {txt:'Queda 1 día', cls:'urge'};
+  if(d<=2) return {txt:`Quedan ${d} días`, cls:'urge'};
+  return {txt:`Quedan ${d} días`, cls:'ok'};
+}
+async function renderComprobar(id){
+  app.innerHTML=`${topbar()}<div class="page"><div class="container"><div class="spinner"></div></div></div>`;
+  bindTop();
+  const {data:s}=await db.from('submissions').select('*, form_types(name,icon,slug)').eq('id',id).single();
+  const cont=$('.container');
+  if(!s){cont.innerHTML='<div class="empty">No encontrado o sin acceso.</div>';return;}
+  const {data:comps}=await db.from('comprobantes').select('*').eq('submission_id',id).order('created_at');
+  STATE.comps=comps||[];
+  const anticipo=Number(s.total_amount)||0;
+  const comprobado=Number(s.monto_comprobado)||0;
+  const facturado=Number(s.monto_facturado)||0;
+  const falta=Math.max(anticipo-comprobado,0);
+  const pct=anticipo>0?Math.min(comprobado/anticipo*100,100):0;
+  const sellado=!!s.sellado_at;
+  const pl=sellado?{txt:'Sellado',cls:'venc'}:plazoTxt(s.comprobacion_vence);
+  const vence=s.comprobacion_vence?new Date(s.comprobacion_vence).toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}):'—';
+
+  cont.innerHTML=`<button class="btn-line btn-sm" id="back">← Volver</button>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin:16px 0 4px;gap:16px;flex-wrap:wrap">
+      <div><div class="eyebrow">Comprobación de viáticos</div>
+        <h1 style="font-size:26px;font-weight:800;letter-spacing:-.02em">${esc(s.folio||'Sin folio')}</h1></div>
+      <span class="plazo ${pl.cls}">${esc(pl.txt)}</span></div>
+
+    ${sellado?`<div class="warnbox" style="background:#F3F0FA;border-color:var(--mist);color:var(--graphite)">
+      <b>Expediente sellado el ${new Date(s.sellado_at).toLocaleDateString('es-MX')}.</b> Ya no admite cambios ni comprobantes.
+      Resultado: <b>${esc({cuadrado:'Cuadrado',faltante:'Faltante por comprobar',excedente:'Excedente',sin_comprobar:'Sin comprobar'}[s.resultado]||s.resultado||'—')}</b>.
+    </div>`:`<div class="warnbox">
+      Tienes hasta el <b>${esc(vence)}</b> para subir tus comprobantes. Al vencer, el expediente se sella solo y lo que no comprobaste
+      se propone como <b>descuento a nómina</b>. Solo se repone de más lo que venga <b>facturado</b> a nombre de ${esc(CFG.razon_social||'')}.
+    </div>`}
+
+    <div class="panel"><h2>Avance</h2>
+      <div class="prog"><div class="prog-bar" style="width:${pct.toFixed(1)}%;background:${comprobado>=anticipo?'var(--lime)':'var(--violet-hot)'}"></div></div>
+      <div class="kpis">
+        <div><span>Anticipo recibido</span><b>${money(anticipo)}</b></div>
+        <div><span>Comprobado</span><b>${money(comprobado)}</b></div>
+        <div><span>De eso, facturado</span><b>${money(facturado)}</b></div>
+        <div><span>${comprobado>=anticipo?'Excedente':'Falta por comprobar'}</span>
+          <b style="color:${falta>0?'#C0392B':'var(--ok,#1E8B45)'}">${money(falta>0?falta:comprobado-anticipo)}</b></div>
+      </div>
+    </div>
+
+    <div class="panel"><h2>Comprobantes (${STATE.comps.length})</h2>
+      <div class="ph">Un renglón por factura o ticket. Marca "facturado" solo si tienes el CFDI (PDF y XML).</div>
+      <div class="tbl-wrap" style="margin-top:12px"><table class="read-tbl"><thead><tr>
+        <th>Fecha</th><th>Concepto</th><th>Proveedor</th><th>RFC</th><th>Facturado</th><th>Importe</th>${sellado?'':'<th></th>'}
+      </tr></thead><tbody id="crows">${
+        STATE.comps.length?STATE.comps.map(c=>`<tr>
+          <td>${esc(c.fecha||'')}</td><td>${esc(c.concepto||'')}</td><td>${esc(c.proveedor||'')}</td>
+          <td>${esc(c.rfc_emisor||'—')}</td>
+          <td>${c.facturado?'<span class="tag xml">Factura</span>':'<span class="tag otro">Sin factura</span>'}</td>
+          <td>${money(c.importe)}</td>
+          ${sellado?'':`<td><button class="t-del" data-delc="${c.id}">×</button></td>`}</tr>`).join('')
+        :`<tr><td colspan="${sellado?6:7}" style="color:var(--slate);padding:18px">Todavía no subes comprobantes.</td></tr>`}
+      </tbody></table></div>
+    </div>
+
+    ${sellado?'':`<div class="panel"><h2>Agregar comprobante</h2>
+      <div class="fgrid" style="margin-top:12px">
+        <div class="field"><label>Fecha</label><input id="c_fecha" type="date" value="${new Date().toISOString().slice(0,10)}"/></div>
+        <div class="field"><label>Concepto</label><input id="c_concepto" placeholder="Ej. Hotel, taxi, gasolina"/></div>
+        <div class="field"><label>Proveedor</label><input id="c_proveedor" placeholder="Quién te lo cobró"/></div>
+        <div class="field"><label>RFC del emisor</label><input id="c_rfc" placeholder="Solo si viene facturado"/></div>
+        <div class="field"><label>Importe (MXN)</label><input id="c_importe" type="number" step="0.01" min="0" placeholder="0.00"/></div>
+        <div class="field"><label>&nbsp;</label>
+          <label class="mrow" style="border:1.5px solid var(--mist);border-radius:12px;padding:11px 12px">
+            <input type="checkbox" id="c_facturado"/><span><b>Viene facturado</b><br/>
+            <span style="color:var(--slate);font-size:12px">Tengo el CFDI a nombre de Facilitadores</span></span></label></div>
+      </div>
+      <div class="drop" id="cdrop" style="margin-top:14px"><div style="font-size:26px">📎</div>
+        <div style="font-weight:600;color:var(--ink)">Adjunta la factura o el ticket</div>
+        <div style="font-size:12px">PDF y XML</div></div>
+      <input id="cfile" type="file" multiple accept=".pdf,.xml,image/*" class="hidden"/>
+      <div class="att-list" id="cattList"></div>
+      <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn-primary" id="addComp">Agregar comprobante</button>
+        <button class="btn-line" id="verDoc">Ver la solicitud</button></div>
+    </div>`}`;
+
+  $('#back').onclick=()=>go('misformatos');
+  const vd=$('#verDoc'); if(vd)vd.onclick=()=>go('detalle',id);
+  document.querySelectorAll('[data-delc]').forEach(b=>b.onclick=async()=>{
+    const {error}=await db.from('comprobantes').delete().eq('id',b.dataset.delc);
+    if(error)return toast(error.message);
+    toast('Comprobante eliminado');renderComprobar(id);
+  });
+  if(!sellado){
+    STATE.catts=[];
+    $('#cdrop').onclick=()=>$('#cfile').click();
+    $('#cfile').onchange=e=>handleCompFiles(e.target.files,id);
+    const dz=$('#cdrop');
+    ['dragover','dragenter'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.borderColor='var(--violet-hot)';}));
+    ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.borderColor='';}));
+    dz.addEventListener('drop',e=>handleCompFiles(e.dataTransfer.files,id));
+    $('#addComp').onclick=()=>agregarComprobante(id);
+  }
+}
+async function handleCompFiles(files,subId){
+  if(!files||!files.length)return;
+  for(const f of files){
+    const path=`${STATE.user.id}/${subId}/comp_${Date.now()}_${f.name.replace(/[^\w.\-]/g,'_')}`;
+    toast('Subiendo '+f.name+'…');
+    const {error:up}=await sb.storage.from(BUCKET).upload(path,f,{upsert:false});
+    if(up){toast('Error: '+up.message);continue;}
+    const {data,error}=await db.from('attachments').insert({submission_id:subId,file_name:f.name,file_type:fileType(f.name),storage_path:path,size_bytes:f.size,uploaded_by:STATE.user.id}).select().single();
+    if(error){toast('Error registrando adjunto');continue;}
+    STATE.catts.push(data);
+    if(fileType(f.name)==='xml'){const cb=$('#c_facturado');if(cb&&!cb.checked){cb.checked=true;toast('Detecté un XML: lo marqué como facturado');}}
+  }
+  const el=$('#cattList');
+  if(el)el.innerHTML=STATE.catts.map(a=>`<div class="att"><span class="tag ${a.file_type}">${a.file_type}</span><span class="nm">${esc(a.file_name)}</span></div>`).join('');
+}
+async function agregarComprobante(subId){
+  const imp=parseFloat(($('#c_importe')||{}).value||'0');
+  if(!(imp>0))return toast('Pon el importe del comprobante.');
+  const facturado=$('#c_facturado').checked;
+  const rfc=($('#c_rfc').value||'').trim().toUpperCase();
+  if(facturado&&!rfc)return toast('Si viene facturado, necesito el RFC del emisor.');
+  const btn=$('#addComp');btn.disabled=true;btn.textContent='Guardando…';
+  const {error}=await db.from('comprobantes').insert({
+    submission_id:subId, fecha:$('#c_fecha').value||null, concepto:($('#c_concepto').value||'').trim(),
+    proveedor:($('#c_proveedor').value||'').trim(), rfc_emisor:rfc||null, importe:imp, facturado,
+    attachment_id:(STATE.catts&&STATE.catts.length)?STATE.catts[STATE.catts.length-1].id:null,
+    created_by:STATE.user.id});
+  if(error){btn.disabled=false;btn.textContent='Agregar comprobante';return toast(error.message);}
+  toast('Comprobante agregado ✓');renderComprobar(subId);
+}
+
+/* =================== FINANZAS: descuentos y saldos =================== */
+async function renderFinanzas(){
+  app.innerHTML=`${topbar()}<div class="page"><div class="container">
+    <div class="eyebrow">Finanzas · Cierre de viáticos</div>
+    <h1 style="font-size:28px;font-weight:800;letter-spacing:-.02em;margin:6px 0 6px">Pendientes de tu autorización</h1>
+    <p style="color:var(--slate);margin-bottom:18px">Nada se descuenta ni se paga sin que tú lo autorices aquí.</p>
+    <div id="fz"><div class="spinner"></div></div></div></div>`;
+  bindTop();
+  const [{data:descs},{data:favores}]=await Promise.all([
+    db.from('descuentos_nomina').select('*, submissions(folio,total_amount,monto_comprobado,resultado,sellado_at), profiles!descuentos_nomina_colaborador_id_fkey(full_name,email)').order('created_at',{ascending:false}),
+    db.from('saldos_favor').select('*, submissions(folio,total_amount,monto_comprobado,monto_facturado,sellado_at), profiles!saldos_favor_colaborador_id_fkey(full_name,email)').order('created_at',{ascending:false})]);
+  const el=$('#fz');
+  const card=(r,tipo)=>{
+    const s=r.submissions||{},p=r.profiles||{};
+    const pend=r.estado==='propuesto';
+    const col=tipo==='desc'?'#C0392B':'#1E8B45';
+    return `<div class="panel" style="margin-bottom:14px;${pend?'border:2px solid var(--violet-hot)':''}">
+      <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start">
+        <div>
+          <div class="eyebrow">${tipo==='desc'?'Descuento a nómina propuesto':'Saldo a favor del colaborador'}</div>
+          <h2 style="margin:6px 0 2px">${esc(p.full_name||'')} · ${esc(s.folio||'')}</h2>
+          <div style="color:var(--slate);font-size:13px">${esc(r.motivo||'Excedente facturado del anticipo')}</div>
+          <div style="color:var(--slate);font-size:12px;margin-top:6px">
+            Anticipo ${money(s.total_amount)} · Comprobado ${money(s.monto_comprobado)}${tipo==='favor'?` · Facturado ${money(s.monto_facturado)}`:''}
+            ${s.sellado_at?` · Sellado ${new Date(s.sellado_at).toLocaleDateString('es-MX')}`:''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:24px;font-weight:800;color:${col}">${money(r.monto)}</div>
+          <span class="status st-${r.estado==='propuesto'?'pendiente':(r.estado==='cancelado'?'rechazado':'aprobado')}">${esc(r.estado)}</span>
+        </div>
+      </div>
+      ${pend?`<div class="field" style="margin-top:12px"><label>Nota (opcional)</label><input class="fz-nota" data-for="${r.id}" placeholder="Ej. autorizado con recibo tardío"/></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-ok" data-auth="${r.id}" data-tipo="${tipo}">✓ ${tipo==='desc'?'Autorizar descuento':'Autorizar pago'}</button>
+        <button class="btn-bad" data-canc="${r.id}" data-tipo="${tipo}">✕ Cancelar</button></div>`
+      :`<div style="color:var(--slate);font-size:12px;margin-top:10px">${r.autorizado_at?`Resuelto el ${new Date(r.autorizado_at).toLocaleString('es-MX')}`:''}${r.nota?` · “${esc(r.nota)}”`:''}</div>`}
+    </div>`;
+  };
+  const dPend=(descs||[]).filter(r=>r.estado==='propuesto'), dRes=(descs||[]).filter(r=>r.estado!=='propuesto');
+  const fPend=(favores||[]).filter(r=>r.estado==='propuesto'), fRes=(favores||[]).filter(r=>r.estado!=='propuesto');
+  if(!descs&&!favores){el.innerHTML='<div class="empty"><div class="ic">🔒</div><p>Sin acceso.</p></div>';return;}
+  el.innerHTML=`
+    ${dPend.length||fPend.length?`${dPend.map(r=>card(r,'desc')).join('')}${fPend.map(r=>card(r,'favor')).join('')}`
+      :`<div class="empty"><div class="ic">✨</div><p>Nada pendiente de autorizar.</p></div>`}
+    ${dRes.length||fRes.length?`<h2 style="font-size:15px;font-weight:700;margin:26px 0 12px;color:var(--slate)">Historial</h2>
+      ${dRes.map(r=>card(r,'desc')).join('')}${fRes.map(r=>card(r,'favor')).join('')}`:''}`;
+  const resolver=async(id,tipo,estado)=>{
+    const tabla=tipo==='desc'?'descuentos_nomina':'saldos_favor';
+    const nota=(document.querySelector(`.fz-nota[data-for="${id}"]`)||{}).value||null;
+    const patch={estado,autorizado_por:STATE.user.id,autorizado_at:new Date().toISOString()};
+    if(tipo==='desc')patch.nota=nota;
+    const {error}=await db.from(tabla).update(patch).eq('id',id);
+    if(error)return toast(error.message);
+    toast(estado==='autorizado'?'Autorizado ✓':'Cancelado');renderFinanzas();
+  };
+  el.querySelectorAll('[data-auth]').forEach(b=>b.onclick=()=>resolver(b.dataset.auth,b.dataset.tipo,'autorizado'));
+  el.querySelectorAll('[data-canc]').forEach(b=>b.onclick=()=>resolver(b.dataset.canc,b.dataset.tipo,'cancelado'));
 }
 async function updateApBadge(){if(!isApprover())return;const el=$('#apbadge');if(!el)return;const n=(await pendientesQuery()).data.length;if(n>0)el.innerHTML=`<span style="background:var(--lime);color:var(--ink);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:4px">${n}</span>`;}
 
@@ -736,11 +958,17 @@ async function renderAprobaciones(){
 function renderSubList(el,rows,own){
   if(!rows||!rows.length){el.innerHTML=`<div class="empty"><div class="ic">🗂️</div><p>${own?'Aún no tienes solicitudes. Crea una desde Formatos.':'No hay nada pendiente. ✨'}</p></div>`;return;}
   el.innerHTML=rows.map(s=>{const ft=s.form_types||{},d=s.data||{};
-    return `<div class="list-item" data-id="${s.id}"><div style="font-size:26px">${ft.icon||'📄'}</div>
+    const comprobando=s.status==='comprobando';
+    const pl=comprobando&&s.comprobacion_vence?plazoTxt(s.comprobacion_vence):null;
+    const falta=comprobando?Math.max((Number(s.total_amount)||0)-(Number(s.monto_comprobado)||0),0):0;
+    return `<div class="list-item" data-id="${s.id}" ${comprobando?'data-comprobar="1"':''}><div style="font-size:26px">${ft.icon||'📄'}</div>
       <div style="min-width:0"><div class="folio">${esc(s.folio||'Borrador')} · ${esc(ft.name||'')}</div>
-      <div class="meta">${esc(d.nombre||'')} · ${new Date(s.submitted_at||s.created_at).toLocaleDateString('es-MX')}${own?'':' · paso '+(s.current_step+1)}</div></div>
-      <div style="text-align:right">${s.total_amount?`<div class="amt">${money(s.total_amount)}</div>`:''}<span class="status st-${s.status}">${s.status}</span></div></div>`;}).join('');
-  el.querySelectorAll('[data-id]').forEach(it=>it.onclick=()=>go('detalle',it.dataset.id));
+      <div class="meta">${esc(d.nombre||'')} · ${new Date(s.submitted_at||s.created_at).toLocaleDateString('es-MX')}${own?'':' · paso '+(s.current_step+1)}${
+        comprobando&&falta>0?` · <b style="color:#C0392B">faltan ${money(falta)} por comprobar</b>`:''}</div></div>
+      <div style="text-align:right">${s.total_amount?`<div class="amt">${money(s.total_amount)}</div>`:''}
+      ${pl?`<span class="plazo ${pl.cls}">${esc(pl.txt)}</span>`:`<span class="status st-${s.status}">${s.status}</span>`}</div></div>`;}).join('');
+  // Los viaticos en comprobacion abren directo la pantalla de comprobar.
+  el.querySelectorAll('[data-id]').forEach(it=>it.onclick=()=>go(it.dataset.comprobar?'comprobar':'detalle',it.dataset.id));
 }
 
 /* =================== DETALLE (genérico) =================== */
