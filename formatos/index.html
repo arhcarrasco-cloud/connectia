@@ -435,6 +435,9 @@ async function updateFzBadge(){
 
 /* =================== COMPROBACION DE VIATICOS =================== */
 const DIA=86400000;
+const TZ='America/Mexico_City';
+// El plazo siempre se lee en hora de Mexico, no en la del equipo del usuario.
+const fmtMX=(d,o={})=>new Date(d).toLocaleDateString('es-MX',{timeZone:TZ,...o});
 function diasRestantes(vence){ return Math.ceil((new Date(vence).getTime()-Date.now())/DIA); }
 function plazoTxt(vence){
   const d=diasRestantes(vence);
@@ -459,7 +462,7 @@ async function renderComprobar(id){
   const pct=anticipo>0?Math.min(comprobado/anticipo*100,100):0;
   const sellado=!!s.sellado_at;
   const pl=sellado?{txt:'Sellado',cls:'venc'}:plazoTxt(s.comprobacion_vence);
-  const vence=s.comprobacion_vence?new Date(s.comprobacion_vence).toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}):'—';
+  const vence=s.comprobacion_vence?fmtMX(s.comprobacion_vence,{day:'2-digit',month:'long',year:'numeric'}):'—';
 
   cont.innerHTML=`<button class="btn-line btn-sm" id="back">← Volver</button>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin:16px 0 4px;gap:16px;flex-wrap:wrap">
@@ -468,7 +471,7 @@ async function renderComprobar(id){
       <span class="plazo ${pl.cls}">${esc(pl.txt)}</span></div>
 
     ${sellado?`<div class="warnbox" style="background:#F3F0FA;border-color:var(--mist);color:var(--graphite)">
-      <b>Expediente sellado el ${new Date(s.sellado_at).toLocaleDateString('es-MX')}.</b> Ya no admite cambios ni comprobantes.
+      <b>Expediente sellado el ${fmtMX(s.sellado_at)}.</b> Ya no admite cambios ni comprobantes.
       Resultado: <b>${esc({cuadrado:'Cuadrado',faltante:'Faltante por comprobar',excedente:'Excedente',sin_comprobar:'Sin comprobar'}[s.resultado]||s.resultado||'—')}</b>.
     </div>`:`<div class="warnbox">
       Tienes hasta el <b>${esc(vence)}</b> para subir tus comprobantes. Al vencer, el expediente se sella solo y lo que no comprobaste
