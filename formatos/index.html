@@ -206,8 +206,9 @@ const FORM_SCHEMAS={
       {k:'importe',label:'Importe (MXN)',type:'number',w:'130px',sum:true}]},
     total:{label:'Total a reembolsar',sumCol:'importe',letra:true},
     fields:[{k:'clabe',label:'Banco / CLABE para depósito',ph:'Banco · CLABE 18 dígitos',req:true}],
+    legal:{title:'Condiciones del reembolso',text:'El reembolso procede únicamente por gastos pagados por el colaborador con recursos propios para una necesidad real de la empresa, solicitados dentro de los 7 días naturales posteriores a la fecha del gasto y respaldados con factura (CFDI en PDF y XML) a nombre de FACILITADORES PUBLICITARIOS HS, S.A. DE C.V., RFC FPH181203KA8. Los tickets sin comprobante fiscal, los gastos personales y los ya cubiertos por un anticipo de viáticos no son reembolsables. El depósito se realiza a la CLABE señalada, a nombre del propio colaborador, una vez firmado y aprobado el documento en su totalidad.'},
     attachments:true,attachReq:true,
-    sign:{title:'Firma del solicitante',text:'Confirmo que los gastos son verídicos y solicito su reembolso.'}
+    sign:{title:'Firma del solicitante',text:'Confirmo que los gastos son verídicos, están facturados a nombre de la empresa y solicito su reembolso.'}
   },
   'asignacion-equipos':{
     intro:'Registro de entrega y resguardo de equipos al colaborador.',
@@ -276,7 +277,7 @@ const FORM_SCHEMAS={
     fields:[
       {k:'clabe',label:'Banco / CLABE para depósito',ph:'Banco · CLABE 18 dígitos',req:true},
       {k:'fecha_comprobacion',label:'Fecha compromiso de comprobación',type:'date'}],
-    legal:{title:'Compromiso de comprobación',text:'El colaborador recibe el presente anticipo únicamente para cubrir los gastos del viaje o comisión descritos y se compromete a comprobarlo con facturas (PDF y XML) a nombre de FACILITADORES PUBLICITARIOS HS, S.A. DE C.V. dentro de los 5 días hábiles posteriores a su regreso, o en la fecha compromiso señalada. Los importes no comprobados o no ejercidos deberán reintegrarse en ese mismo plazo; de no hacerlo, podrán descontarse de la siguiente dispersión previo acuerdo entre las partes. Los gastos ajenos al motivo autorizado no serán reconocidos.'},
+    legal:{title:'Compromiso de comprobación',text:'El colaborador recibe el presente anticipo únicamente para cubrir los gastos del viaje o comisión descritos y se compromete a comprobarlo con facturas (PDF y XML) a nombre de FACILITADORES PUBLICITARIOS HS, S.A. DE C.V. dentro de los 7 días naturales posteriores a su fecha de regreso. Al vencer ese plazo el expediente se sella y no admite comprobantes adicionales. Los importes no comprobados o no ejercidos se propondrán como descuento vía nómina, previa autorización de Finanzas. El excedente sobre el anticipo se repone únicamente en la parte que venga facturada. Los gastos ajenos al motivo autorizado no serán reconocidos.'},
     attachments:true,attachReq:false,
     sign:{title:'Firma del solicitante',text:'Solicito el anticipo de viáticos y acepto el compromiso de comprobación.'}
   }
@@ -524,7 +525,17 @@ async function renderComprobar(id){
       <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
         <button class="btn-primary" id="addComp">Agregar comprobante</button>
         <button class="btn-line" id="verDoc">Ver la solicitud</button></div>
-    </div>`}`;
+    </div>
+
+    <div class="panel"><h2>Cerrar el proceso</h2>
+      <div class="ph">Cuando tus comprobantes cuadren con el anticipo puedes cerrar sin esperar los 7 días. Al cerrar, el expediente se sella y ya no admite cambios.</div>
+      ${falta>0
+        ? `<div class="warnbox" style="margin:12px 0 0">Todavía te faltan <b>${money(falta)}</b> por comprobar. Cuando cuadres, aquí podrás cerrar.
+             Si dejas vencer el plazo sin comprobar, esa diferencia se propone como descuento a nómina.</div>`
+        : `<div style="margin-top:12px"><button class="btn-ok" id="cerrarComp">✓ Ya comprobé todo · Cerrar y sellar</button></div>`}
+    </div>
+
+    ${politicasHtml('viaticos')}`}`;
 
   $('#back').onclick=()=>go('misformatos');
   const vd=$('#verDoc'); if(vd)vd.onclick=()=>go('detalle',id);
@@ -542,7 +553,37 @@ async function renderComprobar(id){
     ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.borderColor='';}));
     dz.addEventListener('drop',e=>handleCompFiles(e.dataTransfer.files,id));
     $('#addComp').onclick=()=>agregarComprobante(id);
+    const cc=$('#cerrarComp'); if(cc)cc.onclick=()=>confirmarCierre(id,anticipo,comprobado,facturado);
   }
+}
+function confirmarCierre(id,anticipo,comprobado,facturado){
+  const sobra=comprobado-anticipo;
+  const reponible=Math.max(Math.min(sobra,facturado-anticipo),0);
+  const ov=document.createElement('div');ov.className='modal-bg';
+  ov.innerHTML=`<div class="modal" style="max-width:470px">
+    <div class="eyebrow">Cierre definitivo</div>
+    <h2 style="margin:6px 0 4px;font-size:22px;font-weight:800;letter-spacing:-.02em">¿Cerrar tu comprobación?</h2>
+    <p style="color:var(--slate);font-size:13px">Al cerrar, el expediente <b>se sella</b>: no vas a poder editarlo ni subir más comprobantes. Esto no se puede deshacer.</p>
+    <div class="kpis" style="grid-template-columns:1fr 1fr;margin:16px 0">
+      <div><span>Anticipo</span><b>${money(anticipo)}</b></div>
+      <div><span>Comprobado</span><b>${money(comprobado)}</b></div>
+    </div>
+    ${sobra>0.5?`<div class="warnbox" style="margin:0 0 14px">Gastaste <b>${money(sobra)}</b> de más.
+      ${reponible>0.5?`Se te repondrán <b>${money(reponible)}</b>, que es la parte facturada.`
+                     :'Nada de ese excedente viene facturado, así que <b>no genera saldo a favor</b>.'}</div>`:''}
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn-ok" id="okCerrar">Sí, cerrar y sellar</button>
+      <button class="btn-line" id="noCerrar">Cancelar</button></div></div>`;
+  document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.querySelector('#noCerrar').onclick=close;
+  ov.onclick=e=>{if(e.target===ov)close();};
+  ov.querySelector('#okCerrar').onclick=async()=>{
+    const b=ov.querySelector('#okCerrar');b.disabled=true;b.textContent='Cerrando…';
+    const {data,error}=await db.rpc('cerrar_comprobacion',{p_submission_id:id});
+    if(error){b.disabled=false;b.textContent='Sí, cerrar y sellar';return toast(error.message);}
+    close();toast('Comprobación cerrada y sellada ✓');renderComprobar(id);
+  };
 }
 async function handleCompFiles(files,subId){
   if(!files||!files.length)return;
@@ -648,6 +689,44 @@ function grupoActivo(){
 }
 function gruposVisibles(){ const g=grupoActivo(); return g?GRUPOS.filter(x=>x.k===g):GRUPOS; }
 function tituloSeccion(){ const g=grupoActivo(); const x=GRUPOS.find(y=>y.k===g); return x?x.titulo:'Formatos'; }
+
+/* =================== POLITICAS =================== */
+const POLITICAS={
+  viaticos:{
+    titulo:'Políticas de viáticos',
+    intro:'El anticipo es dinero de la empresa entregado por adelantado. Estas reglas aplican a todos, sin excepción.',
+    items:[
+      ['01','Qué cubre.','Transporte, hospedaje, alimentos y gastos indispensables del viaje o comisión autorizados en la solicitud. Los gastos ajenos al motivo autorizado no se reconocen.'],
+      ['02','Autorización previa.','El anticipo se deposita hasta que la solicitud recorre completa su ruta de firmas: jefe directo → dirección → finanzas. Sin las tres firmas no hay dispersión.'],
+      ['03','Plazo para comprobar.','Tienes 7 días naturales contados desde tu fecha de regreso. El expediente queda abierto en la plataforma todo ese periodo para que subas tus comprobantes.'],
+      ['04','Cierre del expediente.','El proceso se cierra cuando compruebas el total del anticipo, o automáticamente al vencer los 7 días. Una vez cerrado se sella: no admite cambios ni comprobantes nuevos.'],
+      ['05','Sin comprobar, no se paga.','Si no subes comprobantes dentro del plazo, el anticipo se considera no comprobado y su importe íntegro se propone como descuento a nómina.'],
+      ['06','Si compruebas de menos.','La diferencia entre lo que recibiste y lo que comprobaste se propone como descuento a nómina. Finanzas la autoriza; ningún descuento se aplica de forma automática.'],
+      ['07','Si gastaste de más.','Se te repone únicamente la parte que venga facturada. Un ticket sin CFDI no genera saldo a favor.'],
+      ['08','Requisitos de la factura.','Todo CFDI debe ir a nombre de FACILITADORES PUBLICITARIOS HS, S.A. DE C.V., RFC FPH181203KA8, y adjuntarse en PDF y XML. Los datos y la constancia están en esta misma sección.']
+    ]
+  },
+  reembolso:{
+    titulo:'Políticas de reembolso',
+    intro:'El reembolso repone dinero que ya saliste de tu bolsillo. Por eso el requisito es la factura.',
+    items:[
+      ['01','Qué cubre.','Gastos pagados por el colaborador con recursos propios para una necesidad real de la empresa, dentro de sus funciones.'],
+      ['02','Plazo para solicitarlo.','7 días naturales contados desde la fecha del gasto. Pasado ese plazo el gasto ya no es reembolsable.'],
+      ['03','Solo con factura.','Se reembolsa únicamente lo que venga facturado. Todo CFDI a nombre de FACILITADORES PUBLICITARIOS HS, S.A. DE C.V., RFC FPH181203KA8, adjunto en PDF y XML. Los tickets sin factura no se reponen.'],
+      ['04','Ruta de firmas.','Jefe directo → finanzas → dirección. El depósito se hace hasta que el documento está firmado y aprobado en su totalidad.'],
+      ['05','Depósito.','Se deposita a la CLABE que registres en la solicitud, a nombre del propio colaborador.'],
+      ['06','Lo que no aplica.','Gastos ya cubiertos por un anticipo de viáticos, gastos personales y todo lo que no traiga comprobante fiscal válido.']
+    ]
+  }
+};
+function politicasHtml(slug){
+  const p=POLITICAS[slug]; if(!p)return '';
+  return `<div class="panel"><h2>${esc(p.titulo)}</h2>
+    <div class="ph">${esc(p.intro)}</div>
+    <div class="legalbox" style="margin-top:10px">
+      ${p.items.map(it=>`<div class="t"><b>${it[0]}</b><div><b style="color:var(--ink)">${esc(it[1])}</b> ${esc(it[2])}</div></div>`).join('')}
+    </div></div>`;
+}
 function cardHtml(ft){
   const chain=(ft.approval_chain||[]).map(r=>`<span class="step">${ROLES[r]||r}</span>`).join('<span>→</span>');
   const ready=ft.active&&FORM_SCHEMAS[ft.slug];
@@ -752,6 +831,7 @@ function renderNuevo(slug){
 
     ${sc.legal?`<div class="panel"><h2>${esc(sc.legal.title)}</h2><div class="legalbox" style="margin-top:8px">${esc(sc.legal.text)}</div></div>`:''}
     ${sc.legalList?`<div class="panel"><h2>${esc(sc.legalList.title)}</h2><div class="legalbox" style="margin-top:8px">${sc.legalList.items.map(it=>`<div class="t"><b>${it[0]}</b><div><b style="color:var(--ink)">${esc(it[1])}</b> ${esc(it[2])}</div></div>`).join('')}</div></div>`:''}
+    ${politicasHtml(slug)}
 
     ${sc.attachments?`<div class="panel"><h2>Comprobantes ${sc.attachReq?'':'<span style="font-weight:400;color:var(--slate);font-size:13px">(opcional)</span>'}</h2>
       <div class="ph">${sc.attachReq?'Adjunta facturas PDF y XML. Sin límite de archivos.':'Adjunta evidencia (fotos, PDF, XML). Sin límite.'}</div>
