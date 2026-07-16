@@ -272,8 +272,11 @@ function numeroALetras(num){
 /* ---------- init ---------- */
 async function init(){
   try{ STATE.pendingVer=new URLSearchParams(location.search).get('ver'); }catch(e){}
+  // El token se captura UNA vez aqui y se mantiene fresco con onAuthStateChange.
+  // No volver a llamar getSession() en caliente: se cuelga (deadlock de navigator.locks en supabase-js v2).
+  sb.auth.onAuthStateChange((_e,s)=>{ STATE.token=s?s.access_token:null; });
   const {data:{session}}=await sb.auth.getSession();
-  if(session){STATE.user=session.user;await loadProfile();await loadFormTypes();}
+  if(session){STATE.user=session.user;STATE.token=session.access_token;await loadProfile();await loadFormTypes();}
   route();
 }
 async function loadProfile(){const {data}=await db.from('profiles').select('*').eq('id',STATE.user.id).maybeSingle();STATE.profile=data;}
@@ -328,10 +331,10 @@ async function doAuth(){
       const {data,error}=await sb.auth.signUp({email:em,password:pw,options:{data:{full_name:rn}}});
       if(error)throw error;
       if(!data.session){authMsg('Cuenta creada. Revisa tu correo para confirmar y luego inicia sesión.','ok');authMode='login';setTimeout(renderAuth,2400);return;}
-      STATE.user=data.user;
+      STATE.user=data.user;STATE.token=data.session.access_token;
     }else{
       const {data,error}=await sb.auth.signInWithPassword({email:em,password:pw});
-      if(error)throw error;STATE.user=data.user;
+      if(error)throw error;STATE.user=data.user;STATE.token=data.session?data.session.access_token:null;
     }
     await loadProfile();await loadFormTypes();STATE.view='landing';route();
   }catch(e){authMsg(e.message||'Error de autenticación','err');btn.disabled=false;btn.textContent=authMode==='login'?'Entrar':'Registrarme';}
@@ -475,10 +478,16 @@ function renderNuevo(slug){
 
 /* =================== BORRADOR: compartir / descargar =================== */
 const FN_URL=SUPABASE_URL+'/functions/v1/enviar-contrato';
+function authToken(){
+  if(STATE.token)return STATE.token;
+  // Respaldo: leer el token que supabase-js deja en localStorage.
+  try{ for(const k of Object.keys(localStorage)){ if(/^sb-.*-auth-token$/.test(k)){ const v=JSON.parse(localStorage.getItem(k)); if(v&&v.access_token)return v.access_token; } } }catch(_e){}
+  return null;
+}
 async function callFn(payload){
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session)  { toast('Tu sesión expiró. Vuelve a entrar.'); return null; }
-  const r=await fetch(FN_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify(payload)});
+  const tok=authToken();
+  if(!tok){ toast('Tu sesión expiró. Vuelve a entrar.'); return null; }
+  const r=await fetch(FN_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify(payload)});
   let j=null; try{ j=await r.json(); }catch(_e){}
   if(!r.ok){ toast((j&&j.error)||'Error del servidor'); return null; }
   return j;
