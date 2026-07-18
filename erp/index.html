@@ -4,24 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <!-- LIGA UNICA del ERP: https://erp.connectia.mx
-     Este archivo solo existe para que connectia.mx/erp no muera con un 404.
+     Este archivo existe para que connectia.mx/erp no muera con un 404.
      GitHub Pages no puede emitir un 301 real, por eso es meta refresh + canonical,
      igual que el stub de /flotillas. No agregar aqui nada de la app.
-     El ERP vive en Vercel, en otro repo (arhcarrasco-cloud/connectia-erp). -->
+     El ERP vive en Vercel, en otro repo (arhcarrasco-cloud/connectia-erp).
+
+     OJO: solo cubre /erp y /erp/. Las subrutas (connectia.mx/erp/crm) las atiende
+     GitHub Pages con su propio 404 antes de llegar aqui; para cubrirlas haria falta
+     un 404.html en la raiz del sitio, que afectaria a todo connectia.mx. -->
 <link rel="canonical" href="https://erp.connectia.mx">
 <meta name="robots" content="noindex,follow">
 <meta http-equiv="refresh" content="0;url=https://erp.connectia.mx">
 <title>Connectia ERP</title>
-<script>
-  // Conserva ruta, query y hash. El ERP sirve sus rutas bajo /ERP (mayusculas),
-  // asi que connectia.mx/erp/crm -> erp.connectia.mx/ERP/crm
-  (function () {
-    var base = 'https://erp.connectia.mx';
-    var p = location.pathname.replace(/^\/erp\/?/i, '');
-    var destino = p ? base + '/ERP/' + p : base;
-    location.replace(destino + location.search + location.hash);
-  })();
-</script>
+<script>location.replace('https://erp.connectia.mx' + location.search + location.hash);</script>
 <style>
   body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
        font-family:Inter,-apple-system,'Helvetica Neue',Arial,sans-serif;background:#201040;color:#fff}
