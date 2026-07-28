@@ -529,10 +529,12 @@ nav#bottomnav{position:absolute;left:0;right:0;bottom:0;height:var(--nav-h);z-in
 #gate.hide{display:none}
 #gate-title{font-weight:900;font-size:clamp(40px,7vw,84px);letter-spacing:-.03em;color:#fff;text-transform:uppercase}
 /* menú de 3 puntos + nav oculta */
-.back-inflow{display:inline-flex;align-items:center;gap:6px;height:46px;padding:0 20px;margin-bottom:22px;
+.back-inflow{display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 18px;margin-bottom:22px;
   border-radius:999px;border:1px solid var(--glass-border);background:rgba(255,255,255,.06);color:#fff;
   font-family:inherit;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
 .back-inflow:active{background:var(--brand)}
+.back-inflow img{height:17px;width:auto;display:block;pointer-events:none}
+.back-inflow .chev{font-size:19px;line-height:1;opacity:.85;margin-top:-2px}
 #menu-fab{position:absolute;top:18px;left:18px;z-index:80;width:48px;height:48px;border-radius:50%;
   border:1px solid var(--glass-border);background:var(--glass);backdrop-filter:blur(12px);color:#fff;
   font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:0}
@@ -2261,7 +2263,8 @@ function init(){
   initMap();
   document.querySelectorAll('.screen-pad').forEach(pad=>{
     if(pad.querySelector('.back-inflow')) return;
-    const b=document.createElement('button'); b.className='back-inflow'; b.innerHTML='‹ Regresar';
+    const b=document.createElement('button'); b.className='back-inflow'; b.setAttribute('aria-label','Regresar');
+    b.innerHTML='<span class="chev">‹</span><img src="assets/connectia-white.png" alt="Connectia">';
     b.onclick=goBack; pad.insertBefore(b, pad.firstChild);
   });
   setTimeout(()=>$('boot').classList.add('hide'),1400);
