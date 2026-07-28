@@ -328,8 +328,9 @@ const SEL=new Set();
 try{ (JSON.parse(localStorage.getItem('sc_sel')||'[]')).forEach(x=>SEL.add(x)); }catch(e){}
 function saveSel(){ try{ localStorage.setItem('sc_sel',JSON.stringify([...SEL])); }catch(e){} }
 
-const CATS=[['todos','Todos'],['landmark','Landmarks'],['mega','Mega vallas'],['dooh','Pantallas 3D']];
-const CATLBL={landmark:'Landmark',mega:'Mega valla',dooh:'Pantalla DOOH 3D'};
+const CATS=[['todos','Todos'],['landmark','Landmarks'],['muro','Muros y espectaculares'],
+            ['mega','Mega vallas'],['dooh','Pantallas 3D']];
+const CATLBL={landmark:'Landmark',muro:'Muro / espectacular',mega:'Mega valla',dooh:'Pantalla DOOH 3D'};
 
 const ICO={
   info:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.6" stroke-linecap="round"/></svg>',
@@ -470,6 +471,23 @@ function openSitio(id){
      ${(m.campanas||[]).length?`<div class="mt20"><div class="eyebrow">Campañas sugeridas</div>
        <div class="media-meta mt10">${m.campanas.map(c=>`<span class="chip wm">${c}</span>`).join('')}</div></div>`:''}
      <div class="semaforo mt20">${semaforoHtml(m.estatus)}</div>
+     ${(m.incluye||[]).length?`<div class="mt20"><div class="eyebrow">Qué incluye</div>
+       <ul class="body mt10" style="padding-left:18px;line-height:1.8">
+       ${m.incluye.map(x=>`<li>${x}</li>`).join('')}</ul></div>`:''}
+     ${(m.pantallas||[]).length?`<div class="mt20"><div class="eyebrow">Detalle por pantalla</div>
+       <div class="mt10" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+         <tr style="color:var(--violet-hot);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase">
+           <th style="text-align:left;padding:8px 10px">Pantalla</th><th style="text-align:right;padding:8px 10px">Impactos</th>
+           <th style="text-align:right;padding:8px 10px">Únicos</th><th style="text-align:right;padding:8px 10px">Frec.</th>
+           <th style="text-align:right;padding:8px 10px">Exposición</th><th style="text-align:right;padding:8px 10px">Spots</th></tr>
+         ${m.pantallas.map((p,i)=>`<tr style="background:${i%2?'rgba(255,255,255,.04)':'transparent'}">
+           <td style="padding:9px 10px;font-weight:700">${i+1}. ${p.n}</td>
+           <td style="padding:9px 10px;text-align:right;color:var(--lime);font-weight:700">${p.imp.toLocaleString('es-MX')}</td>
+           <td style="padding:9px 10px;text-align:right;color:var(--mist)">${p.uni.toLocaleString('es-MX')}</td>
+           <td style="padding:9px 10px;text-align:right;color:var(--mist)">${p.frec}</td>
+           <td style="padding:9px 10px;text-align:right;color:var(--mist)">${p.exp}</td>
+           <td style="padding:9px 10px;text-align:right;color:var(--wm-spark);font-size:11.5px">${p.spot}</td></tr>`).join('')}
+       </table></div></div>`:''}
      ${m.gallery&&m.gallery.length?`<div class="mt20"><div class="eyebrow">Pantallas del paquete</div>
        <div class="mt10" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
        ${m.gallery.map(g=>`<div style="aspect-ratio:16/10;background:#0b0620;border-radius:10px;overflow:hidden">

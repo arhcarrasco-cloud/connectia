@@ -37,7 +37,8 @@ MIST     = HexColor("#E9E6F0")
 WHITE    = HexColor("#FFFFFF")
 INK      = HexColor("#0A0118")
 
-CAT_LBL = {"landmark": "Landmark", "mega": "Mega valla", "dooh": "Pantalla DOOH 3D"}
+CAT_LBL = {"landmark": "Landmark", "muro": "Muro / espectacular",
+           "mega": "Mega valla", "dooh": "Pantalla DOOH 3D"}
 
 
 def mxn(n):
@@ -162,47 +163,54 @@ def cover(c, sitios):
 
 # ═══════════ ÍNDICE ═══════════
 def index_page(c, sitios):
-    c.setFillColor(INDIGO); c.rect(0, 0, W, H, stroke=0, fill=1)
-    vgrad(c, 0, H - 5, W, 5, HOT, MAGENTA)
-    logo(c, 52, H - 52, 14)
-    eyebrow(c, "Índice del inventario", 52, H - 92)
-    c.setFillColor(WHITE); c.setFont("Helvetica-Bold", 30)
-    c.drawString(52, H - 126, "SITIOS DISPONIBLES")
+    """Índice paginado: 15 sitios por hoja."""
+    PER = 15
+    bloques = [sitios[i:i + PER] for i in range(0, len(sitios), PER)]
+    for bi, bloque in enumerate(bloques):
+        c.setFillColor(INDIGO); c.rect(0, 0, W, H, stroke=0, fill=1)
+        vgrad(c, 0, H - 5, W, 5, HOT, MAGENTA)
+        logo(c, 52, H - 52, 14)
+        sufijo = f" · {bi+1} de {len(bloques)}" if len(bloques) > 1 else ""
+        eyebrow(c, "Índice del inventario" + sufijo, 52, H - 92)
+        c.setFillColor(WHITE); c.setFont("Helvetica-Bold", 30)
+        c.drawString(52, H - 126, "SITIOS DISPONIBLES")
 
-    y = H - 172
-    c.setFillColor(HOT); c.setFont("Helvetica-Bold", 7)
-    for lbl, x in [("#", 52), ("SITIO", 78), ("FORMATO", 372), ("MEDIDAS", 468), ("IMP/MES", 604), ("TARIFA", 678)]:
-        c.drawString(x, y, lbl)
-    y -= 8
-    c.setStrokeColor(HexColor("#4B2E86")); c.setLineWidth(.8); c.line(52, y, W - 52, y)
-    y -= 19
+        y = H - 172
+        c.setFillColor(HOT); c.setFont("Helvetica-Bold", 7)
+        for lbl, x in [("#", 52), ("SITIO", 78), ("FORMATO", 356), ("MEDIDAS", 468),
+                       ("IMP/MES", 604), ("TARIFA", 678)]:
+            c.drawString(x, y, lbl)
+        y -= 8
+        c.setStrokeColor(HexColor("#4B2E86")); c.setLineWidth(.8); c.line(52, y, W - 52, y)
+        y -= 18
 
-    for i, s in enumerate(sitios, 1):
-        if i % 2 == 0:
-            c.setFillColor(HexColor("#2A1A4E")); c.rect(48, y - 6, W - 96, 20, stroke=0, fill=1)
-        c.setFillColor(HOT); c.setFont("Helvetica-Bold", 9); c.drawString(52, y, f"{i:02d}")
-        c.setFillColor(WHITE); c.setFont("Helvetica-Bold", 9.5)
-        c.drawString(78, y, s["titulo"][:52])
-        c.setFillColor(MIST); c.setFont("Helvetica", 8.5)
-        c.drawString(372, y, CAT_LBL.get(s.get("cat"), "—"))
-        c.drawString(468, y, s.get("medidas", "")[:24])
-        c.setFillColor(LIME); c.setFont("Helvetica-Bold", 9)
-        c.drawString(604, y, imp(s.get("impMes")))
-        c.setFillColor(SPARK); c.drawString(678, y, mxn(s.get("tarifa")))
-        y -= 26
+        for j, s in enumerate(bloque):
+            i = bi * PER + j + 1
+            if i % 2 == 0:
+                c.setFillColor(HexColor("#2A1A4E")); c.rect(48, y - 6, W - 96, 19, stroke=0, fill=1)
+            c.setFillColor(HOT); c.setFont("Helvetica-Bold", 8.5); c.drawString(52, y, f"{i:02d}")
+            c.setFillColor(WHITE); c.setFont("Helvetica-Bold", 9)
+            c.drawString(78, y, s["titulo"][:48])
+            c.setFillColor(MIST); c.setFont("Helvetica", 8)
+            c.drawString(356, y, CAT_LBL.get(s.get("cat"), "—"))
+            c.drawString(468, y, s.get("medidas", "")[:26])
+            c.setFillColor(LIME); c.setFont("Helvetica-Bold", 8.5)
+            c.drawString(604, y, imp(s.get("impMes")))
+            c.setFillColor(SPARK); c.drawString(678, y, mxn(s.get("tarifa")))
+            y -= 24
 
-    tot_t = sum(s.get("tarifa") or 0 for s in sitios)
-    tot_i = sum(s.get("impMes") or 0 for s in sitios)
-    y -= 4
-    c.setStrokeColor(HexColor("#4B2E86")); c.line(52, y + 12, W - 52, y + 12)
-    c.setFillColor(WHITE); c.setFont("Helvetica-Bold", 9.5)
-    c.drawString(78, y - 4, "TOTAL DEL PORTAFOLIO")
-    c.setFillColor(LIME); c.drawString(604, y - 4, imp(tot_i))
-    c.setFillColor(SPARK); c.drawString(678, y - 4, mxn(tot_t))
+        if bi == len(bloques) - 1:
+            tot_t = sum(s.get("tarifa") or 0 for s in sitios)
+            tot_i = sum(s.get("impMes") or 0 for s in sitios)
+            c.setStrokeColor(HexColor("#4B2E86")); c.line(52, y + 12, W - 52, y + 12)
+            c.setFillColor(WHITE); c.setFont("Helvetica-Bold", 9.5)
+            c.drawString(78, y - 4, "TOTAL DEL PORTAFOLIO")
+            c.setFillColor(LIME); c.drawString(604, y - 4, imp(tot_i))
+            c.setFillColor(SPARK); c.drawString(678, y - 4, mxn(tot_t))
 
-    c.setFillColor(HexColor("#8A7FA8")); c.setFont("Helvetica", 7.5)
-    c.drawString(52, 34, "Sitios Connectia · Índice")
-    c.showPage()
+        c.setFillColor(HexColor("#8A7FA8")); c.setFont("Helvetica", 7.5)
+        c.drawString(52, 34, "Sitios Connectia · Índice")
+        c.showPage()
 
 
 # ═══════════ PÁGINA DE SITIO ═══════════
@@ -305,7 +313,7 @@ def closing(c):
 def main():
     with open(DATA, encoding="utf-8") as f:
         sitios = json.load(f)
-    order = {"landmark": 0, "mega": 1, "dooh": 2}
+    order = {"landmark": 0, "muro": 1, "mega": 2, "dooh": 3}
     sitios.sort(key=lambda s: (order.get(s.get("cat"), 9), -(s.get("impMes") or 0)))
 
     c = rl_canvas.Canvas(OUT, pagesize=landscape(letter))
