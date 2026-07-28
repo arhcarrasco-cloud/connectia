@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Sitios Connectia — portafolio de landmarks, mega vallas y pantallas DOOH en CDMX y Área Metropolitana.">
+<link rel="apple-touch-icon" href="assets/connectia-white.png">
+<title>Sitios Connectia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,300&display=swap" rel="stylesheet">
+<style>
+/* ═══════════ CONNECTIA V3 DESIGN TOKENS ═══════════ */
+:root{
+  --indigo:#201040; --violet-mid:#502090; --brand:#6030A0; --violet-hot:#7B3FF2;
+  --lime:#C8FF00; --citrus:#FF6A1A; --ink:#0A0118; --graphite:#1F1B2E;
+  --mist:#E9E6F0; --white:#FFFFFF;
+  --wm-blue:#0053e2; --wm-spark:#FFC220;
+  --grad-hero:linear-gradient(135deg,#201040 0%,#502090 50%,#6030A0 100%);
+  --grad-sunset:linear-gradient(180deg,#1A0B3D 0%,#5A1B82 30%,#E01C8A 62%,#FF6A1A 100%);
+  --grad-active:linear-gradient(135deg,#6030A0 0%,#E01C8A 100%);
+  --glass:rgba(32,16,64,.55); --glass-border:rgba(123,63,242,.35);
+  --r:22px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif;background:var(--indigo);
+  color:var(--white);-webkit-font-smoothing:antialiased;min-height:100%}
+::-webkit-scrollbar{width:0;height:0}
+
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--violet-hot)}
+h1{font-size:clamp(34px,5vw,64px);font-weight:800;letter-spacing:-.025em;line-height:1.02;text-transform:uppercase}
+h2{font-size:clamp(22px,2.8vw,34px);font-weight:700;letter-spacing:-.01em;text-transform:uppercase}
+h3{font-size:clamp(16px,1.8vw,20px);font-weight:600;text-transform:uppercase}
+.body{font-size:clamp(15px,1.4vw,17px);font-weight:400;line-height:1.55;color:var(--mist)}
+.mt10{margin-top:10px}.mt20{margin-top:20px}.mt30{margin-top:30px}
+
+/* ─── header ─── */
+header{position:sticky;top:0;z-index:60;background:rgba(16,8,34,.86);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--glass-border)}
+.hbar{max-width:1680px;margin:0 auto;padding:14px 40px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.hbar img.logo{height:26px;width:auto}
+.tabs{display:flex;gap:8px}
+.tab{min-height:46px;padding:0 24px;border-radius:999px;border:1.5px solid var(--glass-border);
+  background:rgba(255,255,255,.05);color:var(--mist);font-family:inherit;font-size:14px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.tab.active{background:var(--grad-active);color:#fff;border-color:transparent}
+.cart-btn{position:relative;min-height:46px;padding:0 20px;border-radius:999px;border:1.5px solid var(--glass-border);
+  background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.cart-btn .badge{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:999px;
+  background:var(--lime);color:var(--ink);font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 6px}
+.cart-btn .badge.on{display:flex}
+
+/* ─── hero ─── */
+.hero{background:var(--grad-sunset);padding:70px 40px 78px;position:relative;overflow:hidden}
+.hero-in{max-width:1680px;margin:0 auto;position:relative;z-index:2}
+.hero h1{margin-top:12px}
+.hero .body{max-width:820px;margin-top:18px;color:rgba(255,255,255,.94)}
+.hero .eyebrow{color:rgba(255,255,255,.9)}
+.stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:34px}
+.stat{background:rgba(10,1,24,.28);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:14px 22px;backdrop-filter:blur(8px)}
+.stat .lbl{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.8)}
+.stat .val{font-size:clamp(20px,2.3vw,28px);font-weight:800;margin-top:3px;letter-spacing:-.02em}
+.dots{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.dot{position:absolute;border-radius:50%;background:#fff;opacity:.5;animation:pulse 4s ease-in-out infinite}
+.dot.lime{background:var(--lime)}.dot.citrus{background:var(--citrus)}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.85;transform:scale(1.25)}}
+
+/* ─── main ─── */
+main{max-width:1680px;margin:0 auto;padding:46px 40px 90px}
+.pane{display:none}.pane.active{display:block;animation:fade .45s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.filter-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin-bottom:28px}
+.filter-pill{flex:none;min-height:52px;padding:0 24px;border-radius:999px;border:1.5px solid var(--glass-border);
+  background:rgba(255,255,255,.05);color:var(--mist);font-family:inherit;font-size:14.5px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.filter-pill.active{background:var(--grad-active);color:#fff;border-color:transparent}
+.grid{display:grid;gap:26px;grid-template-columns:repeat(3,1fr)}
+@media(max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:680px){.grid{grid-template-columns:1fr}}
+
+.card{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--r);
+  backdrop-filter:blur(18px);position:relative;overflow:hidden}
+.media-card{padding:0;display:flex;flex-direction:column;cursor:pointer;
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.media-card:hover{transform:translateY(-4px);border-color:var(--violet-hot);box-shadow:0 18px 44px rgba(0,0,0,.42)}
+.media-visual{aspect-ratio:16/10;position:relative;overflow:hidden;background:#0b0620}
+.media-visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.media-body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:10px;flex:1}
+.media-body h3{font-size:17px;line-height:1.25}
+.media-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.chip{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:7px 13px;
+  border-radius:999px;background:rgba(123,63,242,.18);color:#c9b3ff;border:1px solid rgba(123,63,242,.3)}
+.chip.impact-alto{background:rgba(224,28,138,.16);color:#ff8ac4;border-color:rgba(224,28,138,.35)}
+.chip.impact-medio{background:rgba(255,106,26,.14);color:#ffb184;border-color:rgba(255,106,26,.3)}
+.chip.wm{background:rgba(255,194,32,.12);color:var(--wm-spark);border-color:rgba(255,194,32,.3)}
+.fav-btn{position:absolute;top:12px;right:12px;width:48px;height:48px;border-radius:50%;z-index:3;
+  background:rgba(10,1,24,.55);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(8px);
+  color:#fff;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.fav-btn.on{background:var(--grad-active);border-color:transparent}
+.play-badge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.play-badge .pb{width:76px;height:76px;border-radius:50%;background:rgba(10,1,24,.5);border:2px solid rgba(255,255,255,.55);
+  backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.media-card:hover .pb{transform:scale(1.1)}
+.play-badge svg{width:28px;height:28px;fill:#fff;margin-left:5px}
+
+.semaforo{display:flex;align-items:center;gap:7px}
+.sem-dot{width:12px;height:12px;border-radius:50%;opacity:.22}
+.sem-dot.g{background:#22c55e}.sem-dot.o{background:#FF6A1A}.sem-dot.r{background:#ef4444}
+.sem-dot.on{opacity:1;box-shadow:0 0 10px currentColor}
+.sem-dot.g.on{color:#22c55e}.sem-dot.o.on{color:#FF6A1A}.sem-dot.r.on{color:#ef4444}
+.sem-lbl{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mist)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:58px;padding:0 30px;
+  border-radius:16px;border:none;font-family:inherit;font-size:15.5px;font-weight:700;letter-spacing:.02em;
+  text-transform:uppercase;cursor:pointer;color:#fff;background:var(--brand);transition:transform .18s,box-shadow .18s}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:var(--grad-active);box-shadow:0 10px 30px rgba(224,28,138,.32)}
+.btn.ghost{background:rgba(255,255,255,.08);border:1.5px solid var(--glass-border)}
+.btn.sm{min-height:48px;padding:0 20px;font-size:13.5px;border-radius:13px}
+
+/* ─── sheet ─── */
+.sheet-backdrop{position:fixed;inset:0;background:rgba(10,1,24,.72);backdrop-filter:blur(8px);z-index:80;
+  opacity:0;pointer-events:none;transition:opacity .35s}
+.sheet-backdrop.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.97);width:min(1180px,92%);
+  max-height:88%;background:var(--graphite);border:1px solid var(--glass-border);border-radius:26px;
+  z-index:90;overflow:hidden;display:flex;flex-direction:column;opacity:0;pointer-events:none;
+  transition:all .4s cubic-bezier(.22,1,.36,1);box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.sheet.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.sheet-close{position:absolute;top:18px;right:18px;width:52px;height:52px;border-radius:50%;z-index:5;
+  background:rgba(10,1,24,.6);border:1px solid var(--glass-border);color:#fff;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.sheet-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch}
+.statgrid{display:grid;gap:16px;margin-top:22px}
+.statgrid > div{background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:16px;padding:15px 18px}
+.statgrid .l{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--violet-hot)}
+.statgrid .v{font-size:16px;font-weight:700;margin-top:5px}
+
+/* ─── player ─── */
+#player{position:fixed;inset:0;background:var(--ink);z-index:150;display:none;flex-direction:column}
+#player.show{display:flex}
+.player-stage{flex:1;position:relative;background:#000}
+.player-bar{min-height:96px;background:rgba(16,6,38,.94);border-top:1px solid var(--glass-border);
+  display:flex;align-items:center;gap:20px;padding:16px 30px}
+.player-bar .t{font-size:17px;font-weight:800;text-transform:uppercase}
+.player-bar .d{font-size:13.5px;color:var(--mist);margin-top:3px}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--graphite);border:1px solid var(--glass-border);color:#fff;padding:15px 28px;
+  border-radius:16px;font-size:14.5px;font-weight:600;z-index:200;opacity:0;pointer-events:none;transition:all .35s}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+footer{border-top:1px solid var(--glass-border);background:rgba(16,8,34,.6);padding:40px;text-align:center}
+footer .body{font-size:14px}
+footer img{height:24px;opacity:.9;margin-bottom:14px}
+
+@media(max-width:760px){
+  .hbar{padding:12px 18px;flex-wrap:wrap}
+  .tabs{order:3;width:100%;overflow-x:auto}
+  .hero{padding:48px 18px 56px}
+  main{padding:32px 18px 70px}
+  .sheet{width:96%;max-height:92%;border-radius:20px}
+  .sheet-close{width:44px;height:44px;top:12px;right:12px}
+  .sheet-scroll > div{padding-left:20px!important;padding-right:20px!important}
+  .statgrid{grid-template-columns:repeat(2,1fr)!important}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hbar">
+    <img class="logo" src="assets/connectia-white.png" alt="Connectia">
+    <div class="tabs">
+      <button class="tab active" id="tab-ooh" onclick="showPane('ooh')">Oportunidades</button>
+      <button class="tab" id="tab-videos" onclick="showPane('videos')">Videos</button>
+    </div>
+    <button class="cart-btn" onclick="openSel()">♥ Selección<span class="badge" id="selbadge">0</span></button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="dots" id="herodots"></div>
+  <div class="hero-in">
+    <div class="eyebrow">Portafolio OOH · CDMX y Área Metropolitana</div>
+    <h1>Sitios Connectia</h1>
+    <p class="body">Landmarks, mega vallas y pantallas DOOH en los cruces de mayor aforo del Valle de México.
+      Cada sitio con medidas verificadas, impactos mensuales, audiencia y mockup de campaña aplicado.</p>
+    <div class="stats" id="herostats"></div>
+  </div>
+</section>
+
+<main>
+  <div class="pane active" id="pane-ooh">
+    <div class="filter-row" id="ooh-filters"></div>
+    <div class="grid" id="ooh-grid"></div>
+  </div>
+  <div class="pane" id="pane-videos">
+    <div class="filter-row" id="vid-filters"></div>
+    <div class="grid" id="vid-grid"></div>
+  </div>
+</main>
+
+<footer>
+  <img src="assets/connectia-white.png" alt="Connectia">
+  <p class="body">Connectia · Facilitadores Publicitarios HS, S.A. de C.V.<br>
+  Tarifas mensuales en MXN, sin IVA. Disponibilidad sujeta a confirmación.</p>
+</footer>
+
+<div class="sheet-backdrop" id="sheet-backdrop" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <button class="sheet-close" onclick="closeSheet()">✕</button>
+  <div class="sheet-scroll" id="sheet-content"></div>
+</div>
+
+<div id="player">
+  <div class="player-stage" id="player-stage"></div>
+  <div class="player-bar">
+    <div style="flex:1;min-width:0"><div class="t" id="pb-title"></div><div class="d" id="pb-desc"></div></div>
+    <button class="btn ghost sm" onclick="closePlayer()">Cerrar</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══════════ ESTADO ═══════════ */
+const $=id=>document.getElementById(id);
+let SITIOS=[], VIDEOS=[], oohFilter='todos', vidFilter='todos';
+const SEL=new Set();
+try{ (JSON.parse(localStorage.getItem('sc_sel')||'[]')).forEach(x=>SEL.add(x)); }catch(e){}
+function saveSel(){ try{ localStorage.setItem('sc_sel',JSON.stringify([...SEL])); }catch(e){} }
+
+const CATS=[['todos','Todos'],['landmark','Landmarks'],['mega','Mega vallas'],['dooh','Pantallas 3D']];
+
+function fmtMXN(n){ return n ? '$'+Number(n).toLocaleString('es-MX') : 'Cotizar'; }
+function fmtImp(n){ if(!n) return '—';
+  return n>=1e6 ? (n/1e6).toFixed(1).replace('.0','')+' M' : Math.round(n/1e3)+' K'; }
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2400); }
+
+/* ═══════════ CARGA DE DATOS ═══════════ */
+Promise.all([
+  fetch('data/oportunidades.json').then(r=>r.json()),
+  fetch('data/videos.json').then(r=>r.json())
+]).then(([o,v])=>{
+  SITIOS=o; VIDEOS=v;
+  buildHero(); buildOoh(); buildVideos(); selBadge();
+}).catch(e=>{
+  $('ooh-grid').innerHTML='<div class="card" style="grid-column:1/-1;padding:50px;text-align:center">'+
+   '<h3>No se pudieron cargar los datos</h3><p class="body mt10">Revisa <code>data/oportunidades.json</code> '+
+   'y <code>data/videos.json</code>. Si abriste el archivo con doble clic, sírvelo por HTTP.</p></div>';
+});
+
+/* ═══════════ HERO ═══════════ */
+function buildHero(){
+  let h=''; for(let i=0;i<44;i++){ const s=(0.8+Math.random()*2.4).toFixed(1);
+    const c=i%11===0?' lime':(i%17===0?' citrus':'');
+    h+=`<span class="dot${c}" style="width:${s}px;height:${s}px;left:${(Math.random()*98).toFixed(1)}%;top:${(Math.random()*95).toFixed(1)}%;animation-delay:${(Math.random()*4).toFixed(1)}s"></span>`; }
+  $('herodots').innerHTML=h;
+  const imp=SITIOS.reduce((a,b)=>a+(b.impMes||0),0);
+  $('herostats').innerHTML=[
+    ['Sitios disponibles',SITIOS.length],
+    ['Impactos / mes',fmtImp(imp)],
+    ['Formatos',new Set(SITIOS.map(s=>s.cat)).size],
+    ['Casos en video',VIDEOS.length]
+  ].map(([l,v])=>`<div class="stat"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('');
+}
+
+/* ═══════════ OPORTUNIDADES ═══════════ */
+function semaforoHtml(est){
+  const e=est||'disponible';
+  const map={disponible:['g','Disponible'],bloqueada:['o','Bloqueada'],no_disponible:['r','No disponible']};
+  const [c,l]=map[e]||map.disponible;
+  return `<span class="sem-dot g${c==='g'?' on':''}"></span><span class="sem-dot o${c==='o'?' on':''}"></span>`+
+         `<span class="sem-dot r${c==='r'?' on':''}"></span><span class="sem-lbl">${l}</span>`;
+}
+function buildOoh(){
+  $('ooh-filters').innerHTML=CATS.map(([id,l])=>
+    `<button class="filter-pill${id===oohFilter?' active':''}" onclick="setOoh('${id}')">${l}</button>`).join('');
+  const items=SITIOS.filter(m=>oohFilter==='todos'||m.cat===oohFilter);
+  $('ooh-grid').innerHTML=items.map(m=>`
+   <div class="card media-card" onclick="openSitio('${m.id}')">
+     <div class="media-visual">
+       <img src="${m.fotoWm||m.foto}" loading="lazy" alt="${m.titulo}">
+       <button class="fav-btn${SEL.has(m.id)?' on':''}" onclick="event.stopPropagation();toggleSel('${m.id}')">♥</button>
+     </div>
+     <div class="media-body">
+       <h3>${m.titulo}</h3>
+       <div class="body" style="font-size:14px">${m.ubic}</div>
+       <div class="media-meta">
+         <span class="chip wm">${m.tarifa?fmtMXN(m.tarifa)+' /mes':'Cotizar'}</span>
+         <span class="chip impact-${m.imp}">${fmtImp(m.impMes)} imp/mes</span>
+         <span class="chip">${m.medidas}</span>
+       </div>
+     </div>
+   </div>`).join('');
+}
+function setOoh(f){ oohFilter=f; buildOoh(); }
+
+function openSitio(id){
+  const m=SITIOS.find(x=>x.id===id); if(!m) return;
+  const nivel=m.imp==='tactico'?'Táctico':(m.imp||'alto').charAt(0).toUpperCase()+(m.imp||'alto').slice(1);
+  const geo='https://connectia.mx/geonexa/?lat='+m.lat+'&lng='+m.lng+'&r=500';
+  openSheet(`
+   <div style="aspect-ratio:16/7;position:relative;overflow:hidden;background:#150a30">
+     <img src="${m.fotoWm||m.foto}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" alt="">
+   </div>
+   <div style="padding:32px 42px 42px">
+     <div class="eyebrow">Sitio Connectia · ${m.cat==='dooh'?'DOOH':m.cat==='mega'?'Mega valla':'Landmark'}</div>
+     <h2 style="margin-top:8px">${m.titulo}</h2>
+     <p class="body mt10">${m.ubic} · ${m.medidas}</p>
+     <div style="margin-top:14px;display:inline-block;background:var(--brand);color:#fff;font-weight:800;font-size:19px;padding:8px 16px;border-radius:12px">
+       ${fmtMXN(m.tarifa)} ${m.tarifa?'<span style="font-size:12.5px;font-weight:600;opacity:.85">/mes</span>':''}</div>
+     <div class="statgrid" style="grid-template-columns:repeat(4,1fr)">
+       <div><div class="l">Tarifa mensual</div><div class="v">${fmtMXN(m.tarifa)}</div></div>
+       <div><div class="l">Impactos / mes</div><div class="v">${fmtImp(m.impMes)}</div></div>
+       <div><div class="l">Audiencia</div><div class="v">${m.aud||'—'}</div></div>
+       <div><div class="l">Nivel de impacto</div><div class="v">${nivel}</div></div>
+     </div>
+     ${m.obj?`<div class="mt20"><div class="eyebrow">Objetivo del sitio</div><p class="body mt10">${m.obj}</p></div>`:''}
+     ${m.beneficio?`<div class="mt20"><div class="eyebrow">Por qué funciona</div><p class="body mt10">${m.beneficio}</p></div>`:''}
+     ${m.dir?`<div class="mt20"><div class="eyebrow">Dirección</div><p class="body mt10">${m.dir}</p></div>`:''}
+     ${(m.campanas||[]).length?`<div class="mt20"><div class="eyebrow">Campañas sugeridas</div>
+       <div class="media-meta mt10">${m.campanas.map(c=>`<span class="chip wm">${c}</span>`).join('')}</div></div>`:''}
+     <div class="semaforo mt20">${semaforoHtml(m.estatus)}</div>
+     ${m.gallery&&m.gallery.length?`<div class="mt20"><div class="eyebrow">Pantallas del paquete</div>
+       <div class="mt10" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+       ${m.gallery.map(g=>`<div style="aspect-ratio:16/10;background:#0b0620;border-radius:10px;overflow:hidden">
+         <img src="${g}" loading="lazy" style="width:100%;height:100%;object-fit:cover" alt=""></div>`).join('')}</div></div>`:''}
+     <div class="mt30" style="display:flex;gap:12px;flex-wrap:wrap">
+       ${m.video?`<button class="btn primary" onclick="playSrc('${m.video}','${(m.titulo||'').replace(/'/g,'')}')">▶ Ver video</button>`:''}
+       ${m.pdf?`<button class="btn ghost" onclick="window.open('${m.pdf}','_blank')">Ver presentación</button>`:''}
+       <button class="btn ghost" onclick="window.open('${geo}','_blank')">Ver en mapa</button>
+       <button class="btn primary" onclick="toggleSel('${m.id}')">♥ ${SEL.has(m.id)?'Quitar de selección':'Agregar a selección'}</button>
+     </div>
+   </div>`);
+}
+
+/* ═══════════ VIDEOS ═══════════ */
+function vidCats(){ return [['todos','Todos']].concat([...new Set(VIDEOS.map(v=>v.cat))].map(c=>[c,c])); }
+function buildVideos(){
+  $('vid-filters').innerHTML=vidCats().map(([id,l])=>
+    `<button class="filter-pill${id===vidFilter?' active':''}" onclick="setVid('${id.replace(/'/g,"\\'")}')">${l}</button>`).join('');
+  const items=VIDEOS.filter(v=>vidFilter==='todos'||v.cat===vidFilter);
+  $('vid-grid').innerHTML=items.map(v=>`
+   <div class="card media-card" onclick="openVideo('${v.id}')">
+     <div class="media-visual">
+       ${v.poster?`<img src="${v.poster}" loading="lazy" alt="${v.titulo}">`
+        :`<div style="position:absolute;inset:0;background:var(--grad-hero)"></div>`}
+       <div class="play-badge"><div class="pb"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+     </div>
+     <div class="media-body">
+       <h3>${v.titulo}</h3>
+       <div class="body" style="font-size:14px">${v.desc||''}</div>
+       <div class="media-meta"><span class="chip">${v.cat}</span>
+         <span class="chip wm">${v.mp4?'Video propio':'Drive'}</span></div>
+     </div>
+   </div>`).join('');
+}
+function setVid(f){ vidFilter=f; buildVideos(); }
+
+function videoHtml(src){
+  const isFile=/\.(mp4|webm|mov)(\?|$)/i.test(src);
+  return isFile
+   ? `<video src="${src}" controls autoplay playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000"></video>`
+   : `<iframe src="https://drive.google.com/file/d/${src}/preview" allow="autoplay; fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>`;
+}
+function openVideo(id){
+  const v=VIDEOS.find(x=>x.id===id); if(!v) return;
+  $('pb-title').textContent=v.titulo; $('pb-desc').textContent=v.desc||'';
+  $('player-stage').innerHTML=videoHtml(v.mp4||v.drive);
+  $('player').classList.add('show');
+}
+function playSrc(src,titulo){
+  $('pb-title').textContent=titulo||'Video'; $('pb-desc').textContent='';
+  $('player-stage').innerHTML=videoHtml(src);
+  $('player').classList.add('show');
+}
+function closePlayer(){ $('player-stage').innerHTML=''; $('player').classList.remove('show'); }
+
+/* ═══════════ SELECCIÓN ═══════════ */
+function toggleSel(id){
+  if(SEL.has(id)){ SEL.delete(id); toast('Eliminado de la selección'); }
+  else{ SEL.add(id); toast('♥ Agregado a la selección'); }
+  saveSel(); selBadge(); buildOoh();
+  if($('sheet').classList.contains('show')) openSitio(id);
+}
+function selBadge(){ const b=$('selbadge'); b.textContent=SEL.size; b.classList.toggle('on',SEL.size>0); }
+function openSel(){
+  const items=SITIOS.filter(s=>SEL.has(s.id));
+  if(!items.length){ toast('Aún no has seleccionado sitios'); return; }
+  const tot=items.reduce((a,b)=>a+(b.tarifa||0),0);
+  const imp=items.reduce((a,b)=>a+(b.impMes||0),0);
+  openSheet(`
+   <div style="padding:38px 42px 42px">
+     <div class="eyebrow">Tu selección</div>
+     <h2 style="margin-top:8px">${items.length} sitio${items.length>1?'s':''}</h2>
+     <div class="statgrid" style="grid-template-columns:repeat(2,1fr)">
+       <div><div class="l">Inversión mensual</div><div class="v">${fmtMXN(tot)}</div></div>
+       <div><div class="l">Impactos / mes</div><div class="v">${fmtImp(imp)}</div></div>
+     </div>
+     <div class="mt20" style="display:flex;flex-direction:column;gap:12px">
+     ${items.map(m=>`<div style="display:flex;gap:14px;align-items:center;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:16px;padding:12px 16px">
+        <img src="${m.fotoWm||m.foto}" style="width:88px;height:56px;object-fit:cover;border-radius:10px;flex:none" alt="">
+        <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14.5px">${m.titulo}</div>
+          <div class="body" style="font-size:13px">${fmtMXN(m.tarifa)} /mes · ${fmtImp(m.impMes)} imp</div></div>
+        <button class="btn ghost sm" onclick="toggleSel('${m.id}');openSel()">Quitar</button></div>`).join('')}
+     </div>
+     <div class="mt30" style="display:flex;gap:12px;flex-wrap:wrap">
+       <button class="btn primary" onclick="mailSel()">Solicitar cotización</button>
+       <button class="btn ghost" onclick="closeSheet()">Seguir viendo</button>
+     </div>
+   </div>`);
+}
+function mailSel(){
+  const items=SITIOS.filter(s=>SEL.has(s.id));
+  const tot=items.reduce((a,b)=>a+(b.tarifa||0),0);
+  const body=['Hola Connectia, me interesan estos sitios:','']
+    .concat(items.map(m=>`• ${m.titulo} — ${m.ubic} — ${m.medidas} — ${fmtMXN(m.tarifa)}/mes`))
+    .concat(['',`Inversión mensual estimada: ${fmtMXN(tot)}`,'','Nombre:','Empresa:','Teléfono:']).join('\n');
+  window.location.href='mailto:hola@connectia.mx?subject='+
+    encodeURIComponent('Cotización · Sitios Connectia')+'&body='+encodeURIComponent(body);
+}
+
+/* ═══════════ UI ═══════════ */
+function showPane(p){
+  ['ooh','videos'].forEach(x=>{
+    $('pane-'+x).classList.toggle('active',x===p);
+    $('tab-'+x).classList.toggle('active',x===p);
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function openSheet(html){ $('sheet-content').innerHTML=html;
+  $('sheet-backdrop').classList.add('show'); $('sheet').classList.add('show'); }
+function closeSheet(){ $('sheet-backdrop').classList.remove('show'); $('sheet').classList.remove('show'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSheet(); closePlayer(); } });
+</script>
+</body>
+</html>
