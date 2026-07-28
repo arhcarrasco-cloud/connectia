@@ -9,7 +9,7 @@
 
 | Archivo | Qué es |
 |---|---|
-| `data/oportunidades.json` | **La fuente de verdad.** Aquí viven los 11 sitios. Editando esto cambia el sitio web Y el PDF. |
+| `data/oportunidades.json` | **La fuente de verdad.** Aquí viven los 31 sitios. Editando esto cambia el sitio web Y el PDF. |
 | `data/videos.json` | Los 13 videos de la pestaña Videos (fuente: Google Drive o mp4 propio). |
 | `assets/sitios/` | Las fotos con el mockup de campaña aplicado. |
 | `index.html` | El sitio. No necesitas tocarlo para agregar sitios. |
@@ -68,7 +68,7 @@ git add SitiosConnectia && git commit -m "Sitios Connectia" && git push
 | Campo | Valores | Nota |
 |---|---|---|
 | `id` | texto único | No repetir. Se usa para la selección del cliente. |
-| `cat` | `landmark` · `mega` · `dooh` | Define el filtro donde aparece. |
+| `cat` | `landmark` · `muro` · `mega` · `dooh` | Define el filtro donde aparece. |
 | `tarifa` | número, sin comas ni `$` | `0` o quitarlo = muestra "Cotizar". |
 | `imp` | `alto` · `medio` · `tactico` | Solo pinta el color del chip. |
 | `impMes` | número | Impactos mensuales. `4100000` se muestra como `4.1 M`. |
@@ -101,6 +101,29 @@ En `data/videos.json`:
   La carpeta debe estar compartida como **"Cualquier persona con el enlace"**.
 - Si el video es propio, usa `"mp4": "https://connectia.mx/RecorridoAdri/assets/videos/archivo.mp4"` en lugar de `drive`.
 - `poster` es la miniatura. Sin ella sale un degradado morado.
+
+---
+
+## Duplicados ya resueltos (2026-07-28)
+
+Al integrar `Landmarks.pdf`, `Total Muros.pdf` y `Paquete Pantallas.pdf` se detectaron 14 fichas
+repetidas. En todos los casos **se conservó la versión de Sitios Connectia** (que trae el mockup de
+campaña, el copy de venta y la tarifa de venta, no la de compra del proveedor):
+
+| ID en el PDF | Se conservó |
+|---|---|
+| CXCX-19000-A | OPP-HAMB · Landmark Hamburgo |
+| CXCX-TLALPAN-04 | OPP-MEGA · Mega Valla Churubusco |
+| MAC2150D · MAC2150FACHADA | OPP-SAT · Muro Galerías Satélite Fachada |
+| MAC90A · MAC90AB · MAC90B | OPP-TOREO · Landmark Toreo |
+| Glorieta (Landmarks) | OPP-GLORIETA · Glorieta Interlomas |
+| Hipódromo Condesa · Roma Norte · Glorieta Insurgentes · San Pedro · Ciudad Satélite | OPP-HIPO · OPP-ROMA · OPP-GLORINS · OPP-SANPEDRO · OPP-SATCD |
+| Las 6 pantallas del Paquete | OPP-PANTALLAS (se le agregó el detalle por pantalla) |
+
+> Ojo con las tarifas: `Total Muros.pdf` trae precios de compra (MAC90AB $462,000, MAC2150FACHADA
+> $672,000) más bajos que los de venta que ya estaban en el JSON. No mezclarlos.
+
+El detalle de la deduplicación vive en `_fuentes/merge_pdfs.py` (diccionario `DUPLICADOS`).
 
 ---
 
