@@ -602,7 +602,7 @@ function openCart(){
   const tot=items.reduce((a,b)=>a+(b.tarifa||0),0);
   const imp=items.reduce((a,b)=>a+(b.impMes||0),0);
   openSheet(`
-   <div style="padding:36px 40px 40px">
+   <div style="padding:58px 40px 40px">
      <div class="eyebrow">Tu carrito</div>
      <h2 style="margin-top:8px">${items.length} sitio${items.length>1?'s':''} seleccionado${items.length>1?'s':''}</h2>
      <div class="statgrid" style="grid-template-columns:repeat(3,1fr)">
