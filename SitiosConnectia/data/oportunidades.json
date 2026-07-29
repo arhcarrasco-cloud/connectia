@@ -469,7 +469,7 @@
     "lng": -99.1867
    }
   ],
-  "mockup": "Huggies"
+  "mockup": "Netflix"
  },
  {
   "id": "OPP-CUBO",
@@ -508,7 +508,7 @@
    ],
    "marcas": "Costco · Liverpool · Sears"
   },
-  "mockup": "Banamex"
+  "mockup": "Banorte"
  },
  {
   "id": "OPP-MAC2610",
@@ -1247,7 +1247,8 @@
   "fotoWm": "assets/sitios/PANT-1.jpg",
   "dir": "Vialidad frente a Paseo Interlomas, Huixquilucan",
   "lat": 19.3962,
-  "lng": -99.2811
+  "lng": -99.2811,
+  "mockup": "Netflix"
  },
  {
   "id": "PANT-02",
@@ -1277,7 +1278,8 @@
   "fotoWm": "assets/sitios/PANT-2.jpg",
   "dir": "Blvd. Magnocentro y Blvd. Interlomas, Huixquilucan",
   "lat": 19.4022,
-  "lng": -99.2716
+  "lng": -99.2716,
+  "mockup": "Netflix"
  },
  {
   "id": "PANT-03",
@@ -1307,7 +1309,8 @@
   "fotoWm": "assets/sitios/PANT-3.jpg",
   "dir": "Blvd. M. Ávila Camacho (Periférico), Toreo, Naucalpan",
   "lat": 19.4602,
-  "lng": -99.222
+  "lng": -99.222,
+  "mockup": "Netflix"
  },
  {
   "id": "PANT-04",
@@ -1337,7 +1340,8 @@
   "fotoWm": "assets/sitios/PANT-4.jpg",
   "dir": "Av. Río Churubusco, CDMX",
   "lat": 19.3565,
-  "lng": -99.1443
+  "lng": -99.1443,
+  "mockup": "Netflix"
  },
  {
   "id": "PANT-05",
@@ -1367,7 +1371,8 @@
   "fotoWm": "assets/sitios/PANT-5.jpg",
   "dir": "Av. Viad. Miguel Alemán, Col. Buenos Aires, CDMX",
   "lat": 19.4022,
-  "lng": -99.1608
+  "lng": -99.1608,
+  "mockup": "Netflix"
  },
  {
   "id": "PANT-06",
@@ -1397,7 +1402,8 @@
   "fotoWm": "assets/sitios/PANT-6.jpg",
   "dir": "Av. Revolución, CDMX",
   "lat": 19.3766,
-  "lng": -99.1867
+  "lng": -99.1867,
+  "mockup": "Coca-Cola"
  },
  {
   "id": "OPP-ENCINO",
