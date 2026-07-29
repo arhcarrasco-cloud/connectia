@@ -79,6 +79,11 @@ git add SitiosConnectia && git commit -m "Sitios Connectia" && git push
 | `video` | ID de Drive o ruta .mp4 | Opcional. Agrega el botón "Ver video". |
 | `pdf` | URL | Opcional. Agrega el botón "Ver presentación". |
 | `gallery` | lista de rutas | Opcional. Mosaico de fotos extra (lo usa el paquete DOOH). |
+| `specs` | objeto | Opcional. Ficha técnica: `material`, `vista`, `orientacion`, `nse`, `iluminacion`, `clasificacion`, `anchor`, `marcas`, `zonas` (lista). Aparece en la ficha y en el PDF. |
+| `pantallas` / `incluye` | listas | Opcional. Solo para paquetes (tabla por pantalla y bullets de "qué incluye"). |
+
+Las `specs` de los 29 sitios que vienen de PDF se extrajeron con `_fuentes/specs_pdfs.py`.
+Si agregas un sitio a mano, puedes escribir el objeto `specs` directamente.
 
 ---
 
