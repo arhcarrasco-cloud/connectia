@@ -44,7 +44,7 @@ body{
   background:
     radial-gradient(1200px 700px at 78% -16%, rgba(135,43,144,.42), transparent 62%),
     radial-gradient(900px 620px at 6% 104%, rgba(180,76,190,.20), transparent 64%),
-    linear-gradient(180deg, #07070B 0%, rgba(7,7,11,.94) 34%, rgba(7,7,11,.66) 62%, rgba(7,7,11,.34) 84%, rgba(7,7,11,.18) 100%);
+    linear-gradient(180deg, #07070B 0%, rgba(7,7,11,.97) 40%, rgba(7,7,11,.80) 66%, rgba(7,7,11,.46) 86%, rgba(7,7,11,.22) 100%);
 }
 .bg .grain{
   position:absolute;inset:0;opacity:.05;mix-blend-mode:overlay;
@@ -52,11 +52,7 @@ body{
 }
 
 /* ── estructura ──────────────────────────────────────────────────── */
-.shell{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 28px 96px}
-.shell::before{
-  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background:linear-gradient(180deg, rgba(7,7,11,.10) 0%, rgba(7,7,11,.52) 58%, rgba(7,7,11,.72) 100%);
-}
+.shell{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 28px 40px}
 
 .top{padding:76px 0 0;text-align:center}
 .mark{
@@ -170,7 +166,7 @@ h1 span{
 .void[hidden]{display:none}
 
 footer{
-  max-width:1080px;margin:74px auto 0;padding:22px 28px 0;
+  position:relative;z-index:1;max-width:1080px;margin:52px auto 0;padding:22px 28px 190px;
   border-top:1px solid var(--line);
   display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
