@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude desde cero — Guía paso a paso, sin tecnicismos</title>
+<meta name="description" content="Aprende a usar Claude paso a paso, sin tecnicismos. 15 capítulos, 50 prompts, Método C.L.A.R.O., plan de 7 días y actualizaciones. Lanzamiento: $9 USD.">
+<link rel="canonical" href="https://EJEMPLO.com/">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Claude desde cero — Pasos exactos, sin tecnicismos, para ahorrar tiempo con IA">
+<meta property="og:description" content="La guía que no te promete hacerte rico: te enseña a usar Claude bien, paso a paso. 15 capítulos, 50 prompts y el Método C.L.A.R.O. Lanzamiento: $9 USD.">
+<meta property="og:url" content="https://EJEMPLO.com/">
+<meta property="og:site_name" content="Claude desde cero">
+<meta property="og:locale" content="es_MX">
+<meta property="og:image" content="https://EJEMPLO.com/og-portada.jpg">
+<meta property="og:image:alt" content="Portada del ebook Claude desde cero">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Claude desde cero — Guía paso a paso, sin tecnicismos">
+<meta name="twitter:description" content="15 capítulos, 50 prompts y el Método C.L.A.R.O. para usar Claude bien. Lanzamiento: $9 USD.">
+<!-- JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Claude desde cero — Pasos exactos, sin tecnicismos, para ahorrar tiempo con IA",
+  "description": "Ebook en español (incluye edición en inglés) con 15 capítulos, 50 prompts listos para copiar, el Método C.L.A.R.O., plan de 7 días y glosario. Producto educativo independiente, no afiliado a Anthropic.",
+  "image": "https://EJEMPLO.com/og-portada.jpg",
+  "brand": { "@type": "Brand", "name": "Claude desde cero" },
+  "offers": {
+    "@type": "Offer",
+    "price": "9.00",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "url": "https://go.hotmart.com/N106805094I"
+  }
+}
+</script>
+<!-- GA4_TAG_AQUI -->
+<style>
+  :root{
+    --coral:#FF6B4A;
+    --coral-dark:#E5522F;
+    --ink:#1A1A1A;
+    --gray:#555;
+    --soft:#FFF4F1;
+    --line:#EAEAEA;
+    --radius:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:#fff;
+    line-height:1.6;
+    font-size:17px;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px;}
+  section{padding:56px 0;}
+  h1{font-size:clamp(1.8rem,5vw,2.8rem);line-height:1.15;font-weight:800;letter-spacing:-0.02em;}
+  h2{font-size:clamp(1.4rem,3.5vw,1.9rem);font-weight:700;margin-bottom:24px;letter-spacing:-0.01em;}
+  h3{font-size:1.1rem;font-weight:700;}
+  p{margin-bottom:14px;}
+  .kicker{display:inline-block;color:var(--coral-dark);font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+  /* Top bar */
+  .topbar{background:var(--ink);color:#fff;text-align:center;font-size:.8rem;padding:8px 14px;}
+  /* Hero */
+  .hero{padding:64px 0 56px;}
+  .hero-grid{display:grid;grid-template-columns:1fr;gap:36px;align-items:center;}
+  @media(min-width:760px){.hero-grid{grid-template-columns:1.2fr .8fr;}}
+  .hero p.sub{font-size:1.15rem;color:var(--gray);margin:18px 0 26px;}
+  .cover{
+    aspect-ratio:2/3;max-width:280px;margin:0 auto;width:100%;
+    background:linear-gradient(160deg,var(--coral) 0%,var(--coral-dark) 100%);
+    border-radius:10px;box-shadow:0 18px 40px rgba(229,82,47,.28);
+    color:#fff;display:flex;flex-direction:column;justify-content:space-between;
+    padding:28px 22px;text-align:left;
+  }
+  .cover .c-top{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;opacity:.85;}
+  .cover .c-title{font-size:1.6rem;font-weight:800;line-height:1.15;}
+  .cover .c-sub{font-size:.85rem;opacity:.9;line-height:1.4;}
+  .cover .c-bottom{font-size:.72rem;opacity:.8;border-top:1px solid rgba(255,255,255,.35);padding-top:12px;}
+  /* Buttons */
+  .btn{
+    display:inline-block;background:var(--coral);color:#fff;text-decoration:none;
+    font-weight:700;font-size:1.1rem;padding:18px 34px;border-radius:999px;
+    box-shadow:0 8px 20px rgba(255,107,74,.35);transition:background .15s,transform .15s;
+    text-align:center;
+  }
+  .btn:hover{background:var(--coral-dark);transform:translateY(-2px);}
+  .btn-note{display:block;font-size:.85rem;color:var(--gray);margin-top:10px;}
+  /* Cards / grids */
+  .grid3{display:grid;gap:18px;grid-template-columns:1fr;}
+  @media(min-width:700px){.grid3{grid-template-columns:repeat(3,1fr);}}
+  .grid2{display:grid;gap:18px;grid-template-columns:1fr;}
+  @media(min-width:700px){.grid2{grid-template-columns:repeat(2,1fr);}}
+  .card{border:1px solid var(--line);border-radius:var(--radius);padding:22px;background:#fff;}
+  .card h3{margin-bottom:8px;}
+  .card p{margin:0;color:var(--gray);font-size:.95rem;}
+  .soft{background:var(--soft);}
+  /* Lists */
+  ul.checks{list-style:none;}
+  ul.checks li{padding:8px 0 8px 34px;position:relative;}
+  ul.checks li::before{content:"✓";position:absolute;left:0;top:8px;color:var(--coral-dark);font-weight:800;}
+  ul.crosses li::before{content:"✕";color:#999;}
+  /* Details */
+  details{border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;background:#fff;}
+  details summary{cursor:pointer;font-weight:600;padding:16px 18px;list-style:none;position:relative;padding-right:44px;}
+  details summary::-webkit-details-marker{display:none;}
+  details summary::after{content:"+";position:absolute;right:18px;top:12px;font-size:1.4rem;color:var(--coral-dark);}
+  details[open] summary::after{content:"–";}
+  details .d-body{padding:0 18px 16px;color:var(--gray);}
+  /* Steps */
+  .steps{counter-reset:paso;}
+  .steps .card{position:relative;padding-top:56px;}
+  .steps .card::before{
+    counter-increment:paso;content:counter(paso);
+    position:absolute;top:16px;left:22px;width:34px;height:34px;border-radius:50%;
+    background:var(--coral);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;
+  }
+  /* Price */
+  .price-box{border:2px solid var(--coral);border-radius:18px;padding:36px 26px;text-align:center;max-width:520px;margin:0 auto;background:#fff;}
+  .price-old{font-size:1.1rem;color:#999;text-decoration:line-through;}
+  .price-now{font-size:3rem;font-weight:800;color:var(--coral-dark);line-height:1.1;}
+  .price-box ul{list-style:none;text-align:left;margin:20px 0;color:var(--gray);font-size:.95rem;}
+  .price-box ul li{padding:5px 0 5px 28px;position:relative;}
+  .price-box ul li::before{content:"✓";position:absolute;left:0;color:var(--coral-dark);font-weight:800;}
+  /* Guarantee */
+  .guarantee{border:2px dashed var(--coral);border-radius:18px;padding:30px;text-align:center;max-width:640px;margin:0 auto;}
+  /* Author / disclaimer */
+  .placeholder-note{background:#FFF8E5;border:1px solid #EAD9A0;border-radius:var(--radius);padding:20px;font-size:.95rem;color:#7A6520;}
+  .legal{font-size:.85rem;color:var(--gray);background:#FAFAFA;border-radius:var(--radius);padding:22px;}
+  /* Footer */
+  footer{border-top:1px solid var(--line);padding:32px 0 44px;font-size:.85rem;color:var(--gray);}
+  footer a{color:var(--gray);margin-right:16px;}
+  footer nav{margin-bottom:12px;}
+  a{color:var(--coral-dark);}
+  .center{text-align:center;}
+</style>
+</head>
+<body>
+
+<!-- Barra superior -->
+<div class="topbar" role="note">Producto educativo independiente — no afiliado a Anthropic</div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="kicker">Ebook + bonos · Español e inglés incluidos</span>
+      <h1>La guía que no te promete hacerte rico: te enseña a usar Claude bien, paso a paso</h1>
+      <p class="sub">Pasos exactos, sin tecnicismos, para ahorrar tiempo con IA. Tan claro que lo sigue un niño de 12 años o una persona de 80 — y se mantiene actualizada.</p>
+      <a class="btn" href="#comprar" data-cta="hero" aria-label="Comprar la guía por 9 dólares">Quiero mi guía — $9 USD</a>
+      <span class="btn-note">Precio de lanzamiento (normal $19) · Garantía de 7 días</span>
+    </div>
+    <div>
+      <div class="cover" role="img" aria-label="Portada del ebook Claude desde cero">
+        <div class="c-top">Ebook · Guía práctica</div>
+        <div>
+          <div class="c-title">Claude<br>desde cero</div>
+          <div class="c-sub" style="margin-top:10px;">Pasos exactos, sin tecnicismos, para ahorrar tiempo con IA</div>
+        </div>
+        <div class="c-bottom">Método C.L.A.R.O. · 15 capítulos · 50 prompts · Plan de 7 días</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PROBLEMA -->
+<section class="soft" aria-labelledby="t-problema">
+  <div class="wrap">
+    <span class="kicker">¿Te suena?</span>
+    <h2 id="t-problema">Abriste la IA con ilusión… y la cerraste con frustración</h2>
+    <div class="grid3">
+      <div class="card">
+        <h3>“No sé qué escribirle”</h3>
+        <p>Abres el chat, ves la caja vacía y no sabes por dónde empezar. Escribes cualquier cosa y la respuesta no te sirve.</p>
+      </div>
+      <div class="card">
+        <h3>“Me responde cosas genéricas”</h3>
+        <p>Pides ayuda y recibes párrafos bonitos pero inútiles, porque nadie te enseñó a darle contexto ni a pedirle bien.</p>
+      </div>
+      <div class="card">
+        <h3>“Los tutoriales son para técnicos”</h3>
+        <p>Todo lo que encuentras habla de APIs, tokens y jerga. Tú solo quieres ahorrar tiempo en tu trabajo y tu vida diaria.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTADO -->
+<section aria-labelledby="t-resultado">
+  <div class="wrap">
+    <span class="kicker">El resultado (realista)</span>
+    <h2 id="t-resultado">Qué podrás hacer al terminar la guía</h2>
+    <ul class="checks">
+      <li>Escribir peticiones claras con el <strong>Método C.L.A.R.O.</strong> (Contexto, Logro, Ajustes, Resultado, Observa) y obtener respuestas útiles a la primera o segunda.</li>
+      <li>Redactar correos, resúmenes, listas y documentos en minutos, no en horas.</li>
+      <li>Subir un documento y pedir un resumen, una explicación o una revisión con confianza.</li>
+      <li>Detectar cuándo la IA se equivoca y verificar antes de usar una respuesta.</li>
+      <li>Cuidar tu privacidad: qué compartir, qué no y cómo configurarlo.</li>
+      <li>Seguir un plan de 7 días para que el hábito se quede contigo.</li>
+    </ul>
+    <p style="color:var(--gray);font-size:.95rem;">No prometemos ingresos, ni “dominar la IA en una tarde”. Prometemos algo más honesto: que sabrás usarla bien.</p>
+  </div>
+</section>
+
+<!-- PARA QUIÉN SÍ / NO -->
+<section class="soft" aria-labelledby="t-paraquien">
+  <div class="wrap">
+    <h2 id="t-paraquien">¿Es para ti? Seamos honestos</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="color:var(--coral-dark);">Sí es para ti si…</h3>
+        <ul class="checks" style="margin-top:10px;">
+          <li>Nunca has usado Claude (u otra IA) o la usas “a ciegas”.</li>
+          <li>Quieres pasos exactos, con capturas de pantalla mentales: haz clic aquí, escribe esto.</li>
+          <li>Prefieres ejemplos de la vida real: correos, trámites, estudio, trabajo.</li>
+          <li>Te da igual la teoría; quieres resultados prácticos y ahorrar tiempo.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:#777;">NO es para ti si…</h3>
+        <ul class="checks crosses" style="margin-top:10px;">
+          <li>Buscas ganar dinero rápido con IA o “automatizar un negocio en 24 horas”.</li>
+          <li>Eres programador y quieres API, agentes o integraciones avanzadas.</li>
+          <li>Esperas trucos secretos: aquí hay método, práctica y honestidad.</li>
+          <li>Quieres un curso en video; esto es un ebook práctico con plantillas.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LO QUE APRENDERÁS -->
+<section aria-labelledby="t-aprender">
+  <div class="wrap">
+    <span class="kicker">15 capítulos, resumidos</span>
+    <h2 id="t-aprender">Lo que aprenderás</h2>
+    <ul class="checks">
+      <li><strong>Empezar sin miedo:</strong> qué es Claude, qué no es, crear tu cuenta y tu primera conversación guiada.</li>
+      <li><strong>El Método C.L.A.R.O.:</strong> la fórmula de 5 pasos para pedir cualquier cosa y que te entienda.</li>
+      <li><strong>Tareas del día a día:</strong> correos, mensajes difíciles, resúmenes, listas y organización de tu semana.</li>
+      <li><strong>Trabajar con documentos:</strong> subir archivos e imágenes, resumir PDFs y revisar textos.</li>
+      <li><strong>Proyectos y memoria:</strong> ordenar tus temas para no repetir contexto cada vez.</li>
+      <li><strong>Verificar y corregir:</strong> detectar errores de la IA, repreguntar y afinar respuestas.</li>
+      <li><strong>Privacidad y seguridad:</strong> qué datos compartir, cuáles nunca, y cómo configurar tu cuenta.</li>
+      <li><strong>Tu plan de 7 días:</strong> práctica diaria de 15 minutos para que lo aprendido se vuelva hábito.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- VISTA DEL CONTENIDO -->
+<section class="soft" aria-labelledby="t-indice">
+  <div class="wrap">
+    <h2 id="t-indice">Vista del contenido</h2>
+    <details>
+      <summary>Capítulos 1–5 · Fundamentos sin tecnicismos</summary>
+      <div class="d-body">
+        <p>1. Qué es Claude (y qué no es) · 2. Tu cuenta y tu primera conversación · 3. El Método C.L.A.R.O. explicado con ejemplos · 4. Correos y mensajes que cuestan trabajo · 5. Resúmenes de textos y documentos.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Capítulos 6–10 · Claude en tu día a día</summary>
+      <div class="d-body">
+        <p>6. Organiza tu semana y tus pendientes · 7. Archivos e imágenes: qué puedes subir y cómo · 8. Proyectos: tu espacio de trabajo ordenado · 9. Escribir mejor: informes, cartas y presentaciones · 10. Aprender cualquier tema con explicaciones a tu medida.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Capítulos 11–15 · Criterio, seguridad y hábito</summary>
+      <div class="d-body">
+        <p>11. Claude en el celular · 12. Errores comunes y cómo corregirlos · 13. Privacidad y seguridad, en cristiano · 14. Verificar respuestas: cuándo dudar y cómo comprobar · 15. Tu plan de 7 días para consolidar el hábito.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Extras incluidos en el ebook</summary>
+      <div class="d-body">
+        <p>Biblioteca de 50 prompts listos para copiar y pegar · Plan de 7 días · Glosario sin jerga: cada término técnico explicado en una línea.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- BONOS -->
+<section aria-labelledby="t-bonos">
+  <div class="wrap">
+    <span class="kicker">Incluidos con tu compra</span>
+    <h2 id="t-bonos">7 bonos prácticos</h2>
+    <div class="grid3">
+      <div class="card"><h3>Plantilla C.L.A.R.O.</h3><p>Rellena los 5 espacios y obtén una petición perfecta cada vez.</p></div>
+      <div class="card"><h3>Checklist de verificación</h3><p>Lista rápida para comprobar una respuesta antes de usarla.</p></div>
+      <div class="card"><h3>Biblioteca rápida de 15 prompts</h3><p>Los 15 más usados, listos para copiar desde el celular.</p></div>
+      <div class="card"><h3>Plan de 7 días imprimible</h3><p>Una hoja por día para pegar en tu escritorio o refrigerador.</p></div>
+      <div class="card"><h3>Plantilla de Proyecto</h3><p>Estructura lista para organizar tus temas en Claude.</p></div>
+      <div class="card"><h3>Hoja de privacidad</h3><p>Qué compartir, qué no, y qué configurar. En una página.</p></div>
+      <div class="card"><h3>Tarjeta de comandos</h3><p>Referencia de bolsillo con las acciones esenciales.</p></div>
+    </div>
+    <p style="margin-top:18px;color:var(--gray);font-size:.95rem;">Además: tu compra incluye las ediciones en <strong>español e inglés</strong>, las <strong>ediciones futuras</strong> y <strong>actualizaciones durante 12 meses</strong>.</p>
+  </div>
+</section>
+
+<!-- CÓMO FUNCIONA -->
+<section class="soft" aria-labelledby="t-como">
+  <div class="wrap">
+    <h2 id="t-como">Cómo funciona</h2>
+    <div class="grid3 steps">
+      <div class="card"><h3>Compra segura</h3><p>Pagas $9 USD a través de la plataforma Hotmart, con tarjeta u otros métodos locales.</p></div>
+      <div class="card"><h3>Revisa tu correo</h3><p>En minutos recibes un email con tu acceso. Revisa también la carpeta de spam o promociones.</p></div>
+      <div class="card"><h3>Descarga y empieza</h3><p>Descargas el ebook y los bonos (PDF/EPUB) y comienzas con el capítulo 1 hoy mismo.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRECIO -->
+<section id="comprar" aria-labelledby="t-precio">
+  <div class="wrap">
+    <h2 id="t-precio" class="center">Todo incluido, un solo pago</h2>
+    <div class="price-box">
+      <p class="price-old">Precio normal: $19 USD</p>
+      <p class="price-now">$9 USD</p>
+      <p style="color:var(--gray);font-size:.9rem;">Precio de lanzamiento · Pago único, sin suscripciones</p>
+      <ul>
+        <li>Ebook completo: 15 capítulos + 50 prompts + plan de 7 días + glosario</li>
+        <li>7 bonos prácticos (plantillas, checklists y tarjeta de comandos)</li>
+        <li>Ediciones en español e inglés</li>
+        <li>Ediciones futuras incluidas + actualizaciones por 12 meses</li>
+        <li>Garantía de reembolso de 7 días</li>
+      </ul>
+      <a class="btn" href="https://pay.hotmart.com/N106805094I?utm_source=landing&utm_medium=cta&utm_campaign=lanzamiento&utm_content=precio" data-cta="precio" aria-label="Comprar ahora por 9 dólares en Hotmart">Quiero mi guía — $9 USD</a>
+      <span class="btn-note">Compra procesada por Hotmart · Garantía de 7 días</span>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="soft" aria-labelledby="t-faq">
+  <div class="wrap">
+    <h2 id="t-faq">Preguntas frecuentes</h2>
+    <details>
+      <summary>¿Es un producto oficial de Anthropic o de Claude?</summary>
+      <div class="d-body"><p>No. Es una guía educativa independiente. No estamos afiliados, patrocinados ni respaldados por Anthropic. "Claude" es una marca de Anthropic y la mencionamos solo para describir de qué trata el contenido.</p></div>
+    </details>
+    <details>
+      <summary>¿No quedará obsoleta cuando Claude cambie?</summary>
+      <div class="d-body"><p>La guía enseña método, no botones: el Método C.L.A.R.O. funciona aunque cambie la interfaz. Además, tu compra incluye actualizaciones durante 12 meses y todas las ediciones futuras del ebook.</p></div>
+    </details>
+    <details>
+      <summary>¿Es muy técnico? No sé nada de computación.</summary>
+      <div class="d-body"><p>Está escrito para que lo siga cualquier persona: pasos exactos, ejemplos cotidianos y un glosario donde cada término se explica en una línea. Si sabes mandar un correo, puedes seguir esta guía.</p></div>
+    </details>
+    <details>
+      <summary>¿Me sirve si uso ChatGPT u otra IA?</summary>
+      <div class="d-body"><p>En gran parte, sí: el Método C.L.A.R.O., los prompts y los hábitos de verificación y privacidad aplican a casi cualquier asistente de IA. Los pasos de pantalla están descritos para Claude.</p></div>
+    </details>
+    <details>
+      <summary>¿En qué formatos lo recibo?</summary>
+      <div class="d-body"><p>PDF (ideal para imprimir y leer en computadora) y EPUB (ideal para celular y lectores electrónicos). Los bonos vienen en PDF listos para imprimir.</p></div>
+    </details>
+    <details>
+      <summary>¿Qué pasa si no me gusta? ¿Hay reembolso?</summary>
+      <div class="d-body"><p>Tienes 7 días de garantía. Si la guía no es para ti, solicitas el reembolso desde la plataforma de compra y te devuelven el 100% de tu dinero. Sin preguntas incómodas. Detalles en la <a href="reembolsos.html">política de reembolsos</a>.</p></div>
+    </details>
+    <details>
+      <summary>¿En qué idiomas está disponible?</summary>
+      <div class="d-body"><p>Tu compra incluye la edición en español y la edición en inglés. Si compras una, recibes ambas, además de las ediciones futuras.</p></div>
+    </details>
+    <details>
+      <summary>¿Puedo pedir factura?</summary>
+      <div class="d-body"><p>La compra se procesa por Hotmart, que emite tu comprobante de pago automáticamente. Si necesitas factura fiscal, escríbenos después de tu compra a [CORREO DE CONTACTO] y te indicamos el proceso según tu país.</p></div>
+    </details>
+  </div>
+</section>
+
+<!-- GARANTÍA -->
+<section aria-labelledby="t-garantia">
+  <div class="wrap">
+    <div class="guarantee">
+      <h2 id="t-garantia" style="margin-bottom:12px;">Garantía honesta de 7 días</h2>
+      <p>Lee la guía, prueba el método, usa los prompts. Si en los primeros 7 días sientes que no era lo que buscabas, pide tu reembolso desde la plataforma y recuperas el 100%. Preferimos devolverte tu dinero a que te quedes con algo que no usas.</p>
+      <a class="btn" href="#comprar" data-cta="garantia">Probar sin riesgo — $9 USD</a>
+    </div>
+  </div>
+</section>
+
+<!-- QUIÉN PUBLICA -->
+<section class="soft" aria-labelledby="t-quien">
+  <div class="wrap">
+    <h2 id="t-quien">Quién publica esta guía</h2>
+    <p style="margin:0;">"Claude desde cero" es un proyecto editorial independiente. Publicamos guías prácticas de IA en español e inglés: pasos exactos, sin tecnicismos y verificables por ti mismo.</p>
+    <p style="margin:8px 0 0;">No vendemos consultoría ni prometemos resultados: vendemos un método que puedes seguir el mismo día que lo compras. Si no te sirve, tienes 7 días de garantía.</p>
+  </div>
+</section>
+
+<!-- AVISO DE INDEPENDENCIA -->
+<section aria-labelledby="t-aviso" style="padding-top:20px;">
+  <div class="wrap">
+    <div class="legal" id="t-aviso">
+      <p style="margin-bottom:8px;"><strong>Aviso de independencia.</strong> "Claude desde cero" es un producto educativo independiente. No está afiliado, asociado, autorizado, respaldado ni patrocinado por Anthropic, PBC. "Claude" y "Anthropic" son marcas de sus respectivos titulares y se mencionan únicamente con fines descriptivos y educativos.</p>
+      <p style="margin:0;">Este ebook no garantiza resultados económicos ni profesionales. Los resultados dependen del uso que cada persona haga del contenido. Las funciones de las plataformas de terceros (incluido Claude) pueden cambiar sin previo aviso; por eso incluimos actualizaciones durante 12 meses.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <nav aria-label="Enlaces legales">
+      <a href="privacidad.html">Privacidad</a>
+      <a href="terminos.html">Términos</a>
+      <a href="reembolsos.html">Reembolsos</a>
+      <a href="mailto:[CORREO DE CONTACTO]">Contacto</a>
+    </nav>
+    <p style="margin:0;">© 2026 Claude desde cero. Producto educativo independiente — no afiliado a Anthropic.</p>
+  </div>
+</footer>
+
+<script>
+  // Analítica: eventos dataLayer en clics de CTA
+  window.dataLayer = window.dataLayer || [];
+  document.querySelectorAll('[data-cta]').forEach(function(el){
+    el.addEventListener('click', function(){
+      window.dataLayer.push({
+        event: 'cta_click',
+        cta_location: el.getAttribute('data-cta'),
+        cta_text: el.textContent.trim(),
+        product: 'claude-desde-cero',
+        price_usd: 9
+      });
+    });
+  });
+</script>
+
+<!-- ===== BOT DE VENTAS "Clari" — widget autónomo, sin dependencias externas ===== -->
+<style>
+  :root{--cb-cream:#FAF6F0;--cb-ink:#1A1F2B;--cb-coral:#E8542F;--cb-coral2:#B93A18;--cb-mist:#FBE7DE;--cb-line:#E7E1D8;--cb-gray:#5A6472}
+  #clari-btn{position:fixed;right:20px;bottom:20px;z-index:9998;width:62px;height:62px;border-radius:50%;background:var(--cb-coral);color:#fff;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(232,84,47,.35);font-size:26px;display:flex;align-items:center;justify-content:center;transition:transform .15s ease}
+  #clari-btn:hover{transform:scale(1.06);background:var(--cb-coral2)}
+  #clari-badge{position:absolute;top:-4px;right:-4px;background:var(--cb-ink);color:#fff;font:600 11px/1 Inter,system-ui,sans-serif;padding:4px 6px;border-radius:10px}
+  #clari-panel{position:fixed;right:20px;bottom:94px;z-index:9999;width:360px;max-width:calc(100vw - 32px);height:520px;max-height:calc(100vh - 130px);background:var(--cb-cream);border:1px solid var(--cb-line);border-radius:20px;box-shadow:0 20px 60px rgba(26,31,43,.22);display:none;flex-direction:column;overflow:hidden;font-family:Inter,system-ui,-apple-system,sans-serif}
+  #clari-panel.open{display:flex}
+  .clari-head{background:var(--cb-ink);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}
+  .clari-head .dot{width:34px;height:34px;border-radius:50%;background:var(--cb-coral);display:flex;align-items:center;justify-content:center;font-weight:800}
+  .clari-head b{font-size:15px}
+  .clari-head small{display:block;color:#c9cfd8;font-size:11px;font-weight:500}
+  .clari-x{margin-left:auto;background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
+  .clari-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+  .clari-msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.45;white-space:pre-wrap}
+  .clari-bot{background:#fff;border:1px solid var(--cb-line);color:var(--cb-ink);align-self:flex-start;border-bottom-left-radius:4px}
+  .clari-user{background:var(--cb-coral);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+  .clari-quick{display:flex;flex-wrap:wrap;gap:7px;padding:0 14px 12px}
+  .clari-chip{background:var(--cb-mist);color:var(--cb-coral2);border:1px solid #f3d3c7;border-radius:20px;padding:7px 11px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .12s}
+  .clari-chip:hover{background:#f7dccf}
+  .clari-input{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--cb-line);background:var(--cb-cream)}
+  .clari-input input{flex:1;border:1px solid var(--cb-line);border-radius:12px;padding:10px 12px;font-size:14px;outline:none;background:#fff}
+  .clari-input input:focus{border-color:var(--cb-coral)}
+  .clari-send{background:var(--cb-coral);border:none;color:#fff;border-radius:12px;padding:0 14px;cursor:pointer;font-weight:700}
+  .clari-cta{display:inline-block;margin-top:6px;background:var(--cb-coral);color:#fff;text-decoration:none;font-weight:700;padding:9px 14px;border-radius:12px;font-size:13.5px}
+  .clari-legal{font-size:10px;color:var(--cb-gray);text-align:center;padding:0 12px 8px}
+</style>
+<button id="clari-btn" aria-label="Abrir chat de ventas">💬<span id="clari-badge">1</span></button>
+<div id="clari-panel" role="dialog" aria-label="Asistente de ventas Clari">
+  <div class="clari-head"><div class="dot">c</div><div><b>Clari</b><small>Asistente automatizado · Claude desde cero</small></div><button class="clari-x" aria-label="Cerrar">×</button></div>
+  <div class="clari-body" id="clari-body"></div>
+  <div class="clari-quick" id="clari-quick"></div>
+  <div class="clari-input"><input id="clari-in" type="text" placeholder="Escribe tu pregunta…" autocomplete="off"><button class="clari-send" id="clari-send">Enviar</button></div>
+  <div class="clari-legal">Soy un asistente automatizado, no un humano ni Anthropic. Producto educativo independiente.</div>
+</div>
+<script>
+(function(){
+  var CHECKOUT="https://pay.hotmart.com/N106805094I?utm_source=landing&utm_medium=chatbot&utm_campaign=lanzamiento&utm_content=clari";
+  var body=document.getElementById('clari-body'),quick=document.getElementById('clari-quick'),input=document.getElementById('clari-in');
+  var btn=document.getElementById('clari-btn'),panel=document.getElementById('clari-panel'),badge=document.getElementById('clari-badge');
+  var opened=false;
+  function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function add(html,who){var d=document.createElement('div');d.className='clari-msg '+(who==='user'?'clari-user':'clari-bot');d.innerHTML=html;body.appendChild(d);body.scrollTop=body.scrollHeight;}
+  function cta(t){return '<a class="clari-cta" href="'+CHECKOUT+'" target="_blank" rel="noopener">'+(t||'Comprar por $9 USD')+'</a>';}
+  var chips=[["¿Qué incluye?","incluye"],["Precio","precio"],["¿Es muy técnico?","tecnico"],["¿Es oficial?","oficial"],["Reembolso","reembolso"],["Idiomas","idiomas"],["Comprar","comprar"]];
+  function renderChips(){quick.innerHTML='';chips.forEach(function(c){var b=document.createElement('button');b.className='clari-chip';b.textContent=c[0];b.onclick=function(){handle(c[0]);};quick.appendChild(b);});}
+  function intent(t){t=t.toLowerCase();
+    if(/(hola|buenas|hey|holi|qué tal|que tal)/.test(t))return'saludo';
+    if(/(incluye|contenido|trae|capitulos|capítulos|qué es|que es|de qué|de que)/.test(t))return'incluye';
+    if(/(precio|cuesta|cuánto|cuanto|vale|\$|dolar|dólar|barato|caro)/.test(t))return'precio';
+    if(/(tecnic|técnic|dificil|difícil|programar|complicad|principiante|nunca|no sé|no se)/.test(t))return'tecnico';
+    if(/(oficial|anthropic|patrocin|afiliad)/.test(t))return'oficial';
+    if(/(reembolso|garant|devoluc|devuelv)/.test(t))return'reembolso';
+    if(/(idioma|inglés|ingles|español|languages|lengua)/.test(t))return'idiomas';
+    if(/(comprar|compra|pagar|checkout|link|liga|adquirir|quiero)/.test(t))return'comprar';
+    if(/(descarga|formato|pdf|epub|kindle|celular|movil|móvil)/.test(t))return'formato';
+    if(/(factura|recibo)/.test(t))return'factura';
+    if(/(chatgpt|gpt|diferencia)/.test(t))return'chatgpt';
+    if(/(gratis|free|regala)/.test(t))return'gratis';
+    if(/(humano|persona|asesor|agente)/.test(t))return'humano';
+    return'default';}
+  var R={
+    saludo:"¡Hola! Soy Clari 👋 Te ayudo con dudas sobre la guía <b>Claude desde cero</b>. ¿Qué te gustaría saber?",
+    incluze:"",
+    incluye:"La guía incluye:\n✅ 15 capítulos paso a paso, sin tecnicismos\n✅ El Método C.L.A.R.O. para escribir buenos prompts\n✅ Más de 50 prompts listos para copiar\n✅ Plan práctico de 7 días\n✅ Bonos descargables (plantillas y checklists)\n\nEstá en español e inglés. "+cta("Ver la guía — $9 USD"),
+    precio:"El precio de lanzamiento es <b>$9 USD</b> (pago único, sin suscripción). Incluye actualizaciones por 12 meses y los bonos. "+cta(),
+    tecnico:"Para nada 🙌 Está pensada para principiantes absolutos: si sabes usar WhatsApp, puedes seguirla. Cada paso te dice exactamente dónde hacer clic y qué escribir. No necesitas programar. "+cta("Empezar por $9 USD"),
+    oficial:"Buena pregunta, y te respondo con honestidad: es un <b>producto educativo independiente</b>, <b>no</b> está afiliado, patrocinado ni aprobado por Anthropic. Claude es marca de su respectivo titular. Solo te enseña a usarlo bien.",
+    reembolso:"Tienes <b>garantía de 7 días</b>: si no es para ti, se te reembolsa, gestionado por la plataforma Hotmart. Sin riesgo. "+cta(),
+    idiomas:"Al lanzamiento está en <b>español e inglés</b>, y se irá ampliando a más idiomas. Con tu compra tienes acceso a las ediciones disponibles.",
+    comprar:"¡Genial! Aquí tienes el acceso directo y seguro (pago por Hotmart, con tarjeta y métodos locales):\n"+cta("Comprar ahora — $9 USD"),
+    formato:"La recibes en <b>PDF y EPUB</b>, para leer en computadora, tablet o celular. La entrega es automática tras el pago. "+cta(),
+    factura:"La compra se procesa por Hotmart, que emite tu comprobante automáticamente. Si necesitas factura fiscal, escríbenos tras la compra y te indicamos el proceso según tu país.",
+    chatgpt:"Si ya usas ChatGPT, esta guía te suma: Claude es especialmente bueno para textos largos, documentos y trabajo cuidadoso. Aprendes el Método C.L.A.R.O. que sirve para cualquier IA. "+cta(),
+    gratis:"El material completo (guía + 50 prompts + bonos) es de pago: <b>$9 USD</b>, con garantía de 7 días. Es un precio pensado para que el riesgo sea casi nulo. "+cta(),
+    humano:"Soy un asistente automatizado 🤖. Para soporte humano, escribe a soporte tras tu compra y con gusto te atienden. ¿Puedo ayudarte con algo del contenido o el precio?",
+    "default":"Puedo contarte qué incluye, el precio, si es muy técnico, reembolsos, idiomas o llevarte a la compra. ¿Qué prefieres? "+cta("Comprar — $9 USD")
+  };
+  function handle(text){text=(text||'').trim();if(!text)return;add(esc(text),'user');input.value='';var key=intent(text);setTimeout(function(){add(R[key]||R['default'],'bot');},250);}
+  document.getElementById('clari-send').onclick=function(){handle(input.value);};
+  input.addEventListener('keydown',function(e){if(e.key==='Enter')handle(input.value);});
+  document.querySelector('.clari-x').onclick=function(){panel.classList.remove('open');};
+  btn.onclick=function(){panel.classList.toggle('open');badge.style.display='none';if(!opened){opened=true;add(R.saludo,'bot');renderChips();}};
+})();
+</script>
+</body>
+</html>

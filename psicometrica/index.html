@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connectia | Evaluación Psicométrica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--indigo:#201040;--violet-mid:#502090;--violet:#6030A0;--violet-hot:#7B3FF2;
+--lime:#C8FF00;--citrus:#FF6A1A;--ink:#0A0118;--graphite:#1F1B2E;
+--slate:#6B6580;--mist:#E9E6F0;--paper:#FAFAFB;--white:#FFFFFF;
+--grad-hero:linear-gradient(135deg,#201040 0%,#502090 50%,#6030A0 100%);
+--grad-cover:linear-gradient(180deg,#1A0B3D 0%,#5A1B82 25%,#E01C8A 55%,#FF2E63 78%,#FF6A1A 100%);
+--font:'Inter',sans-serif;--radius:12px;--radius-sm:8px;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--indigo);color:var(--white);min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh;animation:fadeIn .5s ease}
+.screen.active{display:flex;flex-direction:column}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* PROGRESS BAR */
+.progress-bar{position:fixed;top:0;left:0;width:100%;height:4px;background:rgba(255,255,255,.1);z-index:1000}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--violet-hot),var(--lime));transition:width .5s ease;width:0}
+
+/* HEADER NAV */
+.top-bar{position:fixed;top:4px;left:0;right:0;z-index:999;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;background:rgba(32,16,64,.85);backdrop-filter:blur(12px)}
+.logo-text{font-weight:900;font-size:22px;letter-spacing:-0.02em;color:var(--white)}
+.logo-dot{display:inline-block;width:6px;height:6px;background:var(--lime);border-radius:50%;margin-left:2px;vertical-align:super}
+.step-indicator{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.15em;color:var(--violet-hot)}
+
+/* LANDING / REGISTRATION */
+.landing{background:var(--grad-cover);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;position:relative;overflow:hidden}
+.landing::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at 30% 70%,rgba(192,255,0,.08),transparent 50%),radial-gradient(circle at 70% 30%,rgba(255,106,26,.08),transparent 50%)}
+.landing-content{position:relative;z-index:2;max-width:520px;width:100%;margin:0 auto}
+.eyebrow{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.2em;color:var(--violet-hot);margin-bottom:12px}
+.landing h1{font-size:clamp(32px,6vw,52px);font-weight:900;letter-spacing:-0.03em;text-transform:uppercase;margin-bottom:8px;line-height:1.1}
+.landing .subtitle{font-size:16px;font-weight:300;color:rgba(255,255,255,.8);margin-bottom:36px;font-style:italic}
+.form-card{background:rgba(32,16,64,.6);backdrop-filter:blur(20px);border:1px solid rgba(123,63,242,.3);border-radius:var(--radius);padding:32px;text-align:left}
+.form-card label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.15em;color:var(--violet-hot);margin-bottom:6px;margin-top:18px}
+.form-card label:first-child{margin-top:0}
+.form-card input,.form-card select{width:100%;padding:12px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(123,63,242,.3);border-radius:var(--radius-sm);color:var(--white);font-family:var(--font);font-size:14px;transition:all .3s}
+.form-card input:focus,.form-card select:focus{outline:none;border-color:var(--violet-hot);background:rgba(255,255,255,.12);box-shadow:0 0 0 3px rgba(123,63,242,.15)}
+.form-card select option{background:var(--indigo);color:var(--white)}
+.form-card input::placeholder{color:var(--slate)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 32px;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;transition:all .3s;text-decoration:none}
+.btn-primary{background:var(--violet-hot);color:var(--white);box-shadow:0 4px 20px rgba(123,63,242,.4)}
+.btn-primary:hover{background:#8f5aff;transform:translateY(-2px);box-shadow:0 6px 28px rgba(123,63,242,.5)}
+.btn-lime{background:var(--lime);color:var(--indigo)}
+.btn-lime:hover{background:#d4ff33;transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,.3)}
+.btn-outline:hover{border-color:var(--violet-hot);color:var(--violet-hot)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-full{width:100%;margin-top:24px}
+
+/* EXAM SCREENS */
+.exam-screen{background:var(--ink);padding-top:72px}
+.exam-container{max-width:720px;margin:0 auto;padding:24px 20px 40px}
+.exam-header{text-align:center;margin-bottom:32px}
+.exam-header h2{font-size:28px;font-weight:800;text-transform:uppercase;letter-spacing:-0.01em}
+.exam-header p{color:var(--slate);font-size:14px;margin-top:4px}
+.timer-bar{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:24px;padding:12px 20px;background:rgba(123,63,242,.1);border-radius:var(--radius-sm);border:1px solid rgba(123,63,242,.2)}
+.timer-icon{font-size:20px}
+.timer-text{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--white)}
+.timer-bar.warning{border-color:rgba(255,106,26,.5);background:rgba(255,106,26,.1)}
+.timer-bar.warning .timer-text{color:var(--citrus)}
+.timer-bar.danger{border-color:rgba(255,46,99,.5);background:rgba(255,46,99,.1);animation:pulse 1s infinite}
+.timer-bar.danger .timer-text{color:#FF2E63}
+.q-progress{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.q-progress-bar{flex:1;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.q-progress-fill{height:100%;background:var(--violet-hot);border-radius:3px;transition:width .4s ease}
+.q-progress-text{font-size:12px;font-weight:600;color:var(--slate);white-space:nowrap}
+
+/* QUESTION CARD */
+.question-card{background:var(--graphite);border-radius:var(--radius);padding:28px;margin-bottom:20px;border:1px solid rgba(123,63,242,.15);transition:all .3s}
+.question-card.answered{border-color:rgba(200,255,0,.3)}
+.q-number{font-size:11px;font-weight:700;color:var(--violet-hot);text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px}
+.q-text{font-size:16px;font-weight:500;line-height:1.5;margin-bottom:18px}
+.q-options{display:flex;flex-direction:column;gap:8px}
+.q-option{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;font-size:14px;line-height:1.4}
+.q-option:hover{background:rgba(123,63,242,.1);border-color:rgba(123,63,242,.3)}
+.q-option.selected{background:rgba(123,63,242,.15);border-color:var(--violet-hot)}
+.q-option-radio{width:20px;height:20px;min-width:20px;border:2px solid var(--slate);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .2s}
+.q-option.selected .q-option-radio{border-color:var(--violet-hot);background:var(--violet-hot)}
+.q-option.selected .q-option-radio::after{content:'';width:8px;height:8px;background:var(--white);border-radius:50%}
+
+/* NAV BUTTONS */
+.exam-nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:24px;border-top:1px solid rgba(255,255,255,.08)}
+
+/* INSTRUCTIONS SCREEN */
+.instructions{background:var(--grad-hero);padding-top:72px}
+.instr-container{max-width:680px;margin:0 auto;padding:40px 20px}
+.instr-container h2{font-size:32px;font-weight:800;text-transform:uppercase;text-align:center;margin-bottom:8px}
+.instr-subtitle{text-align:center;color:var(--slate);margin-bottom:36px;font-size:14px}
+.exam-card{background:rgba(255,255,255,.06);border:1px solid rgba(123,63,242,.2);border-radius:var(--radius);padding:24px;margin-bottom:16px;display:flex;gap:20px;align-items:flex-start;transition:all .3s}
+.exam-card:hover{border-color:var(--violet-hot);transform:translateX(4px)}
+.exam-num{font-size:28px;font-weight:900;color:var(--violet-hot);min-width:40px}
+.exam-info h3{font-size:16px;font-weight:700;text-transform:uppercase;margin-bottom:4px}
+.exam-info p{font-size:13px;color:var(--slate);line-height:1.5}
+.exam-meta{display:flex;gap:16px;margin-top:8px;font-size:12px;font-weight:600;color:var(--violet-hot)}
+.total-time{text-align:center;margin:28px 0;padding:20px;background:rgba(200,255,0,.06);border:1px solid rgba(200,255,0,.2);border-radius:var(--radius-sm);font-size:14px;color:var(--lime)}
+
+/* RESULTS SCREEN */
+.results-screen{background:var(--ink);padding-top:72px}
+.results-container{max-width:800px;margin:0 auto;padding:24px 20px 60px}
+.results-header{text-align:center;margin-bottom:36px}
+.results-header h2{font-size:32px;font-weight:900;text-transform:uppercase}
+.results-header p{color:var(--slate);margin-top:4px}
+.result-section{background:var(--graphite);border-radius:var(--radius);padding:28px;margin-bottom:20px;border:1px solid rgba(123,63,242,.15)}
+.result-section h3{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--violet-hot);margin-bottom:16px}
+.disc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.disc-item{text-align:center;padding:16px 8px;background:rgba(255,255,255,.04);border-radius:var(--radius-sm)}
+.disc-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--slate);margin-bottom:8px}
+.disc-bar-container{width:100%;height:80px;background:rgba(255,255,255,.06);border-radius:4px;position:relative;overflow:hidden;margin-bottom:8px;display:flex;align-items:flex-end}
+.disc-bar{width:100%;border-radius:4px 4px 0 0;transition:height 1s ease;background:var(--violet-hot)}
+.disc-value{font-size:22px;font-weight:800}
+.score-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.score-row:last-child{border:none}
+.score-label{font-size:14px;font-weight:500}
+.score-bar-wrap{flex:1;margin:0 16px;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.score-val{font-size:14px;font-weight:700;min-width:40px;text-align:right}
+.conclusion-box{padding:20px;background:rgba(200,255,0,.06);border:1px solid rgba(200,255,0,.2);border-radius:var(--radius-sm);margin-top:16px}
+.conclusion-box p{font-size:14px;line-height:1.6;color:var(--mist)}
+.profile-tag{display:inline-block;padding:4px 12px;background:var(--violet-hot);border-radius:20px;font-size:12px;font-weight:700;margin:4px}
+.email-status{text-align:center;margin-top:24px;padding:16px;border-radius:var(--radius-sm);font-size:14px;font-weight:600}
+.email-status.sending{background:rgba(123,63,242,.1);color:var(--violet-hot)}
+.email-status.sent{background:rgba(200,255,0,.1);color:var(--lime)}
+.email-status.error{background:rgba(255,46,99,.1);color:#FF2E63}
+
+/* FOOTER */
+.footer{text-align:center;padding:20px;font-size:11px;color:var(--slate);font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+.disc-grid{grid-template-columns:repeat(2,1fr)}
+.form-card{padding:24px}
+.exam-container{padding:16px 16px 32px}
+.question-card{padding:20px}
+.top-bar{padding:10px 16px}
+}
+@media(max-width:480px){
+.landing h1{font-size:28px}
+.exam-card{flex-direction:column;gap:12px}
+.exam-nav{flex-direction:column;gap:12px}
+.exam-nav .btn{width:100%}
+}
+
+/* LOADING OVERLAY */
+.loading-overlay{position:fixed;inset:0;background:rgba(10,1,24,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2000}
+.spinner{width:48px;height:48px;border:3px solid rgba(123,63,242,.2);border-top-color:var(--violet-hot);border-radius:50%;animation:spin .8s linear infinite}
+.loading-text{margin-top:16px;font-size:14px;color:var(--slate)}
+
+/* TRANSITION SCREEN */
+.transition-screen{background:var(--grad-hero);align-items:center;justify-content:center;text-align:center;padding:40px 20px}
+.transition-screen h2{font-size:36px;font-weight:900;text-transform:uppercase;margin-bottom:8px}
+.transition-screen p{color:var(--slate);font-size:14px;margin-bottom:32px}
+.checkmark{font-size:48px;margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- TOP BAR -->
+<div class="top-bar" id="topBar" style="display:none">
+<div class="logo-text">connectia<span class="logo-dot"></span></div>
+<div class="step-indicator" id="stepIndicator"></div>
+</div>
+
+<!-- SCREEN 1: LANDING / REGISTRATION -->
+<div class="screen active" id="screenLanding">
+<div class="landing">
+<div class="landing-content">
+<div class="eyebrow">CONNECTIA · EVALUACIÓN DE TALENTO</div>
+<h1>EVALUACIÓN<br>PSICOMÉTRICA</h1>
+<p class="subtitle">everything is connected.</p>
+<div class="form-card">
+<label>NOMBRE COMPLETO</label>
+<input type="text" id="candidateName" placeholder="Ej. María García López" required>
+<label>CORREO ELECTRÓNICO</label>
+<input type="email" id="candidateEmail" placeholder="tu@email.com" required>
+<label>PUESTO AL QUE APLICAS</label>
+<select id="candidatePosition">
+<option value="">Selecciona una opción</option>
+<option value="Ejecutivo de Cuenta">Ejecutivo de Cuenta</option>
+<option value="Director Creativo">Director Creativo</option>
+<option value="Diseñador Gráfico">Diseñador Gráfico</option>
+<option value="Community Manager">Community Manager</option>
+<option value="Coordinador de Producción">Coordinador de Producción</option>
+<option value="Analista de Medios">Analista de Medios</option>
+<option value="Gerente de Proyecto">Gerente de Proyecto</option>
+<option value="Asistente Administrativo">Asistente Administrativo</option>
+<option value="Practicante">Practicante</option>
+<option value="Otro">Otro</option>
+</select>
+<label id="otherLabel" style="display:none">ESPECIFICA EL PUESTO</label>
+<input type="text" id="candidateOtherPos" placeholder="Escribe el puesto" style="display:none">
+<button class="btn btn-primary btn-full" onclick="startExams()">INICIAR EVALUACIÓN →</button>
+</div>
+<p style="margin-top:16px;font-size:11px;color:rgba(255,255,255,.4)">Tiempo estimado: 50 minutos · 3 evaluaciones · Confidencial</p>
+</div>
+</div>
+</div>
+
+<!-- SCREEN 2: INSTRUCTIONS -->
+<div class="screen instructions" id="screenInstructions">
+<div class="instr-container">
+<div class="eyebrow" style="text-align:center">ANTES DE COMENZAR</div>
+<h2>TU EVALUACIÓN</h2>
+<p class="instr-subtitle">Responde con honestidad. No hay respuestas correctas o incorrectas en la evaluación de personalidad.</p>
+<div class="exam-card">
+<div class="exam-num">01</div>
+<div class="exam-info">
+<h3>EVALUACIÓN DE PERSONALIDAD</h3>
+<p>Identifica tu estilo de comportamiento y preferencias laborales basado en el modelo DISC.</p>
+<div class="exam-meta"><span>⏱ 15 minutos</span><span>📝 20 preguntas</span></div>
+</div>
+</div>
+<div class="exam-card">
+<div class="exam-num">02</div>
+<div class="exam-info">
+<h3>APTITUD VERBAL Y NUMÉRICA</h3>
+<p>Evalúa tu capacidad de razonamiento verbal, numérico y lógico.</p>
+<div class="exam-meta"><span>⏱ 20 minutos</span><span>📝 15 preguntas</span></div>
+</div>
+</div>
+<div class="exam-card">
+<div class="exam-num">03</div>
+<div class="exam-info">
+<h3>EVALUACIÓN DE COMPETENCIAS</h3>
+<p>Mide tus competencias clave a través de situaciones laborales reales.</p>
+<div class="exam-meta"><span>⏱ 15 minutos</span><span>📝 15 preguntas</span></div>
+</div>
+</div>
+<div class="total-time">⏱ Tiempo total estimado: 50 minutos · Asegúrate de estar en un lugar tranquilo.</div>
+<div style="text-align:center">
+<button class="btn btn-lime" onclick="beginExam1()">COMENZAR EVALUACIÓN →</button>
+</div>
+</div>
+</div>
+
+<!-- SCREEN 3: EXAM 1 - PERSONALITY -->
+<div class="screen exam-screen" id="screenExam1">
+<div class="exam-container">
+<div class="exam-header">
+<div class="eyebrow">EVALUACIÓN 01 DE 03</div>
+<h2>PERSONALIDAD</h2>
+<p>Selecciona la opción que mejor te describe</p>
+</div>
+<div class="timer-bar" id="timer1"><span class="timer-icon">⏱</span><span class="timer-text" id="timerText1">15:00</span></div>
+<div class="q-progress"><div class="q-progress-bar"><div class="q-progress-fill" id="qProgress1"></div></div><span class="q-progress-text" id="qProgressText1">0/20</span></div>
+<div id="exam1Questions"></div>
+<div class="exam-nav">
+<button class="btn btn-outline" id="prevBtn1" onclick="prevPage(1)" style="visibility:hidden">← ANTERIOR</button>
+<button class="btn btn-primary" id="nextBtn1" onclick="nextPage(1)">SIGUIENTE →</button>
+</div>
+</div>
+</div>
+
+<!-- TRANSITION 1→2 -->
+<div class="screen transition-screen" id="screenTrans12">
+<div><div class="checkmark">✅</div>
+<h2>EVALUACIÓN 01 COMPLETADA</h2>
+<p>Personalidad · Ahora viene Aptitud Verbal y Numérica</p>
+<button class="btn btn-lime" onclick="beginExam2()">CONTINUAR CON EVALUACIÓN 02 →</button>
+</div>
+</div>
+
+<!-- SCREEN 4: EXAM 2 - APTITUDE -->
+<div class="screen exam-screen" id="screenExam2">
+<div class="exam-container">
+<div class="exam-header">
+<div class="eyebrow">EVALUACIÓN 02 DE 03</div>
+<h2>APTITUD VERBAL Y NUMÉRICA</h2>
+<p>Selecciona la respuesta correcta</p>
+</div>
+<div class="timer-bar" id="timer2"><span class="timer-icon">⏱</span><span class="timer-text" id="timerText2">20:00</span></div>
+<div class="q-progress"><div class="q-progress-bar"><div class="q-progress-fill" id="qProgress2"></div></div><span class="q-progress-text" id="qProgressText2">0/15</span></div>
+<div id="exam2Questions"></div>
+<div class="exam-nav">
+<button class="btn btn-outline" id="prevBtn2" onclick="prevPage(2)" style="visibility:hidden">← ANTERIOR</button>
+<button class="btn btn-primary" id="nextBtn2" onclick="nextPage(2)">SIGUIENTE →</button>
+</div>
+</div>
+</div>
+
+<!-- TRANSITION 2→3 -->
+<div class="screen transition-screen" id="screenTrans23">
+<div><div class="checkmark">✅</div>
+<h2>EVALUACIÓN 02 COMPLETADA</h2>
+<p>Aptitud · Ahora viene la Evaluación de Competencias</p>
+<button class="btn btn-lime" onclick="beginExam3()">CONTINUAR CON EVALUACIÓN 03 →</button>
+</div>
+</div>
+
+<!-- SCREEN 5: EXAM 3 - COMPETENCIES -->
+<div class="screen exam-screen" id="screenExam3">
+<div class="exam-container">
+<div class="exam-header">
+<div class="eyebrow">EVALUACIÓN 03 DE 03</div>
+<h2>COMPETENCIAS</h2>
+<p>¿Qué harías en cada situación?</p>
+</div>
+<div class="timer-bar" id="timer3"><span class="timer-icon">⏱</span><span class="timer-text" id="timerText3">15:00</span></div>
+<div class="q-progress"><div class="q-progress-bar"><div class="q-progress-fill" id="qProgress3"></div></div><span class="q-progress-text" id="qProgressText3">0/15</span></div>
+<div id="exam3Questions"></div>
+<div class="exam-nav">
+<button class="btn btn-outline" id="prevBtn3" onclick="prevPage(3)" style="visibility:hidden">← ANTERIOR</button>
+<button class="btn btn-primary" id="nextBtn3" onclick="nextPage(3)">SIGUIENTE →</button>
+</div>
+</div>
+</div>
+
+<!-- SCREEN 6: RESULTS -->
+<div class="screen results-screen" id="screenResults">
+<div class="results-container">
+<div class="results-header">
+<div class="eyebrow">EVALUACIÓN COMPLETADA</div>
+<h2>TUS RESULTADOS</h2>
+<p id="resultsCandidate"></p>
+</div>
+<div id="resultsContent"></div>
+<div class="email-status sending" id="emailStatus">📤 Enviando resultados a Connectia...</div>
+<div class="footer">CONNECTIA · CULTURAL MARKETING · MX<br>Facilitadores Publicitarios HS, S.A. de C.V.</div>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// EXAM DATA
+// ═══════════════════════════════════════════════
+
+const personalityQuestions = [
+{q:"Ante un nuevo proyecto, lo primero que hago es:",o:["Tomar el control y definir objetivos claros","Reunir al equipo y generar entusiasmo","Analizar los recursos y planificar paso a paso","Investigar a fondo antes de dar cualquier paso"],d:["D","I","S","C"]},
+{q:"En una reunión de trabajo prefiero:",o:["Ir directo al punto y tomar decisiones rápidas","Compartir ideas y escuchar las de todos","Apoyar las propuestas del grupo y buscar consenso","Presentar datos y análisis que respalden las decisiones"],d:["D","I","S","C"]},
+{q:"Cuando surge un conflicto en el equipo:",o:["Lo confronto directamente para resolverlo rápido","Busco mediar con diplomacia y buen humor","Escucho a ambas partes con paciencia","Analizo los hechos objetivamente para encontrar la causa raíz"],d:["D","I","S","C"]},
+{q:"Me motiva más en el trabajo:",o:["Lograr resultados concretos y superar metas","Colaborar con personas y construir relaciones","Tener estabilidad y un entorno predecible","Garantizar que todo se haga con precisión y calidad"],d:["D","I","S","C"]},
+{q:"Cuando debo tomar una decisión importante:",o:["Decido rápido confiando en mi instinto","Consulto con personas de confianza para tener perspectivas","Evalúo cómo afecta al equipo antes de decidir","Reúno toda la información posible antes de actuar"],d:["D","I","S","C"]},
+{q:"En un ambiente de alta presión:",o:["Me enfoco y tomo el liderazgo naturalmente","Mantengo al equipo animado y motivado","Permanezco calmado y busco soluciones paso a paso","Me aseguro de que no se cometan errores por la prisa"],d:["D","I","S","C"]},
+{q:"Prefiero que me reconozcan por:",o:["Mi capacidad para lograr resultados","Mi habilidad para conectar con las personas","Mi lealtad y consistencia","Mi atención al detalle y exactitud"],d:["D","I","S","C"]},
+{q:"Cuando trabajo en equipo, naturalmente:",o:["Dirijo y establezco la dirección","Facilito la comunicación y genero ideas","Apoyo al equipo y mantengo la armonía","Verifico que el trabajo cumpla los estándares"],d:["D","I","S","C"]},
+{q:"Lo que más me frustra es:",o:["La falta de acción y la indecisión","La falta de comunicación o el aislamiento","Los cambios repentinos sin explicación","El trabajo descuidado o mal hecho"],d:["D","I","S","C"]},
+{q:"En mi tiempo libre prefiero:",o:["Actividades competitivas o que impliquen retos","Reunirme con amigos o ir a eventos sociales","Actividades tranquilas en un entorno familiar","Leer, aprender o resolver puzzles"],d:["D","I","S","C"]},
+{q:"Cuando recibo críticas:",o:["Las considero pero no me detengo por ellas","Me afectan emocionalmente al principio, luego las proceso","Las tomo con calma y trato de mejorar","Las analizo detalladamente para determinar si son válidas"],d:["D","I","S","C"]},
+{q:"Mi estilo de comunicación es:",o:["Directo y conciso, voy al grano","Expresivo y entusiasta, uso historias y ejemplos","Calmado y empático, escucho más de lo que hablo","Preciso y estructurado, uso datos y evidencia"],d:["D","I","S","C"]},
+{q:"Ante un cambio importante en la empresa:",o:["Lo veo como oportunidad y actúo rápido para adaptarme","Ayudo a los demás a ver el lado positivo","Necesito tiempo para procesar y adaptarme gradualmente","Necesito entender la lógica detrás del cambio"],d:["D","I","S","C"]},
+{q:"Mi mayor fortaleza profesional es:",o:["La determinación para alcanzar objetivos","La capacidad de persuadir y motivar a otros","La paciencia y confiabilidad en mis compromisos","El pensamiento analítico y la resolución de problemas"],d:["D","I","S","C"]},
+{q:"Para aprender algo nuevo prefiero:",o:["Experimentar directamente, aprender haciendo","Aprender en grupo, discutir y compartir ideas","Seguir un proceso estructurado paso a paso","Estudiar la teoría a fondo antes de practicar"],d:["D","I","S","C"]},
+{q:"Cuando lidero un proyecto, tiendo a:",o:["Establecer metas ambiciosas y exigir resultados","Inspirar al equipo con una visión compartida","Asegurar que todos se sientan incluidos y escuchados","Crear planes detallados y monitorear el progreso"],d:["D","I","S","C"]},
+{q:"Lo que más valoro en un compañero de trabajo es:",o:["Que sea eficiente y orientado a resultados","Que sea sociable y tenga buena actitud","Que sea confiable y cumpla sus compromisos","Que sea riguroso y entregue trabajo de calidad"],d:["D","I","S","C"]},
+{q:"En una negociación, mi estrategia es:",o:["Ser firme y buscar ganar la mejor posición","Construir una relación y buscar ganar-ganar","Ser flexible y buscar un acuerdo que satisfaga a todos","Prepararme con datos sólidos para argumentar mi posición"],d:["D","I","S","C"]},
+{q:"Cuando estoy estresado:",o:["Me vuelvo más autoritario e impaciente","Busco apoyo social y hablo de lo que me preocupa","Me retraigo y evito conflictos","Me vuelvo más perfeccionista y crítico"],d:["D","I","S","C"]},
+{q:"Mi filosofía de trabajo se resume en:",o:["Los resultados hablan por sí mismos","El trabajo es mejor cuando lo disfrutas con otros","La constancia y la dedicación siempre dan fruto","Si vale la pena hacerlo, vale la pena hacerlo bien"],d:["D","I","S","C"]}
+];
+
+const aptitudeQuestions = [
+{q:"LIBRO es a BIBLIOTECA como PINTURA es a:",o:["Artista","Museo","Color","Lienzo"],a:1,cat:"verbal"},
+{q:"Selecciona la palabra que NO pertenece al grupo: MESA, SILLA, ESTANTE, VENTANA",o:["Mesa","Silla","Estante","Ventana"],a:3,cat:"verbal"},
+{q:"Si RÁPIDO es a LENTO, entonces ABUNDANTE es a:",o:["Rico","Escaso","Grande","Mucho"],a:1,cat:"verbal"},
+{q:'En el texto: "La empresa incrementó un 15% sus ventas gracias a una estrategia digital innovadora." La idea principal es:',o:["La empresa es digital","Las ventas subieron por la estrategia digital","La innovación es importante","El 15% es un buen resultado"],a:1,cat:"verbal"},
+{q:"Completa la analogía: CIRUJANO es a BISTURÍ como PINTOR es a:",o:["Cuadro","Museo","Pincel","Color"],a:2,cat:"verbal"},
+{q:"¿Cuál es el siguiente número en la serie: 2, 6, 18, 54, ...?",o:["108","162","72","216"],a:1,cat:"numerico"},
+{q:"Si un producto cuesta $850 después de un descuento del 15%, ¿cuál era el precio original?",o:["$977.50","$1,000","$978","$1,020"],a:1,cat:"numerico"},
+{q:"En una oficina hay 40 empleados. El 60% son mujeres. ¿Cuántos hombres hay?",o:["24","18","16","20"],a:2,cat:"numerico"},
+{q:"Si 3 máquinas producen 90 piezas en 2 horas, ¿cuántas piezas producen 5 máquinas en 3 horas?",o:["150","225","200","270"],a:1,cat:"numerico"},
+{q:"¿Cuál es el 20% del 50% de 800?",o:["80","100","60","120"],a:0,cat:"numerico"},
+{q:"Si todos los gerentes tienen laptop y Ana tiene laptop, entonces:",o:["Ana es gerente","Ana podría ser gerente pero no es seguro","Ana no es gerente","Todos los que tienen laptop son gerentes"],a:1,cat:"logico"},
+{q:"Si llueve → la calle se moja. La calle NO está mojada. Por lo tanto:",o:["Está lloviendo","No está lloviendo","Puede o no estar lloviendo","La calle se secó"],a:1,cat:"logico"},
+{q:"En una fila, Pedro está 4° desde el frente y 8° desde el final. ¿Cuántas personas hay en la fila?",o:["12","11","10","13"],a:1,cat:"logico"},
+{q:"¿Qué figura continúa la secuencia? ○ □ △ ○ □ △ ○ □ ...",o:["○","□","△","◇"],a:2,cat:"logico"},
+{q:"Un reloj marca las 3:15. ¿Qué ángulo forman las manecillas?",o:["90°","7.5°","0°","45°"],a:1,cat:"logico"}
+];
+
+const competencyQuestions = [
+{q:"Tu equipo tiene un deadline crítico mañana y descubres un error importante en el entregable. ¿Qué haces?",o:["Reúno al equipo de inmediato, reasigno tareas y priorizo la corrección","Informo a mi supervisor y pido una extensión del deadline","Corrijo el error yo solo trabajando toda la noche","Documento el error y lo presento como riesgo en la entrega"],c:["liderazgo","comunicacion","adaptabilidad","resolucion"],s:[5,3,4,2]},
+{q:"Un colega nuevo está teniendo dificultades para adaptarse al equipo. ¿Cuál es tu reacción?",o:["Me acerco, le pregunto cómo se siente y ofrezco mi ayuda","Propongo al líder un programa de mentoring","Lo incluyo en actividades del equipo para que se integre","Le doy espacio, cada quien se adapta a su ritmo"],c:["equipo","liderazgo","comunicacion","equipo"],s:[5,4,4,2]},
+{q:"Tu jefe te pide implementar un proceso que consideras ineficiente. ¿Qué haces?",o:["Implemento lo que pide y preparo una propuesta alternativa con datos","Le expreso mis dudas con una propuesta mejorada antes de implementar","Lo implemento tal cual, la decisión es de mi jefe","Ignoro algunas partes y lo hago a mi manera"],c:["adaptabilidad","comunicacion","adaptabilidad","resolucion"],s:[5,4,3,1]},
+{q:"En una presentación importante, la tecnología falla y el proyector no funciona. ¿Qué haces?",o:["Improviso la presentación usando pizarrón o explicación verbal","Pido 10 minutos para resolver el problema técnico","Reprogramo la presentación para otro día","Envío la presentación por email y la explico por teléfono"],c:["adaptabilidad","resolucion","comunicacion","adaptabilidad"],s:[5,4,2,3]},
+{q:"Tienes dos proyectos con el mismo deadline y recursos limitados. ¿Cómo priorizas?",o:["Evalúo el impacto de cada proyecto y asigno recursos proporcionalmente","Hablo con ambos clientes para negociar tiempos","Delego uno al equipo y me enfoco en el otro","Trabajo en ambos simultáneamente e intento cumplir con todo"],c:["resolucion","comunicacion","liderazgo","adaptabilidad"],s:[5,4,3,2]},
+{q:"Un cliente está muy molesto por un retraso en la entrega. ¿Cómo manejas la situación?",o:["Escucho activamente, reconozco el problema y presento un plan de acción concreto","Ofrezco una disculpa formal y un descuento como compensación","Le explico las razones del retraso y pido comprensión","Transfiero la llamada a mi supervisor"],c:["comunicacion","comunicacion","comunicacion","liderazgo"],s:[5,3,2,1]},
+{q:"Descubres que un proceso que has seguido por meses tiene un error sistemático. ¿Qué haces?",o:["Documento el error, calculo el impacto y propongo la corrección a mi equipo","Corrijo el error silenciosamente para que nadie lo note","Informo inmediatamente a mi jefe antes de hacer nada","Investigo primero si realmente es un error o si es intencional"],c:["resolucion","comunicacion","comunicacion","resolucion"],s:[5,1,3,4]},
+{q:"Te asignan a un equipo con personas de diferentes áreas que no conoces. ¿Cuál es tu primer paso?",o:["Propongo una reunión de kick-off para conocernos y alinear expectativas","Estudio los perfiles de cada persona antes de la primera reunión","Espero a que el líder del proyecto establezca las reglas","Me presento individualmente con cada miembro del equipo"],c:["equipo","resolucion","adaptabilidad","equipo"],s:[5,4,2,4]},
+{q:"Tu equipo logra un éxito importante. ¿Cómo lo celebras?",o:["Reconozco públicamente la contribución de cada miembro","Organizo una comida o actividad para el equipo","Envío un reporte del éxito a la dirección dando crédito al equipo","Lo celebro internamente y sigo con el siguiente proyecto"],c:["liderazgo","equipo","comunicacion","resolucion"],s:[5,4,4,1]},
+{q:"Se implementa una nueva herramienta digital que cambia tu forma de trabajar. ¿Cómo reaccionas?",o:["Tomo la capacitación, practico y busco dominarla rápido","Ayudo a mis compañeros que tienen dificultades con la herramienta","Sigo usando el método anterior hasta que la nueva herramienta sea obligatoria","Investigo alternativas y propongo la que considero mejor"],c:["adaptabilidad","equipo","adaptabilidad","resolucion"],s:[5,4,1,3]},
+{q:"Un compañero se lleva el crédito por una idea que fue tuya. ¿Qué haces?",o:["Hablo con él en privado y le pido que reconozca la contribución","Lo dejo pasar, no vale la pena el conflicto","Lo menciono en la siguiente reunión de forma diplomática","Hablo con mi jefe para que sepa la verdad"],c:["comunicacion","adaptabilidad","comunicacion","comunicacion"],s:[5,1,4,3]},
+{q:"Te ofrecen liderar un proyecto en un área que no dominas. ¿Qué decides?",o:["Acepto el reto y me preparo estudiando el tema rápidamente","Acepto pero pido un co-líder experto en el área","Rechazo y recomiendo a alguien más calificado","Acepto solo si me dan capacitación previa"],c:["adaptabilidad","liderazgo","equipo","adaptabilidad"],s:[5,5,2,3]},
+{q:"Durante una lluvia de ideas, un colega propone algo que crees no funcionará. ¿Qué haces?",o:["Escucho su propuesta completa y después comparto mis inquietudes constructivamente","Propongo mi idea como alternativa sin criticar la suya","Apoyo su idea para no crear conflicto","Explico con datos por qué no funcionaría"],c:["comunicacion","resolucion","equipo","resolucion"],s:[5,3,1,4]},
+{q:"Tienes la oportunidad de automatizar un proceso repetitivo que hacen varios en tu equipo. ¿Qué haces?",o:["Desarrollo la automatización y la presento al equipo como propuesta","Primero consulto con el equipo si están de acuerdo con el cambio","Propongo la idea a mi jefe y espero aprobación","La implemento directamente para ahorrar tiempo"],c:["resolucion","equipo","comunicacion","liderazgo"],s:[5,4,3,2]},
+{q:"Al final de un trimestre difícil, tu equipo muestra señales de agotamiento. ¿Cómo actúas?",o:["Hablo con cada persona, ajusto cargas y priorizo el bienestar sin perder objetivos","Organizo una actividad de integración para subir el ánimo","Propongo a la dirección flexibilizar horarios temporalmente","Motivo al equipo recordándoles los logros del trimestre"],c:["liderazgo","equipo","comunicacion","comunicacion"],s:[5,3,4,3]}
+];
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let candidate = {};
+let answers = {1:{},2:{},3:{}};
+let timers = {};
+let currentPage = {1:0,2:0,3:0};
+const QUESTIONS_PER_PAGE = 5;
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function showScreen(id){
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+window.scrollTo(0,0);
+const topBar=document.getElementById('topBar');
+if(id==='screenLanding'){topBar.style.display='none';updateProgress(0);}
+else{topBar.style.display='flex';}
+const steps={'screenInstructions':'INSTRUCCIONES','screenExam1':'EVAL 01 · PERSONALIDAD','screenTrans12':'COMPLETADO 01/03','screenExam2':'EVAL 02 · APTITUD','screenTrans23':'COMPLETADO 02/03','screenExam3':'EVAL 03 · COMPETENCIAS','screenResults':'RESULTADOS'};
+document.getElementById('stepIndicator').textContent=steps[id]||'';
+const prog={'screenInstructions':5,'screenExam1':15,'screenTrans12':35,'screenExam2':40,'screenTrans23':65,'screenExam3':70,'screenResults':100};
+updateProgress(prog[id]||0);
+}
+
+function updateProgress(pct){document.getElementById('progressFill').style.width=pct+'%';}
+
+// ═══════════════════════════════════════════════
+// REGISTRATION
+// ═══════════════════════════════════════════════
+document.getElementById('candidatePosition').addEventListener('change',function(){
+const other=this.value==='Otro';
+document.getElementById('otherLabel').style.display=other?'block':'none';
+document.getElementById('candidateOtherPos').style.display=other?'block':'none';
+});
+
+function startExams(){
+const name=document.getElementById('candidateName').value.trim();
+const email=document.getElementById('candidateEmail').value.trim();
+const pos=document.getElementById('candidatePosition').value;
+if(!name){alert('Por favor ingresa tu nombre completo');return;}
+if(!email||!email.includes('@')){alert('Por favor ingresa un correo electrónico válido');return;}
+if(!pos){alert('Por favor selecciona el puesto al que aplicas');return;}
+const finalPos=pos==='Otro'?document.getElementById('candidateOtherPos').value.trim()||'No especificado':pos;
+candidate={name,email,position:finalPos,startTime:new Date().toISOString()};
+showScreen('screenInstructions');
+}
+
+// ═══════════════════════════════════════════════
+// EXAM RENDERING
+// ═══════════════════════════════════════════════
+function renderQuestions(examNum,questions,containerId){
+const container=document.getElementById(containerId);
+container.innerHTML='';
+const totalPages=Math.ceil(questions.length/QUESTIONS_PER_PAGE);
+for(let page=0;page<totalPages;page++){
+const pageDiv=document.createElement('div');
+pageDiv.id=`exam${examNum}Page${page}`;
+pageDiv.style.display=page===0?'block':'none';
+const start=page*QUESTIONS_PER_PAGE;
+const end=Math.min(start+QUESTIONS_PER_PAGE,questions.length);
+for(let i=start;i<end;i++){
+const q=questions[i];
+const card=document.createElement('div');
+card.className='question-card';
+card.id=`q${examNum}_${i}`;
+let html=`<div class="q-number">PREGUNTA ${String(i+1).padStart(2,'0')}</div>`;
+html+=`<div class="q-text">${q.q}</div><div class="q-options">`;
+q.o.forEach((opt,j)=>{
+html+=`<div class="q-option" onclick="selectOption(${examNum},${i},${j})" id="opt${examNum}_${i}_${j}">`;
+html+=`<div class="q-option-radio"></div><div>${opt}</div></div>`;
+});
+html+='</div>';
+card.innerHTML=html;
+pageDiv.appendChild(card);
+}
+container.appendChild(pageDiv);
+}
+}
+
+function selectOption(exam,qIdx,optIdx){
+const questions=[null,personalityQuestions,aptitudeQuestions,competencyQuestions][exam];
+questions[qIdx].o.forEach((_,j)=>{
+document.getElementById(`opt${exam}_${qIdx}_${j}`).classList.remove('selected');
+});
+document.getElementById(`opt${exam}_${qIdx}_${optIdx}`).classList.add('selected');
+answers[exam][qIdx]=optIdx;
+document.getElementById(`q${exam}_${qIdx}`).classList.add('answered');
+updateQProgress(exam);
+}
+
+function updateQProgress(exam){
+const total=[0,20,15,15][exam];
+const answered=Object.keys(answers[exam]).length;
+document.getElementById(`qProgress${exam}`).style.width=(answered/total*100)+'%';
+document.getElementById(`qProgressText${exam}`).textContent=`${answered}/${total}`;
+}
+
+function nextPage(exam){
+const total=[0,20,15,15][exam];
+const totalPages=Math.ceil(total/QUESTIONS_PER_PAGE);
+const cur=currentPage[exam];
+if(cur<totalPages-1){
+document.getElementById(`exam${exam}Page${cur}`).style.display='none';
+currentPage[exam]++;
+document.getElementById(`exam${exam}Page${currentPage[exam]}`).style.display='block';
+document.getElementById(`prevBtn${exam}`).style.visibility='visible';
+if(currentPage[exam]===totalPages-1){
+document.getElementById(`nextBtn${exam}`).textContent='FINALIZAR EVALUACIÓN →';
+document.getElementById(`nextBtn${exam}`).onclick=()=>finishExam(exam);
+}
+window.scrollTo(0,0);
+}
+}
+
+function prevPage(exam){
+const cur=currentPage[exam];
+if(cur>0){
+document.getElementById(`exam${exam}Page${cur}`).style.display='none';
+currentPage[exam]--;
+document.getElementById(`exam${exam}Page${currentPage[exam]}`).style.display='block';
+if(currentPage[exam]===0)document.getElementById(`prevBtn${exam}`).style.visibility='hidden';
+const total=[0,20,15,15][exam];
+const totalPages=Math.ceil(total/QUESTIONS_PER_PAGE);
+document.getElementById(`nextBtn${exam}`).textContent='SIGUIENTE →';
+document.getElementById(`nextBtn${exam}`).onclick=()=>nextPage(exam);
+window.scrollTo(0,0);
+}
+}
+
+// ═══════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════
+function startTimer(exam,minutes){
+let remaining=minutes*60;
+const el=document.getElementById(`timerText${exam}`);
+const bar=document.getElementById(`timer${exam}`);
+timers[exam]=setInterval(()=>{
+remaining--;
+if(remaining<=0){clearInterval(timers[exam]);finishExam(exam);return;}
+const m=Math.floor(remaining/60);
+const s=remaining%60;
+el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+if(remaining<=60)bar.className='timer-bar danger';
+else if(remaining<=180)bar.className='timer-bar warning';
+},1000);
+}
+
+function finishExam(exam){
+clearInterval(timers[exam]);
+const total=[0,20,15,15][exam];
+const answered=Object.keys(answers[exam]).length;
+if(answered<total){
+if(!confirm(`Has respondido ${answered} de ${total} preguntas. Las preguntas sin responder se contarán como no contestadas. ¿Deseas continuar?`))return;
+}
+if(exam===1)showScreen('screenTrans12');
+else if(exam===2)showScreen('screenTrans23');
+else if(exam===3){showScreen('screenResults');calculateResults();}
+}
+
+// ═══════════════════════════════════════════════
+// EXAM STARTERS
+// ═══════════════════════════════════════════════
+function beginExam1(){
+renderQuestions(1,personalityQuestions,'exam1Questions');
+currentPage[1]=0;
+showScreen('screenExam1');
+startTimer(1,15);
+}
+function beginExam2(){
+renderQuestions(2,aptitudeQuestions,'exam2Questions');
+currentPage[2]=0;
+showScreen('screenExam2');
+startTimer(2,20);
+}
+function beginExam3(){
+renderQuestions(3,competencyQuestions,'exam3Questions');
+currentPage[3]=0;
+showScreen('screenExam3');
+startTimer(3,15);
+}
+
+// ═══════════════════════════════════════════════
+// SCORING & RESULTS
+// ═══════════════════════════════════════════════
+function calculateResults(){
+// DISC Personality
+let disc={D:0,I:0,S:0,C:0};
+personalityQuestions.forEach((q,i)=>{
+if(answers[1][i]!==undefined){
+disc[q.d[answers[1][i]]]++;
+}
+});
+const discTotal=Object.values(disc).reduce((a,b)=>a+b,0)||1;
+const discPct={D:Math.round(disc.D/discTotal*100),I:Math.round(disc.I/discTotal*100),S:Math.round(disc.S/discTotal*100),C:Math.round(disc.C/discTotal*100)};
+const discMax=Object.entries(discPct).sort((a,b)=>b[1]-a[1]);
+const primaryStyle=discMax[0][0];
+const secondaryStyle=discMax[1][0];
+
+// Aptitude
+let aptScore=0;let catScores={verbal:0,numerico:0,logico:0};
+let catTotals={verbal:0,numerico:0,logico:0};
+aptitudeQuestions.forEach((q,i)=>{
+catTotals[q.cat]++;
+if(answers[2][i]===q.a){aptScore++;catScores[q.cat]++;}
+});
+const aptPct=Math.round(aptScore/15*100);
+
+// Competencies
+let compScores={liderazgo:0,equipo:0,resolucion:0,comunicacion:0,adaptabilidad:0};
+let compCounts={liderazgo:0,equipo:0,resolucion:0,comunicacion:0,adaptabilidad:0};
+competencyQuestions.forEach((q,i)=>{
+if(answers[3][i]!==undefined){
+const sel=answers[3][i];
+const comp=q.c[sel];
+compScores[comp]+=q.s[sel];
+compCounts[comp]++;
+}
+});
+// Normalize to 100
+const compPct={};
+for(let k in compScores){
+const maxPossible=compCounts[k]*5||1;
+compPct[k]=Math.round(compScores[k]/maxPossible*100);
+}
+
+// Build results HTML
+const discNames={D:'Dominancia',I:'Influencia',S:'Estabilidad',C:'Cumplimiento'};
+const discDescriptions={
+D:'Orientado a resultados, decisivo, competitivo. Asume riesgos y lidera con determinación.',
+I:'Sociable, entusiasta, persuasivo. Construye relaciones y motiva a los demás.',
+S:'Paciente, confiable, cooperativo. Brinda estabilidad y apoyo consistente al equipo.',
+C:'Analítico, preciso, orientado a la calidad. Sigue procesos y garantiza exactitud.'
+};
+const discColors={D:'#FF2E63',I:'#FF6A1A',S:'#C8FF00',C:'#7B3FF2'};
+
+let html='';
+
+// Candidate Info
+html+=`<div class="result-section"><h3>DATOS DEL CANDIDATO</h3>`;
+html+=`<div class="score-row"><span class="score-label">Nombre</span><span class="score-val" style="min-width:auto">${candidate.name}</span></div>`;
+html+=`<div class="score-row"><span class="score-label">Email</span><span class="score-val" style="min-width:auto">${candidate.email}</span></div>`;
+html+=`<div class="score-row"><span class="score-label">Puesto</span><span class="score-val" style="min-width:auto">${candidate.position}</span></div>`;
+html+=`<div class="score-row"><span class="score-label">Fecha</span><span class="score-val" style="min-width:auto">${new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'})}</span></div>`;
+html+=`</div>`;
+
+// DISC Results
+html+=`<div class="result-section"><h3>01 · PERFIL DE PERSONALIDAD (DISC)</h3>`;
+html+=`<div class="disc-grid">`;
+for(let d of ['D','I','S','C']){
+html+=`<div class="disc-item"><div class="disc-label">${discNames[d]}</div>`;
+html+=`<div class="disc-bar-container"><div class="disc-bar" style="height:${discPct[d]}%;background:${discColors[d]}"></div></div>`;
+html+=`<div class="disc-value" style="color:${discColors[d]}">${discPct[d]}%</div></div>`;
+}
+html+=`</div>`;
+html+=`<div class="conclusion-box"><p><strong>Perfil dominante: ${discNames[primaryStyle]}</strong> — ${discDescriptions[primaryStyle]}</p>`;
+html+=`<p style="margin-top:8px"><strong>Perfil secundario: ${discNames[secondaryStyle]}</strong> — ${discDescriptions[secondaryStyle]}</p></div></div>`;
+
+// Aptitude Results
+const aptLevel=aptPct>=80?'Sobresaliente':aptPct>=60?'Competente':aptPct>=40?'En desarrollo':'Requiere refuerzo';
+html+=`<div class="result-section"><h3>02 · APTITUD VERBAL Y NUMÉRICA</h3>`;
+html+=`<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px;font-weight:900;color:${aptPct>=60?'var(--lime)':'var(--citrus)'}">${aptPct}%</div>`;
+html+=`<div style="font-size:14px;color:var(--slate)">Puntuación general · ${aptScore}/15 correctas</div>`;
+html+=`<span class="profile-tag">${aptLevel}</span></div>`;
+const catNames={verbal:'Razonamiento Verbal',numerico:'Razonamiento Numérico',logico:'Razonamiento Lógico'};
+for(let cat of ['verbal','numerico','logico']){
+const pct=Math.round(catScores[cat]/catTotals[cat]*100);
+html+=`<div class="score-row"><span class="score-label">${catNames[cat]}</span>`;
+html+=`<div class="score-bar-wrap"><div class="score-bar-fill" style="width:${pct}%;background:${pct>=60?'var(--lime)':'var(--citrus)'}"></div></div>`;
+html+=`<span class="score-val">${catScores[cat]}/${catTotals[cat]}</span></div>`;
+}
+html+=`</div>`;
+
+// Competency Results
+html+=`<div class="result-section"><h3>03 · EVALUACIÓN DE COMPETENCIAS</h3>`;
+const compNames={liderazgo:'Liderazgo',equipo:'Trabajo en Equipo',resolucion:'Resolución de Problemas',comunicacion:'Comunicación',adaptabilidad:'Adaptabilidad'};
+const compColors={liderazgo:'#FF2E63',equipo:'#FF6A1A',resolucion:'#7B3FF2',comunicacion:'#C8FF00',adaptabilidad:'#502090'};
+for(let comp of ['liderazgo','equipo','resolucion','comunicacion','adaptabilidad']){
+const pct=compPct[comp]||0;
+html+=`<div class="score-row"><span class="score-label">${compNames[comp]}</span>`;
+html+=`<div class="score-bar-wrap"><div class="score-bar-fill" style="width:${pct}%;background:${compColors[comp]}"></div></div>`;
+html+=`<span class="score-val">${pct}%</span></div>`;
+}
+
+// Top competencies
+const compSorted=Object.entries(compPct).sort((a,b)=>b[1]-a[1]);
+html+=`<div class="conclusion-box"><p><strong>Competencias destacadas:</strong><br>`;
+html+=`🥇 ${compNames[compSorted[0][0]]} (${compSorted[0][1]}%)<br>`;
+html+=`🥈 ${compNames[compSorted[1][0]]} (${compSorted[1][1]}%)</p></div></div>`;
+
+// Overall Conclusion
+html+=`<div class="result-section"><h3>CONCLUSIÓN GENERAL</h3>`;
+html+=`<div class="conclusion-box"><p>`;
+html+=`<strong>${candidate.name}</strong> presenta un perfil predominantemente <strong>${discNames[primaryStyle]}</strong> `;
+html+=`con tendencia ${discNames[secondaryStyle].toLowerCase()}, `;
+html+=`lo que sugiere ${primaryStyle==='D'?'una orientación natural hacia el liderazgo y la toma de decisiones':primaryStyle==='I'?'una gran capacidad para construir relaciones y comunicar ideas':primaryStyle==='S'?'una personalidad confiable y orientada al trabajo en equipo':primaryStyle==='C'?'un enfoque metódico y analítico en su trabajo':'un perfil equilibrado'}. `;
+html+=`Su aptitud cognitiva se ubica en nivel <strong>${aptLevel}</strong> (${aptPct}%), `;
+html+=`destacando en ${Object.entries(catScores).sort((a,b)=>b[1]-a[1])[0][0]==='verbal'?'razonamiento verbal':Object.entries(catScores).sort((a,b)=>b[1]-a[1])[0][0]==='numerico'?'razonamiento numérico':'razonamiento lógico'}. `;
+html+=`Sus competencias más fuertes son <strong>${compNames[compSorted[0][0]]}</strong> y <strong>${compNames[compSorted[1][0]]}</strong>.`;
+html+=`</p><p style="margin-top:12px;font-style:italic;color:var(--violet-hot)">`;
+const overallScore=Math.round((aptPct+(compSorted[0][1]+compSorted[1][1])/2)/2);
+html+=overallScore>=70?'Candidato con potencial alto. Se recomienda avanzar en el proceso de selección.':overallScore>=50?'Candidato con potencial moderado. Se sugiere entrevista para profundizar en áreas de oportunidad.':'Candidato con áreas de oportunidad identificadas. Se recomienda evaluar fit cultural en entrevista.';
+html+=`</p></div></div>`;
+
+document.getElementById('resultsContent').innerHTML=html;
+document.getElementById('resultsCandidate').textContent=`${candidate.name} · ${candidate.position}`;
+
+// Send email
+sendResults({candidate,discPct,primaryStyle:discNames[primaryStyle],secondaryStyle:discNames[secondaryStyle],aptScore,aptPct,aptLevel,catScores,compPct,compSorted:compSorted.map(([k,v])=>[compNames[k],v]),overallScore});
+}
+
+// ═══════════════════════════════════════════════
+// EMAIL SENDING
+// ═══════════════════════════════════════════════
+async function sendResults(data){
+const statusEl=document.getElementById('emailStatus');
+statusEl.className='email-status sending';
+statusEl.innerHTML='📤 Enviando resultados a Connectia...';
+
+const compNames={liderazgo:'Liderazgo',equipo:'Trabajo en Equipo',resolucion:'Resolución de Problemas',comunicacion:'Comunicación',adaptabilidad:'Adaptabilidad'};
+const catNames={verbal:'Verbal',numerico:'Numérico',logico:'Lógico'};
+
+let body=`RESULTADOS DE EVALUACIÓN PSICOMÉTRICA CONNECTIA\n`;
+body+=`${'='.repeat(50)}\n\n`;
+body+=`Candidato: ${data.candidate.name}\n`;
+body+=`Email: ${data.candidate.email}\n`;
+body+=`Puesto: ${data.candidate.position}\n`;
+body+=`Fecha: ${new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}\n\n`;
+body+=`01 · PERSONALIDAD (DISC)\n${'-'.repeat(30)}\n`;
+body+=`Dominancia: ${data.discPct.D}% | Influencia: ${data.discPct.I}% | Estabilidad: ${data.discPct.S}% | Cumplimiento: ${data.discPct.C}%\n`;
+body+=`Perfil dominante: ${data.primaryStyle}\nPerfil secundario: ${data.secondaryStyle}\n\n`;
+body+=`02 · APTITUD (${data.aptScore}/15 = ${data.aptPct}%)\n${'-'.repeat(30)}\n`;
+body+=`Nivel: ${data.aptLevel}\n`;
+for(let cat in data.catScores)body+=`${catNames[cat]}: ${data.catScores[cat]}/5\n`;
+body+=`\n03 · COMPETENCIAS\n${'-'.repeat(30)}\n`;
+for(let comp in data.compPct)body+=`${compNames[comp]}: ${data.compPct[comp]}%\n`;
+body+=`\nPuntuación general: ${data.overallScore}%\n`;
+body+=data.overallScore>=70?'RECOMENDACIÓN: Avanzar en proceso de selección.':data.overallScore>=50?'RECOMENDACIÓN: Entrevista para profundizar.':'RECOMENDACIÓN: Evaluar fit cultural en entrevista.';
+
+try{
+const response=await fetch('https://formsubmit.co/ajax/rhernandez@connectia.mx',{
+method:'POST',
+headers:{'Content-Type':'application/json','Accept':'application/json'},
+body:JSON.stringify({
+_subject:`[Psicométrico] Resultados: ${data.candidate.name} — ${data.candidate.position}`,
+name:data.candidate.name,
+email:data.candidate.email,
+puesto:data.candidate.position,
+message:body,
+_template:'table'
+})
+});
+const result=await response.json();
+if(result.success){
+statusEl.className='email-status sent';
+statusEl.innerHTML='✅ Resultados enviados exitosamente a rhernandez@connectia.mx';
+}else{throw new Error('API error');}
+}catch(e){
+statusEl.className='email-status error';
+statusEl.innerHTML=`⚠️ No se pudieron enviar automáticamente. <button class="btn btn-outline" style="margin-top:8px;padding:8px 16px;font-size:12px" onclick="copyResults()">📋 Copiar resultados</button> <a class="btn btn-outline" style="margin-top:8px;padding:8px 16px;font-size:12px;text-decoration:none" href="mailto:rhernandez@connectia.mx?subject=${encodeURIComponent('[Psicométrico] '+data.candidate.name)}&body=${encodeURIComponent(body.replace(/\\n/g,'\n'))}">📧 Enviar por email</a>`;
+}
+}
+
+function copyResults(){
+const text=document.getElementById('resultsContent').innerText;
+navigator.clipboard.writeText(text).then(()=>alert('Resultados copiados al portapapeles'));
+}
+</script>
+</body>
+</html>

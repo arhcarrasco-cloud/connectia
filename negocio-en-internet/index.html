@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playbook · Pon tu negocio en internet</title>
+<style>
+:root{--bg:#F7F2E4;--text:#0C1F17;--brand:#14452F;--onbrand:#F7F2E4;--accent:#F2A81D;--onaccent:#14452F;--soft:#EFE8D4;--muted:#7C7768;--line:#DED6C2;--card:#ffffff;--ok:#2E7D5B;--warn:#C0472B;--warnbg:#F9ECE8;--display:"Archivo","Archivo Black","Helvetica Neue",Arial,sans-serif;--serif:"Source Serif 4",Georgia,"Times New Roman",serif;--ui:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--mono:ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,monospace;}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--serif);
+  -webkit-font-smoothing:antialiased;line-height:1.55}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+/* ---------- header ---------- */
+header.top{background:var(--brand);color:var(--onbrand);padding:22px 0;position:relative;overflow:hidden}
+header.top .wrap{display:flex;align-items:center;gap:16px;position:relative;z-index:2}
+.brandmark{width:52px;height:52px;flex:0 0 52px}
+.brandtxt .eyebrow{font-family:var(--ui);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  opacity:.85;display:block;margin-bottom:3px}
+.brandtxt h1{font-family:var(--display);font-size:clamp(20px,3.6vw,30px);margin:0;line-height:1.05;letter-spacing:-.01em}
+.brandtxt h1 em{font-style:normal;color:var(--accent)}
+.updated{margin-left:auto;font-family:var(--ui);font-size:12px;
+  background:rgba(255,255,255,.14);padding:7px 12px;border-radius:999px;white-space:nowrap}
+/* disclaimer */
+.disclaimer{background:var(--soft);border:1px dashed var(--accent);color:var(--muted);
+  font-family:var(--ui);font-size:12.5px;padding:10px 14px;border-radius:10px;margin:14px 0;text-align:center}
+/* layout */
+.layout{display:flex;gap:26px;align-items:flex-start;padding:20px 0 60px}
+aside.side{flex:0 0 300px;position:sticky;top:14px;max-height:calc(100vh - 28px);
+  overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.side h2{font-family:var(--ui);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin:4px 0 10px}
+.progress-wrap{margin-bottom:14px}
+.progress-bar{height:10px;background:var(--soft);border-radius:999px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:var(--accent);transition:width .3s ease}
+.progress-label{font-family:var(--ui);font-size:12px;color:var(--muted);margin-top:6px}
+ul.nav{list-style:none;margin:0;padding:0}
+ul.nav li{margin:0 0 4px}
+.navbtn{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:transparent;
+  border:0;border-radius:10px;padding:9px 10px;cursor:pointer;font-family:var(--ui);font-size:13.5px;
+  color:var(--text);transition:.14s}
+.navbtn:hover{background:var(--soft)}
+.navbtn.active{background:var(--accent);color:var(--onaccent)}
+.navbtn.active .navnum{color:var(--onaccent)}
+.navnum{font-weight:700;color:var(--accent);flex:0 0 auto;font-variant-numeric:tabular-nums}
+.navtxt{flex:1 1 auto;line-height:1.25}
+.lockmini{opacity:.7}
+.freemini{font-size:9px;font-weight:700;background:var(--ok);color:#fff;padding:2px 5px;border-radius:5px;letter-spacing:.05em}
+/* lead magnet */
+.leadmagnet{margin-top:16px;background:var(--brand);color:var(--onbrand);border-radius:14px;padding:16px}
+.lead-eyebrow{font-family:var(--ui);font-size:10px;letter-spacing:.2em;color:var(--accent);font-weight:700}
+.leadmagnet h3{font-family:var(--display);font-size:17px;margin:6px 0 6px;line-height:1.15}
+.leadmagnet p{font-size:12.5px;opacity:.92;margin:0 0 10px}
+.lead-cta{display:block;text-align:center;background:var(--accent);color:var(--onaccent);text-decoration:none;
+  font-family:var(--display);font-weight:800;padding:12px;border-radius:10px;font-size:14px}
+.lead-or{text-align:center;font-family:var(--ui);font-size:11px;opacity:.7;margin:8px 0}
+.lead-hub{font-size:12px;opacity:.92;line-height:1.5}
+/* main */
+main.main{flex:1 1 auto;min-width:0}
+.ficha summary{cursor:pointer;font-family:var(--ui);font-weight:700;font-size:14px;color:var(--brand);
+  padding:10px 0}
+.ficha-hint{font-weight:400;color:var(--muted);font-size:12px}
+.ficha{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 16px 14px;margin-bottom:18px}
+.ficha-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ficha-row{display:flex;flex-direction:column;gap:4px;font-family:var(--ui);font-size:12px;color:var(--muted)}
+.fld{font-family:var(--ui);font-size:14px;padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;
+  background:#fff;color:var(--text);width:100%}
+.fld:focus{outline:none;border-color:var(--accent)}
+textarea.fld{resize:vertical;font-family:var(--serif)}
+/* guide */
+.guide{display:none}
+.guide.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.guide-head{display:flex;align-items:baseline;gap:12px;border-bottom:3px solid var(--line);padding-bottom:12px;margin-bottom:6px}
+.guide-num{font-family:var(--display);font-size:40px;font-weight:800;color:var(--accent);line-height:1;flex:0 0 auto}
+.guide-title{font-family:var(--display);font-size:clamp(20px,3.4vw,28px);margin:0;letter-spacing:-.01em;color:var(--brand)}
+.guide-progress{font-family:var(--ui);font-size:12px;color:var(--muted);margin:8px 0 16px}
+.guide-inner{position:relative}
+.block{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--line);
+  border-radius:12px;padding:14px 18px;margin:0 0 14px}
+.block-title{font-family:var(--ui);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 8px}
+.block-body p{margin:0 0 10px}
+.block-body p:last-child{margin-bottom:0}
+.block-problem{border-left-color:var(--brand);background:var(--soft)}
+.block-steps{border-left-color:var(--accent)}
+.block-success{border-left-color:var(--ok)}
+.block-success .block-title{color:var(--ok)}
+.block-error{border-left-color:var(--warn);background:var(--warnbg)}
+.block-error .block-title{color:var(--warn)}
+.block-mobile{border-left-color:var(--muted)}
+.block-notes{border-left-color:var(--accent)}
+.block-tool{border-left-color:var(--ok);background:var(--soft)}
+/* checklist */
+.step{display:flex;gap:11px;align-items:flex-start;padding:9px 10px;border-radius:9px;cursor:pointer;
+  transition:background .12s}
+.step:hover{background:var(--soft)}
+.step input{margin:3px 0 0;width:20px;height:20px;flex:0 0 20px;accent-color:var(--accent);cursor:pointer}
+.step-txt{flex:1 1 auto}
+.step input:checked + .step-txt{opacity:.55;text-decoration:line-through;text-decoration-color:var(--muted)}
+.substeps{margin:6px 0 0;padding-left:16px;font-size:.95em;color:var(--muted)}
+.substeps li{margin-bottom:3px}
+ul.bullets{margin:6px 0;padding-left:20px}
+ul.bullets li{margin-bottom:5px}
+code{font-family:var(--mono);background:var(--soft);padding:1px 5px;border-radius:5px;font-size:.9em;word-break:break-word}
+/* copy block */
+.copyblock{position:relative;background:var(--soft);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;margin:10px 0}
+.copyblock.quote{border-left:4px solid var(--accent)}
+.copyblock pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:13px;padding-right:70px}
+.quote-txt{font-style:italic;padding-right:70px}
+.copybtn,.toolbtn{font-family:var(--ui);font-weight:700;font-size:12px;cursor:pointer;border:0;border-radius:8px;
+  background:var(--accent);color:var(--onaccent);padding:7px 12px}
+.copybtn{position:absolute;top:10px;right:10px}
+.copybtn.done{background:var(--ok)}
+.toolbtn{margin:6px 0 4px;padding:9px 15px;font-size:13px}
+.hint{font-size:13px;color:var(--muted)}
+.sigout{white-space:pre-wrap;font-style:normal}
+/* lock */
+.lockwrap{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-start;justify-content:center;padding-top:20px}
+.lockcard{background:var(--card);border:2px solid var(--accent);border-radius:16px;padding:24px;max-width:440px;
+  text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.18)}
+.lockico{font-size:34px}
+.lockcard h4{font-family:var(--display);margin:6px 0 8px;color:var(--brand)}
+.lockcard p{font-size:14px;color:var(--muted);margin:0 0 14px}
+.lockcta{display:block;background:var(--accent);color:var(--onaccent);text-decoration:none;
+  font-family:var(--display);font-weight:800;padding:13px;border-radius:10px;margin-bottom:10px}
+.lockdemo{background:transparent;border:1.5px dashed var(--muted);color:var(--muted);font-family:var(--ui);
+  font-size:12px;padding:9px 14px;border-radius:9px;cursor:pointer}
+.guide-inner{min-height:60px}
+/* guide nav */
+.guide-nav{display:flex;justify-content:space-between;gap:10px;margin-top:8px}
+.gbtn{font-family:var(--ui);font-weight:600;font-size:13px;border:1.5px solid var(--line);background:var(--card);
+  color:var(--text);border-radius:10px;padding:11px 16px;cursor:pointer}
+.gbtn.primary{background:var(--accent);color:var(--onaccent);border-color:var(--accent)}
+.gbtn:hover{border-color:var(--accent)}
+/* footer */
+footer.foot{background:var(--brand);color:var(--onbrand);padding:26px 0;margin-top:20px}
+footer.foot .wrap{font-family:var(--ui);font-size:12.5px;line-height:1.7;opacity:.92}
+footer.foot .disclaimer{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.4);color:#fff;opacity:.95}
+.memnote{font-family:var(--ui);font-size:12px;color:var(--muted);text-align:center;margin:10px 0}
+/* mobile */
+.menutoggle{display:none}
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  aside.side{position:static;flex:1 1 auto;width:100%;max-height:none}
+  .ficha-grid{grid-template-columns:1fr}
+  .navlist-collapsible{display:none}
+  .navlist-collapsible.open{display:block}
+  .menutoggle{display:block;width:100%;font-family:var(--ui);font-weight:700;background:var(--soft);
+    border:1px solid var(--line);border-radius:10px;padding:11px;cursor:pointer;color:var(--brand);margin-bottom:10px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <svg class="brandmark" viewBox="0 0 100 120" aria-hidden="true"><path d="M0 26a26 26 0 0 1 26-26h48a26 26 0 0 1 26 26v60H0z" fill="#F2A81D"/><path d="M0 84h100L50 120z" fill="#F2A81D"/><rect x="22" y="24" width="56" height="10" rx="5" fill="#14452F"/><rect x="22" y="42" width="56" height="10" rx="5" fill="#14452F"/><rect x="22" y="60" width="56" height="10" rx="5" fill="#14452F"/></svg><div class="brandtxt"><span class="eyebrow">Guía Clave · 02 · Playbook</span><h1>Pon tu negocio <em>en internet</em></h1></div>
+    <div class="updated">Actualizado a julio 2026</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="disclaimer"><!--DISCLAIMER_TEMA-->Contenido orientativo, no asesoría profesional ni fiscal. Meta, Facebook, Instagram, WhatsApp y Google son marcas de sus titulares; guía independiente no afiliada, patrocinada ni avalada por ellos. Estas plataformas cambian sus pantallas con frecuencia; verifica en su ayuda oficial antes de actuar.</div>
+</div>
+
+<div class="wrap">
+ <div class="layout">
+  <aside class="side">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
+      <div class="progress-label" id="plabel">Has completado 0 de 0 pasos</div>
+    </div>
+    <button class="menutoggle" onclick="toggleMenu()">Ver índice de micro-guías</button>
+    <div class="navlist-collapsible" id="navlist">
+      <h2>Micro-guías</h2>
+      <ul class="nav"><li><button class="navbtn active" data-idx="0" onclick="showGuide(0)"><span class="navnum">01</span><span class="navtxt">Tu página de Facebook, bien hecha desde el primer día</span> <span class="freemini">GRATIS</span></button></li>
+<li><button class="navbtn" data-idx="1" onclick="showGuide(1)"><span class="navnum">02</span><span class="navtxt">Qué es Meta Business Suite y por qué te conviene entrar ahí</span> <span class="freemini">GRATIS</span></button></li>
+<li><button class="navbtn" data-idx="2" onclick="showGuide(2)"><span class="navnum">03</span><span class="navtxt">Tu cuenta de Instagram profesional</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="3" onclick="showGuide(3)"><span class="navnum">04</span><span class="navtxt">Cómo vincular Instagram con tu página de Facebook</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="4" onclick="showGuide(4)"><span class="navnum">05</span><span class="navtxt">Cómo dar acceso a un empleado sin darle tu contraseña</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="5" onclick="showGuide(5)"><span class="navnum">06</span><span class="navtxt">Cómo blindar tu cuenta para que no te la roben</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="6" onclick="showGuide(6)"><span class="navnum">07</span><span class="navtxt">Qué hacer si te hackearon la página del negocio</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="7" onclick="showGuide(7)"><span class="navnum">08</span><span class="navtxt">Pasar de WhatsApp normal a WhatsApp Business sin perder tus chats</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="8" onclick="showGuide(8)"><span class="navnum">09</span><span class="navtxt">Tu catálogo de productos en WhatsApp Business</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="9" onclick="showGuide(9)"><span class="navnum">10</span><span class="navtxt">Mensaje de bienvenida y mensaje de ausencia</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="10" onclick="showGuide(10)"><span class="navnum">11</span><span class="navtxt">Respuestas rápidas y etiquetas: deja de escribir lo mismo veinte veces</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="11" onclick="showGuide(11)"><span class="navnum">12</span><span class="navtxt">Tu enlace de WhatsApp para pegarlo en todos lados</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="12" onclick="showGuide(12)"><span class="navnum">13</span><span class="navtxt">Cómo poner tu negocio en Google Maps</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="13" onclick="showGuide(13)"><span class="navnum">14</span><span class="navtxt">Cómo verificar tu negocio en Google (y qué hacer si te rechazan)</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="14" onclick="showGuide(14)"><span class="navnum">15</span><span class="navtxt">Fotos y horarios que sí traen clientes</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="15" onclick="showGuide(15)"><span class="navnum">16</span><span class="navtxt">Las estafas de siempre: quién te va a querer cobrar por esto</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="16" onclick="showGuide(16)"><span class="navnum">17</span><span class="navtxt">Cómo pedir reseñas sin dar pena</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="17" onclick="showGuide(17)"><span class="navnum">18</span><span class="navtxt">Cómo responder reseñas, incluidas las que duelen</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="18" onclick="showGuide(18)"><span class="navnum">19</span><span class="navtxt">Qué publicar cuando no se te ocurre nada</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="19" onclick="showGuide(19)"><span class="navnum">20</span><span class="navtxt">Fotos con el celular que no se ven mal</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li>
+<li><button class="navbtn" data-idx="20" onclick="showGuide(20)"><span class="navnum">21</span><span class="navtxt">Cuándo conviene pagar publicidad, cuánto, y cómo saber si sirvió</span> <span class="lockmini" title="Se desbloquea con la compra">&#128274;</span></button></li></ul>
+      <div class="leadmagnet"><div class="lead-eyebrow">PRUEBA GRATIS</div><h3>Tienes 2 micro-guías completas, gratis.</h3><p>Estás viendo una muestra del playbook. Las guías <b>01</b> y <b>02</b> están desbloqueadas y funcionan completas. Las <b>19</b> restantes se abren con la compra.</p><a class="lead-cta" href="__CHECKOUT_URL__" rel="noopener">Desbloquea las 19 guías por $5.99 USD</a><div class="lead-or">o</div><div class="lead-hub">Accede a <b>todas</b> con la <b>suscripción del hub Guía Clave</b>: este título suelto es solo la puerta de entrada — la suscripción te da los tres títulos y los que vienen.</div></div>
+    </div>
+  </aside>
+  <main class="main">
+    <details class="ficha" open><summary>Ficha de tus datos <span class="ficha-hint">(se reutiliza en los generadores)</span></summary><div class="ficha-grid"><label class="ficha-row"><span>Tu nombre</span><input class="fld ficha-fld" id="ficha-nombre" oninput="onField(this)" placeholder="Tu nombre"></label><label class="ficha-row"><span>Tu negocio / tu página</span><input class="fld ficha-fld" id="ficha-negocio" oninput="onField(this)" placeholder="Tu negocio / tu página"></label><label class="ficha-row"><span>Tu correo</span><input class="fld ficha-fld" id="ficha-correo" oninput="onField(this)" placeholder="Tu correo"></label><label class="ficha-row"><span>Tu teléfono (10 dígitos)</span><input class="fld ficha-fld" id="ficha-tel" oninput="onField(this)" placeholder="Tu teléfono (10 dígitos)"></label><label class="ficha-row"><span>Tu sitio / tu ciudad</span><input class="fld ficha-fld" id="ficha-web" oninput="onField(this)" placeholder="Tu sitio / tu ciudad"></label><label class="ficha-row"><span>Tu RFC (si lo usas)</span><input class="fld ficha-fld" id="ficha-rfc" oninput="onField(this)" placeholder="Tu RFC (si lo usas)"></label></div></details>
+    <p class="memnote">Tu avance (casillas y campos) se guarda mientras esta pestaña esté abierta. Al recargar, se reinicia.</p>
+    <article class="guide active" id="g1" data-idx="0"><div class="guide-head"><span class="guide-num">01</span><h2 class="guide-title">Tu página de Facebook, bien hecha desde el primer día</h2></div><div class="guide-progress"><span id="g1-gp">0</span> de <span id="g1-gt">0</span> pasos hechos en esta guía</div><div class="guide-inner"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Tu negocio no tiene página, o tiene una que abriste hace años desde tu perfil personal y que ya no sabes ni cómo se administra.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para cualquier negocio que todavía no tiene página, y para el que tiene una hecha a medias y quiere dejarla bien. También para el que cometió el error clásico: crear el negocio como si fuera <em>una persona</em>, con nombre y apellido, en vez de como página.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g1-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Entiende la diferencia antes de tocar nada.</strong> Un <strong>perfil</strong> es una persona. Una <strong>página</strong> es un negocio. Se ven parecidas pero no son lo mismo: la página tiene estadísticas, botones de contacto, catálogo, publicidad y varios administradores. El perfil no tiene nada de eso y, además, usar un perfil personal como negocio va contra las reglas de la plataforma: te lo pueden cerrar sin aviso y pierdes todo. Si tu negocio hoy es un perfil llamado &quot;Taquería El Güero Rodríguez&quot;, esta guía te importa doble.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g1-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Ten listo tu perfil personal.</strong> Toda página cuelga de una persona real. Eso no significa que tus clientes vayan a ver tu perfil: significa que alguien tiene que ser el dueño administrativo. Ese alguien eres tú. Inicia sesión con tu cuenta personal.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g1-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Busca la opción de crear página.</strong> Desde la computadora, en el menú de la izquierda casi siempre hay una sección de <strong>Páginas</strong>; ahí adentro está el botón para crear una nueva. Desde el celular está en el menú de tres rayas. Si no lo encuentras a la primera, escribe &quot;crear página&quot; en el buscador de la propia aplicación: te lleva.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g1-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Escribe el nombre exacto de tu negocio.</strong> El que está pintado en la fachada. Nada de &quot;Estética Lupita ✂️ La Mejor de la Colonia 💇 Citas al WhatsApp&quot;. Solo <strong>Estética Lupita</strong>. Los adornos y las palabras de más te hacen ver improvisado y, peor, te complican después la verificación y la ficha de mapa, porque el nombre no coincide con el del letrero.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g1-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Elige la categoría correcta.</strong> Empieza a escribir lo que haces —&quot;estética&quot;, &quot;taller mecánico&quot;, &quot;taquería&quot;, &quot;consultorio dental&quot;— y toma la opción que más se parezca de la lista que te ofrece. La categoría es lo que hace que la gente te encuentre cuando busca ese servicio. Puedes poner hasta tres; pon las tres, pero que la primera sea la principal.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g1-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Escribe la descripción.</strong> Doscientos cincuenta caracteres, más o menos. Fórmula que sirve: <strong>qué haces + para quién + dónde + qué te hace distinto.</strong> Ejemplo: <em>&quot;Taller mecánico general en la colonia Obrera. Servicio, frenos, suspensión y diagnóstico. Trabajamos con cita y te entregamos el mismo día. Más de 20 años en la esquina de Aldama.&quot;</em></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g1-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Sube foto de perfil y portada.</strong> La de perfil se ve <em>redonda</em> y muy chica: pon tu logo, o el letrero, o la fachada de frente. Nada con texto pequeño, porque no se va a leer. La de portada es horizontal y ancha: pon el local, tu producto o tu equipo. <strong>No pongas una imagen bajada de internet.</strong> Se nota, y además no es tuya.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g1-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Llena los datos de contacto.</strong> Dirección exacta, teléfono, WhatsApp, horarios reales. Esto suena a trámite aburrido y es justo lo que más te va a traer clientes: la gente busca &quot;cerca de mí&quot; y quiere saber si estás abierto ahorita.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g1-c9" onchange="onCheck(this)"><span class="step-txt"><strong>9. Pon el botón de acción.</strong> Toda página tiene un botón grande arriba. Ponlo en <strong>Enviar mensaje</strong> o en <strong>WhatsApp</strong>, no en &quot;Más información&quot;. Que la gente pueda escribirte de un toque.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g1-c10" onchange="onCheck(this)"><span class="step-txt"><strong>10. Publica algo antes de invitar a nadie.</strong> Tres publicaciones mínimo: qué haces, una foto de tu producto o local, y tus horarios. Una página vacía se ve abandonada.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g1-c11" onchange="onCheck(this)"><span class="step-txt"><strong>11. Ahora sí, invita.</strong> Tus contactos, tu familia, tus clientes de siempre. Los primeros cien seguidores son gente que ya te conoce.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Cierra sesión, o abre el navegador en modo privado, y busca el nombre de tu negocio. Debe aparecer tu página con foto, dirección, horarios y el botón de mensaje. Si un desconocido puede verla y entender qué vendes y dónde estás en menos de diez segundos, quedó.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Poner el nombre del dueño en lugar del nombre del negocio. &quot;Lupita Sánchez&quot; en vez de &quot;Estética Lupita&quot;. Nadie busca a Lupita Sánchez; buscan una estética. El nombre de la página es tu letrero, no tu credencial.</p>
+<p>El segundo error más común: dejar el horario en blanco &quot;porque varía&quot;. Pon el horario más frecuente. Uno aproximado sirve mil veces más que ninguno.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Todo esto se hace igual desde el teléfono, con dos diferencias: el menú está en las tres rayitas (arriba a la derecha en Android, abajo a la derecha en iPhone), y algunas opciones de configuración fina —como los tres campos de categoría— aparecen más escondidas. Consejo: <strong>crea la página desde el celular si eso es lo que tienes</strong>, y cuando puedas siéntate diez minutos en una computadora, aunque sea prestada, a rellenar los datos que faltaron. La computadora te muestra el formulario completo de un golpe.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g1-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g2" data-idx="1"><div class="guide-head"><span class="guide-num">02</span><h2 class="guide-title">Qué es Meta Business Suite y por qué te conviene entrar ahí</h2></div><div class="guide-progress"><span id="g2-gp">0</span> de <span id="g2-gt">0</span> pasos hechos en esta guía</div><div class="guide-inner"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Tienes página de Facebook, tienes Instagram, y andas brincando de una app a otra sin saber que hay un solo lugar donde se administra todo.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para quien ya tiene al menos una página. Si todavía no la tienes, haz primero la micro-guía 1.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g2-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Entiende qué es, en cristiano.</strong> Meta Business Suite es el <strong>mostrador de atrás</strong> de tu negocio digital. Facebook e Instagram son la vitrina que ve el cliente; Business Suite es la trastienda donde tú ves los mensajes, programas publicaciones, revisas números y decides quién tiene llaves. Es gratis.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g2-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Entra.</strong> Desde la computadora, en el menú de tu página aparece la entrada al panel de negocios. Desde el celular hay una aplicación aparte, que se llama igual. Descárgala: es la que vas a usar todos los días.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g2-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Reconoce las cuatro secciones que de verdad importan.</strong> El panel tiene muchas cosas; tú vas a usar cuatro:<ul class="substeps"><li><strong>Bandeja de entrada.</strong> Mensajes de Facebook, de Instagram y comentarios, todos juntos. Aquí es donde se te van los clientes si no contestas.</li><li><strong>Publicaciones.</strong> Para publicar ahora o programar para después. Esta sola función te ahorra la vida (ver micro-guía 19).</li><li><strong>Estadísticas o resultados.</strong> Cuánta gente te vio, de dónde son, qué publicación funcionó.</li><li><strong>Configuración.</strong> Datos del negocio, personas con acceso, y seguridad.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g2-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Revisa que tus datos del negocio estén completos ahí.</strong> El panel tiene su propia ficha de información. Si en la página pusiste bien la dirección pero aquí no, vas a tener incoherencias.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g2-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Activa las notificaciones de la app en tu celular.</strong> Suena obvio. No lo es: la mayoría de los negocios pierde clientes porque nadie vio el mensaje.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g2-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Ojo, esto cambió.</strong> Durante los últimos años Meta ha estado moviendo funciones entre &quot;Business Suite&quot; y el antiguo &quot;Administrador Comercial&quot; (Business Manager), y en algunos casos ofrece cambiar de una vista a la otra desde un menú en la esquina. Si abres el panel y no se parece a lo que aquí describo, busca esa opción de <strong>cambiar de vista</strong> antes de concluir que no tienes la función: casi siempre está, solo que del otro lado. Lo que no cambia es la lógica: bandeja, publicaciones, números, permisos.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Abre la app de Business Suite en tu celular. Si ves la bandeja de entrada con los mensajes de tu página y puedes responder desde ahí sin abrir Facebook, ya estás dentro. Prueba: pídele a un familiar que le escriba a tu página. El mensaje debe llegarte con notificación.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Entrar una vez, ver que hay veinte botones que no entiendes, cerrarlo y no volver. No necesitas entender los veinte. Necesitas cuatro. Ignora el resto con toda tranquilidad hasta que algo te haga falta.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>La app móvil es más simple que la versión de computadora, y para el 90% de tu trabajo diario es suficiente. Lo único que sí conviene hacer en computadora: dar y quitar permisos a personas (micro-guía 5) y configurar publicidad (micro-guía 21). Son pantallas con muchas casillas y en el teléfono se cometen errores.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g2-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g3" data-idx="2" data-locked="1"><div class="guide-head"><span class="guide-num">03</span><h2 class="guide-title">Tu cuenta de Instagram profesional</h2></div><div class="guide-progress"><span id="g3-gp">0</span> de <span id="g3-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g3-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g3')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Vendes por Instagram desde tu cuenta personal, no tienes botón de contacto, no puedes ver estadísticas y no puedes programar nada.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para negocios que ya publican en Instagram o quieren empezar. Es especialmente útil si lo que vendes se ve bonito: comida, ropa, uñas, cortes de pelo, pasteles, muebles, flores, tatuajes.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g3-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Decide: ¿cuenta nueva o convertir la que tienes?</strong> Si tu cuenta actual mezcla fotos de tu negocio con las del bautizo de tu sobrina, <strong>abre una nueva</strong> para el negocio. Si ya es prácticamente una cuenta de negocio, conviértela y aprovecha los seguidores que ya tienes.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g3-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Elige nombre de usuario coherente.</strong> El arroba debe parecerse al nombre del negocio y, si se puede, ser igual en todas partes. <code>@esteticalupita</code> en Instagram, &quot;Estética Lupita&quot; en la página, &quot;Estética Lupita&quot; en el mapa. Sin puntos ni guiones bajos si puedes evitarlos: la gente los escribe mal.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g3-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Ve a la configuración de la cuenta y busca el cambio a cuenta profesional.</strong> Está dentro del menú de configuración, en una sección que habla de tipo de cuenta o de herramientas para creadores y empresas. Elige <strong>Empresa</strong>, no &quot;Creador de contenido&quot;: la de empresa es la que te deja poner dirección, horarios y botón de WhatsApp.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g3-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Escoge categoría.</strong> La misma lógica que en la página: la que describe lo que haces.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g3-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Llena la biografía.</strong> Tienes 150 caracteres. No los desperdicies en frases motivacionales. Fórmula: <strong>qué vendes · dónde estás · cómo te contactan.</strong> Ejemplo: <em>&quot;Pasteles y postres por encargo 🎂 Col. Álamos, CDMX · Pedidos con 48 h de anticipación · Escríbenos abajo 👇&quot;</em></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g3-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Pon el enlace.</strong> Uno solo. Que sea tu enlace de WhatsApp (micro-guía 12). Es el que más convierte para un negocio local.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g3-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Activa los botones de contacto.</strong> En la edición del perfil profesional aparecen campos de teléfono, correo y dirección. Llénalos: son los que crean los botones que ve el cliente.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g3-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Deja las primeras nueve publicaciones bien puestas.</strong> Lo primero que ve alguien que llega a tu perfil es una cuadrícula de nueve. Que esas nueve cuenten la historia: qué vendes (3), cómo se ve por dentro tu local (2), quién lo hace (1), clientes contentos o producto en uso (2), y una con precios o información práctica (1).</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Entra a tu perfil desde el celular de alguien más. Debes ver los botones de contacto debajo de la biografía, y en tu propia vista debe aparecer un acceso a estadísticas que antes no tenías. Si ves cuánta gente vio tus publicaciones la semana pasada, ya es cuenta profesional.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Poner la cuenta en privado. Un negocio con cuenta privada es una tienda con la cortina abajo: nadie que no te siga puede ver nada, y nadie te va a seguir sin ver nada primero. Cuenta de negocio siempre pública.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Instagram es una aplicación pensada para el celular; aquí el teléfono no es la versión pobre, es la versión completa. Lo único que se hace mejor en computadora es escribir textos largos y organizar el catálogo. Truco: escribe tus textos en las notas del celular y luego cópialos; escribir directo en el cuadro de publicación es donde se pierden los textos cuando se cierra la app.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g3-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g4" data-idx="3" data-locked="1"><div class="guide-head"><span class="guide-num">04</span><h2 class="guide-title">Cómo vincular Instagram con tu página de Facebook</h2></div><div class="guide-progress"><span id="g4-gp">0</span> de <span id="g4-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g4-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g4')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Publicas dos veces lo mismo, contestas mensajes en dos apps distintas, y no puedes anunciar en las dos plataformas de un jalón.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para quien ya tiene página de Facebook (micro-guía 1) y cuenta profesional de Instagram (micro-guía 3). Necesitas las dos.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g4-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Ten claro qué gana el negocio.</strong> Vincular sirve para tres cosas concretas: publicar en las dos al mismo tiempo, recibir todos los mensajes en una sola bandeja, y poder pagar publicidad que aparezca en ambas. Si te dijeron que era para &quot;sincronizar&quot;, quédate con estas tres.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g4-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Hazlo desde Business Suite, no desde las apps sueltas.</strong> Es el camino que menos se rompe. En la configuración del panel de negocios hay una sección de <strong>cuentas</strong> y ahí, adentro, <strong>cuentas de Instagram</strong>. Ahí se agrega.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g4-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Inicia sesión en Instagram cuando te lo pida.</strong> Te va a pedir usuario y contraseña de Instagram. Es normal y es la forma correcta: se lo estás dando a la propia plataforma, no a un tercero. Si en cambio <em>una página que no reconoces</em> te pide tu contraseña de Instagram, sal de ahí.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g4-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Confirma los permisos.</strong> Te va a preguntar si permites que la página administre mensajes y publicaciones de Instagram. Sí.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g4-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Verifica que la bandeja quedó unificada.</strong> Vuelve a la bandeja de entrada del panel. Debe haber un filtro que diga Instagram y otro que diga Facebook, y mensajes de las dos.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g4-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Si tienes también Messenger y WhatsApp, conéctalos ahí mismo.</strong> En esa misma sección de cuentas se puede enlazar el número de WhatsApp Business del negocio, para que en tus publicaciones aparezca el botón que abre el chat directo.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g4-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Ojo con la trampa.</strong> Vincular <strong>no significa</strong> que todo se publique automáticamente en las dos. Cada vez que publicas, el panel te pregunta dónde quieres que salga y trae unas casillas marcadas. Revísalas. Es común publicar algo pensado para Instagram y que salga también en Facebook con un formato que ahí se ve mal.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Manda un mensaje directo a tu Instagram desde otra cuenta. Debe llegarte a la bandeja del panel de negocios, no solo a la app de Instagram. Y al crear una publicación, deben aparecerte las dos casillas.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Vincular con la cuenta personal de Instagram del dueño en vez de la del negocio, porque estaba abierta sesión en el celular. Revisa el arroba que aparece en la pantalla de conexión antes de darle aceptar. Si te equivocaste, se desvincula desde la misma sección de cuentas y se vuelve a hacer.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Se puede, dentro de la app de Business Suite o desde la configuración de la cuenta de Instagram, en la sección que habla de compartir en otras aplicaciones. Pero es de las pocas cosas que de verdad recomiendo hacer en computadora: en el teléfono la pantalla de permisos aparece cortada y es fácil aceptar sin leer, o pensar que quedó cuando no quedó.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g4-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g5" data-idx="4" data-locked="1"><div class="guide-head"><span class="guide-num">05</span><h2 class="guide-title">Cómo dar acceso a un empleado sin darle tu contraseña</h2></div><div class="guide-progress"><span id="g5-gp">0</span> de <span id="g5-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g5-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g5')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Le pasaste tu contraseña a tu sobrino para que subiera fotos, y ahora tu sobrino tiene acceso a tu cuenta personal, a tus mensajes privados y a tu tarjeta.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para todo negocio donde más de una persona toca las redes. Y para el que ya cometió el error y quiere arreglarlo sin pleito.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g5-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Convéncete de por qué importa.</strong> Compartir contraseña tiene tres problemas: la persona ve todo lo tuyo, no puedes saber quién hizo qué, y el día que se va del negocio tienes que cambiar la contraseña de tu vida entera. Con accesos separados, das llave de una puerta, no del edificio, y la quitas en diez segundos.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g5-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Entra a la configuración de personas.</strong> En el panel de negocios, en configuración, hay una sección de <strong>personas</strong> o <strong>usuarios</strong>. Ahí está la lista de quién tiene acceso hoy. Léela con calma: casi siempre hay sorpresas, gente de hace años.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g5-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Agrega a la persona con su propio correo.</strong> Le mandas una invitación al correo de ella. Ella acepta desde su cuenta. Nunca desde la tuya.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g5-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Elige el nivel correcto de acceso.</strong> Los nombres cambian con los rediseños, pero los niveles son siempre estos tres, de menor a mayor:<ul class="substeps"><li><strong>El que solo contesta mensajes y comentarios.</strong> Este es el que le das al muchacho del mostrador. Puede atender clientes y no puede tocar nada más.</li><li><strong>El que además publica y edita contenido.</strong> Este es para quien lleva las redes. Puede subir fotos, escribir, programar, ver estadísticas.</li><li><strong>El acceso total, de administrador.</strong> Este puede cambiar el nombre del negocio, borrar la página, gastar dinero en anuncios y <strong>quitarte a ti</strong>. Este solo lo tiene el dueño. Punto.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g5-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Regla de oro: nunca haya dos administradores totales que no sean socios de verdad.</strong> Si el negocio es tuyo, tú eres el único con acceso total. Si tienes un socio real, dos. Nunca el &quot;amigo que sabe de computadoras&quot;.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g5-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Cuando alguien se va, quítale el acceso el mismo día.</strong> No la semana que viene. Ese mismo día, desde esa misma lista, en el botón de quitar.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g5-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Revisa la lista cada seis meses.</strong> Ponte una alarma en el teléfono. Es lo más barato que puedes hacer por la seguridad de tu negocio.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>La persona debe poder abrir la app de Business Suite desde <strong>su propio</strong> teléfono, con <strong>su propia</strong> cuenta, y ver tu página. Y tú debes verla listada por nombre en la sección de personas, con el nivel que le diste. Si tuvo que iniciar sesión con tu correo, no funcionó: eso sigue siendo compartir contraseña.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Dar acceso total &quot;porque no funcionaba el otro&quot;. Casi siempre lo que pasa es que la persona no aceptó la invitación que le llegó al correo, o la aceptó desde otra cuenta. Revisa que haya aceptado antes de subirle el nivel.</p>
+<p>Error número dos: pensar que quitar a alguien de la página le quita también el acceso al catálogo, a la cuenta publicitaria o al Instagram. Son permisos separados. Cuando alguien se va, revisa las tres listas.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Se puede desde la app, pero las pantallas de permisos son largas y en el teléfono se ven a medias. Este es de los trámites que sí vale la pena hacer sentado en una computadora. Si no tienes, pídele prestada la de alguien de confianza y usa el modo privado del navegador para que no se te quede la sesión abierta ahí. <strong>Y ciérrala al terminar.</strong></p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g5-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g6" data-idx="5" data-locked="1"><div class="guide-head"><span class="guide-num">06</span><h2 class="guide-title">Cómo blindar tu cuenta para que no te la roben</h2></div><div class="guide-progress"><span id="g6-gp">0</span> de <span id="g6-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g6-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g6')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Tu negocio entero vive en una cuenta protegida por una sola contraseña que además usas en otros seis lugares.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para todos. Sin excepción. Si vas a hacer una sola micro-guía de este libro hoy, que sea esta.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g6-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Cambia la contraseña de tu cuenta personal, la que administra la página.</strong> No la de la página: la <strong>tuya</strong>. Ahí está la llave maestra. Que sea larga y que no la uses en ningún otro lado. Un truco que funciona: tres palabras que no tengan relación, más un número. <em>Cortina-Mango-Tornillo-47</em>. Es más segura y más fácil de recordar que &quot;Lupita2024#&quot;.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g6-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Activa la verificación en dos pasos.</strong> Esto es lo que de verdad detiene un robo. Significa que, aunque alguien tenga tu contraseña, no puede entrar sin un código que llega a tu teléfono. Está en la configuración de seguridad de tu cuenta, en una sección que habla de contraseña y seguridad.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g6-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Elige el método.</strong> Te van a ofrecer varios:<ul class="substeps"><li><strong>Aplicación de autenticación</strong> (una app que genera códigos que cambian cada 30 segundos). Es la más segura. Si puedes, esta.</li><li><strong>Mensaje de texto al celular.</strong> Más fácil pero más vulnerable: si te clonan el chip, se acabó. Aun así, es infinitamente mejor que nada.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g6-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Guarda los códigos de respaldo.</strong> Cuando activas la verificación, te dan una lista de códigos de emergencia para el día que pierdas el teléfono. <strong>Imprímelos o escríbelos a mano</strong> y guárdalos donde guardas los papeles importantes del negocio. No los dejes en una nota del mismo teléfono: si pierdes el teléfono, pierdes las dos cosas.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g6-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Activa la protección extra de la página.</strong> Los paneles de negocio ofrecen una opción que exige que todos los administradores tengan verificación en dos pasos. Actívala. Así no depende de la buena voluntad de nadie.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g6-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Revisa desde qué dispositivos hay sesión abierta.</strong> En la misma sección de seguridad hay una lista de dispositivos y ciudades. Si ves algo que no reconoces, ciérralo y cambia la contraseña ya.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g6-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Ten un segundo administrador de confianza absoluta.</strong> Si solo tú administras y pierdes el acceso, no hay quién te rescate. Que sea tu socio o alguien de la familia con quien la confianza sea total.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Cierra sesión en un navegador y vuelve a entrar. Debe pedirte el código además de la contraseña. Si entró de frente, no quedó activada.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Poner el número de teléfono del negocio, ese que contesta cualquiera, como número de recuperación. Pon el tuyo personal. Y no uses como correo de recuperación uno al que ya no entras hace años: ese es el hoyo por donde se meten.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Todo esto se hace desde la app, en el menú de configuración, en la sección de contraseña y seguridad. Si te pierdes en los menús, usa el buscador que hay arriba de la configuración: escribe &quot;dos pasos&quot; y te lleva directo. Ese buscador es el mejor amigo de quien no quiere memorizar dónde está cada cosa, y funciona igual aunque rediseñen la app.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g6-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g7" data-idx="6" data-locked="1"><div class="guide-head"><span class="guide-num">07</span><h2 class="guide-title">Qué hacer si te hackearon la página del negocio</h2></div><div class="guide-progress"><span id="g7-gp">0</span> de <span id="g7-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g7-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g7')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Ya no puedes entrar, o entras y hay publicaciones que tú no hiciste, o alguien más aparece como dueño.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para el que ya está en la emergencia. Léela ahora y actúa hoy: cada hora cuenta.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g7-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Primero revisa lo obvio.</strong> ¿Estás usando el correo correcto? ¿La contraseña tiene el bloqueo de mayúsculas puesto? Un porcentaje enorme de &quot;me hackearon&quot; es &quot;me equivoqué de cuenta&quot;. Descarta eso en dos minutos.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g7-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Si sí entras: cambia la contraseña inmediatamente y cierra todas las sesiones.</strong> En seguridad hay una opción para cerrar sesión en todos los dispositivos. Úsala. Después activa la verificación en dos pasos (micro-guía 6).</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g7-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Revisa la lista de personas con acceso.</strong> El atacante casi siempre se agrega como administrador. Bórralo. Si no puedes borrarlo porque tiene el mismo nivel que tú, ese es el escenario grave y pasa al punto 5.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g7-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Revisa la cuenta publicitaria.</strong> Es lo que persiguen: gastar tu tarjeta en anuncios. Entra a facturación, mira si hay campañas activas que no creaste, páusalas, y <strong>quita tu método de pago</strong>. Después llama a tu banco y reporta los cargos.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g7-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Si ya no entras: usa el flujo oficial de cuenta comprometida.</strong> Todas las plataformas grandes tienen una página de recuperación de cuenta hackeada. Se llega escribiendo en el buscador de la propia plataforma &quot;cuenta hackeada&quot; o &quot;no puedo iniciar sesión&quot;. Te va a pedir identificación oficial. Ten lista una foto clara de tu INE o pasaporte, con el nombre igual al de la cuenta.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g7-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. No pagues a nadie que te ofrezca &quot;recuperar tu cuenta&quot;.</strong> Esta es la segunda estafa, la que llega justo después de la primera. Aparecen en los comentarios de páginas que se quejan de lo mismo, se hacen llamar hackers éticos, y lo único que hacen es cobrarte y desaparecer. Nadie externo puede recuperar tu cuenta. Solo la plataforma.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g7-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Avisa a tus clientes por otro canal.</strong> Un mensaje por WhatsApp o un cartel en el mostrador: <em>&quot;Nuestra página está comprometida. Si recibes mensajes pidiéndote dinero o datos, ignóralos.&quot;</em> Esto protege a tu gente y protege tu nombre.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g7-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Mientras se resuelve, no te quedes sin presencia.</strong> Si tenías ficha de Google Maps y WhatsApp Business (micro-guías 8 y 13), sigues existiendo. Esa es exactamente la razón por la que este libro insiste en no poner todos los huevos en una canasta.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Recuperaste cuando: entras con tu contraseña nueva, en la lista de personas solo hay gente que reconoces, no hay campañas publicitarias corriendo, y la verificación en dos pasos está activa. Las cuatro cosas.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Crear una página nueva a los dos días, de puro coraje. Pierdes seguidores, reseñas e historial, y además quedan dos páginas del mismo negocio confundiendo a la gente. Aguanta el proceso de recuperación; puede tardar días o semanas, pero suele funcionar.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>El proceso de recuperación con identificación se hace mejor en el celular, porque necesitas tomar la foto del documento en el momento. Consejo: tómala sobre una superficie oscura, sin flash, con luz de ventana, y que se vean las cuatro esquinas del documento. La mitad de los rechazos son por fotos donde falta una esquina o hay reflejo.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g7-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g8" data-idx="7" data-locked="1"><div class="guide-head"><span class="guide-num">08</span><h2 class="guide-title">Pasar de WhatsApp normal a WhatsApp Business sin perder tus chats</h2></div><div class="guide-progress"><span id="g8-gp">0</span> de <span id="g8-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g8-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g8')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Atiendes clientes por tu WhatsApp de siempre, mezclado con los mensajes de tu familia, y no tienes catálogo ni respuestas automáticas.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para cualquier negocio en México. Aquí el teléfono es el canal de venta, no un extra. Si solo vas a hacer tres micro-guías de este libro, que sean la 8, la 13 y la 16.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g8-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Decide qué número vas a usar.</strong> Dos caminos honestos:<ul class="substeps"><li><strong>Mismo número.</strong> Es lo más común y lo más rápido. Ventaja: tus clientes ya lo tienen. Desventaja: se te mezcla lo personal con lo del trabajo, para siempre.</li><li><strong>Número nuevo, solo para el negocio.</strong> Un chip barato. Ventaja: a las nueve de la noche apagas el negocio. Desventaja: hay que avisarle a todo el mundo el número nuevo. <strong>Si tu negocio recibe más de diez mensajes al día, vale cada peso.</strong></li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g8-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Haz una copia de seguridad ANTES de nada.</strong> Este es el paso que la gente se salta y luego llora. En tu WhatsApp actual, entra a ajustes, chats, copia de seguridad, y haz una <strong>ahora mismo</strong>, manual. Espera a que termine. Si el respaldo va a la nube, revisa que tengas espacio.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g8-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Descarga WhatsApp Business.</strong> Es una aplicación <strong>aparte</strong>, gratis, de la misma empresa. No es una actualización ni una compra dentro de la app.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g8-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Ábrela y sigue el proceso de migración.</strong> Al abrirla detecta que ya hay un WhatsApp con ese número y te ofrece traer tus chats. Acepta. El proceso tarda unos minutos y no debes cerrar la app mientras corre.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g8-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Verifica el número con el código.</strong> Llega por mensaje de texto. Si no llega, pide la llamada.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g8-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Llena el perfil del negocio completo.</strong> Aquí está la mitad del valor de la app y casi nadie lo llena:<ul class="substeps"><li>Nombre del negocio (igual que en el letrero).</li><li>Categoría.</li><li>Descripción corta de lo que haces.</li><li>Dirección. Si tienes local, ponla y ancla el punto en el mapa.</li><li>Horarios de atención.</li><li>Correo y sitio web, si tienes. Si no tienes sitio, pon tu página de Facebook o tu Instagram.</li><li>Foto de perfil: tu logo o tu fachada. <strong>No una foto tuya en la playa.</strong></li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g8-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Desinstala el WhatsApp personal solo si vas a usar el mismo número.</strong> Un número no puede tener las dos apps activas a la vez. Si usaste número nuevo, puedes tener las dos aplicaciones conviviendo en el mismo teléfono, cada una con su chip.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g8-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Ojo, esto cambió.</strong> Durante 2026 se ha ido ampliando la posibilidad de usar <strong>nombres de usuario</strong> (un @ como en las redes) en lugar de exponer el número, y ha cambiado el esquema de cobros del servicio <em>para empresas grandes que usan la conexión avanzada por sistema</em> (la que llaman API). Aclaración importante para ti: <strong>la aplicación WhatsApp Business que estás instalando sigue siendo gratuita.</strong> Los cambios de tarifas de los que oyes hablar son de la versión empresarial conectada por sistemas, que usan las cadenas grandes con miles de conversaciones. Tú no estás en esa.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Abre la app: tus conversaciones anteriores están ahí, y al tocar el nombre de tu propio negocio se ve una ficha con dirección y horarios. Pídele a alguien que te escriba desde otro teléfono: en su pantalla, arriba, debe aparecer el nombre de tu negocio y no solo un número.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Migrar sin copia de seguridad y en un teléfono con la batería al 8%. Si el proceso se corta a medias, la recuperación es un dolor. Hazlo con el teléfono conectado a la corriente y con wifi.</p>
+<p>Segundo error: instalar WhatsApp Business y dejar el perfil vacío. Sin nombre ni horarios, es exactamente igual que el WhatsApp normal y no ganaste nada.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Esta app <strong>es</strong> de celular; no existe una versión que viva sola en la computadora. Sí existe la versión de escritorio y la de navegador, que se enlazan al teléfono escaneando un código, y son maravillosas para escribir rápido con teclado real. Si atiendes muchos mensajes, ábrela en la computadora del mostrador: contestas cuatro veces más rápido. Lo que no puedes es apagar el teléfono para siempre; el celular sigue siendo el dueño de la cuenta.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g8-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g9" data-idx="8" data-locked="1"><div class="guide-head"><span class="guide-num">09</span><h2 class="guide-title">Tu catálogo de productos en WhatsApp Business</h2></div><div class="guide-progress"><span id="g9-gp">0</span> de <span id="g9-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g9-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g9')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Cada vez que alguien pregunta &quot;¿qué tienes y en cuánto?&quot;, tienes que escribir la lista completa a mano. Otra vez.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para quien vende productos con precio: comida, ropa, papelería, refacciones, pasteles, plantas. También funciona para servicios si los presentas como paquetes: &quot;corte de caballero&quot;, &quot;tinte y peinado&quot;, &quot;afinación mayor&quot;.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g9-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Prepara antes de tocar la app.</strong> Haz una lista en papel de tus 10 o 15 productos más vendidos, con nombre y precio. Toma una foto decente de cada uno (micro-guía 20). Esto es el 80% del trabajo y no se hace dentro de la aplicación.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g9-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Entra a herramientas para empresas y busca el catálogo.</strong> Está en el menú de configuración de la app, en la sección de herramientas del negocio.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g9-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Agrega tu primer producto.</strong> Te va a pedir: foto, nombre, precio, descripción, enlace y código de producto. La foto y el nombre son obligatorios; el resto no, pero llénalos.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g9-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Escribe el nombre como lo dice el cliente.</strong> No &quot;Combo Ejecutivo Premium 3&quot;. Escribe &quot;3 tacos de bistec con refresco&quot;. La gente busca lo que conoce.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g9-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Pon el precio.</strong> Sí, ponlo. La objeción de &quot;es que no quiero que la competencia vea mis precios&quot; es entendible pero cuesta ventas: sin precio, mucha gente no pregunta, se va. Y tu competencia ya sabe tus precios; solo tiene que ir a tu local.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g9-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Usa la descripción para lo que no se ve en la foto.</strong> Tamaño, sabores disponibles, tiempo de entrega, si se hace por encargo, cuánto tarda. Es el espacio donde matas las preguntas repetidas.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g9-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Agrupa por colecciones si tienes muchos.</strong> La app permite hacer grupos: &quot;Desayunos&quot;, &quot;Postres&quot;, &quot;Bebidas&quot;. Con más de quince productos, sin colecciones el catálogo se vuelve una lista interminable.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g9-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Ordena por lo que más vendes.</strong> Lo de arriba se ve; lo de abajo casi nadie llega. Tus tres mejores productos primero.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g9-c9" onchange="onCheck(this)"><span class="step-txt"><strong>9. Aprende a mandarlo.</strong> Dentro de un chat, en el clip de adjuntar, aparece la opción de catálogo: eliges productos y se los mandas en un mensaje bonito con foto y precio. También puedes compartir el enlace del catálogo completo por fuera, para pegarlo en tu biografía de Instagram o en el estado.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g9-c10" onchange="onCheck(this)"><span class="step-txt"><strong>10. Actualiza precios el día que suben.</strong> Un catálogo con precios viejos genera un pleito con el cliente en el mostrador. Ponte recordatorio.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Pídele a un conocido que abra tu chat y toque el nombre de tu negocio. Debe ver el catálogo con fotos y precios. Después mándale dos productos desde el clip: le deben llegar como tarjetas, no como texto suelto.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Subir fotos oscuras, tomadas de noche, contra una pared sucia. Nada mata más rápido las ganas de comprar. Dedícale una mañana con luz de día a fotografiar todo de golpe (micro-guía 20).</p>
+<p>Segundo error: subir cincuenta productos el primer día y no volver nunca. Empieza con diez, los que sí vendes, y agrega uno a la semana.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Aquí el celular es el lugar correcto: tomas la foto y la subes en el mismo momento. Dato útil: el catálogo, las respuestas rápidas y las etiquetas también se pueden administrar desde la versión de escritorio o de navegador enlazada al teléfono, lo cual es mucho más cómodo cuando vas a cargar veinte productos con descripción larga. Ten las fotos en una carpeta de la computadora y súbelas en tanda.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g9-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g10" data-idx="9" data-locked="1"><div class="guide-head"><span class="guide-num">10</span><h2 class="guide-title">Mensaje de bienvenida y mensaje de ausencia</h2></div><div class="guide-progress"><span id="g10-gp">0</span> de <span id="g10-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g10-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g10')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Te escriben a las once de la noche, tú estás dormido, y a la mañana siguiente el cliente ya compró en otro lado porque nadie le contestó.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para todo el que atiende por WhatsApp y no puede estar pegado al teléfono veinticuatro horas. O sea, para todos.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g10-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Entiende la diferencia.</strong><ul class="substeps"><li>El <strong>mensaje de bienvenida</strong> se manda automáticamente cuando alguien te escribe por primera vez, o después de catorce días sin hablar. Es tu &quot;buenas tardes, ¿en qué le puedo ayudar?&quot;.</li><li>El <strong>mensaje de ausencia</strong> se manda cuando te escriben fuera de tu horario. Es tu &quot;ya cerramos, pero te contesto mañana&quot;.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g10-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Entra a herramientas para empresas.</strong> Ahí están los dos, cada uno con su interruptor.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g10-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Escribe el de bienvenida así.</strong> Corto, humano, y que haga avanzar la conversación. Tres frases máximo:</span></label>
+<div class="copyblock quote"><div id="cp104" class="quote-txt">¡Hola! Gracias por escribir a Estética Lupita 💇 Atendemos de martes a domingo, de 10 a 7. Dime qué servicio te interesa y te paso precio y horario disponible.</div><button class="copybtn" data-copy="cp104">Copiar</button></div>
+<p>Fíjate en lo que hace: saluda, dice quién es, dice cuándo atiende, y <strong>hace una pregunta</strong>. Sin la pregunta, el cliente se queda callado.</p>
+<label class="step"><input type="checkbox" class="chk" id="g10-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Escribe el de ausencia así.</strong> Lo más importante aquí es <strong>decir cuándo sí vas a contestar</strong>. La gente no se enoja porque no contestes; se enoja por no saber.</span></label>
+<div class="copyblock quote"><div id="cp105" class="quote-txt">Gracias por tu mensaje 🙌 En este momento estamos cerrados. Abrimos mañana a las 10 de la mañana y te respondemos en cuanto abramos. Si es urgente, marca al 55 0000 0000.</div><button class="copybtn" data-copy="cp105">Copiar</button></div>
+<label class="step"><input type="checkbox" class="chk" id="g10-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Configura el horario del mensaje de ausencia.</strong> Puedes elegir: siempre, fuera de tu horario de atención (esta es la buena, y usa los horarios que pusiste en el perfil), o un horario personalizado.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g10-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Elige a quién se lo mandas.</strong> Recomendación: a todos. Excluir contactos suena elegante y en la práctica hace que tus clientes de años se queden sin respuesta.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g10-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. No prometas lo que no vas a cumplir.</strong> Si escribes &quot;te contesto en 5 minutos&quot; y contestas en tres horas, es peor que no haber puesto nada. Promete lo que sí cumples.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g10-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Revísalos cada temporada.</strong> El mensaje que dice &quot;abrimos de 10 a 7&quot; cuando cambiaste a 9 a 8 es una queja esperando a suceder. Y en diciembre, si cierras por fiestas, cámbialo.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Pide a alguien que nunca te haya escrito que te mande un mensaje: le debe llegar la bienvenida en segundos. Para probar el de ausencia, cambia temporalmente tu horario de atención a uno que ya pasó, escribe desde otro teléfono, y devuelve el horario a como estaba.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Escribir un mensaje de bienvenida larguísimo con toda la lista de precios, políticas de cancelación y ubicación en tres párrafos. El cliente lo ve, le da flojera, y se sale. Tres frases. La información completa se la das cuando pregunte.</p>
+<p>Segundo error: dejar el mensaje de ausencia prendido las veinticuatro horas por comodidad. El cliente que te escribe a media tarde y recibe &quot;estamos cerrados&quot; cuando la cortina está arriba se va, molesto y con razón.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Ambos mensajes se escriben en un cuadro chiquito donde no se ve bien el texto completo. Truco: escríbelos primero en las notas del teléfono, léelos completos, corrígelos, y luego cópialos y pégalos. Y ojo con los emojis: uno o dos dan calidez; cinco dan desconfianza.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g10-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g11" data-idx="10" data-locked="1"><div class="guide-head"><span class="guide-num">11</span><h2 class="guide-title">Respuestas rápidas y etiquetas: deja de escribir lo mismo veinte veces</h2></div><div class="guide-progress"><span id="g11-gp">0</span> de <span id="g11-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g11-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g11')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Escribes &quot;sí manejamos envío, cuesta $60 dentro de la ciudad y tarda 24 horas&quot; dieciocho veces al día, y no sabes cuáles de tus veinte conversaciones abiertas ya pagaron.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para el que ya tiene volumen de mensajes. Si recibes tres al día, sáltate esta. Si recibes veinte, esta guía te devuelve una hora diaria.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos — Respuestas rápidas</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g11-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Anota durante dos días qué escribes repetido.</strong> No adivines: apunta. Van a salir entre seis y diez frases. Precio, envío, ubicación, horario, formas de pago, tiempo de entrega, garantía.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g11-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Entra a herramientas para empresas, respuestas rápidas.</strong></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g11-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Crea cada una con un atajo corto y lógico.</strong> El atajo se escribe con una diagonal. Usa palabras completas y obvias, no abreviaturas ingeniosas que se te van a olvidar:<ul class="substeps"><li><code>/envio</code> → <em>Sí hacemos envíos. Dentro de la ciudad son $60 y llega en 24 horas. Fuera de la ciudad cotizamos por paquetería. ¿A qué colonia sería?</em></li><li><code>/ubicacion</code> → <em>Estamos en Aldama 45, colonia Obrera, entre Mina y Zaragoza. Aquí te dejo el mapa: [enlace]</em></li><li><code>/pagos</code> → <em>Aceptamos efectivo, tarjeta y transferencia. Si es transferencia te paso los datos y me mandas el comprobante.</em></li><li><code>/horario</code> → <em>Abrimos de lunes a sábado de 9 a 7 y domingos de 10 a 3.</em></li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g11-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Termina cada respuesta con una pregunta cuando se pueda.</strong> Una respuesta que cierra la conversación es una venta perdida.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g11-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Úsalas.</strong> En el chat, escribe la diagonal y las primeras letras; aparece la lista y eliges. Se llenó sola.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g11-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Puedes meterles fotos.</strong> Una respuesta rápida acepta imagen. La de ubicación con una foto de la fachada es de las que más sirven: la gente te encuentra.</span></label>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos — Etiquetas</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g11-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Diseña tu embudo con cinco etiquetas, no más.</strong> Las etiquetas son colores que le pones a cada conversación. La trampa es crear quince y no usar ninguna. Con estas cinco resuelves casi cualquier negocio:<ul class="substeps"><li><strong>Nuevo</strong> — apenas escribió.</li><li><strong>Cotizado</strong> — ya le pasé precio, falta que decida.</li><li><strong>Pagado</strong> — ya pagó, falta entregar.</li><li><strong>Entregado</strong> — cerrado y feliz.</li><li><strong>Seguimiento</strong> — quedó pendiente, hay que buscarlo.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g11-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Etiqueta al momento.</strong> Mantén la disciplina de etiquetar cuando cambia el estado, no al final del día.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g11-c9" onchange="onCheck(this)"><span class="step-txt"><strong>9. Filtra por etiqueta cada mañana.</strong> Abre &quot;Cotizado&quot; y escríbele a los que llevan más de dos días sin responder. <em>&quot;Buen día, ¿le pudo servir la cotización? Sigo a la orden.&quot;</em> Este solo hábito recupera ventas que ya dabas por perdidas.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g11-c10" onchange="onCheck(this)"><span class="step-txt"><strong>10. Vacía &quot;Entregado&quot; cada semana.</strong> Quita esa etiqueta a los cerrados para que la lista no se te haga un pantano.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Escribe una diagonal en cualquier chat: debe aparecer tu lista de respuestas. Y en la pantalla principal debe haber una vista de etiquetas donde ves cuántas conversaciones hay en cada una. Si al abrir &quot;Cotizado&quot; ves cuánto dinero tienes en la mesa esta semana, ya estás usando la app como sistema y no como buzón.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Escribir respuestas rápidas que suenan a robot. <em>&quot;Estimado cliente, agradecemos su preferencia. Le informamos que...&quot;</em> Nadie habla así en un negocio de barrio, y se nota que está copiado. Escríbelas como hablas.</p>
+<p>Segundo error: usar la respuesta rápida y mandarla tal cual sin personalizar. Cambia una palabra, agrega el nombre de la persona. Toma tres segundos y cambia todo.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Funciona perfecto en el teléfono, y aquí se nota más el ahorro porque escribir con pulgares es lento. Si además enlazas la versión de escritorio, las respuestas rápidas viajan contigo: son de la cuenta, no del aparato. Consejo: pon los atajos sin acentos (<code>/ubicacion</code>, no <code>/ubicación</code>), porque en el teclado del celular el acento hace que el atajo no se dispare.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g11-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g12" data-idx="11" data-locked="1"><div class="guide-head"><span class="guide-num">12</span><h2 class="guide-title">Tu enlace de WhatsApp para pegarlo en todos lados</h2></div><div class="guide-progress"><span id="g12-gp">0</span> de <span id="g12-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g12-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g12')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Le dictas tu número a la gente, lo escriben mal, y no te llega el mensaje.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para todos. Toma cinco minutos y es de las cosas con mejor rendimiento de todo el libro.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g12-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Entiende qué es.</strong> Es una dirección de internet que, cuando alguien la toca, le abre el chat contigo directo, sin que tenga que guardar tu número. Se ve así: <code>wa.me/52</code> seguido de tu número de diez dígitos.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g12-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Ármalo.</strong> Es <code>https://wa.me/</code> + <code>52</code> (código de México) + tus diez dígitos, todo junto, sin espacios, sin guiones, sin paréntesis y <strong>sin el 1 extra</strong> que se usaba antes. Si tu número es 55 1234 5678, tu enlace es <code>https://wa.me/525512345678</code>.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g12-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Pruébalo tú mismo.</strong> Pégalo en el navegador de otro teléfono y toca. Debe abrir tu chat.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g12-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Versión mejorada: con mensaje ya escrito.</strong> Puedes hacer que el chat se abra con un texto puesto. Se agrega <code>?text=</code> y el mensaje con las palabras separadas por <code>%20</code>:<ul class="substeps"><li><code>https://wa.me/525512345678?text=Hola,%20vi%20su%20anuncio%20y%20quiero%20informacion</code></li><li>Esto sirve muchísimo: sabes de dónde llegó cada persona según el mensaje con el que entra. Puedes tener uno para Instagram, otro para el volante y otro para el cartel de la puerta.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g12-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Genéralo desde la app si prefieres.</strong> WhatsApp Business tiene, dentro de herramientas del negocio, una función de <strong>enlace corto</strong> que te lo arma solo y te deja poner el mensaje predeterminado sin que tengas que escribir el <code>%20</code>.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g12-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Pégalo en estos ocho lugares, hoy:</strong><ul class="substeps"><li>Biografía de Instagram (el campo de enlace).</li><li>Botón de tu página de Facebook.</li><li>Tu ficha de Google Maps, en el campo de sitio web o de citas.</li><li>Tu firma de correo.</li><li>Tu estado de WhatsApp cada tanto.</li><li>Los grupos de vecinos, cuando sea pertinente y sin spamear.</li><li>Tus volantes y tarjetas, convertido en código QR.</li><li>El cartel de la puerta del local.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g12-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Haz el código QR.</strong> Cualquier generador gratuito de códigos QR convierte tu enlace en un cuadro que la gente escanea con la cámara. Imprímelo grande, pégalo en la puerta y en el mostrador. En negocios de mostrador este cuadrito trae más conversaciones que cualquier publicación.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Desde un teléfono donde tu número <strong>no</strong> esté guardado, toca el enlace. Se debe abrir tu chat de negocio con tu nombre comercial arriba. Si te abre &quot;Nuevo chat&quot; vacío o dice que el número no existe, revisa que no hayas metido espacios ni el 1 de más.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Poner el 1 después del 52. Durante años México usaba ese 1 intermedio y muchos tutoriales viejos todavía lo traen. Hoy, con el formato de diez dígitos, ese 1 rompe el enlace. Si tu enlace no funciona, quítalo primero.</p>
+<p>Segundo error: acortar el enlace con servicios raros y gratuitos que después llenan de anuncios o dejan de funcionar. Usa el enlace directo o el que genera la propia app.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Genéralo desde la app y compártelo directo a donde lo necesitas con el botón de compartir. Un detalle práctico: guárdalo en un mensaje que te mandes a ti mismo, en un chat contigo, y márcalo como destacado. Así lo tienes a mano siempre que alguien te lo pida y no tienes que volver a construirlo.</p>
+</div>
+</section><section class="block block-tool"><h3 class="block-title">Generador: tu enlace wa.me</h3><div class="block-body"><p class="hint">Escribe tu teléfono en la <b>Ficha</b> (10 dígitos) o aquí abajo, y genera tu enlace listo para pegar.</p><label class="ficha-row"><span>Mensaje que ya aparece (opcional)</span><input class="fld" id="g12-wamsg" oninput="onField(this)" placeholder="Hola, vi su anuncio y quiero informacion"></label><button class="toolbtn" onclick="buildWame('g12')">Generar mi enlace</button><div class="copyblock quote"><div id="g12-wame" class="quote-txt">Escribe tu teléfono y pulsa Generar.</div><button class="copybtn" data-copy="g12-wame">Copiar</button></div></div></section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g12-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g13" data-idx="12" data-locked="1"><div class="guide-head"><span class="guide-num">13</span><h2 class="guide-title">Cómo poner tu negocio en Google Maps</h2></div><div class="guide-progress"><span id="g13-gp">0</span> de <span id="g13-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g13-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g13')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Alguien busca &quot;taller mecánico cerca de mí&quot; a tres cuadras de tu taller, y tu taller no existe en esa lista.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para todo negocio con dirección física o con área de servicio a domicilio. Es, con diferencia, lo que más clientes nuevos trae de todo este libro. Y es gratis.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g13-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Ten a la mano tres cosas:</strong> una cuenta de correo de Google (si no tienes, créala, es gratis y toma cinco minutos), la dirección exacta del negocio, y el nombre tal como está en el letrero.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g13-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Busca primero si ya existes.</strong> Escribe el nombre de tu negocio en el mapa. Es común que alguien ya haya creado la ficha —un cliente, un repartidor, o el sistema solo—. Si aparece, <strong>no crees una nueva</strong>: reclámala. Toca la ficha, busca la opción que dice que eres el propietario, y sigue el proceso. Reclamar conserva las reseñas que ya tengas.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g13-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Si no existes, crea la ficha.</strong> Se hace desde el propio mapa, en la opción de agregar un lugar o negocio, o entrando al sitio de perfiles de negocio de Google. El producto se llama hoy <strong>Perfil de Empresa</strong> (o Perfil de Negocio); es el mismo que antes se llamaba Google My Business. Si buscas tutoriales viejos con ese nombre, es este.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g13-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Escribe el nombre exacto.</strong> Otra vez: el del letrero. Nada de &quot;Taller Chava — Los Mejores Precios en Frenos&quot;. Meter palabras de más aquí es motivo de suspensión de la ficha, y es una de las razones más frecuentes por las que rechazan una verificación.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g13-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Elige la categoría principal con cuidado.</strong> Esta es la decisión más importante de toda la ficha. La categoría principal decide en qué búsquedas apareces. &quot;Taller mecánico&quot; y &quot;Taller de hojalatería y pintura&quot; traen clientes distintos. Elige la que describe lo que <strong>más</strong> vendes. Después puedes agregar categorías secundarias.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g13-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Pon la dirección y ajusta el pin a mano.</strong> Google va a poner un punto donde cree que estás. Casi siempre está a media cuadra. <strong>Arrástralo hasta la puerta de tu local.</strong> Este pasito, que nadie hace, es la diferencia entre que el cliente llegue o que dé tres vueltas y se vaya.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g13-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Si no tienes local abierto al público, usa área de servicio.</strong> Un plomero, un fletero, un servicio a domicilio: puedes ocultar la dirección y en cambio marcar las colonias, ciudades o zonas donde trabajas.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g13-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Pon teléfono y sitio web.</strong> En sitio web, si no tienes página, pon tu enlace de WhatsApp o tu Instagram. Un campo lleno vale más que uno vacío.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g13-c9" onchange="onCheck(this)"><span class="step-txt"><strong>9. Pon horarios reales, incluidos los días que cierras.</strong> Y ojo con los festivos: la ficha te va a preguntar por horarios especiales en días feriados. Contéstalos. Un cliente que llega en un puente y encuentra cerrado deja una reseña de una estrella.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g13-c10" onchange="onCheck(this)"><span class="step-txt"><strong>10. Ahora ve a la micro-guía 14 y verifica.</strong> Sin verificar, la ficha existe a medias y no la puedes administrar bien.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Busca tu negocio por nombre en el mapa desde otro teléfono. Debe aparecer con tu nombre, tu categoría, tu horario y un botón para llamar y otro para trazar ruta. Después haz la prueba de verdad: busca tu categoría más &quot;cerca de mí&quot; estando a tres cuadras del local. Con la ficha nueva puede que no salgas todavía en la primera pantalla; eso llega con reseñas y fotos (micro-guías 15 y 17).</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Crear una ficha nueva cuando ya existía una vieja. Terminas con dos fichas del mismo negocio, las reseñas divididas y los clientes confundidos. Busca siempre primero. Si ya te pasó, hay una opción para reportar duplicados desde la ficha; se resuelve, pero tarda.</p>
+<p>Segundo error: poner la dirección de tu casa en un negocio que sí atiende al público en otro lado. La ficha manda gente físicamente a donde le digas.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Todo el proceso funciona desde la app del mapa y desde la app de perfil de negocio. Y hay una ventaja real de hacerlo en el celular: <strong>para ajustar el pin, párate en la puerta de tu local</strong>, abre la ficha y mueve el punto a donde estás. Queda perfecto. Además, la verificación de 2026 es casi siempre por video (micro-guía 14) y esa solo se puede hacer desde el teléfono.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g13-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g14" data-idx="13" data-locked="1"><div class="guide-head"><span class="guide-num">14</span><h2 class="guide-title">Cómo verificar tu negocio en Google (y qué hacer si te rechazan)</h2></div><div class="guide-progress"><span id="g14-gp">0</span> de <span id="g14-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g14-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g14')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Creaste la ficha, pero Google no te deja administrarla hasta que compruebes que el negocio es tuyo y existe de verdad.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para quien ya hizo la micro-guía 13. Y para quien lleva semanas atorado en este paso, que son muchísimos.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g14-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Entiende qué te van a pedir.</strong> Verificar es demostrar dos cosas: que el negocio existe físicamente donde dices, y que tú eres quien lo maneja. Nada más.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g14-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Ojo, esto cambió, y es el cambio más importante de este libro.</strong> Hace unos años la verificación llegaba por <strong>postal</strong> a tu dirección con un código. Hoy, en 2026, el método que Google usa en la gran mayoría de los casos es la <strong>verificación por video</strong>: grabas un video de tu negocio y lo subes. La postal todavía existe para algunos casos, pero ya no es lo normal, y no puedes elegir el método libremente: el sistema decide cuál te ofrece, según tu categoría y tu zona. También se ha vuelto más estricto en general —Google ha estado depurando fichas falsas y a veces pide reverificar negocios que llevaban años sin problema—. Si tienes un tutorial de hace tres años que te promete la postal, ignóralo.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g14-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Prepara el video ANTES de empezar a grabar.</strong> Aquí es donde se rechaza a la gente. El video tiene que mostrar, <strong>en una sola toma continua, sin cortes, sin edición y sin pausar</strong>:<ul class="substeps"><li><strong>El exterior:</strong> el letrero con el nombre del negocio, el número del edificio, y la calle. Da unos pasos para atrás y muestra el entorno, para que se vea que ese letrero está en esa calle.</li><li><strong>El interior:</strong> que entras, que hay un negocio real funcionando. Mostrador, herramienta, producto, sillas, lo que sea que tengas.</li><li><strong>La prueba de que tú lo manejas:</strong> abre la caja registradora, muestra la llave abriendo la puerta, saca una factura o un recibo con el nombre del negocio, entra a la bodega o a un área restringida. Algo que solo puede hacer quien manda ahí.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g14-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Graba.</strong> Al menos <strong>30 segundos</strong>; un minuto es mejor. Camina despacio. Que se lea el letrero, no que pase volando. Grábalo desde el teléfono y súbelo desde el mismo teléfono, dentro del proceso de verificación de tu perfil de negocio. Habla si quieres —no es obligatorio— diciendo el nombre y la dirección.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g14-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Sube y espera.</strong> La revisión puede tardar desde unos minutos hasta varios días. Te avisan por correo.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g14-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Si te rechazan, revisa esta lista antes de reintentar.</strong> Los motivos de rechazo casi siempre son uno de estos siete:<ul class="substeps"><li>El letrero no se lee o no aparece.</li><li>No se ve el número de la calle ni ninguna referencia de ubicación.</li><li>El video tiene cortes, o se ve que fue editado, o son varios videos pegados.</li><li>El nombre del letrero <strong>no coincide</strong> con el nombre que escribiste en la ficha. (Este es el número uno. Si en la ficha pusiste &quot;Taller Chava Frenos y Suspensión Express&quot; y el letrero dice &quot;Taller Chava&quot;, te rechazan.)</li><li>La categoría no corresponde con lo que se ve. (Registraste &quot;restaurante&quot; y el video muestra una oficina.)</li><li>No mostraste ninguna prueba de que administras el lugar.</li><li>Grabaste con la pantalla en vertical corriendo y se ve todo movido y borroso.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g14-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Corrige y vuelve a intentar.</strong> Tienes derecho a más intentos. Si te rechazan tres veces, hay una opción de solicitar revisión humana o contactar al soporte del producto desde la propia herramienta.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g14-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Si tu negocio no tiene local visible</strong> (trabajas desde casa, o das servicio a domicilio), el video igual funciona: muestra tu vehículo rotulado, tu herramienta, tus documentos con el nombre del negocio, y la zona. Sé honesto sobre que es área de servicio; mentir aquí termina en suspensión.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Entra a tu perfil de negocio. La etiqueta debe decir que está verificado, y desaparece el aviso de &quot;verifica tu negocio&quot;. A partir de ahí puedes editar todo, subir fotos, responder reseñas y ver estadísticas.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Grabar el video en tres tomas porque &quot;se cortó&quot;. No sirve. Es una sola toma. Ensaya el recorrido dos veces sin grabar —de la banqueta al letrero, del letrero a la puerta, de la puerta al mostrador, del mostrador a la caja— y luego grábalo de corrido.</p>
+<p>Segundo error, muy caro: cambiar el nombre en la ficha para &quot;posicionar mejor&quot; justo antes de verificar. Es la causa más común de rechazo y también de suspensión.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Esta micro-guía <strong>es</strong> de celular; la verificación por video no se puede hacer de otro modo. Recomendaciones prácticas: limpia el lente antes (en serio, está sucio), graba a media mañana con buena luz, apaga la música del local para que no haya reclamo de derechos, y ten al menos 2 GB libres en el teléfono para que la grabación no se corte. Y no lo hagas en hora pico: necesitas caminar tranquilo.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g14-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g15" data-idx="14" data-locked="1"><div class="guide-head"><span class="guide-num">15</span><h2 class="guide-title">Fotos y horarios que sí traen clientes</h2></div><div class="guide-progress"><span id="g15-gp">0</span> de <span id="g15-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g15-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g15')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Tu ficha está verificada pero tiene una sola foto borrosa y el horario mal, así que la gente la ve y sigue de largo.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para quien ya verificó (micro-guía 14). Este es el paso donde la ficha empieza a producir.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g15-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Sube estas siete fotos, en este orden.</strong> No es capricho: es lo que la gente busca antes de decidir.<ul class="substeps"><li><strong>La fachada de frente, de día.</strong> Que se lea el letrero. Es la que hace que el cliente reconozca el lugar cuando llega.</li><li><strong>La entrada, desde la banqueta.</strong> Como la vería alguien caminando.</li><li><strong>El interior general.</strong> Que se vea limpio y que se entienda el tamaño.</li><li><strong>Tu producto o servicio estrella.</strong> Lo que más vendes, bien iluminado.</li><li><strong>Dos o tres más de producto o de trabajos hechos.</strong></li><li><strong>El equipo de trabajo.</strong> Personas reales. Esta genera más confianza que cualquier otra.</li><li><strong>Algo práctico:</strong> el estacionamiento, la rampa, el menú impreso, la lista de precios.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g15-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Ponle la foto de portada correcta.</strong> Es la que sale grande. Que sea la fachada o tu producto estrella, nunca un logotipo estirado.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g15-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Sube fotos cada mes.</strong> Una ficha que recibe fotos nuevas se ve viva. Dos o tres al mes bastan. Ponlo en tu calendario (al final del libro hay uno).</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g15-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Deja que los clientes suban fotos.</strong> No las puedes controlar y no pasa nada. Si alguna es ofensiva o no es de tu negocio, se puede reportar.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g15-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Arregla los horarios de verdad.</strong> Pon los reales, día por día. Si cierras de 2 a 4 para comer, ponlo con dos bloques; existe esa opción y casi nadie la usa. Si abres domingos medio día, ponlo.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g15-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Configura los horarios especiales de días festivos.</strong> El sistema te va a avisar cuando se acerque un feriado. Contéstale. Un cliente que maneja treinta minutos el 16 de septiembre para encontrar cerrado te va a poner una estrella, y con razón.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g15-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Llena los atributos.</strong> Son casillas que parecen menores y cambian la decisión: acepta tarjeta, tiene estacionamiento, accesible en silla de ruedas, wifi, apto para niños, sanitario, servicio a domicilio, recolección en tienda. Márcalos todos los que apliquen. Muchas búsquedas se filtran por eso.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g15-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Escribe la descripción del negocio.</strong> Setecientos cincuenta caracteres. Cuenta qué haces, desde cuándo, qué te distingue, y qué zonas atiendes. Escríbela como le explicarías a un vecino nuevo.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g15-c9" onchange="onCheck(this)"><span class="step-txt"><strong>9. Usa las publicaciones de la ficha.</strong> El perfil permite publicar avisos, ofertas y eventos que se ven en el mapa. Una a la semana es suficiente: la promoción del mes, el cambio de horario, el producto nuevo.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g15-c10" onchange="onCheck(this)"><span class="step-txt"><strong>10. Agrega productos y servicios con precio.</strong> Hay una sección para eso. Es tu catálogo dentro del mapa y responde la pregunta que todos tienen antes de ir.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Abre tu ficha desde el teléfono de alguien más. En diez segundos debe quedar claro: qué vendes, cuánto cuesta más o menos, si está abierto ahorita, y cómo se ve el lugar. Además, en las estadísticas de tu perfil vas a ver cuántas personas pidieron ruta y cuántas llamaron. Esos dos números son la única medición que necesitas al principio.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Subir fotos con marca de agua, con textos encimados, con marcos de colores o hechas con plantillas de diseño. La ficha de mapa premia y muestra fotos reales. Las de publicidad se ven fuera de lugar y a veces se rechazan.</p>
+<p>Segundo error: poner el horario &quot;24 horas&quot; porque contestas WhatsApp a cualquier hora. El horario es del <strong>local</strong>. Si pones 24 horas y a las tres de la mañana está cerrado, te caen reseñas malas.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>El celular es la mejor herramienta aquí: tomas la foto y la subes en el momento, con buena resolución y sin pasarla por WhatsApp (que la comprime y la deja fea). Regla práctica: nunca subas a tu ficha una foto que te llegó por WhatsApp. Pide el original.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g15-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g16" data-idx="15" data-locked="1"><div class="guide-head"><span class="guide-num">16</span><h2 class="guide-title">Las estafas de siempre: quién te va a querer cobrar por esto</h2></div><div class="guide-progress"><span id="g16-gp">0</span> de <span id="g16-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g16-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g16')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>En cuanto tu negocio aparece en internet, empiezan las llamadas de gente que dice representar a Google o a Meta y que te va a cobrar.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para todos, y muy en especial para quien acaba de crear su ficha. <strong>Las llamadas empiezan a los pocos días de que tu teléfono queda publicado.</strong> No es coincidencia: tu número quedó público.</p>
+</div>
+</section>
+<section class="block block-generic">
+<h3 class="block-title">La regla que resuelve el 95% de los casos</h3>
+<div class="block-body">
+<div class="copyblock quote"><div id="cp106" class="quote-txt">Crear tu página, tener tu perfil en el mapa, verificarlo y aparecer en las búsquedas es GRATIS. Siempre. No hay cuota, no hay mensualidad, no hay &quot;renovación anual de tu ficha&quot;.  Lo único que cuesta dinero es la <strong>publicidad</strong>, y esa la contratas tú, cuando tú quieras, desde tu propia cuenta, con tu propia tarjeta. Nadie te la cobra por teléfono.</div><button class="copybtn" data-copy="cp106">Copiar</button></div>
+</div>
+</section>
+<section class="block block-generic">
+<h3 class="block-title">Los seis engaños más comunes en México</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g16-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. &quot;Le hablo de Google, su ficha va a ser dada de baja / hay que renovarla.&quot;</strong></span></label>
+<p>Falso. No existe una renovación de fichas. La ficha no vence. Google no llama para cobrar. Nota honesta: Google <strong>sí</strong> puede llamar por otros motivos legítimos, por ejemplo para confirmar datos de tu negocio o comprobar información, y las llamadas de sus productos de publicidad existen. La diferencia está en que ninguna llamada legítima te va a pedir tu contraseña, ni un pago inmediato por transferencia, ni te va a amenazar con borrarte hoy mismo.</p>
+<label class="step"><input type="checkbox" class="chk" id="g16-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. La factura falsa que llega por correo.</strong></span></label>
+<p>Un correo o un papel con logotipos que se ven oficiales, con una cantidad y una referencia bancaria, &quot;por su registro en el directorio de negocios&quot;. No lo pagues. Revisa siempre a qué cuenta te piden depositar: si es una cuenta de una persona física o de una empresa que jamás habías oído, es fraude.</p>
+<label class="step"><input type="checkbox" class="chk" id="g16-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. &quot;Le verificamos su negocio en 24 horas por una cuota.&quot;</strong></span></label>
+<p>La verificación es gratuita y la haces tú (micro-guía 14). Quien cobra por esto normalmente te pide acceso de administrador y termina siendo el dueño de tu ficha. Que alguien te ayude a grabar el video está bien; que te pida ser administrador para &quot;gestionarlo&quot;, no.</p>
+<label class="step"><input type="checkbox" class="chk" id="g16-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. &quot;Somos su ejecutivo asignado de Meta / Facebook.&quot;</strong></span></label>
+<p>Ese puesto no existe para un negocio chico. Meta no asigna ejecutivos telefónicos a la tortillería de la esquina.</p>
+<label class="step"><input type="checkbox" class="chk" id="g16-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. El correo de &quot;tu página será eliminada en 24 horas por violar las normas&quot;.</strong></span></label>
+<p>Este es el más peligroso porque asusta y apura. Trae un enlace que lleva a una pantalla idéntica a la de inicio de sesión. Si escribes tu contraseña ahí, en veinte minutos ya no tienes página. <strong>Regla:</strong> los avisos reales de la plataforma aparecen <strong>dentro</strong> de la plataforma, en tu panel de administración. Nunca inicies sesión desde un enlace que te llegó por correo o por mensaje. Cierra el correo, abre la app tú mismo, y revisa ahí si hay algún aviso. Si no lo hay, era mentira.</p>
+<label class="step"><input type="checkbox" class="chk" id="g16-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Las reseñas compradas y la extorsión con reseñas.</strong></span></label>
+<p>Dos caras del mismo negocio sucio. Por un lado te ofrecen venderte reseñas de cinco estrellas; por otro, hay quien te llena de reseñas de una estrella y luego te ofrece &quot;limpiarlas&quot; por un pago. Comprar reseñas viola las reglas y puede costarte la ficha completa. Para el ataque, hay proceso de reporte de reseñas falsas: úsalo, documenta, y no pagues.</p>
+</div>
+</section>
+<section class="block block-generic">
+<h3 class="block-title">Cómo cortar la llamada sin discutir</h3>
+<div class="block-body">
+<p>No des explicaciones ni datos. Una frase:</p>
+<div class="copyblock quote"><div id="cp107" class="quote-txt">&quot;Gracias, todo lo relacionado con nuestras cuentas digitales lo maneja el dueño directamente desde la plataforma. No autorizamos servicios por teléfono. Buen día.&quot;</div><button class="copybtn" data-copy="cp107">Copiar</button></div>
+<p>Y cuelgas. No confirmes tu correo, tu dirección, ni siquiera que eres el dueño: cada dato que sueltas hace más convincente la siguiente llamada.</p>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Ninguna de estas cosas debe existir en tu vida: un pago mensual &quot;por tu ficha&quot;, una persona externa que es administradora de tus cuentas, y un método de pago guardado que no reconoces. Revísalo hoy. Y avísale a quien contesta el teléfono en tu negocio: la estafa muchas veces no le llega al dueño, le llega al empleado.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Dar acceso de administrador a la &quot;agencia&quot; que te llamó ofreciendo ayuda gratis. Se vuelven dueños de tu página y después te cobran por devolvértela. <strong>Si contratas a alguien de verdad, dale el nivel de acceso que necesita (micro-guía 5) y nunca acceso total.</strong> La cuenta se queda a tu nombre, con tu correo y tu teléfono. Siempre.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>La versión móvil de este fraude llega por WhatsApp: un mensaje con logotipo, un PDF que parece factura, o un enlace acortado que no deja ver a dónde va. Regla simple para el teléfono: <strong>si el mensaje trae prisa, trae miedo y trae un enlace, es fraude.</strong> Bloquea y reporta desde el mismo chat. Y si tienes duda de verdad, no toques el enlace: abre tú la aplicación y revisa si hay algún aviso adentro.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g16-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g17" data-idx="16" data-locked="1"><div class="guide-head"><span class="guide-num">17</span><h2 class="guide-title">Cómo pedir reseñas sin dar pena</h2></div><div class="guide-progress"><span id="g17-gp">0</span> de <span id="g17-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g17-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g17')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Llevas ocho años atendiendo bien y tienes tres reseñas, mientras el de enfrente, que abrió el año pasado, tiene ciento veinte.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para todo negocio con ficha verificada. Las reseñas son, después de la categoría, lo que más decide si apareces cuando alguien busca cerca de ti.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g17-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Quítate la pena con este razonamiento.</strong> No estás pidiendo un favor: le estás dando a un cliente contento la oportunidad de ayudarte, que es algo que la gente hace con gusto cuando se lo pides bien. El 90% de tus clientes felices nunca va a escribir nada porque nunca se les ocurrió, no porque no quieran.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g17-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Consigue tu enlace corto para reseñas.</strong> Dentro de tu perfil de negocio hay una función para obtener un enlace directo que abre la ventana de escribir reseña. Cópialo y guárdalo. Sin ese enlace, pedirle a alguien que &quot;me busque en Google y le dé a reseñas&quot; es pedirle cinco pasos, y ahí se pierde la mitad de la gente.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g17-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Pide en el momento correcto.</strong> El momento es <strong>justo después de que el cliente expresó que quedó contento</strong>. No tres días después. Cuando dice &quot;quedó buenísimo&quot; o &quot;gracias, quedó perfecto&quot;, ahí.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g17-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Usa una frase corta y honesta.</strong> Ensáyala hasta que salga natural:</span></label>
+<div class="copyblock quote"><div id="cp108" class="quote-txt">&quot;Oiga, qué bueno que le gustó. ¿Me haría un paro? Somos un negocio chico y las reseñas en Google nos ayudan muchísimo a que nos encuentren. Le mando el enlace por WhatsApp y le toma un minuto.&quot;</div><button class="copybtn" data-copy="cp108">Copiar</button></div>
+<label class="step"><input type="checkbox" class="chk" id="g17-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Mándalo por WhatsApp en ese instante.</strong> Guárdalo como respuesta rápida (micro-guía 11), con atajo <code>/resena</code>:</span></label>
+<div class="copyblock quote"><div id="cp109" class="quote-txt">¡Gracias por su preferencia! 🙏 Si le gustó el servicio, ¿nos regala una reseña? Nos ayuda muchísimo. Aquí es, toma un minuto: [tu enlace]</div><button class="copybtn" data-copy="cp109">Copiar</button></div>
+<label class="step"><input type="checkbox" class="chk" id="g17-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Pon el QR en el mostrador.</strong> Convierte tu enlace de reseñas en código QR e imprímelo con un letrerito: <em>&quot;¿Le gustó? Cuéntenoslo aquí.&quot;</em> En negocios de mostrador funciona solo.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g17-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Ponte una meta modesta y constante.</strong> Dos reseñas por semana. Cien al año. Eso es más que suficiente para pasar al de enfrente.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g17-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Reparte la tarea.</strong> Que todo el mundo en el negocio sepa la frase y tenga el enlace. Ponte una raya en una libreta cada vez que alguien pide una.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g17-c9" onchange="onCheck(this)"><span class="step-txt"><strong>9. Lo que NO debes hacer, nunca:</strong><ul class="substeps"><li><strong>No pagues por reseñas.</strong> Ni con dinero ni con producto gratis a cambio de estrellas. Está prohibido, se detecta, y el castigo es la ficha entera.</li><li><strong>No pongas una tableta en el mostrador para que la gente escriba ahí.</strong> Muchas reseñas desde el mismo aparato y la misma red se ven como manipulación y se borran solas.</li><li><strong>No filtres.</strong> Preguntarle antes &quot;¿me la vas a poner de cinco?&quot; y solo mandarle el enlace a los que dicen que sí va contra las reglas.</li><li><strong>No pidas veinte de golpe el mismo día.</strong> Un salto raro de cero a treinta reseñas en una tarde es la definición de sospechoso. Constancia, no arranques.</li></ul></span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Estás bien si en un mes subiste al menos seis o siete reseñas, escritas por personas distintas, en días distintos, con textos distintos. Cuando pasas de veinte reseñas con buen promedio, se nota en cuánta gente pide ruta a tu negocio.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Pedirla y no mandar el enlace. &quot;Búscanos en Google y déjanos comentario&quot; tiene una tasa de cumplimiento cercana a cero. El enlace directo, mandado en el momento, la multiplica.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Guarda el enlace de reseñas como respuesta rápida y también en un chat contigo mismo, marcado como destacado. Imprime el QR y pégalo donde el cliente espera: junto a la caja, en la mesa, en el espejo de la estética, atrás de la puerta del baño. Los lugares donde la gente está parada sin hacer nada son los mejores.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g17-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g18" data-idx="17" data-locked="1"><div class="guide-head"><span class="guide-num">18</span><h2 class="guide-title">Cómo responder reseñas, incluidas las que duelen</h2></div><div class="guide-progress"><span id="g18-gp">0</span> de <span id="g18-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g18-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g18')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Te cayó una de una estrella, injusta y con mentiras, y tienes ganas de contestar cosas que no deberías escribir.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para todos, pero léela <strong>antes</strong> de que llegue la mala. Contestar en caliente es el error más caro de todo este libro.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g18-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Contesta todas. Sí, también las buenas.</strong> Un negocio que responde se ve vivo y atendido. Y no cuesta nada.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g18-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Para las buenas, tres reglas:</strong> agradece, menciona algo específico de lo que dijeron, e invítalos a volver. Nunca copies y pegues la misma respuesta veinte veces; se nota y se ve peor que no contestar.</span></label>
+<div class="copyblock quote"><div id="cp110" class="quote-txt">&quot;¡Gracias, don Ramón! Qué bueno que le gustó el corte de fade. Aquí lo esperamos el mes que entra.&quot;</div><button class="copybtn" data-copy="cp110">Copiar</button></div>
+<label class="step"><input type="checkbox" class="chk" id="g18-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Para las malas, respira 24 horas.</strong> Ninguna reseña se va a arreglar por contestar en los primeros cinco minutos. Escribe tu respuesta furiosa, sin mandarla, y bórrala. Ya sacaste el coraje. Ahora escribe la buena.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g18-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Usa esta estructura de cuatro partes para responder una mala.</strong> Funciona porque no está escrita para el que se quejó: <strong>está escrita para los cien que la van a leer después.</strong><ul class="substeps"><li><strong>Agradece y nombra.</strong> <em>&quot;Gracias por tomarse el tiempo de escribirnos, Ana.&quot;</em></li><li><strong>Reconoce sin pelear.</strong> <em>&quot;Lamento que la espera haya sido tan larga ese sábado.&quot;</em> Reconoce el sentimiento aunque no aceptes los hechos.</li><li><strong>Explica en una línea y sin excusas.</strong> <em>&quot;Ese día tuvimos a una persona menos y nos rebasó el trabajo.&quot;</em></li><li><strong>Ofrece resolverlo fuera.</strong> <em>&quot;Me gustaría compensarlo. ¿Me escribe al 55 0000 0000 y lo vemos?&quot;</em></li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g18-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Nunca hagas esto:</strong><ul class="substeps"><li>Discutir hechos punto por punto. Nadie gana un pleito público.</li><li>Poner datos del cliente (que si tenía cita, que si no pagó, qué se hizo). Además de feo, puede meterte en problemas de privacidad.</li><li>Acusar al que reseñó de ser la competencia, aunque lo sospeches.</li><li>Responder con sarcasmo. Se lee peor de lo que suena en tu cabeza.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g18-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Cuando la reseña es falsa de verdad.</strong> Si es de alguien que nunca fue tu cliente, si insulta, si trae contenido de otro negocio o es claramente un ataque, se puede <strong>reportar</strong> desde la propia reseña. No siempre la quitan y a veces tarda semanas. Mientras tanto, responde con calma y profesionalismo: <em>&quot;No encontramos ningún registro de este servicio con nosotros. Si hubo algún problema, con gusto lo revisamos; escríbanos al 55 0000 0000.&quot;</em> Esa respuesta, leída por un extraño, te deja bien parado.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g18-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. La mejor defensa es el volumen.</strong> Una reseña de una estrella entre cinco es catastrófica. Entre ciento veinte, es invisible. Vuelve a la micro-guía 17.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g18-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Y a veces la reseña tiene razón.</strong> Léelas como información gratis. Si tres personas distintas dicen que tardas mucho, no es mala suerte: tardas mucho. Ahí hay dinero.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Estás bien si todas tus reseñas tienen respuesta, si ninguna de tus respuestas te daría vergüenza que la leyera un cliente nuevo, y si al leer solo tus respuestas se entiende qué clase de negocio eres.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Contestar la mala reseña con la versión &quot;yo tengo la razón&quot;. Aunque tengas toda la razón, el lector externo ve a un negocio peleándose con un cliente y decide no ir. La respuesta serena a una queja injusta te consigue más clientes que diez respuestas a reseñas buenas.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Las notificaciones de reseñas nuevas llegan a la app de tu perfil de negocio. Actívalas: responder en el mismo día se nota. Pero cuando la reseña sea mala, <strong>no contestes desde el celular en el momento</strong>. Es demasiado fácil apretar enviar. Guárdala, respira, y contéstala mañana con la cabeza fría.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g18-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g19" data-idx="18" data-locked="1"><div class="guide-head"><span class="guide-num">19</span><h2 class="guide-title">Qué publicar cuando no se te ocurre nada</h2></div><div class="guide-progress"><span id="g19-gp">0</span> de <span id="g19-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g19-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g19')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Sabes que tienes que publicar, te sientas frente al teléfono, no se te ocurre nada, y pasan tres semanas.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para todo el que abrió las cuentas y las tiene abandonadas desde hace meses. Que son casi todos.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g19-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Acepta la verdad liberadora.</strong> Tu contenido no tiene que ser bonito ni original. Tiene que ser <strong>útil y frecuente</strong>. Una foto decente de lo que hiciste hoy, con una frase, vale más que un diseño elaborado cada seis meses.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g19-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Usa las diez columnas. Nunca más te quedas sin idea.</strong> Escribe estas diez en un papel y pégalo junto a la caja:</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g19-c3" onchange="onCheck(this)"><span class="step-txt"><strong>Lo que hiciste hoy.</strong> El pastel que entregaste, el coche que salió, el corte que quedó. Es el contenido más fácil y el que mejor funciona.<ul class="substeps"><li>2. <strong>Antes y después.</strong> El taller, la estética, la lavandería: oro puro.</li><li>3. <strong>Quién eres.</strong> Tú, tu equipo, cómo empezó el negocio, cuántos años llevan.</li><li>4. <strong>Cómo se hace.</strong> El proceso. La gente ama ver cómo se amasa, cómo se afila, cómo se arma.</li><li>5. <strong>La pregunta que te hacen todos los días.</strong> ¿Manejan envío? ¿Cuánto tardan? ¿Aceptan tarjeta? Cada una es una publicación.</li><li>6. <strong>Precios o paquetes.</strong> Sí, se puede publicar el precio. Ahorra tiempo y filtra clientes.</li><li>7. <strong>Un cliente contento</strong> (con su permiso). Foto o captura de un mensaje agradable, sin datos personales.</li><li>8. <strong>Aviso práctico.</strong> Cambio de horario, cerramos el lunes, ya llegó mercancía, hay lugar hoy a las 4.</li><li>9. <strong>Un consejo de tu oficio.</strong> Cómo cuidar el tinte, cada cuándo cambiar el aceite, cómo guardar el pan. Esto es lo que te vuelve el experto del barrio.</li><li>10. <strong>El local, la calle, el barrio.</strong> Tu negocio existiendo en un lugar real.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g19-c4" onchange="onCheck(this)"><span class="step-txt"><strong>3. Trabaja por tandas, no diario.</strong> El secreto de la gente que sí publica: <strong>una hora al mes</strong>. Toma veinte fotos de un jalón un martes tranquilo, escríbeles el texto ahí mismo, y prográmalas. Ya está el mes.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g19-c5" onchange="onCheck(this)"><span class="step-txt"><strong>4. Programa desde el panel de negocios.</strong> En publicaciones, en vez de publicar, eliges la fecha y la hora. Se sube solo. Esta función es lo que separa a los que sostienen de los que abandonan.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g19-c6" onchange="onCheck(this)"><span class="step-txt"><strong>5. Escribe los textos con esta receta de tres líneas.</strong><ul class="substeps"><li><strong>Primera línea: el gancho.</strong> Una frase que detiene el dedo. <em>&quot;Este motor llegó sin arrancar.&quot;</em></li><li><strong>En medio: lo útil.</strong> Qué es, cuánto cuesta, qué incluye, cuánto tarda.</li><li><strong>Última línea: qué quieres que hagan.</strong> <em>&quot;Mándanos WhatsApp y te cotizamos hoy mismo.&quot;</em> Sin esta línea, la publicación no vende.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g19-c7" onchange="onCheck(this)"><span class="step-txt"><strong>6. Usa etiquetas de tema con cabeza.</strong> Cinco o seis, locales y específicas: el nombre de tu colonia, tu ciudad, tu oficio. Treinta etiquetas genéricas en inglés no sirven de nada.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g19-c8" onchange="onCheck(this)"><span class="step-txt"><strong>7. Publica a la hora en que tu gente ve el teléfono.</strong> Para negocios de barrio suele funcionar entre 1 y 3 de la tarde, y entre 8 y 10 de la noche. Pero no adivines: tus estadísticas te dicen a qué hora está conectada tu gente. Ahí está la respuesta buena.</span></label>
+</div>
+</section>
+<section class="block block-generic">
+<h3 class="block-title">Tu calendario mínimo (el que sí se sostiene)</h3>
+<div class="block-body">
+<p>Si haces solo esto, ya estás mejor que el 80% de los negocios de tu calle:</p>
+<p>| Cuándo | Qué |</p>
+<p>|---|---|</p>
+<p>| <strong>2 veces por semana</strong> | Una publicación en Facebook e Instagram. Elige dos columnas de la lista. |</p>
+<p>| <strong>3 veces por semana</strong> | Una historia. Puede ser un video de diez segundos sin editar. |</p>
+<p>| <strong>1 vez por semana</strong> | Una publicación en tu ficha del mapa (oferta, aviso, novedad). |</p>
+<p>| <strong>1 vez por semana</strong> | Pedir dos reseñas (micro-guía 17). |</p>
+<p>| <strong>1 vez al mes</strong> | Subir 3 fotos nuevas a la ficha del mapa. |</p>
+<p>| <strong>1 vez al mes</strong> | La sesión de una hora: fotos en tanda + programar el mes. |</p>
+<p>| <strong>1 vez al mes</strong> | Mirar los números diez minutos (micro-guía 21). |</p>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Funcionó si al final del mes miras tu perfil y hay ocho publicaciones, sin huecos de tres semanas. La constancia le gana a la calidad todos los días. Segunda señal: gente que llega diciendo &quot;vi en su Facebook que...&quot;.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Querer que cada publicación sea perfecta. Pasas dos horas en un diseño, no queda, y no publicas nada. Publica la foto del taco. En serio. La foto del taco funciona mejor que el diseño.</p>
+<p>Segundo error: publicar solo promociones. Si todas tus publicaciones son &quot;aprovecha&quot;, la gente deja de mirar. Por cada publicación que vende, tres que enseñan o muestran.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Todo esto se hace desde el teléfono. Dos trucos que valen mucho:</p>
+<ul class="bullets"><li>Crea un <strong>álbum en tu galería</strong> llamado &quot;Para publicar&quot; y ahí mete las fotos según las vas tomando. Cuando llegue el momento de programar, ya está todo junto.</li><li>Escribe los textos en las <strong>notas</strong> del teléfono, no en la app. Así no los pierdes y puedes revisarlos con calma.</li></ul>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g19-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g20" data-idx="19" data-locked="1"><div class="guide-head"><span class="guide-num">20</span><h2 class="guide-title">Fotos con el celular que no se ven mal</h2></div><div class="guide-progress"><span id="g20-gp">0</span> de <span id="g20-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g20-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g20')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Tomas la foto de tu producto y se ve amarilla, oscura y triste, cuando en persona se ve bien.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para todos. Tu celular es suficiente. No necesitas cámara, ni aro de luz, ni curso.</p>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g20-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Limpia el lente.</strong> Con la playera. Está sucio, siempre está sucio, y es la mitad del problema.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g20-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Busca la luz de una ventana y apaga el flash.</strong> Esta es la regla que más cambia las cosas. La luz del foco del techo pone todo amarillo y hace sombras feas; el flash aplana y hace brillos. Ponte junto a una ventana, de lado, con la luz entrando desde un costado de lo que vas a fotografiar. Y si puedes salir a la puerta del local a media mañana, mejor todavía.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g20-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Fotografía de día.</strong> Entre las 9 de la mañana y las 4 de la tarde. Es gratis y es lo más profesional que puedes hacer.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g20-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Limpia el fondo.</strong> El 90% de las fotos malas de negocio son por el fondo: cables, cajas, la mochila, el trapo. Quita todo lo que no sea el producto. Un fondo neutro —una pared lisa, una tabla de madera, un mantel liso— hace que lo tuyo se vea caro.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g20-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Acércate y llena el cuadro.</strong> El error clásico es fotografiar el plato desde tres metros. Acércate hasta que el producto ocupe la foto. <strong>Acércate con los pies, no con el zoom</strong>: el zoom digital destruye la imagen.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g20-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Toca la pantalla sobre lo importante.</strong> Eso le dice al teléfono dónde enfocar y cómo medir la luz. Después, sin soltar, desliza el dedo hacia arriba o abajo para aclarar u oscurecer un poco. Ese gesto solo ya te pone por encima de casi toda tu competencia.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g20-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Toma tres ángulos de cada cosa.</strong> De frente, desde arriba, y de tres cuartos (a 45 grados). Uno de los tres va a estar bueno.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g20-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Ponlo derecho.</strong> Activa la cuadrícula en los ajustes de la cámara. Las líneas chuecas se ven descuidadas.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g20-c9" onchange="onCheck(this)"><span class="step-txt"><strong>9. Edita poquito.</strong> En la propia galería del teléfono: sube un poco el brillo, un poco el contraste, endereza si hace falta. <strong>No le pongas filtros de colores.</strong> El filtro que hace todo naranja o gris envejece la foto y hace que la comida se vea falsa.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g20-c10" onchange="onCheck(this)"><span class="step-txt"><strong>10. Aprende la regla de las manos.</strong> Una foto de un producto con manos —las tuyas sirviendo, sosteniendo, trabajando— siempre funciona mejor que la misma foto sin manos. Da vida y da confianza.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g20-c11" onchange="onCheck(this)"><span class="step-txt"><strong>11. Para video, tres reglas.</strong> Vertical (para historias y reels), estable —apoya el codo en algo—, y con luz. Diez segundos bien iluminados valen más que un minuto tembloroso.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Prueba de la miniatura: mira la foto en pequeñito en tu galería. Si a ese tamaño se entiende qué es y da ganas, sirve. Si tienes que acercarte para entender qué estás viendo, no sirve. Segunda prueba: pon tu foto junto a la del negocio que más te gusta de tu ramo. La diferencia casi siempre es la luz, no la cámara.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Mandarse las fotos por WhatsApp entre el celular y la computadora. Eso las comprime y las deja borrosas. Para pasar fotos, usa el cable, la nube, o la opción de mandar el archivo &quot;como documento&quot;.</p>
+<p>Segundo error: fotografiar con el local sucio o con el trapeador en el cuadro. Antes de la sesión, cinco minutos de acomodar. Vale más que cualquier edición.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>El celular es el equipo entero. Dos ajustes que vale la pena revisar una sola vez y ya:</p>
+<ul class="bullets"><li>Activa la <strong>cuadrícula</strong>.</li><li>Sube la <strong>resolución</strong> al máximo que tenga tu cámara.</li></ul>
+<p>Y un consejo de oficio: cuando tomes fotos para el catálogo o para la ficha del mapa, tómalas todas en la misma media hora, con la misma luz y el mismo fondo. Cuando se ven juntas en la cuadrícula, un negocio con fotos coherentes se ve el doble de serio, aunque cada foto por separado sea sencilla.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g20-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+<article class="guide" id="g21" data-idx="20" data-locked="1"><div class="guide-head"><span class="guide-num">21</span><h2 class="guide-title">Cuándo conviene pagar publicidad, cuánto, y cómo saber si sirvió</h2></div><div class="guide-progress"><span id="g21-gp">0</span> de <span id="g21-gt">0</span> pasos hechos en esta guía</div><div class="lockwrap" id="g21-lock"><div class="lockcard"><div class="lockico">&#128274;</div><h4>Micro-guía bloqueada</h4><p>Esta es una <b>muestra gratis</b>. Tienes desbloqueadas las 2 primeras micro-guías completas. Desbloquea las <b>19</b> restantes por <b>$5.99 USD</b> — o accede a <b>todas las guías del hub Guía Clave</b> con la suscripción.</p><a class="lockcta" href="__CHECKOUT_URL__" rel="noopener">Desbloquear por $5.99 USD</a><button class="lockdemo" onclick="revealGuide('g21')">Ver esta guía en modo demo</button></div></div><div class="guide-inner" style="filter:blur(5px);pointer-events:none;user-select:none;opacity:.5"><section class="block block-generic"><div class="block-body">
+</div>
+</section>
+<section class="block block-problem">
+<h3 class="block-title">El problema en una frase</h3>
+<div class="block-body">
+<p>Le picaste a &quot;promocionar publicación&quot;, se te fueron mil pesos, y no sabes si sirvió de algo.</p>
+</div>
+</section>
+<section class="block block-audience">
+<h3 class="block-title">Para quién es</h3>
+<div class="block-body">
+<p>Para quien ya hizo lo demás. Si tu página no tiene publicaciones, tu ficha no está verificada y no contestas los mensajes, <strong>no pagues publicidad todavía</strong>: estarías pagando por llevar gente a una tienda cerrada.</p>
+</div>
+</section>
+<section class="block block-generic">
+<h3 class="block-title">La lista de antes de gastar el primer peso</h3>
+<div class="block-body">
+<p>Marca las cinco. Si falta una, arréglala primero:</p>
+<ul class="bullets"><li>[ ] Página con al menos diez publicaciones y datos completos.</li><li>[ ] WhatsApp Business configurado, con mensajes automáticos.</li><li>[ ] Ficha del mapa verificada, con fotos.</li><li>[ ] Alguien que conteste los mensajes en menos de dos horas en horario de trabajo.</li><li>[ ] Claridad de qué quieres que pase: ¿que te escriban? ¿que vayan al local? ¿que llamen?</li></ul>
+</div>
+</section>
+<section class="block block-steps">
+<h3 class="block-title">Los pasos</h3>
+<div class="block-body">
+<label class="step"><input type="checkbox" class="chk" id="g21-c1" onchange="onCheck(this)"><span class="step-txt"><strong>1. Empieza por lo más barato y sencillo: promocionar una publicación que ya funcionó.</strong> No inventes un anuncio nuevo. Mira tus publicaciones del último mes, encuentra la que más reacciones y comentarios tuvo por sí sola —esa ya demostró que le interesa a la gente— y ponle dinero a esa.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g21-c2" onchange="onCheck(this)"><span class="step-txt"><strong>2. Define la zona con precisión quirúrgica.</strong> Este es el error más caro de los negocios locales: anunciarse a toda la ciudad. Si tienes una estética en la colonia Obrera, tu cliente vive a menos de tres kilómetros. Pon el radio en <strong>3 a 5 km alrededor de tu local</strong>. Nada más. El dinero rinde diez veces más.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g21-c3" onchange="onCheck(this)"><span class="step-txt"><strong>3. Define la edad y el sexo si de verdad aplica.</strong> Si vendes uñas, probablemente mujeres de 18 a 45. Si vendes refacciones, probablemente hombres de 25 a 60. No te compliques con intereses raros; la zona es mucho más importante.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g21-c4" onchange="onCheck(this)"><span class="step-txt"><strong>4. Elige el objetivo correcto.</strong> Para un negocio local hay dos que sirven:<ul class="substeps"><li><strong>Mensajes</strong> (que te escriban por WhatsApp o Messenger). Es el mejor para vender.</li><li><strong>Interacción</strong> (que vean y reaccionen). Sirve para darte a conocer, pero no vende directo.</li><li>Evita al principio los objetivos complicados.</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g21-c5" onchange="onCheck(this)"><span class="step-txt"><strong>5. Presupuesto: la regla de los cien pesos por siete días.</strong> Empieza con <strong>50 a 100 pesos diarios durante una semana</strong>. Son entre 350 y 700 pesos. Suficiente para aprender algo, poco para que duela. No pongas 3,000 pesos en un día: te los gasta en horas y no aprendes nada.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g21-c6" onchange="onCheck(this)"><span class="step-txt"><strong>6. Déjalo correr los siete días completos.</strong> No lo apagues al segundo día. Los sistemas de anuncios necesitan unos días para encontrar a quién mostrarle tu anuncio.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g21-c7" onchange="onCheck(this)"><span class="step-txt"><strong>7. Mide con estos tres números y ninguno más.</strong><ul class="substeps"><li><strong>¿Cuánta gente te escribió?</strong> El número que importa.</li><li><strong>¿Cuánto pagaste por cada persona que te escribió?</strong> Divide lo que gastaste entre los mensajes recibidos. Si gastaste 700 y te escribieron 35 personas, te costó 20 pesos cada conversación.</li><li><strong>¿Cuántas de esas compraron?</strong> Esto lo cuentas tú, con tus etiquetas de WhatsApp (micro-guía 11).</li></ul></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g21-c8" onchange="onCheck(this)"><span class="step-txt"><strong>8. Haz la cuenta que decide todo.</strong> Si cada conversación te cuesta 20 pesos, si de cada cinco conversaciones una compra, entonces cada cliente te cuesta 100 pesos de publicidad. ¿Cuánto te deja de ganancia un cliente? Si te deja 400, la publicidad es un negocio y deberías poner más. Si te deja 60, estás perdiendo dinero y hay que cambiar el anuncio, la zona o el precio. <strong>Esta cuenta, y solo esta, decide si sigues pagando.</strong></span></label>
+<label class="step"><input type="checkbox" class="chk" id="g21-c9" onchange="onCheck(this)"><span class="step-txt"><strong>9. Cuándo NO conviene pagar.</strong> Cuando no puedes atender más trabajo del que tienes. Cuando tu margen es muy chico. Cuando no hay quien conteste. Y cuando lo que necesitas es simplemente terminar de llenar tu ficha del mapa, que es gratis y suele traer más clientes locales que cualquier anuncio pagado.</span></label>
+<label class="step"><input type="checkbox" class="chk" id="g21-c10" onchange="onCheck(this)"><span class="step-txt"><strong>10. Nunca dejes la tarjeta corriendo sin revisar.</strong> Ponte una alarma mensual para revisar cuánto se gastó. Los anuncios que se quedan encendidos y olvidados son una fuga silenciosa.</span></label>
+</div>
+</section>
+<section class="block block-success">
+<h3 class="block-title">Cómo saber que funcionó</h3>
+<div class="block-body">
+<p>Funcionó si al final de la semana puedes decir esta frase con números: <em>&quot;Gasté X, me escribieron Y personas, compraron Z, y eso me dejó W pesos.&quot;</em> Si no puedes decirla, no midiste, y sin medir la publicidad es una apuesta.</p>
+</div>
+</section>
+<section class="block block-error">
+<h3 class="block-title">El error común</h3>
+<div class="block-body">
+<p>Promocionar para &quot;conseguir seguidores&quot;. Los seguidores no pagan la renta. Un negocio local con 300 seguidores del barrio que compran vale infinitamente más que uno con 8,000 seguidores de otro país que llegaron por un concurso.</p>
+<p>Segundo error: pagar publicidad y no cambiar nada del anuncio en meses. Cámbialo cada dos o tres semanas: la misma gente lo ve y se cansa.</p>
+</div>
+</section>
+<section class="block block-mobile">
+<h3 class="block-title">En el celular</h3>
+<div class="block-body">
+<p>Se puede promocionar desde el botón que aparece en cada publicación, y es lo más fácil para empezar. Pero ese botón te esconde opciones importantes, sobre todo la del radio exacto de la zona. Recomendación: <strong>el primer anuncio hazlo en computadora</strong>, con calma, para ver todas las opciones y entender qué estás comprando. Los siguientes ya puedes hacerlos desde el teléfono en dos minutos.</p>
+</div>
+</section><section class="block block-notes"><h3 class="block-title">Tus notas y tus datos</h3><div class="block-body"><p class="hint">Anota aquí tu dato (tu correo, tu RFC, el nombre de tu página...). Se guarda mientras esta pestaña siga abierta.</p><textarea class="fld" id="g21-notes" rows="3" placeholder="Escribe aquí..." oninput="onField(this)"></textarea></div></section></div><div class="guide-nav"><button class="gbtn" onclick="prevGuide()">&larr; Anterior</button><button class="gbtn primary" onclick="nextGuide()">Siguiente &rarr;</button></div></article>
+  </main>
+ </div>
+</div>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="disclaimer"><!--DISCLAIMER_GENERAL-->Aviso importante — Contenido orientativo. Guía Clave es un producto educativo e informativo de carácter general. Todo su contenido tiene un fin exclusivamente orientativo y representa una sugerencia, no una instrucción obligatoria ni una asesoría profesional personalizada. Leer esta guía o usar nuestros recursos no crea ninguna relación profesional ni de cliente-asesor. Antes de tomar decisiones formales, verifica la información en la fuente oficial correspondiente y consulta a un profesional acreditado (contador, abogado, asesor financiero u otro, según el caso). No nos responsabilizamos por decisiones, pérdidas o daños derivados del uso de esta información. Vigente a julio de 2026; los trámites y plataformas cambian con frecuencia. Producto independiente: las marcas mencionadas pertenecen a sus titulares y esta guía no está afiliada, patrocinada ni avalada por ellos.</div>
+    <div>Guía Clave · Playbook interactivo · Actualizado a julio 2026.<br>
+    Enlace de compra pendiente: <code>__CHECKOUT_URL__</code> · Precio de referencia: $5.99 USD.</div>
+  </div>
+</footer>
+
+
+<style>
+#gcbot-launcher{position:fixed;right:18px;bottom:18px;z-index:9000;display:flex;align-items:center;gap:9px;
+  background:#14452F;color:#F7F2E4;border:none;cursor:pointer;padding:13px 18px 13px 15px;border-radius:999px;
+  font-family:Inter,system-ui,sans-serif;font-weight:700;font-size:14px;box-shadow:0 10px 26px rgba(0,0,0,.30)}
+#gcbot-launcher:hover{transform:translateY(-2px)}
+#gcbot-launcher .d{width:8px;height:8px;border-radius:50%;background:#F2A81D}
+#gcbot-panel{position:fixed;right:18px;bottom:18px;z-index:9001;width:min(390px,calc(100vw - 28px));
+  height:min(620px,calc(100vh - 36px));background:#F7F2E4;border-radius:20px;overflow:hidden;display:none;
+  flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.42);border:2px solid #14452F}
+#gcbot-panel.open{display:flex}
+#gcbot-panel .bh{background:#14452F;color:#F7F2E4;padding:15px 16px;display:flex;align-items:center;gap:10px;position:relative}
+#gcbot-panel .bh svg{width:30px;height:30px;flex:0 0 30px}
+#gcbot-panel .bh .eb{font-family:Inter,system-ui,sans-serif;font-size:10px;letter-spacing:.16em;color:#F2A81D;font-weight:700}
+#gcbot-panel .bh .tt{font-family:Inter,system-ui,sans-serif;font-weight:700;font-size:15px;line-height:1.15}
+#gcbot-panel .bx{position:absolute;top:12px;right:12px;background:transparent;border:1.5px solid rgba(255,255,255,.5);
+  color:#F7F2E4;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:15px}
+#gcbot-log{flex:1 1 auto;overflow-y:auto;padding:14px 14px 4px}
+#gcbot-log .m{max-width:88%;margin-bottom:10px;padding:10px 13px;font-size:14px;line-height:1.5;border-radius:15px}
+#gcbot-log .bot{background:#ffffff;border:1px solid #DED6C2;border-bottom-left-radius:4px}
+#gcbot-log .user{background:#14452F;color:#F7F2E4;margin-left:auto;border-bottom-right-radius:4px;font-family:Inter,system-ui,sans-serif;font-size:13px}
+#gcbot-log .m b{color:#14452F}
+#gcbot-log .user b{color:#F2A81D}
+#gcbot-log ul{margin:6px 0 0;padding-left:17px}
+.gctyping{display:inline-flex;gap:4px}.gctyping i{width:6px;height:6px;background:#7C7768;border-radius:50%;display:block;animation:gcb 1s infinite}
+.gctyping i:nth-child(2){animation-delay:.15s}.gctyping i:nth-child(3){animation-delay:.3s}
+@keyframes gcb{0%,80%,100%{opacity:.3}40%{opacity:1}}
+#gcbot-opts{flex:0 0 auto;padding:8px 12px 10px;border-top:1px solid #DED6C2;background:#F7F2E4;display:flex;flex-wrap:wrap;gap:6px}
+#gcbot-opts .c{font-family:Inter,system-ui,sans-serif;font-size:12.5px;font-weight:600;color:#14452F;background:transparent;
+  border:1.5px solid #14452F;border-radius:999px;padding:7px 12px;cursor:pointer}
+#gcbot-opts .c:hover{background:#14452F;color:#F7F2E4}
+#gcbot-opts .c.g{border-color:#7C7768;color:#7C7768}
+#gcbot-opts a.cta{display:block;width:100%;text-align:center;text-decoration:none;font-family:Inter,system-ui,sans-serif;font-weight:700;
+  background:#F2A81D;color:#14452F;padding:12px;border-radius:11px}
+#gcbot-foot{font-family:Inter,system-ui,sans-serif;font-size:10px;color:#7C7768;text-align:center;padding:0 12px 9px}
+</style>
+<button id="gcbot-launcher" onclick="gcbotOpen()"><span class="d"></span>¿Te ayudo a decidir?</button>
+<section id="gcbot-panel" role="dialog" aria-label="Asistente">
+  <div class="bh"><svg viewBox="0 0 100 120"><path d="M0 26a26 26 0 0 1 26-26h48a26 26 0 0 1 26 26v60H0z" fill="#F2A81D"/><path d="M0 84h100L50 120z" fill="#F2A81D"/><rect x="22" y="24" width="56" height="10" rx="5" fill="#14452F"/><rect x="22" y="42" width="56" height="10" rx="5" fill="#14452F"/><rect x="22" y="60" width="56" height="10" rx="5" fill="#14452F"/></svg><div><div class="eb">Guía Clave</div><div class="tt">Pon tu negocio en internet</div></div>
+    <button class="bx" onclick="gcbotClose()" aria-label="Cerrar">&times;</button></div>
+  <div id="gcbot-log"></div>
+  <div id="gcbot-opts"></div>
+  <div id="gcbot-foot">Guía independiente. Meta, WhatsApp y Google son marcas de sus titulares. © 2026 Guía Clave.</div>
+</section>
+<script>
+(function(){
+  var CHECKOUT="__CHECKOUT_URL__";
+  var log=document.getElementById('gcbot-log'), opts=document.getElementById('gcbot-opts');
+  var panel=document.getElementById('gcbot-panel'), launcher=document.getElementById('gcbot-launcher');
+  var started=false;
+  var NODES={
+ inicio:{msg:"¡Hola! 👋 Soy el asistente de <b>«Pon tu negocio en internet»</b>: 21 micro-guías para que tu negocio aparezca en Facebook, Instagram, WhatsApp Business y Google Maps. ¿Qué te falta saber?",
+   opts:[["¿Qué trae?","contenido"],["¿Sirve para mi negocio?","quien"],["¿Cuánto cuesta?","precio"],["Ya me convenciste","comprar"]]},
+ contenido:{msg:"21 micro-guías en 4 bloques:<ul><li>Meta (Facebook e Instagram)</li><li>WhatsApp Business</li><li>Google Maps</li><li>Lo que nadie te dice: estafas, qué publicar, fotos, publicidad</li></ul>Cada una: problema, pasos, <em>cómo saber que funcionó</em>, error común y variante en celular.",
+   opts:[["¿Sirve para mi negocio?","quien"],["Comprar","comprar"],["Volver","inicio"]]},
+ quien:{msg:"Para negocios de barrio: changarro, taller, estética, taquería, consultorio, papelería. Ejemplos con nombre, nada de startup. Si atiendes gente que vive cerca, es tu caso.",
+   opts:[["¿Cuánto cuesta?","precio"],["Comprar","comprar"],["Volver","inicio"]]},
+ precio:{msg:"<b>$5.99 USD</b>, un solo pago. PDF + EPUB, para el celular, la tableta o impreso. Si no te sirve, te devolvemos.",
+   opts:[["Comprar ahora","comprar"],["Volver","inicio"]]},
+ comprar:{msg:"Perfecto. Te llevo al pago seguro. Si el botón no abre, usa el enlace del vendedor.",
+   opts:[["Ir al pago","__GO__"],["Tengo otra duda","inicio"]]}
+};
+  window.gcbotOpen=function(){panel.classList.add('open');launcher.style.display='none';if(!started){started=true;go('inicio');}};
+  window.gcbotClose=function(){panel.classList.remove('open');launcher.style.display='flex';};
+  function bubble(h,w){var d=document.createElement('div');d.className='m '+w;d.innerHTML=h;log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
+  function typing(){var d=bubble('<span class="gctyping"><i></i><i></i><i></i></span>','bot');return d;}
+  function renderOpts(list){opts.innerHTML='';list.forEach(function(o){
+    if(o[1]==='__GO__'){var a=document.createElement('a');a.className='cta';a.href=CHECKOUT;a.rel='noopener';a.textContent=o[0];opts.appendChild(a);return;}
+    var b=document.createElement('button');b.className='c'+(o[1]==='inicio'?' g':'');b.textContent=o[0];
+    b.onclick=function(){bubble(o[0],'user');go(o[1]);};opts.appendChild(b);});}
+  function go(k){var nd=NODES[k];if(!nd)return;opts.innerHTML='';var t=typing();
+    setTimeout(function(){t.remove();bubble(nd.msg,'bot');renderOpts(nd.opts);},480);}
+})();
+</script>
+
+
+<script>
+"use strict";
+/* --- estado EN MEMORIA (sin localStorage) --- */
+var STATE={checks:{},fields:{}};
+var GUIDES=[].slice.call(document.querySelectorAll('.guide'));
+var NAVBTNS=[].slice.call(document.querySelectorAll('.navbtn'));
+var CUR=0;
+
+function onCheck(el){ STATE.checks[el.id]=el.checked; updateProgress(); }
+function onField(el){ STATE.fields[el.id]=el.value; }
+
+function updateProgress(){
+  var all=document.querySelectorAll('.chk');
+  var done=0; all.forEach(function(c){ if(c.checked) done++; });
+  var total=all.length;
+  var pct= total? Math.round(done/total*100):0;
+  document.getElementById('pfill').style.width=pct+'%';
+  document.getElementById('plabel').textContent='Has completado '+done+' de '+total+' pasos ('+pct+'%)';
+  GUIDES.forEach(function(g){
+    var gc=g.querySelectorAll('.chk'), d=0;
+    gc.forEach(function(c){if(c.checked)d++;});
+    var gp=g.querySelector('[id$="-gp"]'), gt=g.querySelector('[id$="-gt"]');
+    if(gp)gp.textContent=d; if(gt)gt.textContent=gc.length;
+  });
+}
+
+function showGuide(i){
+  if(i<0||i>=GUIDES.length)return;
+  GUIDES.forEach(function(g,k){ g.classList.toggle('active',k===i); });
+  NAVBTNS.forEach(function(b,k){ b.classList.toggle('active',k===i); });
+  CUR=i;
+  window.scrollTo({top:0,behavior:'smooth'});
+  var nl=document.getElementById('navlist'); if(window.innerWidth<=900&&nl)nl.classList.remove('open');
+}
+function nextGuide(){ showGuide(Math.min(CUR+1,GUIDES.length-1)); }
+function prevGuide(){ showGuide(Math.max(CUR-1,0)); }
+function revealGuide(gid){
+  var lk=document.getElementById(gid+'-lock'); if(lk)lk.style.display='none';
+  var inner=document.querySelector('#'+gid+' .guide-inner');
+  if(inner){inner.style.filter='none';inner.style.pointerEvents='auto';inner.style.opacity='1';inner.style.userSelect='auto';}
+}
+function toggleMenu(){ document.getElementById('navlist').classList.toggle('open'); }
+
+/* --- copiar --- */
+function doCopy(text,btn){
+  function ok(){ if(btn){var o=btn.textContent;btn.textContent='¡Copiado!';btn.classList.add('done');
+    setTimeout(function(){btn.textContent=o;btn.classList.remove('done');},1400);} }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(ok,function(){fallback(text);ok();});
+  } else { fallback(text); ok(); }
+}
+function fallback(text){
+  var t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';
+  document.body.appendChild(t);t.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(t);
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest('.copybtn'); if(!b)return;
+  var id=b.getAttribute('data-copy'); var el=document.getElementById(id);
+  if(el)doCopy(el.innerText.trim(),b);
+});
+
+/* --- generadores --- */
+function fv(id){ var e=document.getElementById(id); return e?e.value.trim():''; }
+function buildSignature(gid){
+  var nom=fv('ficha-nombre')||'Tu nombre';
+  var neg=fv('ficha-negocio')||'Tu negocio';
+  var tel=fv('ficha-tel')||'Tu teléfono';
+  var web=fv('ficha-web')||'';
+  var out=nom+'\n'+neg+'\n'+tel+(web?('\n'+web):'');
+  document.getElementById(gid+'-sig').innerText=out;
+}
+function buildWame(gid){
+  var tel=(fv('ficha-tel')||fv(gid+'-tel')).replace(/[^0-9]/g,'');
+  var msg=fv(gid+'-wamsg');
+  var base='https://wa.me/52'+tel;
+  if(msg)base+='?text='+encodeURIComponent(msg);
+  document.getElementById(gid+'-wame').innerText= tel? base : 'Escribe tu teléfono de 10 dígitos en la Ficha.';
+}
+function buildPrompt(gid){
+  var c=fv(gid+'-ctx')||'[tu situación]';
+  var l=fv(gid+'-log')||'[qué quieres]';
+  var a=fv(gid+'-adj')||'[tono y longitud]';
+  var out='Contexto: '+c+'.\nQuiero que: '+l+'.\nAjustes: '+a+'.\nDevuélvemelo listo para usar y pregúntame si falta algo.';
+  document.getElementById(gid+'-prm').innerText=out;
+}
+updateProgress();
+</script>
+</body>
+</html>

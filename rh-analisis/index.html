@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Análisis de evaluación · Connectia RH</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --indigo:#201040; --indigo2:#2a1654; --violet-mid:#502090; --violet:#6030A0; --violet-hot:#7B3FF2;
+  --lime:#C8FF00; --citrus:#FF6A1A;
+  --ink:#0A0118; --graphite:#1F1B2E; --slate:#6B6580; --mist:#E9E6F0; --paper:#F5F4F8; --white:#fff;
+  --line:#e7e3f0; --ok:#16a34a; --okbg:#eafaf0; --warn:#d97706; --warnbg:#fff4e6; --danger:#dc2626; --dangerbg:#fde9e9; --info:#2563eb; --infobg:#e8f0fe;
+  --font:'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font);background:var(--paper);color:var(--graphite);font-size:14px;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+.sheet{max-width:920px;margin:0 auto;padding:0 0 90px}
+.tools{position:sticky;top:0;z-index:50;background:rgba(245,244,248,.92);backdrop-filter:blur(8px);display:flex;justify-content:space-between;align-items:center;padding:12px 22px;border-bottom:1px solid var(--line)}
+.tools .lft{font-size:12px;color:var(--slate)}
+.btn{border:1px solid var(--violet);background:var(--violet);color:#fff;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;display:inline-flex;gap:7px;align-items:center}
+.btn:hover{background:#52268c}
+.btn.ghost{background:#fff;color:var(--violet)}
+
+/* ---------- report ---------- */
+.report{padding:0 22px}
+.cover{background:linear-gradient(135deg,#201040 0%,#2a1654 42%,#502090 100%);color:#fff;border-radius:18px;padding:26px 30px;margin:20px 0 16px;position:relative;overflow:hidden}
+.cover::after{content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(123,63,242,.45),transparent 70%)}
+.cover .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;position:relative;z-index:2;flex-wrap:wrap}
+.cover .logo{display:flex;align-items:center;gap:10px}
+.cover .logo img{height:26px;width:auto;display:block}
+.cover .logo b{font-size:22px;font-weight:800;letter-spacing:-.03em}
+.cover .badge{font-size:9px;font-weight:800;letter-spacing:.16em;color:#201040;background:var(--lime);padding:4px 9px;border-radius:6px}
+.cover .eyebrow{font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#c9b8ff;margin:20px 0 4px;position:relative;z-index:2}
+.cover h1{margin:0;font-size:27px;font-weight:800;letter-spacing:-.02em;position:relative;z-index:2}
+.cover .meta{display:flex;gap:26px;flex-wrap:wrap;margin-top:16px;position:relative;z-index:2}
+.cover .meta div b{display:block;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#a794d8}
+.cover .meta div span{font-size:13.5px;font-weight:700;color:#fff}
+
+.verdict{display:grid;grid-template-columns:150px 1fr;gap:22px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px;margin-bottom:16px}
+.ring{width:132px;height:132px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:auto}
+.ring .hole{width:96px;height:96px;background:#fff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .hole b{font-size:32px;font-weight:800;color:var(--indigo);line-height:1}
+.ring .hole span{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);margin-top:3px}
+.verdict .dict{font-size:13px;font-weight:800;padding:6px 15px;border-radius:999px;display:inline-block;margin-bottom:9px}
+.verdict p{margin:0;font-size:13px;line-height:1.6;color:var(--graphite)}
+.fit{font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-.01em}
+.reasons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.rcol h4{margin:0 0 7px;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.rcol h4.rp{color:var(--ok)} .rcol h4.rn{color:var(--warn)}
+.rcol ul{margin:0;padding-left:16px}
+.rcol li{font-size:12px;line-height:1.55;color:var(--graphite);margin-bottom:5px}
+@media(max-width:760px){.reasons{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.chip{font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px}
+.chip.ok{background:var(--okbg);color:var(--ok)} .chip.warn{background:var(--warnbg);color:var(--warn)}
+
+.section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px;margin-bottom:14px}
+.section .head{display:flex;align-items:center;gap:11px;margin-bottom:4px}
+.section .idx{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--violet),var(--violet-hot));color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.section h2{margin:0;font-size:15px;font-weight:800;color:var(--indigo);letter-spacing:-.01em;text-transform:uppercase}
+.section .sub{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--violet-hot);margin:0 0 14px 37px}
+.section p.desc{font-size:12.5px;line-height:1.6;color:var(--slate);margin:0 0 14px}
+.chartbox{position:relative;width:100%;height:290px}
+.chartbox.tall{height:360px}
+.chartbox.sm{height:210px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center}
+.metrix{display:flex;flex-direction:column;gap:12px}
+.metric .ml{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+.metric .ml b{color:var(--indigo)}
+.bar{height:11px;border-radius:6px;background:var(--mist);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px}
+.badge{font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:999px}
+.b-alto{background:var(--okbg);color:var(--ok)} .b-suf{background:var(--infobg);color:var(--info)}
+.b-reg{background:var(--warnbg);color:var(--warn)} .b-bajo{background:var(--dangerbg);color:var(--danger)}
+.valchips{display:flex;flex-wrap:wrap;gap:8px}
+.valchip{font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:999px}
+.va-alta{background:var(--okbg);color:var(--ok)} .va-media{background:var(--warnbg);color:var(--warn)} .va-baja{background:var(--dangerbg);color:var(--danger)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--slate);margin-top:8px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.morewrap{margin-top:14px}
+.btn-more{border:1px solid var(--violet);background:#fff;color:var(--violet);border-radius:999px;padding:7px 15px;font-size:12px;font-weight:700}
+.btn-more:hover{background:#f6f2fd}
+.detail{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px;display:none}
+.detail.open{display:block}
+.dim{margin-bottom:12px}
+.dimhead{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#faf9fc;border:1px solid var(--line);border-radius:9px;padding:8px 12px}
+.dimhead .dn{font-size:12px;font-weight:800;color:var(--indigo);text-transform:uppercase;letter-spacing:.02em}
+.dim p{font-size:12.5px;line-height:1.6;color:var(--graphite);margin:8px 2px 0}
+.dim .pos{color:var(--ok);font-weight:700} .dim .neg{color:var(--warn);font-weight:700}
+.iqcard{display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:center;background:linear-gradient(135deg,#f6f2fd,#eef3ff);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.iqbig{text-align:center}
+.iqbig .n{font-size:46px;font-weight:800;color:var(--indigo);line-height:1}
+.iqbig .lab{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:5px}
+.iqbig .bd{margin-top:8px}
+@media(max-width:760px){.iqcard{grid-template-columns:1fr}}
+.foot{padding:16px 22px;color:var(--slate);font-size:11px;line-height:1.6}
+.foot b{color:var(--indigo)}
+.state{max-width:520px;margin:60px auto;text-align:center;color:var(--slate)}
+.state h2{color:var(--indigo)}
+@media(max-width:760px){.verdict{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+@media print{
+  .tools{display:none}
+  .btn-more,.morewrap{display:none}
+  .detail{display:block !important;border-top:1px dashed #ddd}
+  body{background:#fff}
+  .sheet{max-width:none;padding:0}
+  .report{padding:0}
+  .cover,.verdict,.section{break-inside:avoid;box-shadow:none}
+  .cover{border-radius:0}
+  @page{size:A4;margin:12mm}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="tools">
+    <div class="lft">Connectia RH · Análisis de batería de evaluación</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost" onclick="history.length>1?history.back():window.close()">← Volver</button>
+      <button class="btn ghost" id="toggleAllBtn" data-open="0" onclick="var o=this.getAttribute('data-open')!=='1'; toggleAll(o); this.setAttribute('data-open',o?'1':'0'); this.textContent=o?'Ocultar todo el detalle':'Ver análisis completo';">Ver análisis completo</button>
+      <button class="btn" onclick="window.print()">Descargar / Imprimir PDF</button>
+    </div>
+  </div>
+  <div id="app" class="report">
+    <div class="state"><h2>Cargando análisis…</h2><p>Recuperando el resultado de la evaluación.</p></div>
+  </div>
+  <div class="foot">
+    <b>Connectia · Cultural marketing · MX.</b> Este análisis es una herramienta de apoyo para el proceso de selección y debe interpretarse en conjunto con las entrevistas, la verificación de referencias y el criterio del área. No constituye un dictamen clínico ni una decisión de contratación por sí solo.<br>
+    <b style="color:var(--indigo)">Fundamento metodológico:</b> rasgos de personalidad basados en el modelo de los Cinco Grandes (IPIP · Goldberg, dominio público); control de deseabilidad social adaptado de la escala Marlowe-Crowne (forma corta, Reynolds 1982); estilos de liderazgo transformacional/transaccional (Bass); comportamiento en el modelo R·E·I·C (DISC); razonamiento verbal, numérico y abstracto con dificultad graduada; y perfil requerido con niveles diferenciados por competencia según la familia del puesto (metodología de importancia por ocupación tipo O*NET · U.S. Dept. of Labor). Ítems adaptados al español y al contexto laboral; incluye ítems inversos e índice de validez.<br>
+    <i>La marca aparece donde importa, no donde sobra.</i>
+  </div>
+</div>
+
+<script>
+/* ---------- config ---------- */
+var SB_URL = 'https://mduxlmnlwycwknyapwsx.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kdXhsbW5sd3ljd2tueWFwd3N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NDI1NTcsImV4cCI6MjA5MTQxODU1N30.UYL47zkWp8Zzgg8-opN1DwMczkyeTcMwPfUhhbCsSPc';
+var LOGO = 'https://connectia.mx/logo.png';
+var C = {indigo:'#201040',violet:'#6030A0',violetHot:'#7B3FF2',lime:'#C8FF00',citrus:'#FF6A1A',ok:'#16a34a',warn:'#d97706',danger:'#dc2626',info:'#2563eb',slate:'#6B6580',mist:'#E9E6F0'};
+Chart.defaults.font.family = "'Inter','Helvetica Neue',Arial,sans-serif";
+Chart.defaults.color = '#6B6580';
+Chart.defaults.animation = false;
+
+var VENTAS_LAB = {autodisciplina:'Autodisciplina',comunicacion_com:'Comunicación',tolerancia_rechazo:'Tolerancia al rechazo',resultados_com:'Orientación a resultados',negociacion:'Negociación',gusto_venta:'Gusto por la venta',empatia:'Empatía'};
+var LIDER_LAB = {comunicacion_dir:'Comunicación',inteligencia_emocional_dir:'Inteligencia emocional',decisiones_dir:'Toma de decisiones',resultados_dir:'Orientación a resultados',negociacion_dir:'Negociación',mando:'Capacidad de mando',planeacion_dir:'Planeación'};
+var COG_LAB = {verbal:'Razonamiento verbal',logico:'Razonamiento lógico',numerico:'Razonamiento numérico',abstracto:'Razonamiento abstracto',analisis:'Análisis',decisiones:'Toma de decisiones',juicio:'Juicio',comunicacion:'Comunicación',liderazgo:'Liderazgo',equipo:'Trabajo en equipo',inteligencia_emocional:'Int. emocional',tolerancia_presion:'Tolerancia a la presión',resultados:'Enfoque a resultados',planeacion:'Planeación y organización',seguimiento:'Seguimiento',actitud_servicio:'Actitud de servicio',desarrollo:'Desarrollo de personas',delegacion:'Delegación',informacion:'Información',sintesis:'Síntesis',abstraccion:'Abstracción',atencion:'Atención y detalle',concentracion:'Concentración',organizacion:'Organización',vocabulario:'Vocabulario'};
+
+/* ---------- descripciones por dimensión (estilo batería psicométrica) ---------- */
+var COG_DESC = {
+  informacion:'Evalúa el nivel de información que la persona ha adquirido de su entorno, así como la habilidad para asociar conceptos y utilizar su memoria a largo plazo. Se ve influida por el deseo de aprender y de obtener más cultura general.',
+  juicio:'Capacidad de comprender y reconocer las situaciones del día a día; su razonamiento le permite encontrar respuestas lógicas a los inconvenientes que se le presentan.',
+  sintesis:'Se enfoca en lograr un entendimiento del funcionamiento de las cosas a través de la observación, razonando y deduciendo lógicamente los conceptos.',
+  abstraccion:'Habilidad para abstraer y pensar de forma organizada, crear analogías y captar los aspectos esenciales de un problema mediante la clasificación y el orden.',
+  organizacion:'Capacidad de organización de conceptos: clasifica con rapidez la información usando campos semánticos y categorías para lograr un orden.',
+  planeacion:'Nivel de planeación, enfoque al detalle y clasificación de elementos al momento de estructurar el trabajo.',
+  analisis:'Capacidad de utilizar la comprensión y la lógica para llegar a conclusiones después de analizar una situación presentada.',
+  atencion:'Capacidad de atención y deducción; facilidad para trabajar con números y cantidades.',
+  vocabulario:'Capacidad de análisis y síntesis de conceptos y riqueza de vocabulario.',
+  concentracion:'Habilidad para el manejo de números y capacidad de concentración para resolver problemas matemáticos.'
+};
+var COMP_DESC = {
+  analisis:'Encontrar qué provoca un problema y qué efectos produce en relación con los elementos que lo rodean, además de identificar posibles soluciones y los puntos importantes sin importar si la información es poca o mucha.',
+  decisiones:'Utilizar los recursos disponibles de manera lógica y razonable para definir el rumbo y las acciones a tomar cuando se presentan cambios y situaciones críticas.',
+  juicio:'Tomar decisiones con habilidad y congruencia después de evaluar la información disponible, dando el valor adecuado a cada situación y tomando riesgos de manera calculada.',
+  comunicacion:'Interactuar con otras personas y transmitir y recibir información e ideas de manera fácil, efectiva y clara, captando la atención de la audiencia.',
+  liderazgo:'Dirigir e influir sobre las personas y orientarlas para conseguir los objetivos deseados, logrando que otras personas deseen seguir sus ideas.',
+  delegacion:'Dar autoridad a los integrantes del equipo, empoderándolos para el proceso de toma de decisiones y asignando la responsabilidad para cumplir las tareas.',
+  desarrollo:'Facilitar que las personas del equipo desarrollen habilidades y aptitudes que ayuden a la consecución de los objetivos del grupo, propiciando un ambiente de aprendizaje.',
+  equipo:'Obtener los resultados deseados, ubicar su rol dentro de un grupo y desarrollar buenas relaciones con cada uno de sus integrantes.',
+  inteligencia_emocional:'Controlar sus estados de ánimo, entender lo que siente y transformarlo a su favor, logrando un equilibrio emocional y entendiendo las emociones de los demás.',
+  tolerancia_presion:'Mantener sus emociones estables y sin sobresaltos en situaciones de estrés, con el mismo desempeño tanto ante problemas u oposiciones como en situaciones normales.',
+  actitud_servicio:'Mostrar de manera constante y genuina la disposición de asistir y apoyar a la gente, satisfaciendo las necesidades de las personas de su entorno.',
+  seguimiento:'Establecer mecanismos de control, seguimiento y retroalimentación que permitan llevar un registro preciso, corregir detalles y controlar variables críticas.',
+  planeacion:'Detallar rutas a seguir, establecer acciones y tener un pensamiento estructurado, anticipando posibles situaciones y empleando los recursos de manera efectiva.',
+  resultados:'Convertir ideas en resultados y planes en acciones, con la mente puesta en el resultado final y atención en cada paso sin perder de vista el objetivo.'
+};
+var VENTAS_DESC = {
+  autodisciplina:'Perseguir sus objetivos con poca o nula supervisión, autodirigirse y establecer sus propios mecanismos de control y parámetros de seguimiento.',
+  comunicacion_com:'Convertir la interacción con las personas en una experiencia agradable, transmitir con claridad las características del producto o servicio y llevar relaciones productivas.',
+  tolerancia_rechazo:'Soportar un "NO" sin que influya en seguir buscando la meta de ventas; no temerle al "NO" sino motivarse para conseguir un "SÍ" en la siguiente interacción.',
+  resultados_com:'Dar prioridad al cierre de la venta manteniendo una buena relación con el cliente; tener la habilidad de conseguir el objetivo y lograr el cierre por sobre todo.',
+  negociacion:'Llegar a acuerdos con la gente, perseguir un objetivo y convencer a las personas de llevarlo a cabo, logrando que ambas partes se sientan bien con el acuerdo.',
+  gusto_venta:'Afinidad por el área de ventas y gusto por las situaciones en las que debe convencer a otras personas; define qué tan a gusto estará en el puesto.',
+  empatia:'Ponerse en el lugar de su contraparte, ver las situaciones desde el punto de vista del cliente, entender sus necesidades y adaptar el producto o servicio a estas.'
+};
+var LIDER_DESC = {
+  comunicacion_dir:'Habilidad del líder para comunicarse de manera efectiva con su equipo de trabajo.',
+  inteligencia_emocional_dir:'Saber identificar y mantener bajo control sus emociones y canalizarlas de manera positiva.',
+  decisiones_dir:'Ser asertivo en las decisiones que toma, eligiendo siempre la opción óptima.',
+  resultados_dir:'Tener claros sus objetivos y sopesarlos a la hora de tomar una decisión.',
+  negociacion_dir:'Poseer los conocimientos y habilidades necesarios para llegar a acuerdos y conseguir prerrogativas.',
+  mando:'Ser capaz de dar órdenes y que el equipo de trabajo las acate de la mejor manera.',
+  planeacion_dir:'Facilidad para establecer metas y objetivos, con claridad en la estimación de fechas y la definición de agenda.'
+};
+var ESTILO_DESC = {
+  Directivo:'Tiende a dar instrucciones detalladas de cómo, cuándo y dónde llevar a cabo una tarea y luego examinar de cerca su ejecución. Muy efectivo cuando la presión del tiempo no permite entrar en detalle y en actividades de misión crítica.',
+  Participativo:'Acostumbra pedir la opinión, información y recomendaciones a los integrantes del equipo, aunque la decisión final la toma el líder. Óptimo cuando la experiencia del equipo aporta ideas y soluciones; crea un fuerte espíritu de equipo.',
+  Transformacional:'Busca una "transformación" del equipo retándolo a elevarse por encima de sus intereses inmediatos y persiguiendo el crecimiento individual. Da buenos resultados ante crisis o desencanto; no recomendable con equipos inexpertos.',
+  Transaccional:'Motiva mediante recompensas o correctivos y dirige por excepción, señalando principalmente lo hecho incorrectamente. Por sí solo consigue compromiso a corto plazo; conviene combinarlo con el transformacional.'
+};
+var PERS_DESC = {
+  influencia:{pos:'Mucha seguridad, lo que genera una actitud de influencia sobre las demás personas.',neg:'Puede priorizar la imagen que representa dentro de la empresa y su posición.'},
+  energico:{pos:'Mucha vitalidad; prefiere actividades con dinamismo y se relaciona con facilidad.',neg:'Puede dificultársele permanecer quieto por mucho tiempo.'},
+  dirigir:{pos:'Disposición para dirigir personal y asumir responsabilidad sobre otros.',neg:'Puede preferir ser un apoyo para la gerencia más que tener el cargo.'},
+  constancia:{pos:'Le gustan las actividades que cambian constantemente y experimentar cosas nuevas.',neg:'Puede dificultársele permanecer un largo periodo en una misma actividad.'},
+  relaciones:{pos:'Sabe desenvolverse socialmente y construir relaciones.',neg:'También valora sus momentos a solas.'},
+  metodico:{pos:'Puede realizar sus labores de forma metódica y ordenada.',neg:'En ocasiones preferirá salirse del esquema establecido.'},
+  minucioso:{pos:'Está al pendiente de los detalles sin perder el objetivo principal.',neg:''},
+  estabilidad:{pos:'Muestra una estabilidad anímica adecuada la mayoría de las veces.',neg:''}
+};
+function estimaIQ(comp){ return Math.max(70, Math.min(135, Math.round(100 + ((comp||0)-60)*0.55))); }
+function bandIQ(iq){ if(iq>=130)return{l:'Muy alto',c:'b-alto'}; if(iq>=120)return{l:'Alto',c:'b-alto'}; if(iq>=110)return{l:'Suficiente',c:'b-suf'}; if(iq>=95)return{l:'Promedio',c:'b-suf'}; if(iq>=85)return{l:'Regular',c:'b-reg'}; if(iq>=75)return{l:'Bajo',c:'b-reg'}; return{l:'Muy bajo',c:'b-bajo'}; }
+
+/* ---------- constructores del detalle ---------- */
+function dimBlock(name,score,desc,extra){
+  var b=band(score);
+  return '<div class="dim"><div class="dimhead"><span class="dn">'+esc(name)+'</span><span class="badge '+b.c+'">'+b.l+' · '+score+'%</span></div>'+
+    '<p>'+desc+(extra?(' '+extra):'')+'</p></div>';
+}
+function detCognitivo(r){ var pc=r.cognitivo.porCompetencia||{}; return Object.keys(pc).map(function(k){ var sc=pc[k]; var ex=sc>=100?'<span class="pos">Resuelto correctamente en la evaluación.</span>':'<span class="neg">Área por reforzar; conviene explorarla en entrevista.</span>'; return dimBlock(COG_LAB[k]||k, sc, (COG_DESC[k]||('Evalúa la habilidad de '+(COG_LAB[k]||k).toLowerCase()+'.')), ex); }).join(''); }
+function detCompetencias(r){ return Object.keys(r.competencias).map(function(k){ var c=r.competencias[k]; var req=nivelReqComp(r,k); var ex=c.score>=req?'<span class="pos">Candidato '+c.score+'% · requerido '+req+'% — cumple el perfil de la vacante.</span>':'<span class="neg">Candidato '+c.score+'% · requerido '+req+'% — por debajo del perfil de la vacante.</span>'; return dimBlock(c.label, c.score, (COMP_DESC[k]||('Competencia de '+c.label.toLowerCase()+'.')), ex); }).join(''); }
+var BF_DESC = {
+  apertura:{pos:'Curioso, creativo y abierto a ideas nuevas y al cambio.', neg:'Práctico y convencional; prefiere lo conocido y probado.'},
+  responsabilidad:{pos:'Organizado, disciplinado, orientado al cumplimiento y al detalle.', neg:'Flexible y espontáneo; puede descuidar plazos u orden.'},
+  extraversion:{pos:'Sociable, enérgico y cómodo en la interacción y el contacto con gente.', neg:'Reservado e independiente; prefiere el trabajo individual y tranquilo.'},
+  amabilidad:{pos:'Cooperativo, empático y orientado a las personas y al acuerdo.', neg:'Directo y competitivo; antepone la tarea o su criterio al consenso.'},
+  estabilidad:{pos:'Sereno, resistente al estrés y emocionalmente estable.', neg:'Sensible a la presión; puede mostrar tensión o cambios de ánimo.'}
+};
+function persData(r){ return r.bigfive || r.personalidad || {}; }
+function detPersonalidad(r){ var pd=persData(r); var bf=!!r.bigfive; return Object.keys(pd).map(function(k){ var p=pd[k]; var d=(bf?BF_DESC[k]:PERS_DESC[k])||{pos:'Rasgo presente en el candidato.',neg:''}; var txt = p.score>=60 ? ('<span class="pos">[Alto]</span> '+d.pos) : ('<span class="neg">[Bajo]</span> '+(d.neg||d.pos)); return dimBlock(p.label, p.score, txt); }).join(''); }
+function detVentas(r){ return Object.keys(r.ventas).map(function(k){ var sc=r.ventas[k]; var req=(REQ_VENTAS[k]!=null?REQ_VENTAS[k]:75); var ex=sc>=req?'<span class="pos">Candidato '+sc+'% · requerido '+req+'% — cumple.</span>':'<span class="neg">Candidato '+sc+'% · requerido '+req+'% — por debajo.</span>'; return dimBlock(VENTAS_LAB[k]||k, sc, (VENTAS_DESC[k]||('Habilidad comercial: '+(VENTAS_LAB[k]||k).toLowerCase()+'.')), ex); }).join(''); }
+function detLiderazgo(r){
+  var dom=dominante(r.liderazgoEstilo);
+  var h='<div class="dim"><div class="dimhead"><span class="dn">Estilo dominante: '+dom+'</span><span class="badge b-suf">'+r.liderazgoEstilo[dom]+'%</span></div><p>'+(ESTILO_DESC[dom]||'')+'</p></div>';
+  h+='<div class="dim"><p style="margin-top:0"><b>Distribución de estilos:</b> '+Object.keys(r.liderazgoEstilo).map(function(k){return k+' '+r.liderazgoEstilo[k]+'%';}).join(' · ')+'</p></div>';
+  h+=Object.keys(r.liderazgoSkills||{}).map(function(k){ var sc=r.liderazgoSkills[k]; var req=(REQ_LIDER[k]!=null?REQ_LIDER[k]:75); var ex=sc>=req?'<span class="pos">Candidato '+sc+'% · requerido '+req+'% — cumple.</span>':'<span class="neg">Candidato '+sc+'% · requerido '+req+'% — por debajo.</span>'; return dimBlock(LIDER_LAB[k]||k, sc, (LIDER_DESC[k]||('Habilidad directiva: '+(LIDER_LAB[k]||k).toLowerCase()+'.')), ex); }).join('');
+  return h;
+}
+function detConfianza(r){
+  var h=dimBlock('Honestidad', r.honestidad||0, 'Grado de honestidad basado en integrar las distintas perspectivas por medio de acuerdos, la imparcialidad objetiva y el debido proceso para mantener un ambiente honesto.');
+  h+=dimBlock('Ética', r.etica||0, 'Grado de ética a partir del desarrollo de valores como la responsabilidad y la lealtad consigo mismo y con la profesión, preocupándose por el bien de la empresa y de la sociedad.');
+  h+='<div class="dim"><div class="dimhead"><span class="dn">Perfil de honestidad</span></div><p>'+perfHonest(r.honestidad)+'</p></div>';
+  h+='<div class="dim"><div class="dimhead"><span class="dn">Perfil de ética</span></div><p>'+perfEtica(r.etica)+'</p></div>';
+  if(r.valores && Object.keys(r.valores).length){
+    var grp={Alta:[],Media:[],Baja:[]};
+    Object.keys(r.valores).forEach(function(v){ var lv=(r.valores[v]||'Media'); var key=lv.indexOf('Alt')>=0?'Alta':(lv.indexOf('Baj')>=0?'Baja':'Media'); grp[key].push(v); });
+    h+='<div class="dim"><div class="dimhead"><span class="dn">Perfil de valores</span></div><p><span class="pos">Alto:</span> '+(grp.Alta.join(', ')||'—')+'<br><b style="color:var(--warn)">Medio:</b> '+(grp.Media.join(', ')||'—')+'<br><span class="neg">Bajo:</span> '+(grp.Baja.join(', ')||'—')+'</p></div>';
+  }
+  if(r.validez){
+    var vb = r.validez.nivel==='Alta'?'b-alto':(r.validez.nivel==='Media'?'b-reg':'b-bajo');
+    h+='<div class="dim"><div class="dimhead"><span class="dn">Validez del examen</span><span class="badge '+vb+'">'+r.validez.nivel+'</span></div>'+
+      '<p>Índice de control de sesgos de respuesta. Deseabilidad social <b>'+r.validez.deseabilidadSocial+'%</b> (qué tanto intenta "quedar bien"), inconsistencia <b>'+r.validez.inconsistencia+'%</b> (contradicciones en ítems inversos) y variabilidad <b>'+r.validez.variabilidad+'</b> (respuestas casi idénticas si es muy baja). '+esc(r.validez.nota||'')+(r.validez.nivel!=='Alta'?' Se recomienda validar los autoreportes en la entrevista.':'')+'</p></div>';
+  }
+  return h;
+}
+/* ---------- resumen ejecutivo: ¿cumple el perfil? ---------- */
+function buildResumen(r, an){
+  var conc=r.competenciasConcordancia||0, cum=r.competenciasCumplen||0, tot=r.competenciasTotal||0;
+  var honest=(r.honestidad!=null)?r.honestidad:null, etica=(r.etica!=null)?r.etica:null;
+  var iq=r.cognitivo?estimaIQ(r.cognitivo.composite):null;
+  var favor=[], contra=[];
+  var ckeys=Object.keys(r.competencias||{});
+  var reqCumple=ckeys.filter(function(k){return r.competencias[k].score>=nivelReqComp(r,k);}).length;
+  var reqRatio=ckeys.length?reqCumple/ckeys.length:1;
+  if(ckeys.length){ if(reqRatio>=0.7) favor.push('Alcanza o supera el perfil requerido por la vacante en '+reqCumple+' de '+ckeys.length+' competencias.');
+           else contra.push('Solo alcanza el perfil requerido de la vacante en '+reqCumple+' de '+ckeys.length+' competencias.'); }
+  var noCumple=ckeys.filter(function(k){return r.competencias[k].score<nivelReqComp(r,k);}).map(function(k){return r.competencias[k].label;});
+  if(noCumple.length) contra.push('Competencias por debajo del umbral del perfil: '+noCumple.slice(0,5).join(', ')+'.');
+  if(an.fortalezas.length) favor.push('Fortalezas destacadas: '+an.fortalezas.slice(0,4).join(', ')+'.');
+  if(an.atencion.length) contra.push('Áreas a reforzar: '+an.atencion.slice(0,4).join(', ')+'.');
+  if(honest!=null&&etica!=null){ if(honest>=65&&etica>=65) favor.push('Alto nivel de confiabilidad (honestidad '+honest+'%, ética '+etica+'%).'); else if(honest<60||etica<60) contra.push('Confiabilidad a validar en entrevista y referencias (honestidad '+honest+'%, ética '+etica+'%).'); }
+  if(r.ventasComposite!=null){ if(r.ventasComposite>=70) favor.push('Perfil comercial sólido (índice de ventas '+r.ventasComposite+'%).'); else contra.push('Perfil comercial por reforzar (índice de ventas '+r.ventasComposite+'%).'); }
+  if(r.liderazgoSkills){ var ls=Object.keys(r.liderazgoSkills).map(function(k){return r.liderazgoSkills[k];}); var lavg=Math.round(ls.reduce(function(a,b){return a+b;},0)/ls.length); if(lavg>=70) favor.push('Habilidades directivas sólidas ('+lavg+'%, estilo '+dominante(r.liderazgoEstilo)+').'); else contra.push('Habilidades directivas por desarrollar ('+lavg+'%).'); }
+  if(iq!=null && r.cognitivo){ if(r.cognitivo.composite>=65) favor.push('Buen razonamiento general (IQ estimado '+iq+').'); else contra.push('Razonamiento general por reforzar (IQ estimado '+iq+').'); }
+  if(an.global<75) contra.push('Índice global ('+an.global+'%) por debajo del umbral óptimo de 75%.');
+  var cumple,col,ic;
+  if(an.global>=75 && reqRatio>=0.7 && (honest==null||honest>=60) && (etica==null||etica>=60)){ cumple='Sí cumple el perfil'; col=C.ok; ic='✓'; }
+  else if(an.global>=60){ cumple='Cumple el perfil con reservas'; col=C.warn; ic='≈'; }
+  else { cumple='No cumple el perfil'; col=C.danger; ic='✕'; }
+  var val = r.validez;
+  if(val){
+    if(val.nivel==='Baja'){
+      contra.unshift('Validez del examen BAJA — ' + (val.nota||'') + '. Los resultados pueden estar inflados; confirmar en entrevista y referencias antes de decidir.');
+      if(ic==='✓'){ cumple='Cumple, pero requiere validación'; col=C.warn; ic='≈'; }
+    } else if(val.nivel==='Media'){
+      contra.push('Validez del examen media — ' + (val.nota||'') + '.');
+    }
+    if(val.deseabilidadSocial>=60) contra.push('Deseabilidad social alta (' + val.deseabilidadSocial + '%): tiende a responder para "quedar bien".');
+  }
+  if(!favor.length) favor.push('Sin fortalezas por encima del umbral en esta evaluación.');
+  if(!contra.length) contra.push('Sin brechas relevantes frente al perfil.');
+  return {cumple:cumple,col:col,ic:ic,favor:favor,contra:contra};
+}
+/* ---------- DISC (Cacter) ---------- */
+var DISC_CTX_LABEL={diario:'Comportamiento diario',motivacion:'Motivación',presion:'Bajo presión'};
+var DISC_DIM_NAME={R:'Responsabilidad',E:'Empeño',I:'Influencia',C:'Constancia'};
+var DISC_DIM_DESC={R:'orientación a las normas, el orden, el método y el cumplimiento',E:'iniciativa y orientación a entregar resultados rápidos y eficaces',I:'sociabilidad, persuasión, entusiasmo y facilidad para relacionarse con otros',C:'estabilidad, perseverancia, ritmo constante y apego a lo conocido'};
+function detDisc(r){
+  return Object.keys(r.disc).map(function(ctx){
+    var dims=r.disc[ctx]||{}; var dom=Object.keys(dims).reduce(function(a,b){return dims[a]>=dims[b]?a:b;});
+    return '<div class="dim"><div class="dimhead"><span class="dn">'+(DISC_CTX_LABEL[ctx]||ctx)+'</span><span class="badge b-suf">'+(DISC_DIM_NAME[dom]||dom)+' · '+dims[dom]+'%</span></div>'+
+      '<p>En este contexto predomina la dimensión <b>'+(DISC_DIM_NAME[dom]||dom)+'</b>: '+(DISC_DIM_DESC[dom]||'')+'.</p></div>';
+  }).join('');
+}
+function nivelTxt(s){ return s>=80?'alto':s>=60?'suficiente':s>=40?'regular':'a reforzar'; }
+function perfHonest(s){ s=s||0; return 'Su nivel de honestidad es '+nivelTxt(s)+' ('+s+'%). '+(s>=60?'Tiende a respetar lo justo por reciprocidad y utilidad colectiva, con una perspectiva racional consciente de los valores y derechos de las personas, y se esfuerza por el bienestar de la empresa.':'Conviene validar en entrevista y referencias la consistencia de su actuar honesto, en especial bajo presión.'); }
+function perfEtica(s){ s=s||0; return 'Su nivel de ética es '+nivelTxt(s)+' ('+s+'%). '+(s>=60?'Se preocupa tanto por el bien de la empresa y la sociedad como por su propio autoconocimiento, analizando las decisiones desde diversas perspectivas y honrando los principios de su profesión.':'Se recomienda profundizar en su marco de valores y en cómo resuelve dilemas éticos en el trabajo.'); }
+
+function toggleDetail(id,btn){ var el=document.getElementById(id); if(!el)return; var open=el.classList.toggle('open'); if(btn) btn.textContent = open?'Ocultar detalle ▴':'Ver detalle del análisis ▾'; }
+function toggleAll(open){ Array.prototype.forEach.call(document.querySelectorAll('.detail'),function(d){ d.classList[open?'add':'remove']('open'); }); Array.prototype.forEach.call(document.querySelectorAll('.btn-more'),function(b){ b.textContent = open?'Ocultar detalle ▴':'Ver detalle del análisis ▾'; }); }
+
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function band(s){ if(s>=80)return{l:'Alto',c:'b-alto',col:C.ok}; if(s>=60)return{l:'Suficiente',c:'b-suf',col:C.info}; if(s>=40)return{l:'Regular',c:'b-reg',col:C.warn}; return{l:'Por reforzar',c:'b-bajo',col:C.danger}; }
+function colorFor(s){ return s>=80?C.ok:s>=60?C.info:s>=40?C.warn:C.danger; }
+
+/* ---------- global index / verdict ---------- */
+function buildAnalisis(r){
+  var fortalezas=[], atencion=[], partes=[], pesos=[];
+  function add(label,score){ if(score==null||isNaN(score))return; if(score>=80)fortalezas.push(label+' ('+Math.round(score)+'%)'); else if(score<55)atencion.push(label+' ('+Math.round(score)+'%)'); }
+  var cog = r.cognitivo?r.cognitivo.composite:null;
+  if(cog!=null){ partes.push(cog); pesos.push(20); add('Razonamiento general',cog); }
+  if(r.competenciasConcordancia!=null){ partes.push(r.competenciasConcordancia); pesos.push(25); }
+  Object.keys(r.competencias||{}).forEach(function(k){ add(r.competencias[k].label, r.competencias[k].score); });
+  if(r.honestidad!=null){ partes.push(r.honestidad); pesos.push(15); add('Honestidad', r.honestidad); }
+  if(r.etica!=null){ partes.push(r.etica); pesos.push(10); add('Ética', r.etica); }
+  if(r.ventasComposite!=null){ partes.push(r.ventasComposite); pesos.push(15); add('Habilidades comerciales', r.ventasComposite); }
+  if(r.liderazgoSkills){ var ls=Object.keys(r.liderazgoSkills).map(function(k){return r.liderazgoSkills[k];}); var lavg=Math.round(ls.reduce(function(a,b){return a+b;},0)/ls.length); partes.push(lavg); pesos.push(15); add('Habilidades directivas', lavg); }
+  var pt=pesos.reduce(function(a,b){return a+b;},0)||1;
+  var global=Math.round(partes.reduce(function(a,p,i){return a+p*pesos[i];},0)/pt);
+  var dictamen,col,bg;
+  if(global>=75){ dictamen='Recomendado'; col=C.ok; bg='rgba(22,163,74,.14)'; }
+  else if(global>=60){ dictamen='Recomendado con reservas'; col=C.warn; bg='rgba(217,119,6,.14)'; }
+  else { dictamen='No recomendado para esta vacante'; col=C.danger; bg='rgba(220,38,38,.14)'; }
+  var parrafo = esc(r.candidato||'El candidato')+' obtuvo un índice global de '+global+'% para la vacante de '+esc(r.vacante||'—')+'. '+
+    'Cumple '+(r.competenciasCumplen||0)+' de '+(r.competenciasTotal||0)+' competencias clave del perfil ('+(r.competenciasConcordancia||0)+'% de concordancia)'+
+    (cog!=null?(', con un razonamiento general de '+cog+'%'):'')+', honestidad de '+(r.honestidad||0)+'% y ética de '+(r.etica||0)+'%.'+
+    (r.ventasComposite!=null?(' Su índice de habilidades comerciales es de '+r.ventasComposite+'%.'):'')+
+    (r.liderazgoEstilo?(' Su estilo de liderazgo dominante es '+dominante(r.liderazgoEstilo)+'.'):'');
+  return {global:global,dictamen:dictamen,col:col,bg:bg,parrafo:parrafo,fortalezas:fortalezas.slice(0,6),atencion:atencion.slice(0,6)};
+}
+function dominante(o){ return Object.keys(o).reduce(function(a,b){return o[a]>o[b]?a:b;}); }
+function valColor(n){ return n==='Alta'?C.ok:(n==='Media'?C.warn:C.danger); }
+function valBg(n){ return n==='Alta'?'rgba(22,163,74,.14)':(n==='Media'?'rgba(217,119,6,.14)':'rgba(220,38,38,.14)'); }
+
+/* ---------- render ---------- */
+var charts=[];
+function render(r){
+  var an = buildAnalisis(r);
+  var fecha = r.created_at ? new Date(r.created_at) : new Date();
+  var app = document.getElementById('app');
+  var n = 0;
+  var html = '';
+
+  // Cover
+  html += '<div class="cover"><div class="top">'+
+    '<div class="logo"><img src="'+LOGO+'" alt="connectia" onerror="this.style.display=\'none\';var t=document.getElementById(\'logofb\');if(t)t.style.display=\'inline\'"><b id="logofb" style="display:none">connectia</b></div>'+
+    '<span class="badge">RECLUTAMIENTO · RH</span></div>'+
+    '<p class="eyebrow">Análisis de batería de evaluación</p>'+
+    '<h1>'+esc(r.candidato||'Candidato')+'</h1>'+
+    '<div class="meta">'+
+      '<div><b>Vacante</b><span>'+esc(r.vacante||'—')+'</span></div>'+
+      '<div><b>Fecha</b><span>'+fecha.toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'})+'</span></div>'+
+      (r.token?'<div><b>Folio de examen</b><span>'+esc(r.token)+'</span></div>':'')+
+    '</div></div>';
+
+  // Resumen ejecutivo — ¿cumple el perfil?
+  var res = buildResumen(r, an);
+  html += '<div class="section" style="border-top:4px solid '+res.col+'"><div class="head"><div class="idx" style="background:'+res.col+'">✦</div><h2>Resumen ejecutivo del candidato</h2></div>'+
+    '<div class="verdict" style="border:none;padding:6px 0 0;margin:0">'+
+      '<div class="ring" style="background:conic-gradient('+an.col+' 0 '+an.global+'%, var(--mist) '+an.global+'% 100%)">'+
+        '<div class="hole"><b>'+an.global+'%</b><span>Índice global</span></div></div>'+
+      '<div>'+
+        '<div class="fit" style="color:'+res.col+'">'+res.ic+' '+res.cumple+'</div>'+
+        '<span class="dict" style="background:'+an.bg+';color:'+an.col+'">'+an.dictamen+'</span>'+
+        (r.validez ? ' <span class="dict" style="background:'+valBg(r.validez.nivel)+';color:'+valColor(r.validez.nivel)+'" title="'+esc(r.validez.nota||'')+'">Validez del examen: '+r.validez.nivel+'</span>' : '')+
+        '<p style="margin-top:9px">'+an.parrafo+'</p>'+
+        (r.validez && r.validez.nivel!=='Alta' ? '<p style="margin:8px 0 0;font-size:12px;color:'+valColor(r.validez.nivel)+'"><b>Nota de validez:</b> '+esc(r.validez.nota||'')+'</p>' : '')+
+        '<div class="reasons">'+
+          '<div class="rcol"><h4 class="rp">Por qué sí</h4><ul>'+res.favor.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'+
+          '<div class="rcol"><h4 class="rn">Puntos a validar</h4><ul>'+res.contra.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>'+
+        '</div>'+
+      '</div>'+
+    '</div></div>';
+
+  // 1. Razonamiento general + IQ
+  if(r.cognitivo){
+    n++;
+    var iq = estimaIQ(r.cognitivo.composite); var iqb = bandIQ(iq);
+    var pctil = (r.cognitivo.percentil!=null) ? r.cognitivo.percentil : null;
+    var tSeg = r.cognitivo.tiempoSeg;
+    var tTxt = (tSeg!=null) ? (' · Tiempo: '+Math.floor(tSeg/60)+':'+((tSeg%60)<10?'0':'')+(tSeg%60)+' min') : '';
+    var iqCard = '<div class="iqcard"><div class="iqbig"><div class="n">'+iq+'</div><div class="lab">Coeficiente intelectual (estimado)</div><div class="bd"><span class="badge '+iqb.c+'">'+iqb.l+'</span></div></div>'+
+      '<div><p class="desc" style="margin:0">Estimación a partir del módulo de razonamiento (aciertos ponderados por dificultad: <b>'+r.cognitivo.composite+'%</b>'+(pctil!=null?(', <b>percentil '+pctil+'</b> — supera al '+pctil+'% de la población de referencia'):'')+tTxt+'). Valor orientativo del potencial de aprendizaje y resolución de problemas; no sustituye una prueba psicométrica clínica.</p></div></div>';
+    html += sec(n,'Razonamiento general e inteligencia','Prueba de inteligencia · Coeficiente intelectual',
+      'Evalúa la capacidad de comprender, asociar conceptos, deducir y resolver problemas, así como el nivel de información, juicio, síntesis y organización.',
+      iqCard + '<div class="chartbox" id="c_cog"></div>', detCognitivo(r));
+  }
+  // 2. Competencias vs perfil
+  if(r.competencias && Object.keys(r.competencias).length){
+    n++;
+    var ckk=Object.keys(r.competencias), rqq=reqComp(r);
+    var cumpleReq=ckk.filter(function(k,i){return r.competencias[k].score>=rqq[i];}).length;
+    var ROL_LABEL={direccion:'Dirección',gerencia:'Gerencia/Jefatura',comercial:'Comercial/Ventas',servicio:'Atención y servicio',analitico:'Analítico/Administrativo',operativo:'Operativo/Logística',tecnico:'Técnico/Especialista',general:'General'};
+    html += sec(n,'Competencias vs. perfil del puesto','Competencias laborales · comparativa vacante vs candidato',
+      'Perfil requerido calibrado para un puesto de tipo <b>'+(ROL_LABEL[rolDeVacante(r)]||'General')+'</b>: el nivel exigido <b>varía por competencia</b> según su importancia para el rol (no es un umbral plano). La línea naranja punteada marca ese perfil requerido y las barras, el nivel actual del candidato. Alcanza o supera el requerido en <b>'+cumpleReq+' de '+ckk.length+'</b> competencias (barras verdes); las ámbar o rojas quedan por debajo.',
+      '<div class="chartbox tall" id="c_comp"></div>', detCompetencias(r));
+  }
+  // 3. Personalidad (Big Five o rasgos)
+  var _pd = persData(r);
+  if(Object.keys(_pd).length){
+    n++;
+    var esBF = !!r.bigfive;
+    html += sec(n,'Rasgos de personalidad', esBF?'Modelo de los Cinco Grandes (Big Five · IPIP)':'Prueba de personalidad',
+      esBF?'Perfil en las cinco dimensiones de personalidad más validadas (Apertura, Responsabilidad, Extraversión, Amabilidad y Estabilidad emocional). No hay valores "buenos" o "malos" en absoluto: se leen respecto a las demandas del puesto.':'Perfil conductual del candidato en el entorno laboral. Los valores altos indican rasgos predominantes.',
+      '<div class="chartbox'+(esBF?'':' tall')+'" id="c_pers"></div>', detPersonalidad(r));
+  }
+  // 4. Confianza, honestidad y ética
+  if(r.honestidad!=null || r.etica!=null){
+    n++;
+    var hb=band(r.honestidad||0), eb=band(r.etica||0);
+    var mid = '<div class="metrix">'+
+      metric('Honestidad', r.honestidad||0, hb)+
+      metric('Ética', r.etica||0, eb)+'</div>';
+    var right='';
+    if(r.valores && Object.keys(r.valores).length){
+      right = '<div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--slate);margin-bottom:10px">Perfil de valores</div><div class="valchips">'+
+        Object.keys(r.valores).map(function(v){ var lv=(r.valores[v]||'Media').toLowerCase(); var cl=lv.indexOf('alt')>=0?'va-alta':lv.indexOf('baj')>=0?'va-baja':'va-media'; return '<span class="valchip '+cl+'">'+esc(v)+'</span>'; }).join('')+
+        '</div><div class="legend"><span><i style="background:'+C.ok+'"></i>Alta</span><span><i style="background:'+C.warn+'"></i>Media</span><span><i style="background:'+C.danger+'"></i>Baja</span></div></div>';
+    }
+    html += sec(n,'Confianza, honestidad, ética y valores','Índice de confianza',
+      'Mide la red de valores, la honestidad y la ética del candidato como base de la confianza que puede depositarse en él.',
+      '<div class="grid2">'+mid+right+'</div>', detConfianza(r));
+  }
+  // 5. Habilidades comerciales
+  if(r.ventas && Object.keys(r.ventas).length){
+    n++;
+    var vb=band(r.ventasComposite||0);
+    html += sec(n,'Habilidades comerciales','Test de habilidades de ventas · comparativa vacante vs candidato',
+      'Índice comercial global: <b>'+(r.ventasComposite||0)+'%</b> — '+vb.l+'. Las barras muestran al candidato; la línea naranja punteada, el nivel requerido por la vacante en cada habilidad de venta.',
+      '<div class="chartbox" id="c_ventas"></div>', detVentas(r));
+  }
+  // 6. Liderazgo
+  if(r.liderazgoEstilo){
+    n++;
+    html += sec(n,'Estilo de liderazgo y habilidades directivas','Liderazgo',
+      'Distribución de estilos de liderazgo y nivel en las habilidades directivas clave. Estilo dominante: <b>'+dominante(r.liderazgoEstilo)+'</b>. En las habilidades directivas, la línea naranja punteada marca el nivel requerido por la vacante frente al del candidato.',
+      '<div class="grid2"><div class="chartbox sm" id="c_lidestilo"></div><div class="chartbox" id="c_lidskills"></div></div>', detLiderazgo(r));
+  }
+  // 7. DISC / comportamiento
+  if(r.disc && Object.keys(r.disc).length){
+    n++;
+    html += sec(n,'Comportamiento (DISC)','Comportamiento diario · motivación · bajo presión',
+      'Perfil conductual en tres contextos: comportamiento diario, bajo motivación y bajo presión, según las dimensiones Responsabilidad, Empeño, Influencia y Constancia.',
+      '<div class="chartbox" id="c_disc"></div>', detDisc(r));
+  }
+
+  app.innerHTML = html;
+
+  // ---- charts ----
+  if(r.cognitivo){
+    var ck=Object.keys(r.cognitivo.porCompetencia||{});
+    mkBar('c_cog', ck.map(function(k){return COG_LAB[k]||k;}), ck.map(function(k){return r.cognitivo.porCompetencia[k];}), true);
+  }
+  if(r.competencias){
+    var kk=Object.keys(r.competencias);
+    mkBarReqLine('c_comp', kk.map(function(k){return r.competencias[k].label;}), kk.map(function(k){return r.competencias[k].score;}), reqComp(r), r.vacante);
+  }
+  var pdc=persData(r);
+  if(Object.keys(pdc).length){
+    var pk=Object.keys(pdc);
+    mkBar('c_pers', pk.map(function(k){return pdc[k].label;}), pk.map(function(k){return pdc[k].score;}), true);
+  }
+  if(r.ventas){
+    var vk=Object.keys(r.ventas);
+    mkBarReqLine('c_ventas', vk.map(function(k){return VENTAS_LAB[k]||k;}), vk.map(function(k){return r.ventas[k];}), reqVentas(r), r.vacante);
+  }
+  if(r.liderazgoEstilo){
+    mkDonut('c_lidestilo', Object.keys(r.liderazgoEstilo), Object.keys(r.liderazgoEstilo).map(function(k){return r.liderazgoEstilo[k];}));
+    var sk=Object.keys(r.liderazgoSkills||{});
+    mkBarReqLine('c_lidskills', sk.map(function(k){return LIDER_LAB[k]||k;}), sk.map(function(k){return r.liderazgoSkills[k];}), reqLider(r), r.vacante);
+  }
+  if(r.disc && Object.keys(r.disc).length){ mkDisc('c_disc', r.disc); }
+
+  if(new URLSearchParams(location.search).get('print')==='1'){ setTimeout(function(){ window.print(); }, 700); }
+}
+
+function sec(n,title,sub,desc,inner,detailHtml){
+  var did='det'+n;
+  var more = detailHtml ? ('<div class="morewrap"><button class="btn-more" onclick="toggleDetail(\''+did+'\',this)">Ver detalle del análisis ▾</button></div><div class="detail" id="'+did+'">'+detailHtml+'</div>') : '';
+  return '<div class="section"><div class="head"><div class="idx">'+n+'</div><h2>'+title+'</h2></div>'+
+    '<p class="sub">'+sub+'</p><p class="desc">'+desc+'</p>'+inner+more+'</div>';
+}
+function metric(label,score,b){
+  return '<div class="metric"><div class="ml"><span>'+label+'</span><span><b>'+score+'%</b> &nbsp;<span class="badge '+b.c+'">'+b.l+'</span></span></div>'+
+    '<div class="bar"><i style="width:'+score+'%;background:'+b.col+'"></i></div></div>';
+}
+function barColors(vals){ return vals.map(colorFor); }
+function mkBar(id,labels,vals,horizontal){
+  var el=document.getElementById(id); if(!el)return;
+  var cv=document.createElement('canvas'); el.appendChild(cv);
+  var valAxis={beginAtZero:true,max:100,grid:{color:'#f0edf6'},ticks:{stepSize:20,callback:function(v){return v+'%';}}};
+  var catAxis={grid:{display:false},ticks:{autoSkip:false,font:{size:10},maxRotation:horizontal?0:45,minRotation:horizontal?0:30}};
+  charts.push(new Chart(cv,{type:'bar',data:{labels:labels,datasets:[{data:vals,backgroundColor:barColors(vals),borderRadius:6,barPercentage:.8,categoryPercentage:.82}]},
+    options:{indexAxis:horizontal?'y':'x',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.parsed[horizontal?'x':'y']+'%';}}}},
+      scales: horizontal ? {x:valAxis,y:catAxis} : {x:catAxis,y:valAxis}}}));
+}
+function mkBarThreshold(id,labels,vals,thr){
+  var el=document.getElementById(id); if(!el)return;
+  var cv=document.createElement('canvas'); el.appendChild(cv);
+  var line={id:'thr',afterDatasetsDraw:function(ch){var y=ch.scales.y.getPixelForValue(thr);var a=ch.chartArea;var x=ch.ctx;x.save();x.strokeStyle=C.violetHot;x.setLineDash([6,4]);x.lineWidth=1.5;x.beginPath();x.moveTo(a.left,y);x.lineTo(a.right,y);x.stroke();x.setLineDash([]);x.fillStyle=C.violetHot;x.font='700 10px Inter';x.fillText('Perfil '+thr+'%',a.right-64,y-5);x.restore();}};
+  charts.push(new Chart(cv,{type:'bar',data:{labels:labels,datasets:[{data:vals,backgroundColor:barColors(vals),borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.parsed.y+'%';}}}},
+      scales:{x:{grid:{display:false},ticks:{maxRotation:60,minRotation:40,font:{size:10}}},y:{beginAtZero:true,max:100,grid:{color:'#f0edf6'},ticks:{callback:function(v){return v+'%';}}}}},plugins:[line]}));
+}
+/* ---------- perfil requerido por la vacante (comparativa) ---------- */
+// Nivel objetivo por competencia según FAMILIA DE PUESTO (0–100). Diferenciado por rol:
+// cada competencia pesa distinto según las demandas del puesto (metodología de importancia por ocupación tipo O*NET
+// + competency modeling). NO es un umbral plano.
+var ROL_FAMILIAS = {
+  direccion:  {comunicacion:88, liderazgo:90, decisiones:85, resultados:85, planeacion:82, delegacion:85, desarrollo:82, equipo:75, inteligencia_emocional:82, tolerancia_presion:82, juicio:82, analisis:72, seguimiento:75, actitud_servicio:60},
+  gerencia:   {comunicacion:82, liderazgo:82, decisiones:80, resultados:82, planeacion:76, delegacion:78, desarrollo:76, equipo:76, inteligencia_emocional:78, tolerancia_presion:78, juicio:76, analisis:66, seguimiento:76, actitud_servicio:66},
+  comercial:  {comunicacion:85, resultados:86, tolerancia_presion:80, actitud_servicio:78, equipo:70, inteligencia_emocional:76, liderazgo:60, decisiones:72, planeacion:64, juicio:68, analisis:56, seguimiento:70, delegacion:55, desarrollo:55},
+  servicio:   {actitud_servicio:88, comunicacion:82, inteligencia_emocional:80, tolerancia_presion:78, equipo:76, resultados:66, juicio:66, planeacion:60, seguimiento:72, decisiones:62, analisis:55, liderazgo:52, delegacion:50, desarrollo:56},
+  analitico:  {analisis:86, planeacion:82, juicio:80, seguimiento:80, decisiones:74, resultados:72, comunicacion:70, tolerancia_presion:70, inteligencia_emocional:62, equipo:66, actitud_servicio:60, liderazgo:54, delegacion:54, desarrollo:56},
+  operativo:  {seguimiento:80, tolerancia_presion:78, resultados:76, equipo:76, planeacion:70, actitud_servicio:70, comunicacion:66, juicio:64, decisiones:64, inteligencia_emocional:64, analisis:58, liderazgo:54, delegacion:52, desarrollo:54},
+  tecnico:    {analisis:84, planeacion:78, seguimiento:78, juicio:78, decisiones:72, resultados:72, comunicacion:68, tolerancia_presion:70, equipo:68, inteligencia_emocional:62, actitud_servicio:60, liderazgo:56, delegacion:56, desarrollo:60},
+  general:    {comunicacion:74, resultados:74, equipo:70, tolerancia_presion:70, planeacion:68, decisiones:68, juicio:68, actitud_servicio:68, inteligencia_emocional:68, analisis:64, seguimiento:68, liderazgo:60, delegacion:60, desarrollo:62}
+};
+var REQ_VENTAS = {resultados_com:86, negociacion:82, comunicacion_com:82, tolerancia_rechazo:80, autodisciplina:78, empatia:72, gusto_venta:72};
+var REQ_LIDER  = {comunicacion_dir:84, decisiones_dir:82, resultados_dir:82, negociacion_dir:78, mando:76, planeacion_dir:74, inteligencia_emocional_dir:78};
+function rolDeVacante(r){
+  var t = ((r.vacante||'')+'').toLowerCase();
+  if(/direcci|director|ceo|cfo|coo|vp|vicepres|head of|chief/.test(t)) return 'direccion';
+  if(/geren|manager|jefe|coordinad|l[ií]der de|supervisor/.test(t)) return 'gerencia';
+  if(/vent|comercial|sales|ejecutiv de cuenta|account|kam|promot|preventa/.test(t)) return 'comercial';
+  if(/servicio|atenci|customer|soporte|recepci|cajer|mesero|host/.test(t)) return 'servicio';
+  if(/anal|contab|financ|\bdat|administ|planeaci|auditor|compras/.test(t)) return 'analitico';
+  if(/ingenier|desarroll|program|t[eé]cnic|sistemas|software|\bit\b|\bdev\b|\bqa\b|datos/.test(t)) return 'tecnico';
+  if(/opera|almac|log[ií]st|produc|chofer|repart|mantenim|bodeg/.test(t)) return 'operativo';
+  if(r.liderazgoEstilo) return 'gerencia';
+  if(r.ventas) return 'comercial';
+  return 'general';
+}
+function nivelReqComp(r, key){ if(r.perfilRequerido && r.perfilRequerido[key]!=null) return r.perfilRequerido[key]; var fam=ROL_FAMILIAS[rolDeVacante(r)]||ROL_FAMILIAS.general; return (fam[key]!=null)?fam[key]:((ROL_FAMILIAS.general[key]!=null)?ROL_FAMILIAS.general[key]:65); }
+function reqOf(map,key,def){ return (map && map[key]!=null) ? map[key] : def; }
+function reqComp(r){ return Object.keys(r.competencias).map(function(k){ return nivelReqComp(r,k); }); }
+function reqVentas(r){ return Object.keys(r.ventas).map(function(k){ return REQ_VENTAS[k]!=null?REQ_VENTAS[k]:75; }); }
+function reqLider(r){ return Object.keys(r.liderazgoSkills).map(function(k){ return REQ_LIDER[k]!=null?REQ_LIDER[k]:75; }); }
+// Barras (candidato) + línea punteada del nivel requerido por la vacante, con leyenda.
+function mkBarReqLine(id,labels,vals,reqs,vacante){
+  var el=document.getElementById(id); if(!el)return;
+  var cv=document.createElement('canvas'); el.appendChild(cv);
+  var cols=vals.map(function(v,i){ return v>=reqs[i]?C.ok:(v>=reqs[i]-15?C.warn:C.danger); });
+  charts.push(new Chart(cv,{data:{labels:labels,datasets:[
+    {type:'bar',label:'Candidato (nivel actual)',data:vals,backgroundColor:cols,borderRadius:6,order:2,barPercentage:.78,categoryPercentage:.8},
+    {type:'line',label:'Perfil requerido'+(vacante?(' · '+vacante):' (vacante)'),data:reqs,borderColor:C.citrus,borderWidth:2,borderDash:[6,4],pointBackgroundColor:C.citrus,pointBorderColor:'#fff',pointRadius:4,pointHoverRadius:5,tension:0,order:1,fill:false}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',align:'end',labels:{boxWidth:12,font:{size:11},usePointStyle:true}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+c.parsed.y+'%';}}}},
+    scales:{x:{grid:{display:false},ticks:{maxRotation:60,minRotation:38,font:{size:10}}},y:{beginAtZero:true,max:100,grid:{color:'#f0edf6'},ticks:{stepSize:20,callback:function(v){return v+'%';}}}}}}));
+}
+function mkDonut(id,labels,vals){
+  var el=document.getElementById(id); if(!el)return;
+  var cv=document.createElement('canvas'); el.appendChild(cv);
+  charts.push(new Chart(cv,{type:'doughnut',data:{labels:labels,datasets:[{data:vals,backgroundColor:[C.violet,C.violetHot,'#9a6cff',C.mist],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:11},padding:10}},tooltip:{callbacks:{label:function(c){return c.label+': '+c.parsed+'%';}}}}}}));
+}
+function mkDisc(id,disc){
+  var el=document.getElementById(id); if(!el)return;
+  var cv=document.createElement('canvas'); el.appendChild(cv);
+  var dims=['R','E','I','C']; var dimName={R:'Responsabilidad',E:'Empeño',I:'Influencia',C:'Constancia'};
+  var ctxs=Object.keys(disc); var palette=[C.violet,C.violetHot,'#9a6cff'];
+  var ds=ctxs.map(function(ctx,i){ return {label:(DISC_CTX_LABEL[ctx]||ctx),data:dims.map(function(d){return (disc[ctx]||{})[d]||0;}),backgroundColor:palette[i%palette.length],borderRadius:5}; });
+  charts.push(new Chart(cv,{type:'bar',data:{labels:dims.map(function(d){return dimName[d];}),datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:11}}}},
+      scales:{y:{beginAtZero:true,max:100,grid:{color:'#f0edf6'},ticks:{callback:function(v){return v+'%';}}},x:{grid:{display:false}}}}}));
+}
+
+/* ---------- data loading ---------- */
+function fail(msg){ document.getElementById('app').innerHTML='<div class="state"><h2>No se pudo cargar el análisis</h2><p>'+esc(msg)+'</p></div>'; }
+function loadFromToken(token){
+  fetch(SB_URL+'/rest/v1/rpc/get_examen_resultado',{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_token:token})})
+    .then(function(res){ return res.ok?res.json():Promise.reject(new Error('HTTP '+res.status)); })
+    .then(function(rows){
+      if(rows && rows.length && rows[0].resultado){ var r=rows[0].resultado; r.candidato=r.candidato||rows[0].candidato; r.vacante=r.vacante||rows[0].vacante; r.token=token; r.created_at=rows[0].created_at; render(r); }
+      else fail('Aún no hay un resultado registrado para este folio de examen.');
+    }).catch(function(e){ fail('Error de conexión: '+e.message); });
+}
+(function init(){
+  var q = new URLSearchParams(location.search);
+  if(q.get('data')){ try{ render(JSON.parse(decodeURIComponent(escape(atob(q.get('data')))))); return; }catch(e){ fail('El parámetro de datos no es válido.'); return; } }
+  if(window.name && window.name.indexOf('EXAMDATA:')===0){ try{ render(JSON.parse(window.name.slice(9))); return; }catch(e){} }
+  var token = q.get('token');
+  if(token){ loadFromToken(token); return; }
+  fail('Falta el folio de examen (token) o los datos del candidato.');
+})();
+</script>
+</body>
+</html>
