@@ -379,9 +379,10 @@ function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show');
   clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2400); }
 
 /* ═══════════ CARGA ═══════════ */
+const NC='?nc='+Date.now();
 Promise.all([
-  fetch('data/oportunidades.json').then(r=>r.json()),
-  fetch('data/videos.json').then(r=>r.json())
+  fetch('data/oportunidades.json'+NC).then(r=>r.json()),
+  fetch('data/videos.json'+NC).then(r=>r.json())
 ]).then(([o,v])=>{
   SITIOS=o; VIDEOS=v;
   buildHero(); buildOoh(); buildVideos(); buildMapList(); selBadge();
