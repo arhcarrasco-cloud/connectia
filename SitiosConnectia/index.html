@@ -45,7 +45,14 @@ header{position:sticky;top:0;z-index:60;background:rgba(16,8,34,.88);backdrop-fi
   border-bottom:1px solid var(--glass-border)}
 .hbar{max-width:1780px;margin:0 auto;padding:12px 34px;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:var(--hh)}
 .hbar img.logo{height:25px;width:auto}
+.hbar img.logo-r{height:34px;width:auto;filter:drop-shadow(0 2px 10px rgba(123,63,242,.55))}
 .tabs{display:flex;gap:8px}
+.back-tab{display:none;min-height:44px;padding:0 26px;border-radius:999px;border:1.5px solid var(--glass-border);
+  background:rgba(255,255,255,.06);color:#fff;font-family:inherit;font-size:13.5px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;cursor:pointer;align-items:center;gap:8px}
+.back-tab .chev{font-size:19px;line-height:0;margin-top:-2px}
+header.mapmode .tabs{display:none}
+header.mapmode .back-tab{display:inline-flex}
 .tab{min-height:44px;padding:0 22px;border-radius:999px;border:1.5px solid var(--glass-border);
   background:rgba(255,255,255,.05);color:var(--mist);font-family:inherit;font-size:13.5px;font-weight:700;
   letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap}
@@ -256,12 +263,14 @@ footer img{height:24px;opacity:.9;margin-bottom:14px}
 <header>
   <div class="hbar">
     <img class="logo" src="assets/connectia-white.png" alt="Connectia">
+    <button class="back-tab" onclick="showPane('ooh')"><span class="chev">‹</span>Regresar</button>
     <div class="tabs">
       <button class="tab active" id="tab-ooh" onclick="showPane('ooh')">Oportunidades</button>
       <button class="tab" id="tab-mapa" onclick="showPane('mapa')">Ve los sitios en el mapa</button>
       <button class="tab" id="tab-videos" onclick="showPane('videos')">Videos</button>
     </div>
     <button class="cart-btn" onclick="openCart()">♥ Carrito<span class="badge" id="selbadge">0</span></button>
+    <img class="logo-r" src="assets/connectia-white.png" alt="Connectia">
   </div>
 </header>
 
@@ -272,7 +281,6 @@ footer img{height:24px;opacity:.9;margin-bottom:14px}
     <h1>Sitios Connectia</h1>
     <p class="body">Landmarks, mega vallas y pantallas DOOH en los cruces de mayor aforo del Valle de México.
       Cada sitio con medidas verificadas, impactos mensuales, audiencia y mockup de campaña aplicado.</p>
-    <div class="stats" id="herostats"></div>
   </div>
 </section>
 
@@ -378,11 +386,6 @@ function buildHero(){
     const c=i%11===0?' lime':(i%17===0?' citrus':'');
     h+=`<span class="dot${c}" style="width:${s}px;height:${s}px;left:${(Math.random()*98).toFixed(1)}%;top:${(Math.random()*95).toFixed(1)}%;animation-delay:${(Math.random()*4).toFixed(1)}s"></span>`; }
   $('herodots').innerHTML=h;
-  const imp=SITIOS.reduce((a,b)=>a+(b.impMes||0),0);
-  $('herostats').innerHTML=[
-    ['Sitios disponibles',SITIOS.length],['Impactos / mes',fmtImp(imp)],
-    ['Formatos',new Set(SITIOS.map(s=>s.cat)).size],['Casos en video',VIDEOS.length]
-  ].map(([l,v])=>`<div class="stat"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('');
 }
 
 /* ═══════════ SEMÁFORO ═══════════ */
@@ -519,6 +522,8 @@ function openSitio(id){
            <td style="padding:9px 10px;text-align:right;color:var(--mist)">${p.exp}</td>
            <td style="padding:9px 10px;text-align:right;color:var(--wm-spark);font-size:11.5px">${p.spot}</td></tr>`).join('')}
        </table></div></div>`:''}
+     ${m.mapa&&m.mapa.length?`<div class="mt20"><div class="eyebrow">Mapa del paquete</div>
+       <div id="mini-map" style="height:360px;border-radius:16px;overflow:hidden;margin-top:10px;border:1px solid var(--glass-border);background:#0b0620"></div></div>`:''}
      ${m.gallery&&m.gallery.length?`<div class="mt20"><div class="eyebrow">Pantallas del paquete</div>
        <div class="mt10" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
        ${m.gallery.map(g=>`<div style="aspect-ratio:16/10;background:#0b0620;border-radius:10px;overflow:hidden">
@@ -530,6 +535,24 @@ function openSitio(id){
        <button class="btn primary" onclick="toggleSel('${m.id}')">♥ ${SEL.has(m.id)?'Quitar del carrito':'Guardar en carrito'}</button>
      </div>
    </div>`);
+  if(m.mapa&&m.mapa.length) setTimeout(()=>initMiniMap(m.mapa),250);
+}
+function initMiniMap(pts){
+  const el=$('mini-map'); if(!el||el.dataset.done) return; el.dataset.done='1';
+  const mm=new maplibregl.Map({container:'mini-map',style:'https://tiles.openfreemap.org/styles/liberty',
+    center:[pts[0].lng,pts[0].lat],zoom:10,attributionControl:false,interactive:true});
+  mm.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
+  const b=new maplibregl.LngLatBounds();
+  pts.forEach((p,i)=>{
+    const el2=document.createElement('div'); el2.className='mk'; el2.textContent=i+1;
+    new maplibregl.Marker({element:el2}).setLngLat([p.lng,p.lat])
+      .setPopup(new maplibregl.Popup({offset:22}).setHTML(
+        `<div style="padding:10px 12px;font-weight:800;font-size:12.5px;color:#fff">${i+1}. ${p.n}</div>`))
+      .addTo(mm);
+    b.extend([p.lng,p.lat]);
+  });
+  mm.fitBounds(b,{padding:60,duration:0});
+  setTimeout(()=>mm.resize(),300);
 }
 
 /* ═══════════ MAPA TIPO AIRBNB ═══════════ */
@@ -810,6 +833,7 @@ function showPane(p){
     $('tab-'+x).classList.toggle('active',x===p);
   });
   $('hero').style.display = p==='mapa' ? 'none' : '';
+  document.querySelector('header').classList.toggle('mapmode', p==='mapa');
   if(p==='mapa'){ initMap(); setTimeout(()=>MAP&&MAP.resize(),260); }
   window.scrollTo({top:0,behavior:'smooth'});
 }

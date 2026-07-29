@@ -10,12 +10,12 @@
   "impMes": 4100000,
   "aud": "NSE C+/C · Roma–Condesa",
   "obj": "Dominio digital 24/7 en corredor cultural",
-  "beneficio": "Presencia premium de Walmart en el corredor Reforma–Juárez con audiencia de alto valor.",
+  "beneficio": "Presencia premium la marca en el corredor Reforma–Juárez con audiencia de alto valor.",
   "estatus": "disponible",
   "campanas": [
-   "Precios bajos todos los días",
+   "Lanzamientos",
    "Buen Fin",
-   "Walmart Pass"
+   "Hot Sale"
   ],
   "foto": "assets/sitios/OPP-HAMB.jpg",
   "fotoWm": "assets/sitios/OPP-HAMB.jpg",
@@ -35,7 +35,8 @@
     "Buenavista 2.5 km"
    ],
    "marcas": "Smart Fit · Cinépolis · Starbucks · Tim Hortons · McDonald's"
-  }
+  },
+  "mockup": "Starbucks"
  },
  {
   "id": "OPP-MEGA",
@@ -48,10 +49,10 @@
   "impMes": 1200000,
   "aud": "Vehicular masivo · Calz. Tlalpan",
   "obj": "Cobertura monumental de 108 m",
-  "beneficio": "La valla seguida más grande de CDMX: 108 m de dominio visual absoluto para Walmart.",
+  "beneficio": "La valla seguida más grande de CDMX: 108 m de dominio visual absoluto la marca.",
   "estatus": "disponible",
   "campanas": [
-   "Precios bajos todos los días",
+   "Lanzamientos",
    "Buen Fin",
    "Hot Sale"
   ],
@@ -72,7 +73,8 @@
     "Ciudad de los Deportes 2 km",
     "CDMX Centro 9 km"
    ]
-  }
+  },
+  "mockup": "Toy Story 5"
  },
  {
   "id": "OPP-SAT",
@@ -127,7 +129,7 @@
   "beneficio": "La ubicación con más impactos mensuales: entrada a CDMX por Periférico.",
   "estatus": "disponible",
   "campanas": [
-   "Precios bajos todos los días",
+   "Lanzamientos",
    "Buen Fin",
    "Hot Sale"
   ],
@@ -151,7 +153,8 @@
     "Polanco 1 km"
    ],
    "marcas": "Liverpool · Coppel · Chedraui Selecto · Telcel · Cinépolis · Sanborns"
-  }
+  },
+  "mockup": "Audi"
  },
  {
   "id": "OPP-GLORIETA",
@@ -189,10 +192,10 @@
   "impMes": 3500000,
   "aud": "NSE ABC+ · Condesa–Roma",
   "obj": "Vista sobre Insurgentes de Chilpancingo a Viaducto",
-  "beneficio": "Presencia Walmart sobre el corredor Insurgentes, en la zona de mayor consumo cultural de CDMX.",
+  "beneficio": "Presencila marca sobre el corredor Insurgentes, en la zona de mayor consumo cultural de CDMX.",
   "estatus": "disponible",
   "campanas": [
-   "Precios bajos todos los días",
+   "Lanzamientos",
    "Buen Fin",
    "Hot Sale"
   ],
@@ -206,7 +209,8 @@
    "vista": "Natural",
    "iluminacion": "No",
    "clasificacion": "AAA"
-  }
+  },
+  "mockup": "Magnum"
  },
  {
   "id": "OPP-ROMA",
@@ -222,7 +226,7 @@
   "beneficio": "Impacto premium en el cruce Insurgentes–Monterrey, corazón de la Roma.",
   "estatus": "disponible",
   "campanas": [
-   "Precios bajos todos los días",
+   "Lanzamientos",
    "Buen Fin",
    "Hot Sale"
   ],
@@ -234,7 +238,8 @@
   "specs": {
    "iluminacion": "No",
    "clasificacion": "AAA"
-  }
+  },
+  "mockup": "Johnnie Walker"
  },
  {
   "id": "OPP-GLORINS",
@@ -250,7 +255,7 @@
   "beneficio": "Dominio visual en la Glorieta de Insurgentes: cruce de metro, metrobús y superficie.",
   "estatus": "disponible",
   "campanas": [
-   "Precios bajos todos los días",
+   "Lanzamientos",
    "Buen Fin",
    "Hot Sale"
   ],
@@ -262,7 +267,8 @@
   "specs": {
    "iluminacion": "No",
    "clasificacion": "AAA"
-  }
+  },
+  "mockup": "Minions & Monsters"
  },
  {
   "id": "OPP-SANPEDRO",
@@ -278,7 +284,7 @@
   "beneficio": "Cobertura de altísimo aforo vehicular en el cruce Periférico–Eje 5 Sur.",
   "estatus": "disponible",
   "campanas": [
-   "Precios bajos todos los días",
+   "Lanzamientos",
    "Buen Fin",
    "Hot Sale"
   ],
@@ -291,7 +297,8 @@
    "iluminacion": "No",
    "clasificacion": "AAA",
    "marcas": "Costco · Martí · Banorte · Santander"
-  }
+  },
+  "mockup": "Coppel"
  },
  {
   "id": "OPP-SATCD",
@@ -307,7 +314,7 @@
   "beneficio": "Presencia dominante en el corredor Satélite, uno de los polos de consumo del norte.",
   "estatus": "disponible",
   "campanas": [
-   "Precios bajos todos los días",
+   "Lanzamientos",
    "Buen Fin",
    "Hot Sale"
   ],
@@ -320,23 +327,24 @@
    "iluminacion": "No",
    "clasificacion": "AAA",
    "marcas": "Liverpool · Costco Wholesale · Walmart · Pizza Hut"
-  }
+  },
+  "mockup": "Bimbo"
  },
  {
   "id": "OPP-PANTALLAS",
-  "cat": "dooh",
-  "titulo": "Landmark DOOH · 6 Pantallas Premium",
+  "cat": "landmark",
+  "titulo": "Multinaming · 6 Pantallas Landmark",
   "ubic": "CDMX & AMCM · 6 ubicaciones",
   "tarifa": 0,
   "medidas": "6 pantallas LED · DOOH 3D · 2 spots c/u",
   "imp": "alto",
   "impMes": 19677627,
   "aud": "Cobertura metropolitana · NSE ABC+",
-  "obj": "Dominio digital 24/7 en 6 puntos premium",
-  "beneficio": "Paquete de 6 pantallas DOOH en los cruces más estratégicos de CDMX y AMCM, con arte 3D incluido.",
+  "obj": "Naming simultáneo en 6 pantallas premium: dominio digital 24/7 en CDMX y AMCM",
+  "beneficio": "Un solo producto, seis presencias: la marca toma el naming de las 6 pantallas landmark al mismo tiempo, con arte 3D incluido y contenido pre-programado por día y hora.",
   "estatus": "disponible",
   "campanas": [
-   "Precios bajos todos los días",
+   "Lanzamientos",
    "Buen Fin",
    "Hot Sale"
   ],
@@ -357,51 +365,69 @@
   "pantallas": [
    {
     "n": "Paseo Interlomas",
+    "lat": 19.3962,
+    "lng": -99.2811,
     "imp": 1835257,
     "uni": 64155,
     "frec": "28.62×",
     "exp": "39.89 s",
-    "spot": "2 spots · 10 s c/u"
+    "spot": "2 spots · 10 s c/u",
+    "dir": "Vialidad frente a Paseo Interlomas, Huixquilucan"
    },
    {
     "n": "Cruce Blvr. Magnocentro × Interlomas",
+    "lat": 19.4022,
+    "lng": -99.2716,
     "imp": 1979854,
     "uni": 111969,
     "frec": "17.68×",
     "exp": "43.64 s",
-    "spot": "2 spots · 10 s c/u"
+    "spot": "2 spots · 10 s c/u",
+    "dir": "Blvd. Magnocentro y Blvd. Interlomas, Huixquilucan"
    },
    {
     "n": "Periférico Toreo",
+    "lat": 19.4602,
+    "lng": -99.222,
     "imp": 6309987,
     "uni": 402685,
     "frec": "15.67×",
     "exp": "27.92 s",
-    "spot": "2 spots · 10 s c/u"
+    "spot": "2 spots · 10 s c/u",
+    "dir": "Blvd. M. Ávila Camacho (Periférico), Toreo, Naucalpan"
    },
    {
     "n": "Avenida Río Churubusco",
+    "lat": 19.3565,
+    "lng": -99.1443,
     "imp": 5098787,
     "uni": 270177,
     "frec": "18.87×",
     "exp": "24.54 s",
-    "spot": "2 spots · 20 s c/u"
+    "spot": "2 spots · 20 s c/u",
+    "dir": "Av. Río Churubusco, CDMX"
    },
    {
     "n": "Viaducto Miguel Alemán",
+    "lat": 19.4022,
+    "lng": -99.1608,
     "imp": 2579780,
     "uni": 139436,
     "frec": "26.64×",
     "exp": "31.61 s",
-    "spot": "2 spots · 20 s c/u"
+    "spot": "2 spots · 20 s c/u",
+    "dir": "Av. Viad. Miguel Alemán, Col. Buenos Aires, CDMX"
    },
    {
     "n": "Avenida Revolución",
+    "lat": 19.3766,
+    "lng": -99.1867,
     "imp": 1873962,
     "uni": 95553,
     "frec": "14.97×",
     "exp": "49.85 s",
-    "spot": "2 spots · 20 s c/u"
+    "spot": "2 spots · 20 s c/u",
+    "dir": "Av. Revolución, CDMX"
    }
   ],
   "incluye": [
@@ -410,7 +436,40 @@
    "Diseño · Producción · Colocación y desinstalación",
    "2 spots por pantalla · contenido pre-programado por día y hora",
    "Diseño 3D DOOH incluido sin costo"
-  ]
+  ],
+  "mapa": [
+   {
+    "n": "Paseo Interlomas",
+    "lat": 19.3962,
+    "lng": -99.2811
+   },
+   {
+    "n": "Cruce Blvr. Magnocentro × Interlomas",
+    "lat": 19.4022,
+    "lng": -99.2716
+   },
+   {
+    "n": "Periférico Toreo",
+    "lat": 19.4602,
+    "lng": -99.222
+   },
+   {
+    "n": "Avenida Río Churubusco",
+    "lat": 19.3565,
+    "lng": -99.1443
+   },
+   {
+    "n": "Viaducto Miguel Alemán",
+    "lat": 19.4022,
+    "lng": -99.1608
+   },
+   {
+    "n": "Avenida Revolución",
+    "lat": 19.3766,
+    "lng": -99.1867
+   }
+  ],
+  "mockup": "Huggies"
  },
  {
   "id": "OPP-CUBO",
@@ -426,7 +485,7 @@
   "beneficio": "Cubo 360° iluminado en el cruce de mayor flujo de Interlomas. Incluye naming del landmark, tres lonas y una pantalla digital con dos slots — dominio total del punto.",
   "estatus": "disponible",
   "campanas": [
-   "Precios bajos todos los días",
+   "Lanzamientos",
    "Buen Fin",
    "Hot Sale"
   ],
@@ -448,7 +507,8 @@
     "Bosques de las Lomas 4.3 km"
    ],
    "marcas": "Costco · Liverpool · Sears"
-  }
+  },
+  "mockup": "Banamex"
  },
  {
   "id": "OPP-MAC2610",
@@ -1158,5 +1218,220 @@
     "Chapultepec 1 km"
    ]
   }
+ },
+ {
+  "id": "PANT-01",
+  "cat": "dooh",
+  "imp": "alto",
+  "estatus": "disponible",
+  "campanas": [
+   "Lanzamientos",
+   "Buen Fin",
+   "Hot Sale"
+  ],
+  "titulo": "Pantalla Landmark · Paseo Interlomas",
+  "ubic": "Vialidad frente a Paseo Interlomas · Huixquilucan",
+  "tarifa": 0,
+  "medidas": "Pantalla LED · 2 spots · 10 s c/u",
+  "impMes": 1835257,
+  "aud": "64,155 personas únicas · frecuencia 28.62×",
+  "obj": "Landmark digital 24/7 · exposición promedio 39.89 s",
+  "beneficio": "Pantalla del paquete Multinaming disponible individual: 1,835,257 impactos a personas y 64,155 personas únicas al mes, con 28.62× de frecuencia y 39.89 s de exposición promedio.",
+  "incluye": [
+   "Pantalla LED · 3 meses incluidos",
+   "Landmark 24/7 · branding de la marca",
+   "Diseño · Producción · Colocación y desinstalación",
+   "2 spots · 10 s c/u · contenido pre-programado por día y hora"
+  ],
+  "foto": "assets/sitios/PANT-1.jpg",
+  "fotoWm": "assets/sitios/PANT-1.jpg",
+  "dir": "Vialidad frente a Paseo Interlomas, Huixquilucan",
+  "lat": 19.3962,
+  "lng": -99.2811
+ },
+ {
+  "id": "PANT-02",
+  "cat": "dooh",
+  "imp": "alto",
+  "estatus": "disponible",
+  "campanas": [
+   "Lanzamientos",
+   "Buen Fin",
+   "Hot Sale"
+  ],
+  "titulo": "Pantalla Landmark · Cruce Blvr. Magnocentro × Interlomas",
+  "ubic": "Blvd. Magnocentro y Blvd. Interlomas · Huixquilucan",
+  "tarifa": 0,
+  "medidas": "Pantalla LED · 2 spots · 10 s c/u",
+  "impMes": 1979854,
+  "aud": "111,969 personas únicas · frecuencia 17.68×",
+  "obj": "Landmark digital 24/7 · exposición promedio 43.64 s",
+  "beneficio": "Pantalla del paquete Multinaming disponible individual: 1,979,854 impactos a personas y 111,969 personas únicas al mes, con 17.68× de frecuencia y 43.64 s de exposición promedio.",
+  "incluye": [
+   "Pantalla LED · 3 meses incluidos",
+   "Landmark 24/7 · branding de la marca",
+   "Diseño · Producción · Colocación y desinstalación",
+   "2 spots · 10 s c/u · contenido pre-programado por día y hora"
+  ],
+  "foto": "assets/sitios/PANT-2.jpg",
+  "fotoWm": "assets/sitios/PANT-2.jpg",
+  "dir": "Blvd. Magnocentro y Blvd. Interlomas, Huixquilucan",
+  "lat": 19.4022,
+  "lng": -99.2716
+ },
+ {
+  "id": "PANT-03",
+  "cat": "dooh",
+  "imp": "alto",
+  "estatus": "disponible",
+  "campanas": [
+   "Lanzamientos",
+   "Buen Fin",
+   "Hot Sale"
+  ],
+  "titulo": "Pantalla Landmark · Periférico Toreo",
+  "ubic": "Blvd. M. Ávila Camacho (Periférico) · Naucalpan",
+  "tarifa": 0,
+  "medidas": "Pantalla LED · 2 spots · 10 s c/u",
+  "impMes": 6309987,
+  "aud": "402,685 personas únicas · frecuencia 15.67×",
+  "obj": "Landmark digital 24/7 · exposición promedio 27.92 s",
+  "beneficio": "Pantalla del paquete Multinaming disponible individual: 6,309,987 impactos a personas y 402,685 personas únicas al mes, con 15.67× de frecuencia y 27.92 s de exposición promedio.",
+  "incluye": [
+   "Pantalla LED · 3 meses incluidos",
+   "Landmark 24/7 · branding de la marca",
+   "Diseño · Producción · Colocación y desinstalación",
+   "2 spots · 10 s c/u · contenido pre-programado por día y hora"
+  ],
+  "foto": "assets/sitios/PANT-3.jpg",
+  "fotoWm": "assets/sitios/PANT-3.jpg",
+  "dir": "Blvd. M. Ávila Camacho (Periférico), Toreo, Naucalpan",
+  "lat": 19.4602,
+  "lng": -99.222
+ },
+ {
+  "id": "PANT-04",
+  "cat": "dooh",
+  "imp": "alto",
+  "estatus": "disponible",
+  "campanas": [
+   "Lanzamientos",
+   "Buen Fin",
+   "Hot Sale"
+  ],
+  "titulo": "Pantalla Landmark · Avenida Río Churubusco",
+  "ubic": "Av. Río Churubusco · CDMX",
+  "tarifa": 0,
+  "medidas": "Pantalla LED · 2 spots · 20 s c/u",
+  "impMes": 5098787,
+  "aud": "270,177 personas únicas · frecuencia 18.87×",
+  "obj": "Landmark digital 24/7 · exposición promedio 24.54 s",
+  "beneficio": "Pantalla del paquete Multinaming disponible individual: 5,098,787 impactos a personas y 270,177 personas únicas al mes, con 18.87× de frecuencia y 24.54 s de exposición promedio.",
+  "incluye": [
+   "Pantalla LED · 3 meses incluidos",
+   "Landmark 24/7 · branding de la marca",
+   "Diseño · Producción · Colocación y desinstalación",
+   "2 spots · 20 s c/u · contenido pre-programado por día y hora"
+  ],
+  "foto": "assets/sitios/PANT-4.jpg",
+  "fotoWm": "assets/sitios/PANT-4.jpg",
+  "dir": "Av. Río Churubusco, CDMX",
+  "lat": 19.3565,
+  "lng": -99.1443
+ },
+ {
+  "id": "PANT-05",
+  "cat": "dooh",
+  "imp": "alto",
+  "estatus": "disponible",
+  "campanas": [
+   "Lanzamientos",
+   "Buen Fin",
+   "Hot Sale"
+  ],
+  "titulo": "Pantalla Landmark · Viaducto Miguel Alemán",
+  "ubic": "Av. Viad. Miguel Alemán · CDMX",
+  "tarifa": 0,
+  "medidas": "Pantalla LED · 2 spots · 20 s c/u",
+  "impMes": 2579780,
+  "aud": "139,436 personas únicas · frecuencia 26.64×",
+  "obj": "Landmark digital 24/7 · exposición promedio 31.61 s",
+  "beneficio": "Pantalla del paquete Multinaming disponible individual: 2,579,780 impactos a personas y 139,436 personas únicas al mes, con 26.64× de frecuencia y 31.61 s de exposición promedio.",
+  "incluye": [
+   "Pantalla LED · 3 meses incluidos",
+   "Landmark 24/7 · branding de la marca",
+   "Diseño · Producción · Colocación y desinstalación",
+   "2 spots · 20 s c/u · contenido pre-programado por día y hora"
+  ],
+  "foto": "assets/sitios/PANT-5.jpg",
+  "fotoWm": "assets/sitios/PANT-5.jpg",
+  "dir": "Av. Viad. Miguel Alemán, Col. Buenos Aires, CDMX",
+  "lat": 19.4022,
+  "lng": -99.1608
+ },
+ {
+  "id": "PANT-06",
+  "cat": "dooh",
+  "imp": "alto",
+  "estatus": "disponible",
+  "campanas": [
+   "Lanzamientos",
+   "Buen Fin",
+   "Hot Sale"
+  ],
+  "titulo": "Pantalla Landmark · Avenida Revolución",
+  "ubic": "Av. Revolución · CDMX",
+  "tarifa": 0,
+  "medidas": "Pantalla LED · 2 spots · 20 s c/u",
+  "impMes": 1873962,
+  "aud": "95,553 personas únicas · frecuencia 14.97×",
+  "obj": "Landmark digital 24/7 · exposición promedio 49.85 s",
+  "beneficio": "Pantalla del paquete Multinaming disponible individual: 1,873,962 impactos a personas y 95,553 personas únicas al mes, con 14.97× de frecuencia y 49.85 s de exposición promedio.",
+  "incluye": [
+   "Pantalla LED · 3 meses incluidos",
+   "Landmark 24/7 · branding de la marca",
+   "Diseño · Producción · Colocación y desinstalación",
+   "2 spots · 20 s c/u · contenido pre-programado por día y hora"
+  ],
+  "foto": "assets/sitios/PANT-6.jpg",
+  "fotoWm": "assets/sitios/PANT-6.jpg",
+  "dir": "Av. Revolución, CDMX",
+  "lat": 19.3766,
+  "lng": -99.1867
+ },
+ {
+  "id": "OPP-ENCINO",
+  "cat": "muro",
+  "titulo": "Unipolar Doble Encino · Interlomas",
+  "ubic": "Vialidad de la Barranca · Interlomas",
+  "tarifa": 0,
+  "medidas": "Unipolar doble · 12.90 × 10.80 m",
+  "imp": "alto",
+  "impMes": 0,
+  "aud": "NSE ABC+ · Interlomas–Santa Fe",
+  "obj": "Doble cartelera sobre la Vialidad de la Barranca con dirección a Santa Fe y Bosque de las Lomas",
+  "beneficio": "Unipolar de dos caras apiladas en zona de alta plusvalía y mucha afluencia vehicular: el corredor que conecta Interlomas con Santa Fe y Bosque de las Lomas.",
+  "estatus": "disponible",
+  "campanas": [
+   "Buen Fin",
+   "Hot Sale",
+   "Lanzamientos"
+  ],
+  "specs": {
+   "material": "Unipolar",
+   "vista": "Natural",
+   "iluminacion": "Sí",
+   "nse": "ABC+",
+   "zonas": [
+    "Interlomas 1 km",
+    "Santa Fe 4 km",
+    "Bosque de las Lomas 3 km"
+   ]
+  },
+  "foto": "assets/sitios/OPP-ENCINO.jpg",
+  "fotoWm": "assets/sitios/OPP-ENCINO.jpg",
+  "dir": "Encino 6, Col. El Olivo, CP 52789, Huixquilucan, Edo. Méx.",
+  "lat": 19.388173,
+  "lng": -99.2786
  }
 ]
