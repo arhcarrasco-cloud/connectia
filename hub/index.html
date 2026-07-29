@@ -36,15 +36,15 @@ body{
 /* ── fondo: skyline nocturno detrás del vidrio ───────────────────── */
 .bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 .bg .sky{
-  position:absolute;left:-4%;right:-4%;bottom:-6%;width:108%;
-  filter:blur(26px) saturate(135%);opacity:.62;
+  position:absolute;left:-4%;right:-4%;bottom:0;width:108%;
+  filter:blur(13px) saturate(150%);opacity:.95;
 }
 .bg .haze{
   position:absolute;inset:0;
   background:
-    radial-gradient(1200px 680px at 78% -14%, rgba(135,43,144,.46), transparent 62%),
-    radial-gradient(900px 600px at 8% 108%, rgba(180,76,190,.24), transparent 64%),
-    linear-gradient(180deg, rgba(7,7,11,.28) 0%, rgba(7,7,11,.86) 74%, #07070B 100%);
+    radial-gradient(1200px 700px at 78% -16%, rgba(135,43,144,.42), transparent 62%),
+    radial-gradient(900px 620px at 6% 104%, rgba(180,76,190,.20), transparent 64%),
+    linear-gradient(180deg, #07070B 0%, rgba(7,7,11,.94) 34%, rgba(7,7,11,.66) 62%, rgba(7,7,11,.34) 84%, rgba(7,7,11,.18) 100%);
 }
 .bg .grain{
   position:absolute;inset:0;opacity:.05;mix-blend-mode:overlay;
@@ -53,6 +53,10 @@ body{
 
 /* ── estructura ──────────────────────────────────────────────────── */
 .shell{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 28px 96px}
+.shell::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg, rgba(7,7,11,.10) 0%, rgba(7,7,11,.52) 58%, rgba(7,7,11,.72) 100%);
+}
 
 .top{padding:76px 0 0;text-align:center}
 .mark{
