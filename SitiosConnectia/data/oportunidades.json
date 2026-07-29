@@ -73,8 +73,7 @@
     "Ciudad de los Deportes 2 km",
     "CDMX Centro 9 km"
    ]
-  },
-  "mockup": "Toy Story 5"
+  }
  },
  {
   "id": "OPP-SAT",
@@ -468,8 +467,7 @@
     "lat": 19.3766,
     "lng": -99.1867
    }
-  ],
-  "mockup": "Netflix"
+  ]
  },
  {
   "id": "OPP-CUBO",
@@ -1247,8 +1245,7 @@
   "fotoWm": "assets/sitios/PANT-1.jpg",
   "dir": "Vialidad frente a Paseo Interlomas, Huixquilucan",
   "lat": 19.3962,
-  "lng": -99.2811,
-  "mockup": "Netflix"
+  "lng": -99.2811
  },
  {
   "id": "PANT-02",
@@ -1278,8 +1275,7 @@
   "fotoWm": "assets/sitios/PANT-2.jpg",
   "dir": "Blvd. Magnocentro y Blvd. Interlomas, Huixquilucan",
   "lat": 19.4022,
-  "lng": -99.2716,
-  "mockup": "Netflix"
+  "lng": -99.2716
  },
  {
   "id": "PANT-03",
@@ -1309,8 +1305,7 @@
   "fotoWm": "assets/sitios/PANT-3.jpg",
   "dir": "Blvd. M. Ávila Camacho (Periférico), Toreo, Naucalpan",
   "lat": 19.4602,
-  "lng": -99.222,
-  "mockup": "Netflix"
+  "lng": -99.222
  },
  {
   "id": "PANT-04",
@@ -1340,8 +1335,7 @@
   "fotoWm": "assets/sitios/PANT-4.jpg",
   "dir": "Av. Río Churubusco, CDMX",
   "lat": 19.3565,
-  "lng": -99.1443,
-  "mockup": "Netflix"
+  "lng": -99.1443
  },
  {
   "id": "PANT-05",
@@ -1371,8 +1365,7 @@
   "fotoWm": "assets/sitios/PANT-5.jpg",
   "dir": "Av. Viad. Miguel Alemán, Col. Buenos Aires, CDMX",
   "lat": 19.4022,
-  "lng": -99.1608,
-  "mockup": "Netflix"
+  "lng": -99.1608
  },
  {
   "id": "PANT-06",
