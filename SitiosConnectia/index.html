@@ -201,6 +201,18 @@ main{max-width:1780px;margin:0 auto;padding:42px 34px 84px}
 .statgrid .l{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--violet-hot)}
 .statgrid .v{font-size:15.5px;font-weight:700;margin-top:5px}
 
+/* ficha técnica */
+.specgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(123,63,242,.22);
+  border:1px solid var(--glass-border);border-radius:14px;overflow:hidden}
+.specgrid > div{background:var(--graphite);padding:11px 15px;display:flex;flex-direction:column;gap:3px}
+.specgrid .sl{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-hot)}
+.specgrid .sv{font-size:13.5px;font-weight:700}
+.anchor{background:rgba(255,194,32,.07);border:1px solid rgba(255,194,32,.28);border-radius:14px;padding:12px 16px}
+.anchor .al{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--wm-spark)}
+.anchor .av{font-size:14.5px;font-weight:800;margin-top:3px}
+.anchor .am{font-size:12.5px;color:var(--mist);margin-top:4px}
+@media(max-width:760px){.specgrid{grid-template-columns:repeat(2,1fr)}}
+
 /* ─── player ─── */
 #player{position:fixed;inset:0;background:var(--ink);z-index:150;display:none;flex-direction:column}
 #player.show{display:flex}
@@ -381,6 +393,24 @@ function semaforoHtml(est){
          `<span class="sem-dot r${c==='r'?' on':''}"></span><span class="sem-lbl">${l}</span>`;
 }
 
+/* ═══════════ SPECS TÉCNICAS ═══════════ */
+function specsHtml(sp){
+  if(!sp) return '';
+  const filas=[['Material',sp.material],['Vista',sp.vista],['Orientación',sp.orientacion],
+               ['NSE',sp.nse],['Iluminación',sp.iluminacion],['Clasificación',sp.clasificacion]]
+              .filter(([,v])=>v);
+  if(!filas.length && !sp.anchor && !(sp.zonas||[]).length) return '';
+  return `<div class="mt20"><div class="eyebrow">Ficha técnica</div>
+    ${filas.length?`<div class="specgrid mt10">${filas.map(([l,v])=>
+      `<div><span class="sl">${l}</span><span class="sv">${v}</span></div>`).join('')}</div>`:''}
+    ${sp.anchor?`<div class="anchor mt10"><div class="al">Anchor cercano</div>
+      <div class="av">${sp.anchor}</div>
+      ${sp.marcas?`<div class="am">${sp.marcas}</div>`:''}</div>`:''}
+    ${(sp.zonas||[]).length?`<div class="media-meta mt10">${sp.zonas.map(z=>
+      `<span class="chip">${z}</span>`).join('')}</div>`:''}
+  </div>`;
+}
+
 /* ═══════════ CONTACTO ═══════════ */
 function mailSitio(id,ev){
   ev&&ev.stopPropagation();
@@ -465,6 +495,7 @@ function openSitio(id){
        <div><div class="l">Audiencia</div><div class="v">${m.aud||'—'}</div></div>
        <div><div class="l">Nivel de impacto</div><div class="v">${nivel}</div></div>
      </div>
+     ${specsHtml(m.specs)}
      ${m.obj?`<div class="mt20"><div class="eyebrow">Objetivo del sitio</div><p class="body mt10">${m.obj}</p></div>`:''}
      ${m.beneficio?`<div class="mt20"><div class="eyebrow">Por qué funciona</div><p class="body mt10">${m.beneficio}</p></div>`:''}
      ${m.dir?`<div class="mt20"><div class="eyebrow">Dirección</div><p class="body mt10">${m.dir}</p></div>`:''}

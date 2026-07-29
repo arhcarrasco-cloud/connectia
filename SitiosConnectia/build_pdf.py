@@ -252,21 +252,49 @@ def site_page(c, s, n, total):
     for i, (l, v, col) in enumerate(stats):
         stat_box(c, 52 + i * (bw + gap), by, bw, bh, l, v, col)
 
+    # ficha técnica (una tira de specs bajo las métricas)
+    sp = s.get("specs") or {}
+    filas = [(l, v) for l, v in [("Material", sp.get("material")), ("Vista", sp.get("vista")),
+                                 ("Orientación", sp.get("orientacion")), ("NSE", sp.get("nse")),
+                                 ("Iluminación", sp.get("iluminacion")),
+                                 ("Clasificación", sp.get("clasificacion"))] if v]
+    sy = by - 12
+    if filas:
+        sw = (W - 104) / len(filas)
+        for k, (l, v) in enumerate(filas):
+            x = 52 + k * sw
+            c.setFillColor(HOT); c.setFont("Helvetica-Bold", 6)
+            c.drawString(x, sy - 10, " ".join(l.upper()))
+            c.setFillColor(MIST); c.setFont("Helvetica-Bold", 9)
+            c.drawString(x, sy - 23, str(v))
+        c.setStrokeColor(HexColor("#3A2568")); c.setLineWidth(.7)
+        c.line(52, sy - 32, W - 52, sy - 32)
+        sy -= 44
+
     # dos columnas de copy
-    cy = by - 26
+    cy = sy - 8
     colw = (W - 104 - 30) / 2
     eyebrow(c, "Por qué funciona", 52, cy)
-    y1 = wrap(c, s.get("beneficio", ""), 52, cy - 16, colw, size=9.5, lead=13, maxlines=5)
+    y1 = wrap(c, s.get("beneficio", ""), 52, cy - 16, colw, size=9.5, lead=13, maxlines=4)
     if s.get("obj"):
         eyebrow(c, "Objetivo", 52, y1 - 6)
-        wrap(c, s["obj"], 52, y1 - 22, colw, size=9.5, lead=13, maxlines=3)
+        wrap(c, s["obj"], 52, y1 - 22, colw, size=9.5, lead=13, maxlines=2)
 
     x2 = 52 + colw + 30
+    y2 = cy
     if s.get("dir"):
         eyebrow(c, "Dirección", x2, cy)
-        y2 = wrap(c, s["dir"], x2, cy - 16, colw, size=9.5, lead=13, maxlines=3)
-    else:
-        y2 = cy
+        y2 = wrap(c, s["dir"], x2, cy - 16, colw, size=9.5, lead=13, maxlines=2)
+    if sp.get("anchor"):
+        eyebrow(c, "Anchor cercano", x2, y2 - 6, SPARK)
+        c.setFillColor(WHITE); c.setFont("Helvetica-Bold", 10)
+        c.drawString(x2, y2 - 21, sp["anchor"][:52])
+        y2 -= 21
+        if sp.get("marcas"):
+            c.setFillColor(MIST); c.setFont("Helvetica", 8.5)
+            c.drawString(x2, y2 - 13, sp["marcas"][:74])
+            y2 -= 13
+        y2 -= 12   # aire antes del bloque de campañas
     camp = s.get("campanas") or []
     if camp:
         eyebrow(c, "Campañas sugeridas", x2, y2 - 6)

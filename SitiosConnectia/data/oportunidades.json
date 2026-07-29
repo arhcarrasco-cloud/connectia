@@ -22,7 +22,20 @@
   "video": "1D0DnEIbXdSnb0J0N5GKAs-VMKwn68Jm9",
   "dir": "Hamburgo esq. Florencia, Col. Juárez, CDMX",
   "lat": 19.42531,
-  "lng": -99.16688
+  "lng": -99.16688,
+  "specs": {
+   "vista": "Natural",
+   "nse": "C+ C",
+   "iluminacion": "No",
+   "clasificacion": "AAA",
+   "anchor": "C. Comercial Reforma 222",
+   "zonas": [
+    "Roma 500 m",
+    "Condesa 1 km",
+    "Buenavista 2.5 km"
+   ],
+   "marcas": "Smart Fit · Cinépolis · Starbucks · Tim Hortons · McDonald's"
+  }
  },
  {
   "id": "OPP-MEGA",
@@ -47,7 +60,19 @@
   "video": "10XR-D7nKMJaNoZANdOtn1wy-be7IOmV5",
   "dir": "Calz. de Tlalpan esq. Río Churubusco, Coyoacán, CDMX",
   "lat": 19.356059,
-  "lng": -99.144004
+  "lng": -99.144004,
+  "specs": {
+   "material": "Vinil / Lona",
+   "vista": "Natural",
+   "nse": "C+ C",
+   "iluminacion": "No",
+   "clasificacion": "AAA",
+   "zonas": [
+    "Coyoacán Centro 1.5 km",
+    "Ciudad de los Deportes 2 km",
+    "CDMX Centro 9 km"
+   ]
+  }
  },
  {
   "id": "OPP-SAT",
@@ -71,7 +96,22 @@
   "fotoWm": "assets/sitios/OPP-SAT.jpg",
   "dir": "Periférico Norte, Galerías Satélite, Naucalpan, Edo. Méx.",
   "lat": 19.5092,
-  "lng": -99.2372
+  "lng": -99.2372,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Lateral",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Galerías Satélite 70M",
+   "zonas": [
+    "Valle Dorado 4 km",
+    "Atizapán 4 km",
+    "CDMX 4 km",
+    "Polanco 4 km"
+   ],
+   "marcas": "Liverpool · Sears · Palacio de Hierro · Costco · Cinépolis · Sanborns"
+  }
  },
  {
   "id": "OPP-TOREO",
@@ -96,7 +136,22 @@
   "video": "https://connectia.mx/RecorridoAdri/assets/videos/toreo.mp4",
   "dir": "Blvd. Manuel Ávila Camacho (Periférico), Toreo, Naucalpan",
   "lat": 19.4598,
-  "lng": -99.2155
+  "lng": -99.2155,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Lateral",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Parque Toreo 155M",
+   "zonas": [
+    "Valle Dorado 7 km",
+    "Atizapán 6 km",
+    "CDMX 1 km",
+    "Polanco 1 km"
+   ],
+   "marcas": "Liverpool · Coppel · Chedraui Selecto · Telcel · Cinépolis · Sanborns"
+  }
  },
  {
   "id": "OPP-GLORIETA",
@@ -145,7 +200,13 @@
   "fotoWm": "assets/sitios/OPP-HIPO.jpg",
   "dir": "Insurgentes Sur 513, Col. Hipódromo Condesa, CDMX",
   "lat": 19.4085,
-  "lng": -99.172
+  "lng": -99.172,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Natural",
+   "iluminacion": "No",
+   "clasificacion": "AAA"
+  }
  },
  {
   "id": "OPP-ROMA",
@@ -169,7 +230,11 @@
   "fotoWm": "assets/sitios/OPP-ROMA.jpg",
   "dir": "Av. Insurgentes / Monterrey, Roma Norte, CDMX",
   "lat": 19.419,
-  "lng": -99.162
+  "lng": -99.162,
+  "specs": {
+   "iluminacion": "No",
+   "clasificacion": "AAA"
+  }
  },
  {
   "id": "OPP-GLORINS",
@@ -193,7 +258,11 @@
   "fotoWm": "assets/sitios/OPP-GLORINS.jpg",
   "dir": "Glorieta de Insurgentes, Roma Norte, CDMX",
   "lat": 19.4234,
-  "lng": -99.1631
+  "lng": -99.1631,
+  "specs": {
+   "iluminacion": "No",
+   "clasificacion": "AAA"
+  }
  },
  {
   "id": "OPP-SANPEDRO",
@@ -217,7 +286,12 @@
   "fotoWm": "assets/sitios/OPP-SANPEDRO.jpg",
   "dir": "Periférico / Eje 5 Sur, San Pedro de los Pinos, CDMX",
   "lat": 19.3785,
-  "lng": -99.188
+  "lng": -99.188,
+  "specs": {
+   "iluminacion": "No",
+   "clasificacion": "AAA",
+   "marcas": "Costco · Martí · Banorte · Santander"
+  }
  },
  {
   "id": "OPP-SATCD",
@@ -241,7 +315,12 @@
   "fotoWm": "assets/sitios/OPP-SATCD.jpg",
   "dir": "Blvr. Manuel Ávila Camacho, Ciudad Satélite, Naucalpan",
   "lat": 19.5085,
-  "lng": -99.238
+  "lng": -99.238,
+  "specs": {
+   "iluminacion": "No",
+   "clasificacion": "AAA",
+   "marcas": "Liverpool · Costco Wholesale · Walmart · Pizza Hut"
+  }
  },
  {
   "id": "OPP-PANTALLAS",
@@ -355,7 +434,21 @@
   "fotoWm": "assets/sitios/OPP-CUBO.jpg",
   "dir": "Blvd. Magnocentro y Blvd. Interlomas, Huixquilucan, Edo. Méx.",
   "lat": 19.4022,
-  "lng": -99.2716
+  "lng": -99.2716,
+  "specs": {
+   "material": "Pantalla digital",
+   "vista": "Natural",
+   "nse": "ABC+",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Landmark Cubo + Naming · 3 lonas + 1 pantalla",
+   "zonas": [
+    "Magnocentro 200 m",
+    "Interlomas 4 km",
+    "Bosques de las Lomas 4.3 km"
+   ],
+   "marcas": "Costco · Liverpool · Sears"
+  }
  },
  {
   "id": "OPP-MAC2610",
@@ -379,7 +472,21 @@
   "fotoWm": "assets/sitios/OPP-MAC2610.jpg",
   "dir": "Manuel Ávila Camacho 2610, Tlalnepantla, Edo. Méx.",
   "lat": 19.538,
-  "lng": -99.2386
+  "lng": -99.2386,
+  "specs": {
+   "material": "Vinil Microperforado",
+   "vista": "Natural",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "C Comercial Sentura 10M",
+   "zonas": [
+    "Atizapán 3 km",
+    "Satélite 4 km",
+    "CDMX 8 km"
+   ],
+   "marcas": "Smart Fit · Cinépolis · Starbucks · Tim Hortons"
+  }
  },
  {
   "id": "OPP-MAC2610B",
@@ -403,7 +510,21 @@
   "fotoWm": "assets/sitios/OPP-MAC2610B.jpg",
   "dir": "Manuel Ávila Camacho 2610, Tlalnepantla, Edo. Méx.",
   "lat": 19.5384,
-  "lng": -99.239
+  "lng": -99.239,
+  "specs": {
+   "material": "Vinil Microperforado",
+   "vista": "Natural",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "C Comercial Sentura 10M",
+   "zonas": [
+    "Atizapán 1 km",
+    "Satélite 2 km",
+    "CDMX 8 km"
+   ],
+   "marcas": "Smart Fit · Cinépolis · Starbucks · Tim Hortons"
+  }
  },
  {
   "id": "OPP-MAC2150A",
@@ -427,7 +548,22 @@
   "fotoWm": "assets/sitios/OPP-MAC2150A.jpg",
   "dir": "Boulevard Manuel Ávila Camacho 2150, Naucalpan, Edo. Méx.",
   "lat": 19.5052,
-  "lng": -99.2405
+  "lng": -99.2405,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Natural",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Galerías Satélite 70M",
+   "zonas": [
+    "Valle Dorado 4 km",
+    "Atizapán 4 km",
+    "CDMX 4 km",
+    "Polanco 4 km"
+   ],
+   "marcas": "Liverpool · Sears · Palacio de Hierro · Costco · Cinépolis · Sanborns"
+  }
  },
  {
   "id": "OPP-MAC2150B",
@@ -451,7 +587,22 @@
   "fotoWm": "assets/sitios/OPP-MAC2150B.jpg",
   "dir": "Boulevard Manuel Ávila Camacho 2150, Naucalpan, Edo. Méx.",
   "lat": 19.5054,
-  "lng": -99.2407
+  "lng": -99.2407,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Cruzado",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Galerías Satélite 70M",
+   "zonas": [
+    "Valle Dorado 4 km",
+    "Atizapán 4 km",
+    "CDMX 4 km",
+    "Polanco 4 km"
+   ],
+   "marcas": "Liverpool · Sears · Palacio de Hierro · Costco · Cinépolis · Sanborns"
+  }
  },
  {
   "id": "OPP-MAC2150C",
@@ -475,7 +626,22 @@
   "fotoWm": "assets/sitios/OPP-MAC2150C.jpg",
   "dir": "Boulevard Manuel Ávila Camacho 2150, Naucalpan, Edo. Méx.",
   "lat": 19.5056,
-  "lng": -99.2409
+  "lng": -99.2409,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Natural",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Galerías Satélite 70M",
+   "zonas": [
+    "Valle Dorado 4 km",
+    "Atizapán 4 km",
+    "CDMX 4 km",
+    "Polanco 4 km"
+   ],
+   "marcas": "Liverpool · Sears · Palacio de Hierro · Costco · Cinépolis · Sanborns"
+  }
  },
  {
   "id": "OPP-MAC495AB",
@@ -499,7 +665,20 @@
   "fotoWm": "assets/sitios/OPP-MAC495AB.jpg",
   "dir": "Boulevard Manuel Ávila Camacho 495, Naucalpan, Edo. Méx.",
   "lat": 19.476,
-  "lng": -99.241
+  "lng": -99.241,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Natural",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "zonas": [
+    "Satélite 4 km",
+    "Atizapán 6 km",
+    "CDMX 2 km",
+    "Polanco 3 km"
+   ]
+  }
  },
  {
   "id": "OPP-MAC495C",
@@ -523,7 +702,20 @@
   "fotoWm": "assets/sitios/OPP-MAC495C.jpg",
   "dir": "Boulevard Manuel Ávila Camacho 495, Naucalpan, Edo. Méx.",
   "lat": 19.4762,
-  "lng": -99.2413
+  "lng": -99.2413,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Natural",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "zonas": [
+    "Satélite 4 km",
+    "Atizapán 6 km",
+    "CDMX 2 km",
+    "Polanco 3 km"
+   ]
+  }
  },
  {
   "id": "OPP-I253A",
@@ -547,7 +739,17 @@
   "fotoWm": "assets/sitios/OPP-I253A.jpg",
   "dir": "Insurgentes Sur 253, Hotel Hive, Roma Norte, CDMX",
   "lat": 19.4185,
-  "lng": -99.1605
+  "lng": -99.1605,
+  "specs": {
+   "material": "Lona Mesh",
+   "vista": "Natural",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "zonas": [
+    "Reforma 222 300 m"
+   ]
+  }
  },
  {
   "id": "OPP-I253B",
@@ -571,7 +773,17 @@
   "fotoWm": "assets/sitios/OPP-I253B.jpg",
   "dir": "Insurgentes Sur 253, Hotel Hive, Roma Norte, CDMX",
   "lat": 19.4186,
-  "lng": -99.1607
+  "lng": -99.1607,
+  "specs": {
+   "material": "Lona Mesh",
+   "vista": "Natural",
+   "nse": "C+ C",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "zonas": [
+    "Reforma 222 300 m"
+   ]
+  }
  },
  {
   "id": "OPP-MAC126",
@@ -595,7 +807,19 @@
   "fotoWm": "assets/sitios/OPP-MAC126.jpg",
   "dir": "Boulevard Manuel Ávila Camacho 126, Lomas de Chapultepec, CDMX",
   "lat": 19.436,
-  "lng": -99.207
+  "lng": -99.207,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Natural",
+   "nse": "C C+",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "zonas": [
+    "Cuauhtémoc 2 km",
+    "Polanco 500 m",
+    "Juárez 1 km"
+   ]
+  }
  },
  {
   "id": "OPP-PSC18",
@@ -619,7 +843,21 @@
   "fotoWm": "assets/sitios/OPP-PSC18.jpg",
   "dir": "Periférico Sur y calle 18, Benito Juárez, CDMX",
   "lat": 19.3722,
-  "lng": -99.1848
+  "lng": -99.1848,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Lateral",
+   "nse": "C C+",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Costco / Bodega Aurrerá Mixcoac",
+   "zonas": [
+    "Tacubaya 1 km",
+    "Mixcoac 0.5 km",
+    "Del Valle 1 km",
+    "Coyoacán 2 km"
+   ]
+  }
  },
  {
   "id": "OPP-EN1031",
@@ -643,7 +881,20 @@
   "fotoWm": "assets/sitios/OPP-EN1031.jpg",
   "dir": "Av. Ejército Nacional, Pabellón Polanco, Miguel Hidalgo, CDMX",
   "lat": 19.44,
-  "lng": -99.2
+  "lng": -99.2,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Lateral",
+   "nse": "C C+",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Antara Polanco",
+   "zonas": [
+    "Tacuba 1 km",
+    "Lomas de Chapultepec 1 km"
+   ],
+   "marcas": "Palacio de Hierro · Nike · Cinépolis · BBVA · Apple · Inditex"
+  }
  },
  {
   "id": "OPP-H1818",
@@ -667,7 +918,20 @@
   "fotoWm": "assets/sitios/OPP-H1818.jpg",
   "dir": "Homero 1818, Polanco, Miguel Hidalgo, CDMX",
   "lat": 19.4395,
-  "lng": -99.2008
+  "lng": -99.2008,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Lateral",
+   "nse": "AB C+",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Antara Polanco",
+   "zonas": [
+    "Tacuba 1 km",
+    "Lomas de Chapultepec 1 km"
+   ],
+   "marcas": "Palacio de Hierro · Nike · Cinépolis · BBVA · Apple · Inditex"
+  }
  },
  {
   "id": "OPP-MO193A",
@@ -691,7 +955,22 @@
   "fotoWm": "assets/sitios/OPP-MO193A.jpg",
   "dir": "Cto. Interior Melchor Ocampo, Verónica Anzures, CDMX",
   "lat": 19.4378,
-  "lng": -99.1748
+  "lng": -99.1748,
+  "specs": {
+   "material": "Lona Mesh",
+   "vista": "Lateral",
+   "nse": "C D",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Plaza Galerías",
+   "zonas": [
+    "Roma Norte 1 km",
+    "Buenavista 1 km",
+    "Polanco 0.5 km",
+    "Chapultepec 1 km"
+   ],
+   "marcas": "Cinemex · Vips · AT&T · Circle K"
+  }
  },
  {
   "id": "OPP-MO193B",
@@ -715,7 +994,22 @@
   "fotoWm": "assets/sitios/OPP-MO193B.jpg",
   "dir": "Cto. Interior Melchor Ocampo, Verónica Anzures, CDMX",
   "lat": 19.438,
-  "lng": -99.175
+  "lng": -99.175,
+  "specs": {
+   "material": "Lona Mesh",
+   "vista": "Lateral",
+   "nse": "C D",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Plaza Galerías",
+   "zonas": [
+    "Roma Norte 1 km",
+    "Buenavista 1 km",
+    "Polanco 0.5 km",
+    "Chapultepec 1 km"
+   ],
+   "marcas": "Cinemex · Vips · AT&T · Circle K"
+  }
  },
  {
   "id": "OPP-RC1728",
@@ -739,7 +1033,20 @@
   "fotoWm": "assets/sitios/OPP-RC1728.jpg",
   "dir": "Av. Río Consulado 1728, Gustavo A. Madero, CDMX",
   "lat": 19.465,
-  "lng": -99.128
+  "lng": -99.128,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Lateral",
+   "nse": "C D",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Plaza Parque Tepeyac",
+   "zonas": [
+    "Parque Tepeyac 500 m",
+    "Buenavista 1 km"
+   ],
+   "marcas": "Cinemex · Vips · AT&T · Circle K"
+  }
  },
  {
   "id": "OPP-RSC40",
@@ -763,7 +1070,18 @@
   "fotoWm": "assets/sitios/OPP-RSC40.jpg",
   "dir": "Av. Ribera de San Cosme, Cuauhtémoc, CDMX",
   "lat": 19.448,
-  "lng": -99.155
+  "lng": -99.155,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Frontal",
+   "nse": "C C+",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "zonas": [
+    "Juárez 0.5 km",
+    "Buenavista 0.5 km"
+   ]
+  }
  },
  {
   "id": "OPP-R813",
@@ -787,7 +1105,21 @@
   "fotoWm": "assets/sitios/OPP-R813.jpg",
   "dir": "Av. Revolución, Benito Juárez, CDMX",
   "lat": 19.385,
-  "lng": -99.188
+  "lng": -99.188,
+  "specs": {
+   "material": "Lona Front",
+   "vista": "Frontal",
+   "nse": "C D",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Soriana Híper",
+   "zonas": [
+    "Del Valle 0.5 km",
+    "Nápoles 1 km",
+    "Tacubaya 1 km",
+    "Coyoacán 2 km"
+   ]
+  }
  },
  {
   "id": "OPP-AJ254",
@@ -811,6 +1143,20 @@
   "fotoWm": "assets/sitios/OPP-AJ254.jpg",
   "dir": "Av. Jalisco, Tacubaya, Miguel Hidalgo, CDMX",
   "lat": 19.403,
-  "lng": -99.187
+  "lng": -99.187,
+  "specs": {
+   "material": "Lona Mesh",
+   "vista": "Frontal",
+   "nse": "C C+",
+   "iluminacion": "Sí",
+   "clasificacion": "AAA",
+   "anchor": "Plaza Tacubaya",
+   "zonas": [
+    "Álvaro Obregón 1 km",
+    "Nápoles 500 m",
+    "Condesa 500 m",
+    "Chapultepec 1 km"
+   ]
+  }
  }
 ]
