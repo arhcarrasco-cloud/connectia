@@ -1,5 +1,41 @@
 [
  {
+  "id": "OPP-ENCINO",
+  "cat": "muro",
+  "titulo": "Unipolar Doble Encino · Interlomas",
+  "ubic": "Vialidad de la Barranca · Interlomas",
+  "tarifa": 0,
+  "medidas": "Unipolar doble · 12.90 × 10.80 m",
+  "imp": "alto",
+  "impMes": 0,
+  "aud": "NSE ABC+ · Interlomas–Santa Fe",
+  "obj": "Doble cartelera sobre la Vialidad de la Barranca con dirección a Santa Fe y Bosque de las Lomas",
+  "beneficio": "Unipolar de dos caras apiladas en zona de alta plusvalía y mucha afluencia vehicular: el corredor que conecta Interlomas con Santa Fe y Bosque de las Lomas.",
+  "estatus": "disponible",
+  "campanas": [
+   "Buen Fin",
+   "Hot Sale",
+   "Lanzamientos"
+  ],
+  "specs": {
+   "material": "Unipolar",
+   "vista": "Natural",
+   "iluminacion": "Sí",
+   "nse": "ABC+",
+   "zonas": [
+    "Interlomas 1 km",
+    "Santa Fe 4 km",
+    "Bosque de las Lomas 3 km"
+   ]
+  },
+  "foto": "assets/sitios/OPP-ENCINO.jpg",
+  "fotoWm": "assets/sitios/OPP-ENCINO.jpg",
+  "dir": "Encino 6, Col. El Olivo, CP 52789, Huixquilucan, Edo. Méx.",
+  "lat": 19.388173,
+  "lng": -99.2786,
+  "zona": "Interlomas · Santa Fe"
+ },
+ {
   "id": "OPP-HAMB",
   "cat": "landmark",
   "titulo": "Landmark Hamburgo · Col. Juárez",
@@ -36,7 +72,8 @@
    ],
    "marcas": "Smart Fit · Cinépolis · Starbucks · Tim Hortons · McDonald's"
   },
-  "mockup": "Starbucks"
+  "mockup": "Starbucks",
+  "zona": "Roma · Condesa · Reforma"
  },
  {
   "id": "OPP-MEGA",
@@ -73,7 +110,8 @@
     "Ciudad de los Deportes 2 km",
     "CDMX Centro 9 km"
    ]
-  }
+  },
+  "zona": "Sur · Poniente"
  },
  {
   "id": "OPP-SAT",
@@ -112,7 +150,8 @@
     "Polanco 4 km"
    ],
    "marcas": "Liverpool · Sears · Palacio de Hierro · Costco · Cinépolis · Sanborns"
-  }
+  },
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "OPP-TOREO",
@@ -153,7 +192,8 @@
    ],
    "marcas": "Liverpool · Coppel · Chedraui Selecto · Telcel · Cinépolis · Sanborns"
   },
-  "mockup": "Audi"
+  "mockup": "Audi",
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "OPP-GLORIETA",
@@ -178,7 +218,8 @@
   "video": "https://connectia.mx/RecorridoAdri/assets/videos/glorieta.mp4",
   "dir": "Glorieta Av. San Mateo Santa Rosa / Blvd. Palmas Hills, Interlomas, Huixquilucan",
   "lat": 19.39,
-  "lng": -99.2925
+  "lng": -99.2925,
+  "zona": "Interlomas · Santa Fe"
  },
  {
   "id": "OPP-HIPO",
@@ -209,7 +250,8 @@
    "iluminacion": "No",
    "clasificacion": "AAA"
   },
-  "mockup": "Magnum"
+  "mockup": "Magnum",
+  "zona": "Roma · Condesa · Reforma"
  },
  {
   "id": "OPP-ROMA",
@@ -238,7 +280,8 @@
    "iluminacion": "No",
    "clasificacion": "AAA"
   },
-  "mockup": "Johnnie Walker"
+  "mockup": "Johnnie Walker",
+  "zona": "Roma · Condesa · Reforma"
  },
  {
   "id": "OPP-GLORINS",
@@ -267,7 +310,8 @@
    "iluminacion": "No",
    "clasificacion": "AAA"
   },
-  "mockup": "Minions & Monsters"
+  "mockup": "Minions & Monsters",
+  "zona": "Roma · Condesa · Reforma"
  },
  {
   "id": "OPP-SANPEDRO",
@@ -327,7 +371,8 @@
    "clasificacion": "AAA",
    "marcas": "Liverpool · Costco Wholesale · Walmart · Pizza Hut"
   },
-  "mockup": "Bimbo"
+  "mockup": "Bimbo",
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "OPP-PANTALLAS",
@@ -506,7 +551,8 @@
    ],
    "marcas": "Costco · Liverpool · Sears"
   },
-  "mockup": "Banorte"
+  "mockup": "Banorte",
+  "zona": "Interlomas · Santa Fe"
  },
  {
   "id": "OPP-MAC2610",
@@ -544,7 +590,8 @@
     "CDMX 8 km"
    ],
    "marcas": "Smart Fit · Cinépolis · Starbucks · Tim Hortons"
-  }
+  },
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "OPP-MAC2610B",
@@ -582,7 +629,8 @@
     "CDMX 8 km"
    ],
    "marcas": "Smart Fit · Cinépolis · Starbucks · Tim Hortons"
-  }
+  },
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "OPP-MAC2150A",
@@ -621,7 +669,8 @@
     "Polanco 4 km"
    ],
    "marcas": "Liverpool · Sears · Palacio de Hierro · Costco · Cinépolis · Sanborns"
-  }
+  },
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "OPP-MAC2150B",
@@ -660,7 +709,8 @@
     "Polanco 4 km"
    ],
    "marcas": "Liverpool · Sears · Palacio de Hierro · Costco · Cinépolis · Sanborns"
-  }
+  },
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "OPP-MAC2150C",
@@ -699,7 +749,8 @@
     "Polanco 4 km"
    ],
    "marcas": "Liverpool · Sears · Palacio de Hierro · Costco · Cinépolis · Sanborns"
-  }
+  },
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "OPP-MAC495AB",
@@ -736,7 +787,8 @@
     "CDMX 2 km",
     "Polanco 3 km"
    ]
-  }
+  },
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "OPP-MAC495C",
@@ -773,7 +825,8 @@
     "CDMX 2 km",
     "Polanco 3 km"
    ]
-  }
+  },
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "OPP-I253A",
@@ -807,7 +860,8 @@
    "zonas": [
     "Reforma 222 300 m"
    ]
-  }
+  },
+  "zona": "Roma · Condesa · Reforma"
  },
  {
   "id": "OPP-I253B",
@@ -841,7 +895,8 @@
    "zonas": [
     "Reforma 222 300 m"
    ]
-  }
+  },
+  "zona": "Roma · Condesa · Reforma"
  },
  {
   "id": "OPP-MAC126",
@@ -877,7 +932,8 @@
     "Polanco 500 m",
     "Juárez 1 km"
    ]
-  }
+  },
+  "zona": "Polanco · Lomas"
  },
  {
   "id": "OPP-PSC18",
@@ -915,7 +971,8 @@
     "Del Valle 1 km",
     "Coyoacán 2 km"
    ]
-  }
+  },
+  "zona": "Sur · Poniente"
  },
  {
   "id": "OPP-EN1031",
@@ -952,7 +1009,8 @@
     "Lomas de Chapultepec 1 km"
    ],
    "marcas": "Palacio de Hierro · Nike · Cinépolis · BBVA · Apple · Inditex"
-  }
+  },
+  "zona": "Polanco · Lomas"
  },
  {
   "id": "OPP-H1818",
@@ -989,7 +1047,8 @@
     "Lomas de Chapultepec 1 km"
    ],
    "marcas": "Palacio de Hierro · Nike · Cinépolis · BBVA · Apple · Inditex"
-  }
+  },
+  "zona": "Polanco · Lomas"
  },
  {
   "id": "OPP-MO193A",
@@ -1028,7 +1087,8 @@
     "Chapultepec 1 km"
    ],
    "marcas": "Cinemex · Vips · AT&T · Circle K"
-  }
+  },
+  "zona": "Polanco · Lomas"
  },
  {
   "id": "OPP-MO193B",
@@ -1067,7 +1127,8 @@
     "Chapultepec 1 km"
    ],
    "marcas": "Cinemex · Vips · AT&T · Circle K"
-  }
+  },
+  "zona": "Polanco · Lomas"
  },
  {
   "id": "OPP-RC1728",
@@ -1104,7 +1165,8 @@
     "Buenavista 1 km"
    ],
    "marcas": "Cinemex · Vips · AT&T · Circle K"
-  }
+  },
+  "zona": "Centro · Norte"
  },
  {
   "id": "OPP-RSC40",
@@ -1139,7 +1201,8 @@
     "Juárez 0.5 km",
     "Buenavista 0.5 km"
    ]
-  }
+  },
+  "zona": "Centro · Norte"
  },
  {
   "id": "OPP-R813",
@@ -1177,7 +1240,8 @@
     "Tacubaya 1 km",
     "Coyoacán 2 km"
    ]
-  }
+  },
+  "zona": "Sur · Poniente"
  },
  {
   "id": "OPP-AJ254",
@@ -1215,7 +1279,8 @@
     "Condesa 500 m",
     "Chapultepec 1 km"
    ]
-  }
+  },
+  "zona": "Sur · Poniente"
  },
  {
   "id": "PANT-01",
@@ -1245,7 +1310,8 @@
   "fotoWm": "assets/sitios/PANT-1.jpg",
   "dir": "Vialidad frente a Paseo Interlomas, Huixquilucan",
   "lat": 19.3962,
-  "lng": -99.2811
+  "lng": -99.2811,
+  "zona": "Interlomas · Santa Fe"
  },
  {
   "id": "PANT-02",
@@ -1275,7 +1341,8 @@
   "fotoWm": "assets/sitios/PANT-2.jpg",
   "dir": "Blvd. Magnocentro y Blvd. Interlomas, Huixquilucan",
   "lat": 19.4022,
-  "lng": -99.2716
+  "lng": -99.2716,
+  "zona": "Interlomas · Santa Fe"
  },
  {
   "id": "PANT-03",
@@ -1305,7 +1372,8 @@
   "fotoWm": "assets/sitios/PANT-3.jpg",
   "dir": "Blvd. M. Ávila Camacho (Periférico), Toreo, Naucalpan",
   "lat": 19.4602,
-  "lng": -99.222
+  "lng": -99.222,
+  "zona": "Periférico Norte · Satélite"
  },
  {
   "id": "PANT-04",
@@ -1335,7 +1403,8 @@
   "fotoWm": "assets/sitios/PANT-4.jpg",
   "dir": "Av. Río Churubusco, CDMX",
   "lat": 19.3565,
-  "lng": -99.1443
+  "lng": -99.1443,
+  "zona": "Sur · Poniente"
  },
  {
   "id": "PANT-05",
@@ -1365,7 +1434,8 @@
   "fotoWm": "assets/sitios/PANT-5.jpg",
   "dir": "Av. Viad. Miguel Alemán, Col. Buenos Aires, CDMX",
   "lat": 19.4022,
-  "lng": -99.1608
+  "lng": -99.1608,
+  "zona": "Sur · Poniente"
  },
  {
   "id": "PANT-06",
@@ -1396,41 +1466,7 @@
   "dir": "Av. Revolución, CDMX",
   "lat": 19.3766,
   "lng": -99.1867,
-  "mockup": "Coca-Cola"
- },
- {
-  "id": "OPP-ENCINO",
-  "cat": "muro",
-  "titulo": "Unipolar Doble Encino · Interlomas",
-  "ubic": "Vialidad de la Barranca · Interlomas",
-  "tarifa": 0,
-  "medidas": "Unipolar doble · 12.90 × 10.80 m",
-  "imp": "alto",
-  "impMes": 0,
-  "aud": "NSE ABC+ · Interlomas–Santa Fe",
-  "obj": "Doble cartelera sobre la Vialidad de la Barranca con dirección a Santa Fe y Bosque de las Lomas",
-  "beneficio": "Unipolar de dos caras apiladas en zona de alta plusvalía y mucha afluencia vehicular: el corredor que conecta Interlomas con Santa Fe y Bosque de las Lomas.",
-  "estatus": "disponible",
-  "campanas": [
-   "Buen Fin",
-   "Hot Sale",
-   "Lanzamientos"
-  ],
-  "specs": {
-   "material": "Unipolar",
-   "vista": "Natural",
-   "iluminacion": "Sí",
-   "nse": "ABC+",
-   "zonas": [
-    "Interlomas 1 km",
-    "Santa Fe 4 km",
-    "Bosque de las Lomas 3 km"
-   ]
-  },
-  "foto": "assets/sitios/OPP-ENCINO.jpg",
-  "fotoWm": "assets/sitios/OPP-ENCINO.jpg",
-  "dir": "Encino 6, Col. El Olivo, CP 52789, Huixquilucan, Edo. Méx.",
-  "lat": 19.388173,
-  "lng": -99.2786
+  "mockup": "Coca-Cola",
+  "zona": "Sur · Poniente"
  }
 ]

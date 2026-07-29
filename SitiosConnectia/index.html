@@ -66,6 +66,13 @@ header.mapmode .back-tab{display:inline-flex}
 /* ─── hero ─── */
 .hero{background:var(--grad-sunset);padding:64px 34px 70px;position:relative;overflow:hidden}
 .hero-in{max-width:1780px;margin:0 auto;position:relative;z-index:2}
+.hero-flex{display:flex;align-items:center;justify-content:space-between;gap:40px}
+.hero-logo{height:clamp(44px,6vw,88px);width:auto;filter:drop-shadow(0 4px 18px rgba(0,0,0,.35))}
+.map-pill{display:inline-flex;align-items:center;gap:11px;min-height:58px;padding:0 32px;margin-bottom:22px;
+  border-radius:999px;border:none;background:var(--grad-active);color:#fff;font-family:inherit;font-size:15.5px;
+  font-weight:800;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;
+  box-shadow:0 10px 30px rgba(224,28,138,.35);transition:transform .18s}
+.map-pill:active{transform:scale(.96)}
 .hero h1{margin-top:12px}
 .hero .body{max-width:820px;margin-top:18px;color:rgba(255,255,255,.94)}
 .hero .eyebrow{color:rgba(255,255,255,.9)}
@@ -240,9 +247,10 @@ footer .body{font-size:14px}
 footer img{height:24px;opacity:.9;margin-bottom:14px}
 
 @media(max-width:1024px){
-  .maplayout{grid-template-columns:1fr;height:auto}
-  .mapcol{height:56vh}
-  .listcol{max-height:none;overflow:visible}
+  .maplayout{display:flex;flex-direction:column;height:auto}
+  .mapcol{order:-1;height:62vh;min-height:420px;flex:none}
+  .listcol{max-height:none;overflow:visible;padding-right:0}
+  .hero-flex{flex-direction:row;flex-wrap:wrap}
 }
 @media(max-width:760px){
   .hbar{padding:10px 16px;flex-wrap:wrap}
@@ -264,30 +272,37 @@ footer img{height:24px;opacity:.9;margin-bottom:14px}
   <div class="hbar">
     <img class="logo" src="assets/connectia-white.png" alt="Connectia">
     <button class="back-tab" onclick="showPane('ooh')"><span class="chev">‹</span>Regresar</button>
-    <div class="tabs">
-      <button class="tab active" id="tab-ooh" onclick="showPane('ooh')">Oportunidades</button>
-      <button class="tab" id="tab-mapa" onclick="showPane('mapa')">Ve los sitios en el mapa</button>
-      <button class="tab" id="tab-videos" onclick="showPane('videos')">Videos</button>
-    </div>
-    <button class="cart-btn" onclick="openCart()">♥ Carrito<span class="badge" id="selbadge">0</span></button>
+    <button class="cart-btn" onclick="openCart()">
+      <svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;vertical-align:-3px;margin-right:7px"><circle cx="9" cy="20" r="1.6"/><circle cx="17.5" cy="20" r="1.6"/><path d="M2.5 3.5h2.6l2.5 12h11l2.4-8.5H6.1" stroke-linecap="round" stroke-linejoin="round"/></svg>Carrito<span class="badge" id="selbadge">0</span></button>
     <img class="logo-r" src="assets/connectia-white.png" alt="Connectia">
   </div>
 </header>
 
 <section class="hero" id="hero">
   <div class="dots" id="herodots"></div>
-  <div class="hero-in">
-    <div class="eyebrow">Portafolio OOH · CDMX y Área Metropolitana</div>
-    <h1>Sitios Connectia</h1>
-    <p class="body">Landmarks, mega vallas y pantallas DOOH en los cruces de mayor aforo del Valle de México.
-      Cada sitio con medidas verificadas, impactos mensuales, audiencia y mockup de campaña aplicado.</p>
+  <div class="hero-in hero-flex">
+    <div>
+      <div class="eyebrow">Portafolio OOH · CDMX y Área Metropolitana</div>
+      <h1>Sitios</h1>
+      <p class="body">Landmarks, muros, mega vallas y pantallas DOOH en los cruces de mayor aforo del Valle de México.</p>
+    </div>
+    <img class="hero-logo" src="assets/connectia-white.png" alt="Connectia">
   </div>
 </section>
 
 <main>
   <div class="pane active" id="pane-ooh">
+    <button class="map-pill" onclick="showPane('mapa')">
+      <svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z" stroke-linejoin="round"/><path d="M9 7v13M15 4v13"/></svg>
+      Ver sitios en el mapa</button>
+    <div class="filter-row" id="zona-filters"></div>
     <div class="filter-row" id="ooh-filters"></div>
     <div class="grid" id="ooh-grid"></div>
+    <div class="mt40" style="margin-top:56px">
+      <div class="eyebrow">Casos reales</div>
+      <h2 style="margin-top:8px">Videos</h2>
+    </div>
+    <div class="grid" id="vid-grid" style="margin-top:24px"></div>
   </div>
 
   <div class="pane" id="pane-mapa">
@@ -300,10 +315,6 @@ footer img{height:24px;opacity:.9;margin-bottom:14px}
     </div>
   </div>
 
-  <div class="pane" id="pane-videos">
-    <div class="filter-row" id="vid-filters"></div>
-    <div class="grid" id="vid-grid"></div>
-  </div>
 </main>
 
 <footer>
@@ -342,7 +353,7 @@ const CONTACTO = {
 
 /* ═══════════ ESTADO ═══════════ */
 const $=id=>document.getElementById(id);
-let SITIOS=[], VIDEOS=[], oohFilter='todos', vidFilter='todos';
+let SITIOS=[], VIDEOS=[], oohFilter='todos', zonaFilter='todas', vidFilter='todos';
 let MAP=null, MARKERS={}, POPUP=null, mapReady=false, activeId=null;
 const SEL=new Set();
 try{ (JSON.parse(localStorage.getItem('sc_sel')||'[]')).forEach(x=>SEL.add(x)); }catch(e){}
@@ -440,7 +451,10 @@ function waSitio(id,ev){
 function buildOoh(){
   $('ooh-filters').innerHTML=CATS.map(([id,l])=>
     `<button class="filter-pill${id===oohFilter?' active':''}" onclick="setOoh('${id}')">${l}</button>`).join('');
-  const items=SITIOS.filter(m=>oohFilter==='todos'||m.cat===oohFilter);
+  const zonas=['todas'].concat([...new Set(SITIOS.map(s=>s.zona).filter(Boolean))]);
+  $('zona-filters').innerHTML=zonas.map(z=>
+    `<button class="filter-pill${z===zonaFilter?' active':''}" onclick="setZona('${z.replace(/'/g,"\\'")}')">${z==='todas'?'Todas las zonas':z}</button>`).join('');
+  const items=SITIOS.filter(m=>(oohFilter==='todos'||m.cat===oohFilter)&&(zonaFilter==='todas'||m.zona===zonaFilter));
   $('ooh-grid').innerHTML=items.map(m=>`
    <div class="card media-card" onclick="openSitio('${m.id}')">
      <div class="media-visual">
@@ -474,6 +488,7 @@ function buildOoh(){
    </div>`).join('');
 }
 function setOoh(f){ oohFilter=f; buildOoh(); }
+function setZona(z){ zonaFilter=z; buildOoh(); }
 
 function openSitio(id){
   const m=SITIOS.find(x=>x.id===id); if(!m) return;
@@ -610,11 +625,8 @@ function verEnMapa(id){
 }
 
 /* ═══════════ VIDEOS ═══════════ */
-function vidCats(){ return [['todos','Todos']].concat([...new Set(VIDEOS.map(v=>v.cat))].map(c=>[c,c])); }
 function buildVideos(){
-  $('vid-filters').innerHTML=vidCats().map(([id,l])=>
-    `<button class="filter-pill${id===vidFilter?' active':''}" onclick="setVid('${esc(id)}')">${l}</button>`).join('');
-  const items=VIDEOS.filter(v=>vidFilter==='todos'||v.cat===vidFilter);
+  const items=VIDEOS;
   $('vid-grid').innerHTML=items.map(v=>`
    <div class="card media-card" onclick="openVideo('${v.id}')">
      <div class="media-visual">
@@ -635,7 +647,6 @@ function buildVideos(){
      </div>
    </div>`).join('');
 }
-function setVid(f){ vidFilter=f; buildVideos(); }
 function videoHtml(src){
   const isFile=/\.(mp4|webm|mov)(\?|$)/i.test(src);
   return isFile
@@ -828,9 +839,8 @@ function exportXLSX(){
 
 /* ═══════════ UI ═══════════ */
 function showPane(p){
-  ['ooh','mapa','videos'].forEach(x=>{
+  ['ooh','mapa'].forEach(x=>{
     $('pane-'+x).classList.toggle('active',x===p);
-    $('tab-'+x).classList.toggle('active',x===p);
   });
   $('hero').style.display = p==='mapa' ? 'none' : '';
   document.querySelector('header').classList.toggle('mapmode', p==='mapa');
