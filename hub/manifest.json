@@ -4,9 +4,20 @@
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
-  "background_color": "#07070B",
-  "theme_color": "#08080C",
+  "background_color": "#F5F4F7",
+  "theme_color": "#F5F4F7",
   "icons": [
-    { "src": "iconos/connectia.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+    {
+      "src": "iconos/apple-touch.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "iconos/apple-touch.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

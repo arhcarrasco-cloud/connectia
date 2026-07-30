@@ -1,0 +1,330 @@
+#!/usr/bin/env python3
+"""
+Construye hub/index.html a partir de _hub/catalogo.json.
+Dirección de arte: App Store en claro — reel de previews arriba, muro de íconos abajo.
+"""
+import json, html, pathlib, hashlib, datetime
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+CAT  = json.loads((ROOT / "_hub" / "catalogo.json").read_text(encoding="utf-8"))
+HUB  = ROOT / "hub"
+HUB.mkdir(exist_ok=True)
+
+APPS    = CAT["apps"]
+FOLDERS = CAT["carpetas"]
+
+sello = hashlib.md5(
+    (json.dumps(APPS, sort_keys=True) + datetime.date.today().isoformat()).encode()
+).hexdigest()[:8]
+
+REEL = [a for a in APPS if (HUB / "previews" / f"{a['id']}.jpg").exists()]
+
+def slide(a):
+    sub = next((f["nota"] for f in FOLDERS if f["nombre"] == a["carpeta"]), a["carpeta"])
+    return f'''      <a class="slide" href="{a['url']}" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/{a['id']}.jpg?v={sello}" alt="Vista previa de {html.escape(a['nombre'])}" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/{a['id']}.png?v={sello}" alt="" width="52" height="52">
+          <span class="txt"><b>{html.escape(a['nombre'])}</b><span>{html.escape(sub)}</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>'''
+
+def tarjeta(a):
+    q = html.escape((a["nombre"] + " " + a["carpeta"]).lower())
+    return f'''        <a class="app" href="{a['url']}" target="_blank" rel="noopener" data-q="{q}">
+          <span class="ico"><img src="iconos/{a['id']}.png?v={sello}" alt="" loading="lazy" width="112" height="112"></span>
+          <span class="lbl">{html.escape(a['nombre'])}</span>
+        </a>'''
+
+secciones = []
+for f in FOLDERS:
+    items = [a for a in APPS if a["carpeta"] == f["nombre"]]
+    if not items:
+        continue
+    secciones.append(f'''    <section class="folder" data-folder="{html.escape(f['nombre'])}">
+      <button class="fhead" aria-expanded="true">
+        <span class="chev" aria-hidden="true"></span>
+        <span class="fname">{html.escape(f['nombre'])}</span>
+        <span class="fnote">{html.escape(f['nota'])}</span>
+        <span class="fcount">{len(items)}</span>
+      </button>
+      <div class="wall">
+{chr(10).join(tarjeta(a) for a in items)}
+      </div>
+    </section>''')
+
+SECTIONS = "\n".join(secciones)
+SLIDES   = "\n".join(slide(a) for a in REEL)
+N        = len(APPS)
+PALABRA  = {12:"Doce",13:"Trece",14:"Catorce",15:"Quince",16:"Dieciséis",17:"Diecisiete",
+            18:"Dieciocho",19:"Diecinueve",20:"Veinte",21:"Veintiuna",22:"Veintidós"}.get(N, str(N))
+
+DOC = f'''<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#F5F4F7">
+<title>Connectia · App Hub</title>
+<link rel="icon" href="iconos/connectia.png?v={sello}">
+<link rel="apple-touch-icon" sizes="180x180" href="iconos/apple-touch.png?v={sello}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="App Hub">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json?v={sello}">
+<style>
+/* Coplette y Cooper Hewitt son las canónicas de Connectia; se cargan con local()
+   desde la Mac. El stack de sistema queda como fallback técnico declarado. */
+@font-face{{font-family:Coplette;src:local("Coplette");font-display:swap}}
+@font-face{{font-family:"Cooper Hewitt";src:local("Cooper Hewitt Book"),local("CooperHewitt-Book");font-weight:400;font-display:swap}}
+@font-face{{font-family:"Cooper Hewitt";src:local("Cooper Hewitt Bold"),local("CooperHewitt-Bold");font-weight:700;font-display:swap}}
+
+:root{{
+  --bg:#F5F4F7; --card:#FFFFFF;
+  --ink:#17131A; --ink-2:#6C6675; --ink-3:#9C96A6;
+  --line:#E5E1E9; --violet:#872B90; --violet-soft:#F3E9F5;
+  --display:Coplette,"Cooper Hewitt",-apple-system,BlinkMacSystemFont,sans-serif;
+  --body:"Cooper Hewitt",-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+}}
+*{{box-sizing:border-box;margin:0;padding:0}}
+html{{-webkit-text-size-adjust:100%;scroll-behavior:smooth}}
+body{{min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--body);
+     -webkit-font-smoothing:antialiased;overflow-x:hidden}}
+
+header{{position:sticky;top:0;z-index:30;background:rgba(245,244,247,.82);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:saturate(180%) blur(22px);-webkit-backdrop-filter:saturate(180%) blur(22px);
+  padding-top:env(safe-area-inset-top)}}
+.bar{{max-width:1120px;margin:0 auto;padding:13px 26px;display:flex;align-items:center;gap:18px}}
+.brand{{display:flex;align-items:center;gap:9px;flex-shrink:0;text-decoration:none;color:inherit}}
+.brand img{{width:28px;height:28px;border-radius:7px;display:block}}
+.brand b{{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:-.01em}}
+.brand span{{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}}
+.spot{{position:relative;flex:1;max-width:340px;margin-left:auto}}
+.spot input{{width:100%;font-family:inherit;font-size:14px;color:var(--ink);
+  background:#EDEAF0;border:1px solid transparent;border-radius:11px;
+  padding:10px 14px 10px 38px;outline:none;transition:background .18s,border-color .18s,box-shadow .18s}}
+.spot input::placeholder{{color:var(--ink-3)}}
+.spot input:focus{{background:#fff;border-color:var(--violet);box-shadow:0 0 0 3px rgba(135,43,144,.14)}}
+.spot .mag{{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:15px;height:15px;stroke:var(--ink-3);fill:none;stroke-width:2.3;pointer-events:none}}
+
+main{{max-width:1120px;margin:0 auto;
+     padding:0 max(26px,env(safe-area-inset-left)) 80px max(26px,env(safe-area-inset-right))}}
+.top{{padding:52px 0 6px}}
+.eyebrow{{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--violet);font-weight:700}}
+h1{{font-family:var(--display);font-weight:700;font-size:clamp(34px,4.6vw,52px);
+   line-height:1.02;letter-spacing:-.03em;margin:13px 0 0;max-width:16ch}}
+.sub{{margin:13px 0 0;color:var(--ink-2);font-size:16px;line-height:1.55;max-width:52ch}}
+
+.reelwrap{{margin:34px 0 0}}
+.reelhead{{display:flex;align-items:baseline;gap:12px;margin-bottom:15px}}
+.reelhead h2{{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.01em}}
+.reelhead>span{{font-size:13px;color:var(--ink-3)}}
+.nav{{margin-left:auto;display:flex;gap:7px}}
+.nav button{{width:31px;height:31px;border-radius:50%;border:1px solid var(--line);
+  background:#fff;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;
+  font:inherit;font-size:14px;line-height:1;transition:background .16s,color .16s,border-color .16s}}
+.nav button:hover:not(:disabled){{background:var(--violet);border-color:var(--violet);color:#fff}}
+.nav button:disabled{{opacity:.3;cursor:default}}
+
+.reel{{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;
+  padding:2px 26px 18px 0;margin-right:-26px;
+  scrollbar-width:none;-ms-overflow-style:none}}
+.reel::-webkit-scrollbar{{display:none}}
+.slide{{flex:0 0 clamp(280px,42vw,436px);scroll-snap-align:start;
+  background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;
+  text-decoration:none;color:inherit;display:flex;flex-direction:column;
+  box-shadow:0 1px 2px rgba(23,19,26,.05);
+  transition:transform .24s cubic-bezier(.22,1,.36,1), box-shadow .24s, border-color .24s}}
+.slide:hover{{transform:translateY(-4px);border-color:#D8D2E0;
+  box-shadow:0 18px 38px -22px rgba(23,19,26,.42)}}
+.slide:focus-visible{{outline:2px solid var(--violet);outline-offset:3px}}
+.shot{{display:block;aspect-ratio:16/10;overflow:hidden;background:#EDEAF0;border-bottom:1px solid var(--line)}}
+.shot img{{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}}
+.meta{{display:flex;align-items:center;gap:12px;padding:14px 16px}}
+.meta .chip{{width:44px;height:44px;border-radius:11px;flex-shrink:0;display:block}}
+.meta .txt{{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}}
+.meta .txt b{{font-size:15px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.meta .txt span{{font-size:12.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.meta .open{{flex-shrink:0;background:var(--violet-soft);color:var(--violet);
+  font-size:12.5px;font-weight:700;letter-spacing:.04em;padding:7px 17px;border-radius:20px;
+  transition:background .18s,color .18s}}
+.slide:hover .open{{background:var(--violet);color:#fff}}
+
+.folder{{margin-top:40px}}
+.fhead{{display:flex;align-items:center;gap:11px;width:100%;background:none;border:none;
+  cursor:pointer;padding:0 2px 12px;font:inherit;color:inherit;text-align:left;
+  border-bottom:1px solid var(--line)}}
+.chev{{width:0;height:0;flex-shrink:0;border-left:6px solid var(--ink-3);
+  border-top:4.5px solid transparent;border-bottom:4.5px solid transparent;
+  transform:rotate(90deg);transition:transform .22s cubic-bezier(.22,1,.36,1)}}
+.folder.shut .chev{{transform:rotate(0)}}
+.fname{{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:-.01em}}
+.fnote{{flex:1;font-size:12.5px;color:var(--ink-3)}}
+.fcount{{font-size:11px;color:var(--ink-3);border:1px solid var(--line);border-radius:20px;padding:2px 9px;background:#fff}}
+.fhead:hover .fname{{color:var(--violet)}}
+
+.wall{{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 4px;padding:20px 0 0}}
+.folder.shut .wall{{display:none}}
+.app{{display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 6px 16px;
+  border-radius:16px;text-decoration:none;color:var(--ink);
+  transition:background .18s, box-shadow .18s}}
+.app:hover{{background:#fff;box-shadow:0 10px 26px -18px rgba(23,19,26,.5)}}
+.app:focus-visible{{outline:2px solid var(--violet);outline-offset:2px}}
+.ico{{display:block;width:70px;height:70px;transition:transform .26s cubic-bezier(.22,1,.36,1)}}
+.ico img{{width:100%;height:100%;display:block;border-radius:17px}}
+.app:hover .ico{{transform:translateY(-4px) scale(1.05)}}
+.app:active .ico{{transform:translateY(-1px) scale(.99)}}
+.lbl{{font-size:12px;line-height:1.3;text-align:center;color:var(--ink-2);max-width:104px}}
+
+.void{{padding:52px;text-align:center;color:var(--ink-3);font-size:14px;
+  border:1px dashed var(--line);border-radius:18px;margin-top:34px;background:#fff}}
+.void[hidden],.reelwrap[hidden]{{display:none}}
+
+footer{{max-width:1120px;margin:0 auto;padding:22px 26px calc(34px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}}
+
+@media (max-width:900px){{ .wall{{grid-template-columns:repeat(4,1fr)}} }}
+@media (max-width:620px){{
+  .bar{{padding:11px 18px;gap:12px}} .brand span{{display:none}}
+  main{{padding-left:18px;padding-right:18px}} .top{{padding-top:30px}}
+  .reel{{padding-right:18px;margin-right:-18px}} .slide{{flex-basis:82vw}}
+  .wall{{grid-template-columns:repeat(3,1fr)}} .ico{{width:62px;height:62px}}
+  .fnote{{display:none}} .nav{{display:none}}
+}}
+@media (prefers-reduced-motion:reduce){{ html{{scroll-behavior:auto}} *{{transition:none!important}} }}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <a class="brand" href="#top">
+      <img src="iconos/connectia.png?v={sello}" alt="">
+      <b>App Hub</b><span>Connectia</span>
+    </a>
+    <div class="spot">
+      <svg class="mag" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+      <input id="q" type="search" placeholder="Buscar" autocomplete="off" spellcheck="false" aria-label="Buscar plataforma">
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="top">
+    <div class="eyebrow">Un solo lugar</div>
+    <h1>Todo tu trabajo, a un clic</h1>
+    <p class="sub">{PALABRA} plataformas, cada una en su propia ventana. Escribe para encontrar cualquiera.</p>
+  </section>
+
+  <div class="reelwrap" id="reelwrap">
+    <div class="reelhead">
+      <h2>Destacadas</h2>
+      <span>Así se ven por dentro</span>
+      <div class="nav">
+        <button id="prev" aria-label="Anterior">&#8249;</button>
+        <button id="next" aria-label="Siguiente">&#8250;</button>
+      </div>
+    </div>
+    <div class="reel" id="reel">
+{SLIDES}
+    </div>
+  </div>
+
+{SECTIONS}
+
+  <p class="void" id="void" hidden>Nada con ese nombre.</p>
+</main>
+
+<footer>
+  <span>Facilitadores Publicitarios HS</span>
+  <span>Build {sello} · <span id="stamp"></span></span>
+</footer>
+
+<script>
+const q = document.getElementById("q");
+const apps = [...document.querySelectorAll(".app")];
+const folders = [...document.querySelectorAll(".folder")];
+const voidMsg = document.getElementById("void");
+const reelwrap = document.getElementById("reelwrap");
+
+const SHUT = "hub-carpetas-cerradas";
+let shut = new Set(JSON.parse(localStorage.getItem(SHUT) || "[]"));
+folders.forEach(f => {{
+  const name = f.dataset.folder, head = f.querySelector(".fhead");
+  if (shut.has(name)) {{ f.classList.add("shut"); head.setAttribute("aria-expanded","false"); }}
+  head.addEventListener("click", () => {{
+    const cerrada = f.classList.toggle("shut");
+    head.setAttribute("aria-expanded", String(!cerrada));
+    cerrada ? shut.add(name) : shut.delete(name);
+    localStorage.setItem(SHUT, JSON.stringify([...shut]));
+  }});
+}});
+
+function filter() {{
+  const term = q.value.trim().toLowerCase();
+  let hits = 0;
+  apps.forEach(a => {{
+    const on = !term || a.dataset.q.includes(term);
+    a.style.display = on ? "" : "none";
+    if (on) hits++;
+  }});
+  folders.forEach(f => {{
+    f.hidden = ![...f.querySelectorAll(".app")].some(a => a.style.display !== "none");
+    if (term) f.classList.remove("shut");
+    else if (shut.has(f.dataset.folder)) f.classList.add("shut");
+  }});
+  reelwrap.hidden = !!term;
+  voidMsg.hidden = hits > 0;
+}}
+q.addEventListener("input", filter);
+
+document.addEventListener("keydown", e => {{
+  if (e.key === "/" && document.activeElement !== q) {{ e.preventDefault(); q.focus(); }}
+  if (e.key === "Escape" && document.activeElement === q) {{ q.value=""; q.blur(); filter(); }}
+  if (e.key === "Enter" && document.activeElement === q) {{
+    const first = apps.find(a => a.style.display !== "none");
+    if (first) window.open(first.href, "_blank", "noopener");
+  }}
+}});
+
+const reel = document.getElementById("reel");
+const prev = document.getElementById("prev");
+const next = document.getElementById("next");
+if (reel && reel.querySelector(".slide")) {{
+  const salto = () => reel.querySelector(".slide").getBoundingClientRect().width + 18;
+  prev.addEventListener("click", () => reel.scrollBy({{ left: -salto(), behavior: "smooth" }}));
+  next.addEventListener("click", () => reel.scrollBy({{ left:  salto(), behavior: "smooth" }}));
+  const estado = () => {{
+    prev.disabled = reel.scrollLeft < 8;
+    next.disabled = reel.scrollLeft + reel.clientWidth >= reel.scrollWidth - 8;
+  }};
+  reel.addEventListener("scroll", estado, {{ passive: true }});
+  window.addEventListener("resize", estado);
+  estado();
+}}
+
+document.getElementById("stamp").textContent =
+  new Date().toLocaleDateString("es-MX", {{ day:"2-digit", month:"short", year:"numeric" }});
+</script>
+</body>
+</html>
+'''
+
+(HUB / "index.html").write_text(DOC, encoding="utf-8")
+(HUB / "manifest.json").write_text(json.dumps({
+    "name": "Connectia App Hub", "short_name": "App Hub",
+    "start_url": ".", "scope": ".", "display": "standalone",
+    "background_color": "#F5F4F7", "theme_color": "#F5F4F7",
+    "icons": [
+        {"src": "iconos/apple-touch.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any"},
+        {"src": "iconos/apple-touch.png", "sizes": "1024x1024", "type": "image/png", "purpose": "maskable"}
+    ]
+}, indent=2, ensure_ascii=False), encoding="utf-8")
+
+print(f"hub/index.html · {N} apps · {len(REEL)} en el reel · build {sello}")

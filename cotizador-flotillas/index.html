@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cotizador Rápido — Flotillas Walmart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+  :root{
+    --indigo:#201040; --violet-mid:#502090; --violet:#6030A0; --violet-hot:#7B3FF2;
+    --navy:#1A0B3D; --mist:#E9E6F0; --paper:#FAFAFB; --ink:#0A0118; --slate:#6B6580;
+    --lime:#C8FF00; --good:#1e8f4e; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:'Inter','Segoe UI',Arial,sans-serif; margin:0; background:var(--paper); color:var(--ink);
+  }
+  header{
+    background:linear-gradient(135deg,var(--indigo) 0%, var(--violet-mid) 55%, var(--violet) 100%);
+    color:#fff; padding:28px 32px;
+  }
+  header .wordmark{ font-weight:800; font-size:15px; letter-spacing:-.01em; margin-bottom:12px; }
+  .eyebrow{
+    color:var(--violet-hot); font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  }
+  header h1{ margin:6px 0 4px; font-size:26px; font-weight:800; }
+  header p{ margin:0; color:#D9D0F0; font-size:13px; }
+
+  main{ max-width:1240px; margin:0 auto; padding:24px 20px 60px; }
+
+  .card{
+    background:#fff; border-radius:14px; box-shadow:0 1px 3px rgba(32,16,64,.08), 0 8px 24px rgba(32,16,64,.05);
+    padding:20px 22px; margin-bottom:20px;
+  }
+  .card h2{
+    font-size:15px; font-weight:700; color:var(--violet); text-transform:uppercase; letter-spacing:.04em;
+    margin:0 0 14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  .hint{ font-size:12px; color:var(--slate); margin:-8px 0 14px; }
+
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  table.wide{ min-width:1360px; }
+  thead th{
+    background:var(--navy); color:#fff; text-transform:uppercase; font-size:10.5px; font-weight:700;
+    padding:9px 8px; text-align:left; letter-spacing:.03em;
+  }
+  tbody td{ padding:7px 8px; border-bottom:1px solid var(--mist); vertical-align:middle; }
+  tbody tr:nth-child(even){ background:var(--paper); }
+  tr.section-row td{
+    background:var(--violet); color:#fff; font-weight:700; text-transform:uppercase; font-size:11px;
+    padding:8px 8px; letter-spacing:.03em;
+  }
+  select, input[type=number], input[type=text]{
+    font-family:inherit; font-size:13px; padding:6px 7px; border:1px solid #D6D0E4; border-radius:7px;
+    background:#fff; width:100%;
+  }
+  input[type=number]{ text-align:right; }
+  .num{ text-align:right; white-space:nowrap; }
+  .readonly{ color:var(--slate); }
+
+  .btn{
+    border:none; border-radius:8px; padding:8px 14px; font-size:12.5px; font-weight:700; cursor:pointer;
+    font-family:inherit;
+  }
+  .btn-add{ background:var(--mist); color:var(--violet); }
+  .btn-add:hover{ background:#DCD4EF; }
+  .btn-del{ background:transparent; color:var(--bad); font-size:16px; padding:2px 8px; }
+  .btn-del:hover{ background:#FBEAEA; border-radius:6px; }
+  .btn-print{ background:var(--violet); color:#fff; }
+  .btn-print:hover{ background:var(--violet-mid); }
+
+  .totals-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:6px; }
+  .stat{ background:var(--mist); border-radius:12px; padding:14px 16px; }
+  .stat .label{ font-size:11px; color:var(--slate); text-transform:uppercase; font-weight:700; letter-spacing:.03em; }
+  .stat .value{ font-size:20px; font-weight:800; color:var(--navy); margin-top:4px; }
+  .stat.accent{ background:var(--violet); }
+  .stat.accent .label{ color:#E3D8F5; }
+  .stat.accent .value{ color:#fff; }
+  .stat.good .value{ color:var(--good); }
+
+  tfoot td{
+    font-weight:700; font-style:normal; background:var(--violet); color:#fff; border-top:none;
+    padding:9px 8px;
+  }
+
+  footer{ text-align:center; padding:20px; font-size:11px; color:var(--slate); }
+  footer em{ font-style:italic; }
+
+  .btn-export{ background:var(--navy); color:#fff; margin-left:8px; }
+  .btn-export:hover{ background:#2a1660; }
+  .export-bar{ margin-top:16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .export-bar select{ width:auto; min-width:230px; }
+
+  .vista-bar{ display:flex; align-items:center; gap:8px; }
+  .vista-bar select{ width:auto; min-width:210px; font-size:12px; padding:5px 7px; }
+  .vista-bar label{ font-size:11px; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.03em; }
+
+  .tarifa-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .tarifa-row:last-child{ margin-bottom:0; }
+  .tarifa-label{ font-weight:700; min-width:230px; font-size:13px; color:var(--navy); }
+
+  .print-only{ display:none; }
+
+  /* ---- Vista en vivo de la tabla de partidas: oculta columnas según selección ---- */
+  #tablaWrap.view-proveedor .precioU,
+  #tablaWrap.view-proveedor .totalCliente,
+  #tablaWrap.view-proveedor .difPesos,
+  #tablaWrap.view-proveedor .difPct,
+  #tablaWrap.view-proveedor .rentabilidad{ display:none; }
+
+  #tablaWrap.view-cliente .costoU,
+  #tablaWrap.view-cliente .totalProveedor,
+  #tablaWrap.view-cliente .difPesos,
+  #tablaWrap.view-cliente .difPct,
+  #tablaWrap.view-cliente .rentabilidad{ display:none; }
+
+  @media print{
+    .btn, .no-print{ display:none !important; }
+    body{ background:#fff; }
+    .card{ box-shadow:none; border:1px solid #E3DEEF; break-inside:avoid; }
+    select, input[type=number], input[type=text]{
+      border:none !important; padding:0 !important; background:transparent !important;
+      -webkit-appearance:none; appearance:none; color:var(--ink); width:auto;
+    }
+    @page{ size:auto; margin:10mm; }
+    body[class^="printing-"] main > .card{ display:none !important; }
+    body[class^="printing-"] #printArea{ display:block !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">connectia</div>
+  <div class="eyebrow">Uso interno</div>
+  <h1>Cotizador Rápido — Flotillas Walmart</h1>
+  <p>Ejercicio dinámico de ingresos, costo proveedor, comisiones y margen operativo. Precios en MXN, sin IVA.</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>
+      <span>Partidas del proyecto</span>
+      <span style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <span class="vista-bar no-print">
+          <label for="tablaVista">Vista</label>
+          <select id="tablaVista" onchange="toggleTablaVista(this.value)">
+            <option value="comparativa">Comparativa (Proveedor + Cliente)</option>
+            <option value="proveedor">Solo Tarifas Proveedor</option>
+            <option value="cliente">Solo Tarifas Cliente</option>
+          </select>
+        </span>
+        <button class="btn btn-add no-print" onclick="addRow()">+ Agregar línea</button>
+      </span>
+    </h2>
+    <p class="hint">Elige categoría, tipo de vinil/tamaño/piezas o región y cantidad — precios, totales, diferencia y rentabilidad se calculan solos.</p>
+    <div class="table-wrap" id="tablaWrap">
+    <table class="wide">
+      <thead>
+        <tr>
+          <th>Categoría</th>
+          <th>Detalle 1</th>
+          <th>Detalle 2</th>
+          <th>Detalle 3</th>
+          <th>Cant.</th>
+          <th class="precioU">Precio Unit. Cliente</th>
+          <th class="costoU">Costo Unit. Proveedor</th>
+          <th class="totalCliente">Total Cliente</th>
+          <th class="totalProveedor">Total Proveedor</th>
+          <th class="difPesos">Diferencia $</th>
+          <th class="difPct">Diferencia %</th>
+          <th class="rentabilidad">Rentabilidad %</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="rowsBody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5" style="text-align:right;">TOTALES →</td>
+          <td class="num precioU"></td>
+          <td class="num costoU"></td>
+          <td class="num totalCliente" id="tIngreso">-</td>
+          <td class="num totalProveedor" id="tCostoTotal">-</td>
+          <td class="num difPesos" id="tDifPesos">-</td>
+          <td class="num difPct" id="tDifPct">-</td>
+          <td class="num rentabilidad" id="tRentabilidad">-</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Gastos de venta — Comisiones <button class="btn btn-add no-print" onclick="addCom()">+ Agregar comisión</button></h2>
+    <p class="hint">% calculado sobre el Ingreso Total del proyecto (editable).</p>
+    <table>
+      <thead><tr><th style="width:50%">Concepto</th><th style="width:20%">% sobre Ingreso</th><th style="width:20%">Monto</th><th style="width:10%"></th></tr></thead>
+      <tbody id="comBody"></tbody>
+      <tfoot>
+        <tr><td style="text-align:right;">TOTAL COMISIONES →</td><td class="num" id="tComPct">-</td><td class="num" id="tComMonto">-</td><td></td></tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Resumen de margen operativo</h2>
+    <div class="totals-grid">
+      <div class="stat"><div class="label">Ingreso Total</div><div class="value" id="sIngreso">-</div></div>
+      <div class="stat"><div class="label">Costo Proveedor Total</div><div class="value" id="sCosto">-</div></div>
+      <div class="stat"><div class="label">Utilidad Bruta</div><div class="value" id="sUtilidad">-</div></div>
+      <div class="stat"><div class="label">% Margen Bruto</div><div class="value" id="sMargenBruto">-</div></div>
+      <div class="stat"><div class="label">Diferencia %</div><div class="value" id="sDifPct">-</div></div>
+      <div class="stat"><div class="label">Total Comisiones</div><div class="value" id="sComisiones">-</div></div>
+      <div class="stat accent"><div class="label">Margen Operativo $</div><div class="value" id="sMargenOp">-</div></div>
+      <div class="stat good"><div class="label">% Margen Operativo</div><div class="value" id="sMargenOpPct">-</div></div>
+      <div class="stat"><div class="label"># Unidades</div><div class="value" id="sUnidades">-</div></div>
+    </div>
+    <div class="export-bar no-print">
+      <select id="exportVista">
+        <option value="comparativa">Comparativa (Proveedor + Cliente)</option>
+        <option value="proveedor">Solo Costos Proveedor</option>
+        <option value="cliente">Solo Precios Cliente</option>
+      </select>
+      <button class="btn btn-print" onclick="exportPDF()">🖨️ Exportar PDF</button>
+      <button class="btn btn-export" onclick="exportExcel()">📊 Exportar Excel</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Tarifarios completos (catálogo)</h2>
+    <p class="hint">Todo el catálogo de precios, consolidado por tipo de vinil y piezas — no solo las partidas cotizadas arriba.</p>
+    <div class="tarifa-row no-print">
+      <span class="tarifa-label">Tarifas Cliente</span>
+      <button class="btn btn-export" onclick="exportTarifarioExcel('cliente')">📊 Excel</button>
+      <button class="btn btn-print" onclick="exportTarifarioPDF('cliente')">🖨️ PDF</button>
+    </div>
+    <div class="tarifa-row no-print">
+      <span class="tarifa-label">Tarifas Proveedor</span>
+      <button class="btn btn-export" onclick="exportTarifarioExcel('proveedor')">📊 Excel</button>
+      <button class="btn btn-print" onclick="exportTarifarioPDF('proveedor')">🖨️ PDF</button>
+    </div>
+    <div class="tarifa-row no-print">
+      <span class="tarifa-label">Ambas tarifas + Comparativa</span>
+      <button class="btn btn-export" onclick="exportTarifarioExcel('comparativa')">📊 Excel</button>
+      <button class="btn btn-print" onclick="exportTarifarioPDF('comparativa')">🖨️ PDF</button>
+    </div>
+  </div>
+
+</main>
+
+<div id="printArea" class="print-only"></div>
+
+<footer><em>everything is connected</em></footer>
+
+<script>
+// ---------- Base de precios (MXN, sin IVA) ----------
+const COSTO_CAMION = {"20 FT":45000, "28 FT":52000, "40 FT":68000, "48 FT":79000, "53 FT":87000};
+const PRECIO_CAMION = {
+  "3M (3 años)": {
+    "20 FT":{"1 Pieza":72273.60,"50 Piezas":66758.72,"100 Piezas":59843.84},
+    "28 FT":{"1 Pieza":80673.60,"50 Piezas":73758.72,"100 Piezas":66843.84},
+    "40 FT":{"1 Pieza":111049.68,"50 Piezas":103059.93,"100 Piezas":92012.60},
+    "48 FT":{"1 Pieza":130888.80,"50 Piezas":119669.76,"100 Piezas":108450.72},
+    "53 FT":{"1 Pieza":143648.40,"50 Piezas":131335.68,"100 Piezas":119022.96}
+  },
+  "Avery (1 año)": {
+    "20 FT":{"1 Pieza":71153.60,"50 Piezas":65918.72,"100 Piezas":59003.84},
+    "28 FT":{"1 Pieza":79833.60,"50 Piezas":72918.72,"100 Piezas":66003.84},
+    "40 FT":{"1 Pieza":110209.68,"50 Piezas":102219.93,"100 Piezas":91172.60},
+    "48 FT":{"1 Pieza":130048.80,"50 Piezas":118829.76,"100 Piezas":107610.72},
+    "53 FT":{"1 Pieza":142808.40,"50 Piezas":130495.68,"100 Piezas":118182.96}
+  },
+  "Arlon (1 año)": {
+    "20 FT":{"1 Pieza":70383.60,"50 Piezas":65288.72,"100 Piezas":58373.84},
+    "28 FT":{"1 Pieza":79203.60,"50 Piezas":72288.72,"100 Piezas":65373.84},
+    "40 FT":{"1 Pieza":109579.68,"50 Piezas":101589.93,"100 Piezas":90542.60},
+    "48 FT":{"1 Pieza":129418.80,"50 Piezas":118199.76,"100 Piezas":106980.72},
+    "53 FT":{"1 Pieza":142178.40,"50 Piezas":129865.68,"100 Piezas":117552.96}
+  }
+};
+const VANS = {
+  "Van Chica":{precio:16100, costo:11759.88},
+  "Van Mediana":{precio:19880, costo:14000},
+  "Van Grande":{precio:22820, costo:16000}
+};
+const SEDAN = {
+  "CDMX, Guadalajara y Monterrey":{precio:23085, costo:14250},
+  "Noreste":{precio:33291, costo:20550},
+  "Sureste":{precio:31833, costo:19650},
+  "Centro":{precio:30375, costo:18750},
+  "Bajío":{precio:31347, costo:19350},
+  "Noroeste":{precio:33291, costo:20550}
+};
+const HATCHBACK = {
+  "CDMX, Guadalajara y Monterrey":{precio:23085, costo:16250},
+  "Noreste":{precio:33291, costo:17030},
+  "Sureste":{precio:31833, costo:17030},
+  "Centro":{precio:30375, costo:17030},
+  "Bajío":{precio:31347, costo:16770},
+  "Noroeste":{precio:33291, costo:17030}
+};
+const IMANES = {
+  "1 Pieza":{precio:450, costo:172},
+  "100 Piezas":{precio:350, costo:172},
+  "200 o más Piezas":{precio:280, costo:172}
+};
+const MOTOS = {
+  "Moto":{precio:4500, costo:1100}
+};
+
+const CATEGORIAS = ["Camión/Remolque","Van","Auto Sedán","Auto Hatchback","Imán","Moto"];
+
+function fmt(n){
+  if(isNaN(n)) return "-";
+  return "$" + n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtPct(n){
+  if(isNaN(n)) return "-";
+  return (n*100).toLocaleString('es-MX',{minimumFractionDigits:1,maximumFractionDigits:1}) + "%";
+}
+
+let rowId = 0;
+let comId = 0;
+
+function optionsHtml(list, selected){
+  return list.map(v => `<option value="${v}" ${v===selected?'selected':''}>${v}</option>`).join('');
+}
+
+function buildDetailCells(tr, cat, d1, d2, d3){
+  const c1 = tr.querySelector('.d1'), c2 = tr.querySelector('.d2'), c3 = tr.querySelector('.d3');
+  if(cat === "Camión/Remolque"){
+    c1.innerHTML = `<select onchange="recalcRow(this)">${optionsHtml(Object.keys(PRECIO_CAMION), d1||Object.keys(PRECIO_CAMION)[0])}</select>`;
+    c2.innerHTML = `<select onchange="recalcRow(this)">${optionsHtml(Object.keys(COSTO_CAMION), d2||Object.keys(COSTO_CAMION)[0])}</select>`;
+    c3.innerHTML = `<select onchange="recalcRow(this)">${optionsHtml(["1 Pieza","50 Piezas","100 Piezas"], d3||"50 Piezas")}</select>`;
+  } else if(cat === "Van"){
+    c1.innerHTML = `<select onchange="recalcRow(this)">${optionsHtml(Object.keys(VANS), d1||Object.keys(VANS)[0])}</select>`;
+    c2.innerHTML = ''; c3.innerHTML = '';
+  } else if(cat === "Auto Sedán"){
+    c1.innerHTML = `<select onchange="recalcRow(this)">${optionsHtml(Object.keys(SEDAN), d1||Object.keys(SEDAN)[0])}</select>`;
+    c2.innerHTML = ''; c3.innerHTML = '';
+  } else if(cat === "Auto Hatchback"){
+    c1.innerHTML = `<select onchange="recalcRow(this)">${optionsHtml(Object.keys(HATCHBACK), d1||Object.keys(HATCHBACK)[0])}</select>`;
+    c2.innerHTML = ''; c3.innerHTML = '';
+  } else if(cat === "Imán"){
+    c1.innerHTML = `<select onchange="recalcRow(this)">${optionsHtml(Object.keys(IMANES), d1||Object.keys(IMANES)[0])}</select>`;
+    c2.innerHTML = ''; c3.innerHTML = '';
+  } else if(cat === "Moto"){
+    c1.innerHTML = `<select onchange="recalcRow(this)">${optionsHtml(Object.keys(MOTOS), d1||Object.keys(MOTOS)[0])}</select>`;
+    c2.innerHTML = ''; c3.innerHTML = '';
+  }
+}
+
+function getPricing(tr){
+  const cat = tr.querySelector('.cat').value;
+  const d1 = tr.querySelector('.d1 select') ? tr.querySelector('.d1 select').value : null;
+  const d2 = tr.querySelector('.d2 select') ? tr.querySelector('.d2 select').value : null;
+  const d3 = tr.querySelector('.d3 select') ? tr.querySelector('.d3 select').value : null;
+  if(cat === "Camión/Remolque") return {precio: PRECIO_CAMION[d1][d2][d3], costo: COSTO_CAMION[d2]};
+  if(cat === "Van") return VANS[d1];
+  if(cat === "Auto Sedán") return SEDAN[d1];
+  if(cat === "Auto Hatchback") return HATCHBACK[d1];
+  if(cat === "Imán") return IMANES[d1];
+  if(cat === "Moto") return MOTOS[d1];
+  return {precio:0, costo:0};
+}
+
+function onCatChange(sel){
+  const tr = sel.closest('tr');
+  buildDetailCells(tr, sel.value);
+  recalcRow(sel);
+}
+
+function recalcRow(el){
+  const tr = el.closest('tr');
+  const cant = parseFloat(tr.querySelector('.cant').value) || 0;
+  const {precio, costo} = getPricing(tr);
+  tr.querySelector('.precioU').textContent = fmt(precio);
+  tr.querySelector('.costoU').textContent = fmt(costo);
+  const totalCliente = precio*cant, totalProveedor = costo*cant, difPesos = totalCliente-totalProveedor;
+  const difPct = totalProveedor ? (totalCliente/totalProveedor - 1) : NaN;
+  const rentabilidad = totalCliente ? (difPesos/totalCliente) : NaN;
+  tr.querySelector('.totalCliente').textContent = fmt(totalCliente);
+  tr.querySelector('.totalProveedor').textContent = fmt(totalProveedor);
+  tr.querySelector('.difPesos').textContent = fmt(difPesos);
+  tr.querySelector('.difPct').textContent = fmtPct(difPct);
+  tr.querySelector('.rentabilidad').textContent = fmtPct(rentabilidad);
+  tr.dataset.ingreso = totalCliente; tr.dataset.costo = totalProveedor; tr.dataset.utilidad = difPesos; tr.dataset.cant = cant;
+  recalcTotals();
+}
+
+function addRow(cat, d1, d2, d3, cant){
+  rowId++;
+  const tbody = document.getElementById('rowsBody');
+  const tr = document.createElement('tr');
+  tr.id = 'row'+rowId;
+  tr.innerHTML = `
+    <td class="cat-cell"><select class="cat" onchange="onCatChange(this)">${optionsHtml(CATEGORIAS, cat||"Camión/Remolque")}</select></td>
+    <td class="d1"></td><td class="d2"></td><td class="d3"></td>
+    <td><input type="number" class="cant" min="0" value="${cant!==undefined?cant:1}" oninput="recalcRow(this)"></td>
+    <td class="num precioU readonly">-</td>
+    <td class="num costoU readonly">-</td>
+    <td class="num totalCliente">-</td>
+    <td class="num totalProveedor">-</td>
+    <td class="num difPesos">-</td>
+    <td class="num difPct">-</td>
+    <td class="num rentabilidad">-</td>
+    <td class="no-print"><button class="btn btn-del" onclick="delRow('${tr.id}')">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  buildDetailCells(tr, cat||"Camión/Remolque", d1, d2, d3);
+  recalcRow(tr.querySelector('.cant'));
+}
+
+function delRow(id){
+  document.getElementById(id).remove();
+  recalcTotals();
+}
+
+function addCom(nombre, pct){
+  comId++;
+  const tbody = document.getElementById('comBody');
+  const tr = document.createElement('tr');
+  tr.id = 'com'+comId;
+  tr.innerHTML = `
+    <td><input type="text" class="comNombre" value="${nombre||'Comisión'}" oninput="recalcTotals()"></td>
+    <td><input type="number" class="comPct" step="0.1" value="${pct!==undefined?pct:0}" oninput="recalcTotals()"></td>
+    <td class="num comMonto">-</td>
+    <td class="no-print"><button class="btn btn-del" onclick="delCom('${tr.id}')">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  recalcTotals();
+}
+function delCom(id){
+  document.getElementById(id).remove();
+  recalcTotals();
+}
+
+function toggleTablaVista(v){
+  const wrap = document.getElementById('tablaWrap');
+  wrap.classList.remove('view-proveedor','view-cliente');
+  if(v === 'proveedor') wrap.classList.add('view-proveedor');
+  if(v === 'cliente') wrap.classList.add('view-cliente');
+  document.getElementById('exportVista').value = v;
+}
+
+function recalcTotals(){
+  const rows = document.querySelectorAll('#rowsBody tr');
+  let ingreso=0, costo=0, utilidad=0, unidades=0;
+  rows.forEach(tr=>{
+    ingreso += parseFloat(tr.dataset.ingreso)||0;
+    costo += parseFloat(tr.dataset.costo)||0;
+    utilidad += parseFloat(tr.dataset.utilidad)||0;
+    unidades += parseFloat(tr.dataset.cant)||0;
+  });
+  document.getElementById('tIngreso').textContent = fmt(ingreso);
+  document.getElementById('tCostoTotal').textContent = fmt(costo);
+  document.getElementById('tDifPesos').textContent = fmt(utilidad);
+  document.getElementById('tDifPct').textContent = costo ? fmtPct(ingreso/costo - 1) : "-";
+  document.getElementById('tRentabilidad').textContent = ingreso ? fmtPct(utilidad/ingreso) : "-";
+
+  const comRows = document.querySelectorAll('#comBody tr');
+  let comPctTotal=0, comMontoTotal=0;
+  comRows.forEach(tr=>{
+    const pct = (parseFloat(tr.querySelector('.comPct').value)||0)/100;
+    const monto = ingreso*pct;
+    tr.querySelector('.comMonto').textContent = fmt(monto);
+    comPctTotal += pct; comMontoTotal += monto;
+  });
+  document.getElementById('tComPct').textContent = fmtPct(comPctTotal);
+  document.getElementById('tComMonto').textContent = fmt(comMontoTotal);
+
+  const margenOp = utilidad - comMontoTotal;
+  document.getElementById('sIngreso').textContent = fmt(ingreso);
+  document.getElementById('sCosto').textContent = fmt(costo);
+  document.getElementById('sUtilidad').textContent = fmt(utilidad);
+  document.getElementById('sMargenBruto').textContent = ingreso ? fmtPct(utilidad/ingreso) : "-";
+  document.getElementById('sDifPct').textContent = costo ? fmtPct(ingreso/costo - 1) : "-";
+  document.getElementById('sComisiones').textContent = fmt(comMontoTotal);
+  document.getElementById('sMargenOp').textContent = fmt(margenOp);
+  document.getElementById('sMargenOpPct').textContent = ingreso ? fmtPct(margenOp/ingreso) : "-";
+  document.getElementById('sUnidades').textContent = unidades.toLocaleString('es-MX');
+}
+
+function getState(){
+  const rows = [...document.querySelectorAll('#rowsBody tr')].map(tr=>{
+    const cat = tr.querySelector('.cat').value;
+    const d1 = tr.querySelector('.d1 select') ? tr.querySelector('.d1 select').value : '';
+    const d2 = tr.querySelector('.d2 select') ? tr.querySelector('.d2 select').value : '';
+    const d3 = tr.querySelector('.d3 select') ? tr.querySelector('.d3 select').value : '';
+    const cant = parseFloat(tr.querySelector('.cant').value) || 0;
+    const {precio, costo} = getPricing(tr);
+    const ingresoR = precio*cant, costoTR = costo*cant, utilidadR = (precio-costo)*cant;
+    const difPctR = costoTR ? (ingresoR/costoTR - 1) : NaN;
+    const rentabilidadR = ingresoR ? (utilidadR/ingresoR) : NaN;
+    return {cat, d1, d2, d3, cant, precio, costo, ingreso: ingresoR, costoT: costoTR, utilidad: utilidadR, difPct: difPctR, rentabilidad: rentabilidadR};
+  });
+  const ingreso = rows.reduce((s,r)=>s+r.ingreso,0);
+  const costo = rows.reduce((s,r)=>s+r.costoT,0);
+  const utilidad = rows.reduce((s,r)=>s+r.utilidad,0);
+  const unidades = rows.reduce((s,r)=>s+r.cant,0);
+  const comisiones = [...document.querySelectorAll('#comBody tr')].map(tr=>{
+    const nombre = tr.querySelector('.comNombre').value;
+    const pct = (parseFloat(tr.querySelector('.comPct').value)||0)/100;
+    return {nombre, pct, monto: ingreso*pct};
+  });
+  const comMontoTotal = comisiones.reduce((s,c)=>s+c.monto,0);
+  const comPctTotal = comisiones.reduce((s,c)=>s+c.pct,0);
+  const margenOp = utilidad - comMontoTotal;
+  return {rows, ingreso, costo, utilidad, unidades, comisiones, comMontoTotal, comPctTotal, margenOp};
+}
+
+// ================= ExcelJS: estilo Connectia =================
+const BRAND = {
+  navy:'FF1A0B3D', violet:'FF6030A0', violetHot:'FF7B3FF2', indigo:'FF201040',
+  mist:'FFE9E6F0', paper:'FFFAFAFB', white:'FFFFFFFF', slate:'FF6B6580'
+};
+const FMT_CUR = '"$"#,##0.00';
+const FMT_PCT = '0.0%';
+const FMT_INT = '#,##0';
+
+function styleTitleCell(cell){
+  cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:BRAND.indigo}};
+  cell.font = {name:'Arial', bold:true, size:14, color:{argb:BRAND.white}};
+  cell.alignment = {vertical:'middle'};
+}
+function styleSubtitleCell(cell){
+  cell.font = {name:'Arial', italic:false, size:9, color:{argb:BRAND.slate}};
+}
+function styleSectionCell(cell){
+  cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:BRAND.violet}};
+  cell.font = {name:'Arial', bold:true, size:11, color:{argb:BRAND.white}, italic:false};
+}
+function styleHeaderCell(cell){
+  cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:BRAND.navy}};
+  cell.font = {name:'Arial', bold:true, size:10, color:{argb:BRAND.white}};
+}
+function styleTotalCell(cell){
+  cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:BRAND.violet}};
+  cell.font = {name:'Arial', bold:true, size:11, color:{argb:BRAND.white}, italic:false};
+}
+function styleDataCell(cell, shade){
+  cell.font = {name:'Arial', size:10, color:{argb:'FF0A0118'}};
+  if(shade) cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:BRAND.mist}};
+}
+function styleFooterCell(cell){
+  cell.font = {name:'Arial', italic:true, size:9, color:{argb:BRAND.slate}};
+}
+
+async function downloadWorkbook(wb, filename){
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+
+async function exportExcel(){
+  const mode = document.getElementById('exportVista').value;
+  const s = getState();
+  const wb = new ExcelJS.Workbook();
+  const sheetName = mode==='proveedor' ? 'Costos Proveedor' : mode==='cliente' ? 'Precios Cliente' : 'Cotización';
+  const ws = wb.addWorksheet(sheetName);
+
+  let cols;
+  if(mode==='proveedor') cols = ["CATEGORÍA","DETALLE 1","DETALLE 2","DETALLE 3","CANTIDAD","COSTO UNITARIO","COSTO TOTAL"];
+  else if(mode==='cliente') cols = ["CATEGORÍA","DETALLE 1","DETALLE 2","DETALLE 3","CANTIDAD","PRECIO UNITARIO","INGRESO TOTAL"];
+  else cols = ["CATEGORÍA","DETALLE 1","DETALLE 2","DETALLE 3","CANTIDAD","PRECIO UNIT. CLIENTE","COSTO UNIT. PROVEEDOR","TOTAL CLIENTE","TOTAL PROVEEDOR","DIFERENCIA $","DIFERENCIA %","RENTABILIDAD %"];
+  const nCols = cols.length;
+  const lastColLetter = String.fromCharCode(64 + nCols);
+
+  ws.mergeCells(`A1:${lastColLetter}1`);
+  ws.getCell('A1').value = 'COTIZADOR RÁPIDO — FLOTILLAS WALMART';
+  styleTitleCell(ws.getCell('A1'));
+  ws.getRow(1).height = 22;
+
+  ws.mergeCells(`A2:${lastColLetter}2`);
+  ws.getCell('A2').value = 'Generado: ' + new Date().toLocaleString('es-MX') + ' · MXN, sin IVA';
+  styleSubtitleCell(ws.getCell('A2'));
+  ws.addRow([]);
+
+  const titulo = mode==='proveedor' ? 'COSTOS DE PROVEEDOR' : mode==='cliente' ? 'PRECIOS CLIENTE' : 'COMPARATIVA — PARTIDAS DEL PROYECTO';
+  ws.mergeCells(`A4:${lastColLetter}4`);
+  ws.getCell('A4').value = titulo;
+  styleSectionCell(ws.getCell('A4'));
+
+  const headerRow = ws.addRow(cols);
+  headerRow.eachCell(c=>styleHeaderCell(c));
+
+  s.rows.forEach((r,i)=>{
+    let vals;
+    if(mode==='proveedor') vals=[r.cat,r.d1,r.d2,r.d3,r.cant,r.costo,r.costoT];
+    else if(mode==='cliente') vals=[r.cat,r.d1,r.d2,r.d3,r.cant,r.precio,r.ingreso];
+    else vals=[r.cat,r.d1,r.d2,r.d3,r.cant,r.precio,r.costo,r.ingreso,r.costoT,r.utilidad,r.difPct,r.rentabilidad];
+    const row = ws.addRow(vals);
+    const shade = i % 2 === 1;
+    row.eachCell((cell, colNum)=>{
+      styleDataCell(cell, shade);
+      if(colNum===5) cell.numFmt = FMT_INT;
+      else if(mode==='comparativa' && (colNum===11||colNum===12)) cell.numFmt = FMT_PCT;
+      else if(colNum>=6) cell.numFmt = FMT_CUR;
+    });
+  });
+
+  let totalVals;
+  if(mode==='proveedor') totalVals=["TOTAL","","","",s.unidades,"",s.costo];
+  else if(mode==='cliente') totalVals=["TOTAL","","","",s.unidades,"",s.ingreso];
+  else totalVals=["TOTAL","","","",s.unidades,"","",s.ingreso,s.costo,s.utilidad, s.costo?(s.ingreso/s.costo-1):null, s.ingreso?(s.utilidad/s.ingreso):null];
+  const totalRow = ws.addRow(totalVals);
+  totalRow.eachCell((cell,colNum)=>{
+    styleTotalCell(cell);
+    if(colNum===5) cell.numFmt = FMT_INT;
+    else if(mode==='comparativa' && (colNum===11||colNum===12)) cell.numFmt = FMT_PCT;
+    else if(colNum>=6) cell.numFmt = FMT_CUR;
+  });
+
+  if(mode==='comparativa'){
+    ws.addRow([]);
+    let r = ws.addRow(["GASTOS DE VENTA — COMISIONES"]);
+    ws.mergeCells(`A${r.number}:${lastColLetter}${r.number}`);
+    styleSectionCell(ws.getCell(`A${r.number}`));
+
+    const comHeader = ws.addRow(["Concepto","% sobre Ingreso","Monto"]);
+    comHeader.eachCell(c=>styleHeaderCell(c));
+    s.comisiones.forEach(c=>{
+      const row = ws.addRow([c.nombre, c.pct, c.monto]);
+      row.getCell(2).numFmt = FMT_PCT; row.getCell(3).numFmt = FMT_CUR;
+      row.eachCell(cell=>styleDataCell(cell,false));
+    });
+    const comTotalRow = ws.addRow(["TOTAL COMISIONES", s.comPctTotal, s.comMontoTotal]);
+    comTotalRow.getCell(2).numFmt = FMT_PCT; comTotalRow.getCell(3).numFmt = FMT_CUR;
+    comTotalRow.eachCell(c=>styleTotalCell(c));
+
+    ws.addRow([]);
+    let r2 = ws.addRow(["RESUMEN DE MARGEN OPERATIVO"]);
+    ws.mergeCells(`A${r2.number}:${lastColLetter}${r2.number}`);
+    styleSectionCell(ws.getCell(`A${r2.number}`));
+
+    const resumen = [
+      ["Ingreso Total", s.ingreso, FMT_CUR],
+      ["Costo Proveedor Total", s.costo, FMT_CUR],
+      ["Utilidad Bruta", s.utilidad, FMT_CUR],
+      ["% Margen Bruto", s.ingreso ? s.utilidad/s.ingreso : null, FMT_PCT],
+      ["Total Comisiones", s.comMontoTotal, FMT_CUR],
+      ["Margen Operativo $", s.margenOp, FMT_CUR],
+      ["% Margen Operativo", s.ingreso ? s.margenOp/s.ingreso : null, FMT_PCT],
+      ["# Unidades", s.unidades, FMT_INT]
+    ];
+    resumen.forEach(([label,val,fmtStr])=>{
+      const row = ws.addRow([label, val]);
+      row.getCell(1).font = {name:'Arial', bold:true, size:10};
+      row.getCell(2).numFmt = fmtStr;
+      row.getCell(2).font = {name:'Arial', size:10, color:{argb:BRAND.violet.replace('FF','FF')}, bold:true};
+    });
+  }
+
+  ws.addRow([]);
+  const footRow = ws.addRow(['everything is connected']);
+  styleFooterCell(footRow.getCell(1));
+
+  ws.columns.forEach((c,i)=>{ c.width = i===0?24:(i>=1&&i<=3?20:16); });
+
+  const fecha = new Date().toISOString().slice(0,10);
+  const fileTag = mode==='proveedor' ? 'CostosProveedor' : mode==='cliente' ? 'PreciosCliente' : 'Comparativa';
+  await downloadWorkbook(wb, `Cotizacion_${fileTag}_${fecha}.xlsx`);
+}
+
+function buildPrintTable(mode, s){
+  let title, cols, rowsHtml;
+  if(mode === 'proveedor'){
+    title = 'Costos de Proveedor';
+    cols = ["Categoría","Detalle 1","Detalle 2","Detalle 3","Cant.","Costo Unit.","Costo Total"];
+    rowsHtml = s.rows.map(r=>`<tr><td>${r.cat}</td><td>${r.d1}</td><td>${r.d2}</td><td>${r.d3}</td><td class="num">${r.cant}</td><td class="num">${fmt(r.costo)}</td><td class="num">${fmt(r.costoT)}</td></tr>`).join('');
+    rowsHtml += `<tr><td colspan="4" style="background:var(--violet);color:#fff;font-weight:700;">TOTAL</td><td class="num" style="background:var(--violet);color:#fff;font-weight:700;">${s.unidades}</td><td style="background:var(--violet);"></td><td class="num" style="background:var(--violet);color:#fff;font-weight:700;">${fmt(s.costo)}</td></tr>`;
+  } else if(mode === 'cliente'){
+    title = 'Precios Cliente';
+    cols = ["Categoría","Detalle 1","Detalle 2","Detalle 3","Cant.","Precio Unit.","Ingreso Total"];
+    rowsHtml = s.rows.map(r=>`<tr><td>${r.cat}</td><td>${r.d1}</td><td>${r.d2}</td><td>${r.d3}</td><td class="num">${r.cant}</td><td class="num">${fmt(r.precio)}</td><td class="num">${fmt(r.ingreso)}</td></tr>`).join('');
+    rowsHtml += `<tr><td colspan="4" style="background:var(--violet);color:#fff;font-weight:700;">TOTAL</td><td class="num" style="background:var(--violet);color:#fff;font-weight:700;">${s.unidades}</td><td style="background:var(--violet);"></td><td class="num" style="background:var(--violet);color:#fff;font-weight:700;">${fmt(s.ingreso)}</td></tr>`;
+  } else {
+    return '';
+  }
+  const theadHtml = cols.map(c=>`<th>${c}</th>`).join('');
+  return `<div class="card">
+    <div class="eyebrow">CONNECTIA · TARIFARIO COTIZACIÓN</div>
+    <h2 style="margin-top:6px;">Cotizador Rápido — Flotillas Walmart · ${title}</h2>
+    <table><thead><tr>${theadHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>
+  </div>`;
+}
+
+function exportPDF(){
+  const mode = document.getElementById('exportVista').value;
+  const printArea = document.getElementById('printArea');
+  if(mode === 'comparativa'){
+    document.body.className = '';
+    printArea.innerHTML = '';
+  } else {
+    printArea.innerHTML = buildPrintTable(mode, getState());
+    document.body.className = 'printing-' + mode;
+  }
+  window.print();
+}
+window.addEventListener('afterprint', function(){
+  document.body.className = '';
+  document.getElementById('printArea').innerHTML = '';
+});
+
+// ---------- Tarifarios completos (catálogo, no depende de las partidas cotizadas) ----------
+// Consolidado por Tipo de Vinil + Tamaño + Piezas (sin desglose de impresión/instalación/limpieza)
+function buildCatalog(){
+  const groups = [];
+
+  const camiones = [];
+  Object.keys(PRECIO_CAMION).forEach(material=>{
+    Object.keys(PRECIO_CAMION[material]).forEach(tamano=>{
+      Object.keys(PRECIO_CAMION[material][tamano]).forEach(piezas=>{
+        camiones.push({material, tamano, piezas, precio:PRECIO_CAMION[material][tamano][piezas], costo:COSTO_CAMION[tamano]});
+      });
+    });
+  });
+  groups.push({cat:"Camiones / Remolques", rows:camiones});
+
+  const vans = Object.keys(VANS).map(tipo=>({material:"3M (1-2 años)", tamano:tipo, piezas:"—", precio:VANS[tipo].precio, costo:VANS[tipo].costo}));
+  groups.push({cat:"Vans", rows:vans});
+
+  const sedan = Object.keys(SEDAN).map(region=>({material:"—", tamano:region, piezas:"—", precio:SEDAN[region].precio, costo:SEDAN[region].costo}));
+  groups.push({cat:"Autos Sedán", rows:sedan});
+
+  const hatch = Object.keys(HATCHBACK).map(region=>({material:"—", tamano:region, piezas:"—", precio:HATCHBACK[region].precio, costo:HATCHBACK[region].costo}));
+  groups.push({cat:"Autos Hatchback", rows:hatch});
+
+  const imanes = Object.keys(IMANES).map(rango=>({material:"—", tamano:"58×38 cm", piezas:rango, precio:IMANES[rango].precio, costo:IMANES[rango].costo}));
+  groups.push({cat:"Imanes", rows:imanes});
+
+  const motos = Object.keys(MOTOS).map(tipo=>({material:"—", tamano:tipo, piezas:"—", precio:MOTOS[tipo].precio, costo:MOTOS[tipo].costo}));
+  groups.push({cat:"Motos", rows:motos});
+
+  return groups;
+}
+
+async function exportTarifarioExcel(mode){
+  const groups = buildCatalog();
+  const wb = new ExcelJS.Workbook();
+  const sheetName = mode==='cliente' ? 'Tarifas Cliente' : mode==='proveedor' ? 'Tarifas Proveedor' : 'Comparativa';
+  const ws = wb.addWorksheet(sheetName);
+
+  let cols;
+  if(mode==='cliente') cols = ["TIPO DE VINIL","TAMAÑO","PIEZAS","PRECIO CLIENTE"];
+  else if(mode==='proveedor') cols = ["TIPO DE VINIL","TAMAÑO","PIEZAS","COSTO PROVEEDOR"];
+  else cols = ["TIPO DE VINIL","TAMAÑO","PIEZAS","PRECIO CLIENTE","COSTO PROVEEDOR","DIFERENCIA $","DIFERENCIA %"];
+  const nCols = cols.length;
+  const lastColLetter = String.fromCharCode(64 + nCols);
+
+  const titulo = mode==='cliente' ? 'TARIFARIO — PRECIOS CLIENTE' : mode==='proveedor' ? 'TARIFARIO — COSTOS PROVEEDOR' : 'TARIFARIO — COMPARATIVA PROVEEDOR VS CLIENTE';
+  ws.mergeCells(`A1:${lastColLetter}1`);
+  ws.getCell('A1').value = titulo;
+  styleTitleCell(ws.getCell('A1'));
+  ws.getRow(1).height = 22;
+
+  ws.mergeCells(`A2:${lastColLetter}2`);
+  ws.getCell('A2').value = 'Generado: ' + new Date().toLocaleString('es-MX') + ' · MXN, sin IVA · Consolidado por tipo de vinil y piezas';
+  styleSubtitleCell(ws.getCell('A2'));
+  ws.addRow([]);
+
+  groups.forEach(group=>{
+    let r = ws.addRow([group.cat.toUpperCase()]);
+    ws.mergeCells(`A${r.number}:${lastColLetter}${r.number}`);
+    styleSectionCell(ws.getCell(`A${r.number}`));
+
+    const headerRow = ws.addRow(cols);
+    headerRow.eachCell(c=>styleHeaderCell(c));
+
+    group.rows.forEach((row,i)=>{
+      let vals;
+      if(mode==='cliente') vals=[row.material,row.tamano,row.piezas,row.precio];
+      else if(mode==='proveedor') vals=[row.material,row.tamano,row.piezas,row.costo];
+      else {
+        const dif = row.precio-row.costo;
+        const difPct = row.costo ? (row.precio/row.costo-1) : null;
+        vals=[row.material,row.tamano,row.piezas,row.precio,row.costo,dif,difPct];
+      }
+      const dataRow = ws.addRow(vals);
+      const shade = i%2===1;
+      dataRow.eachCell((cell,colNum)=>{
+        styleDataCell(cell, shade);
+        if(mode!=='comparativa' && colNum===4) cell.numFmt = FMT_CUR;
+        if(mode==='comparativa'){
+          if(colNum===4||colNum===5||colNum===6) cell.numFmt = FMT_CUR;
+          if(colNum===7) cell.numFmt = FMT_PCT;
+        }
+      });
+    });
+    ws.addRow([]);
+  });
+
+  const footRow = ws.addRow(['everything is connected']);
+  styleFooterCell(footRow.getCell(1));
+
+  ws.columns.forEach((c,i)=>{ c.width = i===0?22:(i===1?20:(i===2?16:16)); });
+
+  const fecha = new Date().toISOString().slice(0,10);
+  await downloadWorkbook(wb, `Tarifario_${mode}_${fecha}.xlsx`);
+}
+
+function buildTarifarioPrintHTML(mode){
+  const groups = buildCatalog();
+  let title, cols;
+  if(mode === 'cliente'){ title='Tarifas Cliente'; cols=["Tipo de Vinil","Tamaño","Piezas","Precio Cliente"]; }
+  else if(mode === 'proveedor'){ title='Tarifas Proveedor'; cols=["Tipo de Vinil","Tamaño","Piezas","Costo Proveedor"]; }
+  else { title='Comparativa Proveedor vs Cliente'; cols=["Tipo de Vinil","Tamaño","Piezas","Precio Cliente","Costo Proveedor","Diferencia $","Diferencia %"]; }
+
+  const theadHtml = cols.map(c=>`<th>${c}</th>`).join('');
+  let bodyHtml = '';
+  groups.forEach(group=>{
+    bodyHtml += `<tr class="section-row"><td colspan="${cols.length}">${group.cat.toUpperCase()}</td></tr>`;
+    bodyHtml += group.rows.map(row=>{
+      if(mode==='cliente') return `<tr><td>${row.material}</td><td>${row.tamano}</td><td>${row.piezas}</td><td class="num">${fmt(row.precio)}</td></tr>`;
+      if(mode==='proveedor') return `<tr><td>${row.material}</td><td>${row.tamano}</td><td>${row.piezas}</td><td class="num">${fmt(row.costo)}</td></tr>`;
+      const dif = row.precio-row.costo;
+      const difPct = row.costo ? (row.precio/row.costo-1) : NaN;
+      return `<tr><td>${row.material}</td><td>${row.tamano}</td><td>${row.piezas}</td><td class="num">${fmt(row.precio)}</td><td class="num">${fmt(row.costo)}</td><td class="num">${fmt(dif)}</td><td class="num">${fmtPct(difPct)}</td></tr>`;
+    }).join('');
+  });
+
+  return `<div class="card">
+    <div class="eyebrow">CONNECTIA · TARIFARIO COMPLETO</div>
+    <h2 style="margin-top:6px;">Cotizador Rápido — Flotillas Walmart · ${title}</h2>
+    <table><thead><tr>${theadHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>
+  </div>`;
+}
+
+function exportTarifarioPDF(mode){
+  const printArea = document.getElementById('printArea');
+  printArea.innerHTML = buildTarifarioPrintHTML(mode);
+  document.body.className = 'printing-tarifario-' + mode;
+  window.print();
+}
+
+// ---------- Estado inicial: cantidades de las imágenes (Remolques 53FT + Vans/Sedán + Motos) ----------
+addRow("Camión/Remolque","3M (3 años)","53 FT","50 Piezas",60);
+addRow("Van","Van Chica",null,null,42);
+addRow("Van","Van Mediana",null,null,4);
+addRow("Auto Sedán","CDMX, Guadalajara y Monterrey",null,null,20);
+addRow("Moto","Moto",null,null,12);
+
+addCom("Comisión Vendedor A", 4);
+addCom("Comisión Ayra", 2);
+addCom("Comisión Andrés", 1.5);
+addCom("Comisión Itzel", 1.5);
+
+recalcTotals();
+</script>
+</body>
+</html>

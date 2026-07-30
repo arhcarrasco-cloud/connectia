@@ -2,247 +2,336 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<meta name="theme-color" content="#08080C">
+<meta name="theme-color" content="#F5F4F7">
 <title>Connectia · App Hub</title>
-<link rel="icon" href="iconos/connectia.png">
-<link rel="apple-touch-icon" href="iconos/connectia.png">
-<link rel="manifest" href="manifest.json">
+<link rel="icon" href="iconos/connectia.png?v=3cc52ec8">
+<link rel="apple-touch-icon" sizes="180x180" href="iconos/apple-touch.png?v=3cc52ec8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="App Hub">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json?v=3cc52ec8">
 <style>
-/* Coplette + Cooper Hewitt son las tipografías canónicas de Connectia y están
-   instaladas en la Mac de Roger; se cargan con local(). El stack de sistema
-   queda declarado como fallback técnico para cualquier otro dispositivo. */
+/* Coplette y Cooper Hewitt son las canónicas de Connectia; se cargan con local()
+   desde la Mac. El stack de sistema queda como fallback técnico declarado. */
 @font-face{font-family:Coplette;src:local("Coplette");font-display:swap}
 @font-face{font-family:"Cooper Hewitt";src:local("Cooper Hewitt Book"),local("CooperHewitt-Book");font-weight:400;font-display:swap}
 @font-face{font-family:"Cooper Hewitt";src:local("Cooper Hewitt Bold"),local("CooperHewitt-Bold");font-weight:700;font-display:swap}
 
 :root{
-  --violet:#872B90;
-  --glass:rgba(20,20,30,.52);
-  --line:rgba(255,255,255,.10);
-  --text:#F4F1F7;
-  --muted:#9C97AC;
+  --bg:#F5F4F7; --card:#FFFFFF;
+  --ink:#17131A; --ink-2:#6C6675; --ink-3:#9C96A6;
+  --line:#E5E1E9; --violet:#872B90; --violet-soft:#F3E9F5;
   --display:Coplette,"Cooper Hewitt",-apple-system,BlinkMacSystemFont,sans-serif;
   --body:"Cooper Hewitt",-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
-body{
-  min-height:100vh;background:#07070B;color:var(--text);font-family:var(--body);
-  -webkit-font-smoothing:antialiased;overflow-x:hidden;
-}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--body);
+     -webkit-font-smoothing:antialiased;overflow-x:hidden}
 
-/* ── fondo: skyline nocturno detrás del vidrio ───────────────────── */
-.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-.bg .sky{
-  position:absolute;left:-4%;right:-4%;bottom:0;width:108%;
-  filter:blur(13px) saturate(150%);opacity:.95;
-}
-.bg .haze{
-  position:absolute;inset:0;
-  background:
-    radial-gradient(1200px 700px at 78% -16%, rgba(135,43,144,.42), transparent 62%),
-    radial-gradient(900px 620px at 6% 104%, rgba(180,76,190,.20), transparent 64%),
-    linear-gradient(180deg, #07070B 0%, rgba(7,7,11,.97) 40%, rgba(7,7,11,.80) 66%, rgba(7,7,11,.46) 86%, rgba(7,7,11,.22) 100%);
-}
-.bg .grain{
-  position:absolute;inset:0;opacity:.05;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* ── estructura ──────────────────────────────────────────────────── */
-.shell{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 28px 40px}
-
-.top{padding:76px 0 0;text-align:center}
-.mark{
-  display:inline-flex;align-items:center;gap:9px;
-  font-size:10.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted);
-}
-.mark i{
-  width:7px;height:7px;border-radius:50%;background:#C567D6;
-  box-shadow:0 0 14px rgba(197,103,214,.9);
-}
-h1{
-  font-family:var(--display);font-weight:700;
-  font-size:clamp(40px,6.4vw,74px);line-height:.94;letter-spacing:-.035em;
-  margin:20px 0 0;
-}
-h1 span{
-  background:linear-gradient(100deg,#E6B6EE,#C567D6 46%,#8F44C4);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.sub{margin:16px auto 0;max-width:44ch;color:var(--muted);font-size:15px;line-height:1.6}
-
-/* ── buscador Spotlight ──────────────────────────────────────────── */
-.spot{
-  position:relative;max-width:480px;margin:34px auto 0;
-}
-.spot input{
-  width:100%;font-family:inherit;font-size:16px;color:var(--text);
-  background:var(--glass);border:1px solid var(--line);border-radius:16px;
-  padding:15px 52px 15px 50px;outline:none;
-  backdrop-filter:blur(26px) saturate(160%);
-  -webkit-backdrop-filter:blur(26px) saturate(160%);
-  box-shadow:0 18px 44px -20px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.08);
-  transition:border-color .2s, box-shadow .2s;
-}
-.spot input::placeholder{color:var(--muted)}
-.spot input:focus{
-  border-color:rgba(197,103,214,.62);
-  box-shadow:0 18px 44px -20px rgba(0,0,0,.9), 0 0 0 4px rgba(135,43,144,.24);
-}
-.spot .mag{
-  position:absolute;left:18px;top:50%;transform:translateY(-50%);
-  width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2.2;pointer-events:none;
-}
-.spot .slash{
-  position:absolute;right:16px;top:50%;transform:translateY(-50%);
-  font-size:11px;color:var(--muted);border:1px solid var(--line);
-  border-radius:6px;padding:3px 8px;pointer-events:none;
-}
-
-/* ── carpetas ────────────────────────────────────────────────────── */
-.folder{margin-top:46px}
-.fhead{
-  display:flex;align-items:center;gap:12px;width:100%;
-  background:none;border:none;cursor:pointer;padding:0 2px 14px;
-  font:inherit;color:inherit;text-align:left;
+header{position:sticky;top:0;z-index:30;background:rgba(245,244,247,.82);
   border-bottom:1px solid var(--line);
-}
-.chev{
-  width:0;height:0;flex-shrink:0;
-  border-left:6px solid var(--muted);border-top:4.5px solid transparent;border-bottom:4.5px solid transparent;
-  transform:rotate(90deg);transition:transform .22s cubic-bezier(.22,1,.36,1);
-}
-.folder.shut .chev{transform:rotate(0deg)}
-.fname{
-  font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:.02em;
-}
-.fnote{flex:1;font-size:12px;color:var(--muted)}
-.fcount{
-  font-size:11px;color:var(--muted);
-  border:1px solid var(--line);border-radius:20px;padding:2px 9px;
-}
-.fhead:hover .fname{color:#E6B6EE}
+  backdrop-filter:saturate(180%) blur(22px);-webkit-backdrop-filter:saturate(180%) blur(22px);
+  padding-top:env(safe-area-inset-top)}
+.bar{max-width:1120px;margin:0 auto;padding:13px 26px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:9px;flex-shrink:0;text-decoration:none;color:inherit}
+.brand img{width:28px;height:28px;border-radius:7px;display:block}
+.brand b{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:-.01em}
+.brand span{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.spot{position:relative;flex:1;max-width:340px;margin-left:auto}
+.spot input{width:100%;font-family:inherit;font-size:14px;color:var(--ink);
+  background:#EDEAF0;border:1px solid transparent;border-radius:11px;
+  padding:10px 14px 10px 38px;outline:none;transition:background .18s,border-color .18s,box-shadow .18s}
+.spot input::placeholder{color:var(--ink-3)}
+.spot input:focus{background:#fff;border-color:var(--violet);box-shadow:0 0 0 3px rgba(135,43,144,.14)}
+.spot .mag{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:15px;height:15px;stroke:var(--ink-3);fill:none;stroke-width:2.3;pointer-events:none}
 
-.wall{
-  display:grid;grid-template-columns:repeat(6,1fr);
-  gap:10px 6px;padding:22px 0 0;
-}
+main{max-width:1120px;margin:0 auto;
+     padding:0 max(26px,env(safe-area-inset-left)) 80px max(26px,env(safe-area-inset-right))}
+.top{padding:52px 0 6px}
+.eyebrow{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--violet);font-weight:700}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(34px,4.6vw,52px);
+   line-height:1.02;letter-spacing:-.03em;margin:13px 0 0;max-width:16ch}
+.sub{margin:13px 0 0;color:var(--ink-2);font-size:16px;line-height:1.55;max-width:52ch}
+
+.reelwrap{margin:34px 0 0}
+.reelhead{display:flex;align-items:baseline;gap:12px;margin-bottom:15px}
+.reelhead h2{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.01em}
+.reelhead>span{font-size:13px;color:var(--ink-3)}
+.nav{margin-left:auto;display:flex;gap:7px}
+.nav button{width:31px;height:31px;border-radius:50%;border:1px solid var(--line);
+  background:#fff;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;
+  font:inherit;font-size:14px;line-height:1;transition:background .16s,color .16s,border-color .16s}
+.nav button:hover:not(:disabled){background:var(--violet);border-color:var(--violet);color:#fff}
+.nav button:disabled{opacity:.3;cursor:default}
+
+.reel{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;
+  padding:2px 26px 18px 0;margin-right:-26px;
+  scrollbar-width:none;-ms-overflow-style:none}
+.reel::-webkit-scrollbar{display:none}
+.slide{flex:0 0 clamp(280px,42vw,436px);scroll-snap-align:start;
+  background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;
+  text-decoration:none;color:inherit;display:flex;flex-direction:column;
+  box-shadow:0 1px 2px rgba(23,19,26,.05);
+  transition:transform .24s cubic-bezier(.22,1,.36,1), box-shadow .24s, border-color .24s}
+.slide:hover{transform:translateY(-4px);border-color:#D8D2E0;
+  box-shadow:0 18px 38px -22px rgba(23,19,26,.42)}
+.slide:focus-visible{outline:2px solid var(--violet);outline-offset:3px}
+.shot{display:block;aspect-ratio:16/10;overflow:hidden;background:#EDEAF0;border-bottom:1px solid var(--line)}
+.shot img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.meta{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.meta .chip{width:44px;height:44px;border-radius:11px;flex-shrink:0;display:block}
+.meta .txt{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
+.meta .txt b{font-size:15px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta .txt span{font-size:12.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta .open{flex-shrink:0;background:var(--violet-soft);color:var(--violet);
+  font-size:12.5px;font-weight:700;letter-spacing:.04em;padding:7px 17px;border-radius:20px;
+  transition:background .18s,color .18s}
+.slide:hover .open{background:var(--violet);color:#fff}
+
+.folder{margin-top:40px}
+.fhead{display:flex;align-items:center;gap:11px;width:100%;background:none;border:none;
+  cursor:pointer;padding:0 2px 12px;font:inherit;color:inherit;text-align:left;
+  border-bottom:1px solid var(--line)}
+.chev{width:0;height:0;flex-shrink:0;border-left:6px solid var(--ink-3);
+  border-top:4.5px solid transparent;border-bottom:4.5px solid transparent;
+  transform:rotate(90deg);transition:transform .22s cubic-bezier(.22,1,.36,1)}
+.folder.shut .chev{transform:rotate(0)}
+.fname{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:-.01em}
+.fnote{flex:1;font-size:12.5px;color:var(--ink-3)}
+.fcount{font-size:11px;color:var(--ink-3);border:1px solid var(--line);border-radius:20px;padding:2px 9px;background:#fff}
+.fhead:hover .fname{color:var(--violet)}
+
+.wall{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 4px;padding:20px 0 0}
 .folder.shut .wall{display:none}
+.app{display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 6px 16px;
+  border-radius:16px;text-decoration:none;color:var(--ink);
+  transition:background .18s, box-shadow .18s}
+.app:hover{background:#fff;box-shadow:0 10px 26px -18px rgba(23,19,26,.5)}
+.app:focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+.ico{display:block;width:70px;height:70px;transition:transform .26s cubic-bezier(.22,1,.36,1)}
+.ico img{width:100%;height:100%;display:block;border-radius:17px}
+.app:hover .ico{transform:translateY(-4px) scale(1.05)}
+.app:active .ico{transform:translateY(-1px) scale(.99)}
+.lbl{font-size:12px;line-height:1.3;text-align:center;color:var(--ink-2);max-width:104px}
 
-/* ── íconos ──────────────────────────────────────────────────────── */
-.app{
-  display:flex;flex-direction:column;align-items:center;gap:11px;
-  padding:12px 6px 14px;border-radius:18px;
-  text-decoration:none;color:var(--text);
-  transition:background .18s, transform .24s cubic-bezier(.22,1,.36,1);
-}
-.app:hover{background:rgba(255,255,255,.05)}
-.app:focus-visible{outline:2px solid #C567D6;outline-offset:3px}
-.ico{
-  position:relative;display:block;width:78px;height:78px;
-  transition:transform .26s cubic-bezier(.22,1,.36,1);
-}
-.ico img{width:100%;height:100%;display:block;border-radius:19px}
-.ico::after{
-  content:"";position:absolute;left:12%;right:12%;bottom:-6px;height:22px;
-  border-radius:50%;background:var(--tint);filter:blur(16px);
-  opacity:0;transition:opacity .26s;
-}
-.app:hover .ico{transform:translateY(-7px) scale(1.055)}
-.app:hover .ico::after{opacity:.62}
-.app:active .ico{transform:translateY(-2px) scale(.99)}
-.lbl{
-  font-size:12px;line-height:1.3;text-align:center;color:#DAD5E2;
-  max-width:104px;
-}
+.void{padding:52px;text-align:center;color:var(--ink-3);font-size:14px;
+  border:1px dashed var(--line);border-radius:18px;margin-top:34px;background:#fff}
+.void[hidden],.reelwrap[hidden]{display:none}
 
-.void{
-  padding:56px;text-align:center;color:var(--muted);font-size:14px;
-  border:1px dashed var(--line);border-radius:20px;margin-top:38px;
-}
-.void[hidden]{display:none}
-
-footer{
-  position:relative;z-index:1;max-width:1080px;margin:52px auto 0;padding:22px 28px 190px;
-  border-top:1px solid var(--line);
-  display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
-  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
-}
+footer{max-width:1120px;margin:0 auto;padding:22px 26px calc(34px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
 
 @media (max-width:900px){ .wall{grid-template-columns:repeat(4,1fr)} }
-@media (max-width:560px){
-  .shell{padding:0 18px 72px}
-  .top{padding-top:48px}
-  .wall{grid-template-columns:repeat(3,1fr)}
-  .ico{width:64px;height:64px}
-  .fnote{display:none}
+@media (max-width:620px){
+  .bar{padding:11px 18px;gap:12px} .brand span{display:none}
+  main{padding-left:18px;padding-right:18px} .top{padding-top:30px}
+  .reel{padding-right:18px;margin-right:-18px} .slide{flex-basis:82vw}
+  .wall{grid-template-columns:repeat(3,1fr)} .ico{width:62px;height:62px}
+  .fnote{display:none} .nav{display:none}
 }
-@media (prefers-reduced-motion:reduce){
-  *{transition:none!important;animation:none!important}
-}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{transition:none!important} }
 </style>
 </head>
 <body>
 
-<div class="bg" aria-hidden="true">
-  <svg class="sky" viewBox="0 0 1600 520" preserveAspectRatio="xMidYMax slice"><rect x="-40" y="228" width="80" height="292" fill="#0d0d16"/><rect x="-33" y="266" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.26"/><rect x="-33" y="396" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.72"/><rect x="-33" y="474" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.37"/><rect x="-15" y="240" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.32"/><rect x="-15" y="318" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.72"/><rect x="3" y="292" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.21"/><rect x="3" y="318" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.81"/><rect x="21" y="266" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.4"/><rect x="21" y="292" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.34"/><rect x="21" y="318" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.75"/><rect x="21" y="370" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.79"/><rect x="21" y="474" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.79"/><rect x="21" y="500" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.48"/><rect x="55" y="228" width="107" height="292" fill="#0d0d16"/><rect x="62" y="344" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.39"/><rect x="80" y="240" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.38"/><rect x="80" y="266" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.7"/><rect x="80" y="292" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.76"/><rect x="80" y="422" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.58"/><rect x="80" y="500" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.47"/><rect x="98" y="266" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.5"/><rect x="98" y="318" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.68"/><rect x="98" y="344" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.45"/><rect x="98" y="370" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.31"/><rect x="98" y="500" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.46"/><rect x="116" y="370" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.37"/><rect x="116" y="396" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.21"/><rect x="116" y="422" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.37"/><rect x="116" y="474" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.44"/><rect x="116" y="500" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.51"/><rect x="134" y="292" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.41"/><rect x="134" y="344" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.68"/><rect x="134" y="448" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.65"/><rect x="134" y="474" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.49"/><rect x="134" y="500" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.49"/><rect x="185" y="351" width="88" height="169" fill="#0d0d16"/><rect x="192" y="363" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.42"/><rect x="192" y="493" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.46"/><rect x="228" y="389" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.25"/><rect x="228" y="441" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.27"/><rect x="246" y="441" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.24"/><rect x="282" y="206" width="116" height="314" fill="#0d0d16"/><rect x="289" y="218" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.63"/><rect x="289" y="244" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.34"/><rect x="289" y="322" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.29"/><rect x="307" y="218" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.8"/><rect x="307" y="400" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.4"/><rect x="307" y="504" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.21"/><rect x="325" y="374" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.26"/><rect x="343" y="244" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.31"/><rect x="343" y="270" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.85"/><rect x="343" y="400" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.87"/><rect x="361" y="322" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.38"/><rect x="361" y="400" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.39"/><rect x="361" y="478" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.85"/><rect x="361" y="504" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.81"/><rect x="379" y="218" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.2"/><rect x="379" y="452" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.33"/><rect x="413" y="130" width="100" height="390" fill="#0d0d16"/><rect x="420" y="142" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.65"/><rect x="420" y="168" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.32"/><rect x="420" y="194" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.58"/><rect x="420" y="298" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.24"/><rect x="420" y="428" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.7"/><rect x="420" y="454" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.27"/><rect x="438" y="168" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.18"/><rect x="438" y="220" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.18"/><rect x="438" y="350" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.22"/><rect x="438" y="454" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.72"/><rect x="438" y="506" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.58"/><rect x="456" y="168" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.67"/><rect x="456" y="220" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.4"/><rect x="456" y="246" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.75"/><rect x="456" y="298" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.81"/><rect x="456" y="324" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.78"/><rect x="456" y="454" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.53"/><rect x="456" y="480" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.23"/><rect x="474" y="142" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.45"/><rect x="474" y="168" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.58"/><rect x="474" y="194" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.27"/><rect x="474" y="350" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.84"/><rect x="474" y="402" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.63"/><rect x="474" y="480" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.53"/><rect x="492" y="194" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.81"/><rect x="492" y="246" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.51"/><rect x="492" y="324" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.57"/><rect x="492" y="428" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.49"/><rect x="492" y="454" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.4"/><rect x="492" y="506" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.75"/><rect x="525" y="161" width="54" height="359" fill="#0d0d16"/><rect x="532" y="199" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.24"/><rect x="532" y="277" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.52"/><rect x="532" y="329" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.33"/><rect x="532" y="355" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.4"/><rect x="532" y="433" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.69"/><rect x="550" y="251" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.3"/><rect x="550" y="355" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.63"/><rect x="550" y="381" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.55"/><rect x="550" y="407" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.57"/><rect x="550" y="459" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.29"/><rect x="550" y="485" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.87"/><rect x="596" y="58" width="83" height="462" fill="#0d0d16"/><rect x="603" y="200" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.73"/><rect x="603" y="226" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.55"/><rect x="603" y="252" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.6"/><rect x="603" y="278" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.89"/><rect x="603" y="304" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.64"/><rect x="603" y="330" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.43"/><rect x="603" y="356" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.47"/><rect x="603" y="408" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.53"/><rect x="603" y="460" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.56"/><rect x="621" y="96" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.57"/><rect x="621" y="148" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.37"/><rect x="621" y="200" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.4"/><rect x="621" y="304" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.62"/><rect x="621" y="330" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.48"/><rect x="621" y="434" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.46"/><rect x="621" y="486" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.71"/><rect x="639" y="70" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.86"/><rect x="639" y="174" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.33"/><rect x="639" y="252" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.59"/><rect x="639" y="382" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.56"/><rect x="639" y="408" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.74"/><rect x="657" y="70" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.76"/><rect x="657" y="96" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.86"/><rect x="657" y="122" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.46"/><rect x="657" y="200" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.45"/><rect x="657" y="278" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.85"/><rect x="657" y="304" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.39"/><rect x="657" y="408" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.76"/><rect x="657" y="460" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.86"/><rect x="686" y="351" width="93" height="169" fill="#0d0d16"/><rect x="693" y="415" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.78"/><rect x="693" y="441" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.57"/><rect x="693" y="467" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.49"/><rect x="711" y="389" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.19"/><rect x="729" y="363" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.21"/><rect x="729" y="389" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.23"/><rect x="729" y="441" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.74"/><rect x="747" y="389" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.81"/><rect x="747" y="415" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.5"/><rect x="765" y="363" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.35"/><rect x="765" y="493" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.85"/><rect x="789" y="186" width="101" height="334" fill="#0d0d16"/><rect x="796" y="224" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.81"/><rect x="796" y="406" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.61"/><rect x="796" y="432" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.47"/><rect x="814" y="198" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.52"/><rect x="814" y="224" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.36"/><rect x="814" y="354" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.61"/><rect x="814" y="406" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.36"/><rect x="814" y="484" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.44"/><rect x="832" y="198" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.82"/><rect x="832" y="328" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.43"/><rect x="832" y="406" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.59"/><rect x="832" y="458" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.25"/><rect x="850" y="224" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.27"/><rect x="850" y="250" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.51"/><rect x="850" y="302" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.25"/><rect x="850" y="380" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.43"/><rect x="850" y="458" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.52"/><rect x="868" y="250" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.8"/><rect x="868" y="354" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.34"/><rect x="868" y="458" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.59"/><rect x="911" y="102" width="115" height="418" fill="#0d0d16"/><rect x="918" y="192" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.34"/><rect x="918" y="244" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.73"/><rect x="918" y="296" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.47"/><rect x="918" y="348" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.34"/><rect x="918" y="374" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.26"/><rect x="936" y="218" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.35"/><rect x="936" y="244" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.85"/><rect x="936" y="348" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.2"/><rect x="936" y="426" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.5"/><rect x="954" y="114" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.61"/><rect x="954" y="166" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.9"/><rect x="954" y="218" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.79"/><rect x="954" y="244" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.18"/><rect x="954" y="478" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.68"/><rect x="972" y="140" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.22"/><rect x="972" y="166" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.2"/><rect x="972" y="296" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.72"/><rect x="972" y="374" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.62"/><rect x="990" y="114" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.43"/><rect x="990" y="140" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.87"/><rect x="990" y="166" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.37"/><rect x="990" y="348" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.69"/><rect x="990" y="374" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.6"/><rect x="990" y="452" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.48"/><rect x="1008" y="114" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.79"/><rect x="1008" y="218" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.78"/><rect x="1008" y="452" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.27"/><rect x="1008" y="504" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.43"/><rect x="1047" y="86" width="54" height="434" fill="#0d0d16"/><rect x="1054" y="150" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.2"/><rect x="1054" y="228" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.37"/><rect x="1054" y="254" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.23"/><rect x="1054" y="280" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.26"/><rect x="1054" y="488" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.9"/><rect x="1072" y="98" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.27"/><rect x="1072" y="228" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.44"/><rect x="1072" y="306" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.42"/><rect x="1072" y="332" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.52"/><rect x="1119" y="158" width="78" height="362" fill="#0d0d16"/><rect x="1126" y="170" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.78"/><rect x="1126" y="274" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.5"/><rect x="1126" y="326" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.82"/><rect x="1126" y="352" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.38"/><rect x="1144" y="300" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.84"/><rect x="1144" y="378" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.86"/><rect x="1144" y="456" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.87"/><rect x="1144" y="482" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.34"/><rect x="1162" y="404" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.27"/><rect x="1162" y="482" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.64"/><rect x="1180" y="170" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.8"/><rect x="1180" y="222" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.82"/><rect x="1180" y="248" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.22"/><rect x="1180" y="352" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.5"/><rect x="1180" y="456" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.46"/><rect x="1204" y="174" width="93" height="346" fill="#0d0d16"/><rect x="1211" y="186" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.47"/><rect x="1211" y="212" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.72"/><rect x="1211" y="264" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.84"/><rect x="1211" y="290" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.73"/><rect x="1211" y="316" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.5"/><rect x="1211" y="446" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.76"/><rect x="1229" y="316" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.74"/><rect x="1229" y="368" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.85"/><rect x="1229" y="472" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.76"/><rect x="1247" y="290" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.28"/><rect x="1247" y="342" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.44"/><rect x="1247" y="368" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.39"/><rect x="1247" y="446" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.72"/><rect x="1247" y="472" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.49"/><rect x="1265" y="186" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.41"/><rect x="1265" y="290" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.59"/><rect x="1265" y="394" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.26"/><rect x="1265" y="420" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.65"/><rect x="1283" y="238" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.48"/><rect x="1283" y="264" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.3"/><rect x="1283" y="420" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.68"/><rect x="1283" y="498" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.78"/><rect x="1320" y="178" width="52" height="342" fill="#0d0d16"/><rect x="1327" y="268" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.57"/><rect x="1327" y="294" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.25"/><rect x="1327" y="398" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.5"/><rect x="1327" y="424" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.66"/><rect x="1327" y="450" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.44"/><rect x="1327" y="476" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.79"/><rect x="1327" y="502" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.72"/><rect x="1345" y="294" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.3"/><rect x="1345" y="320" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.77"/><rect x="1345" y="398" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.87"/><rect x="1345" y="424" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.43"/><rect x="1378" y="355" width="67" height="165" fill="#0d0d16"/><rect x="1385" y="367" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.6"/><rect x="1385" y="419" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.81"/><rect x="1403" y="471" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.68"/><rect x="1403" y="497" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.27"/><rect x="1421" y="471" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.71"/><rect x="1460" y="348" width="107" height="172" fill="#0d0d16"/><rect x="1467" y="360" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.27"/><rect x="1467" y="412" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.71"/><rect x="1467" y="438" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.23"/><rect x="1503" y="386" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.75"/><rect x="1503" y="438" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.75"/><rect x="1503" y="490" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.57"/><rect x="1521" y="360" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.78"/><rect x="1521" y="386" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.26"/><rect x="1521" y="438" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.88"/><rect x="1521" y="464" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.21"/><rect x="1539" y="386" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.9"/><rect x="1539" y="412" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.74"/><rect x="1539" y="438" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.66"/><rect x="1539" y="490" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.75"/><rect x="1583" y="352" width="112" height="168" fill="#0d0d16"/><rect x="1590" y="364" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.36"/><rect x="1590" y="468" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.29"/><rect x="1590" y="494" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.66"/><rect x="1608" y="390" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.73"/><rect x="1626" y="364" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.73"/><rect x="1626" y="494" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.86"/><rect x="1644" y="442" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.81"/><rect x="1644" y="494" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.44"/><rect x="1662" y="364" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.52"/><rect x="1662" y="390" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.84"/><rect x="1680" y="416" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.58"/><rect x="1680" y="494" width="7" height="11" rx="1" fill="#C9A6E8" opacity="0.45"/></svg>
-  <div class="haze"></div>
-  <div class="grain"></div>
-</div>
-
-<div class="shell">
-  <header class="top">
-    <div class="mark"><i></i> connectia · app hub</div>
-    <h1>Todo tu trabajo<br><span>en una pantalla</span></h1>
-    <p class="sub">Dieciséis plataformas, cada una en su propia ventana. Escribe para encontrar cualquiera.</p>
-
+<header>
+  <div class="bar">
+    <a class="brand" href="#top">
+      <img src="iconos/connectia.png?v=3cc52ec8" alt="">
+      <b>App Hub</b><span>Connectia</span>
+    </a>
     <div class="spot">
       <svg class="mag" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
-      <input id="q" type="search" placeholder="Buscar plataforma" autocomplete="off" spellcheck="false" aria-label="Buscar plataforma">
-      <span class="slash">/</span>
+      <input id="q" type="search" placeholder="Buscar" autocomplete="off" spellcheck="false" aria-label="Buscar plataforma">
     </div>
-  </header>
+  </div>
+</header>
+
+<main id="top">
+  <section class="top">
+    <div class="eyebrow">Un solo lugar</div>
+    <h1>Todo tu trabajo, a un clic</h1>
+    <p class="sub">Dieciocho plataformas, cada una en su propia ventana. Escribe para encontrar cualquiera.</p>
+  </section>
+
+  <div class="reelwrap" id="reelwrap">
+    <div class="reelhead">
+      <h2>Destacadas</h2>
+      <span>Así se ven por dentro</span>
+      <div class="nav">
+        <button id="prev" aria-label="Anterior">&#8249;</button>
+        <button id="next" aria-label="Siguiente">&#8250;</button>
+      </div>
+    </div>
+    <div class="reel" id="reel">
+      <a class="slide" href="https://connectia.mx/SitiosConnectia/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/sitios.jpg?v=3cc52ec8" alt="Vista previa de Sitios" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/sitios.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Sitios</b><span>Operación, inventario y territorio</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/geonexa/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/geonexa.jpg?v=3cc52ec8" alt="Vista previa de Geonexa" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/geonexa.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Geonexa</b><span>Operación, inventario y territorio</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/RecorridoRoger/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/recorrido.jpg?v=3cc52ec8" alt="Vista previa de Recorrido" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/recorrido.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Recorrido</b><span>Operación, inventario y territorio</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/cotizador-proyectos/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/cot-proyectos.jpg?v=3cc52ec8" alt="Vista previa de Cotizador Proyectos" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/cot-proyectos.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Cotizador Proyectos</b><span>Operación, inventario y territorio</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/cotizador-flotillas/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/cot-flotillas.jpg?v=3cc52ec8" alt="Vista previa de Cotizador Flotillas" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/cot-flotillas.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Cotizador Flotillas</b><span>Operación, inventario y territorio</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/rh-analisis/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/rh.jpg?v=3cc52ec8" alt="Vista previa de Análisis RH" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/rh.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Análisis RH</b><span>Evaluación y análisis de candidatos</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/psicometrica/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/psico.jpg?v=3cc52ec8" alt="Vista previa de Psicométrica" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/psico.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Psicométrica</b><span>Evaluación y análisis de candidatos</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/claude-desde-cero/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/claude.jpg?v=3cc52ec8" alt="Vista previa de Claude desde cero" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/claude.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Claude desde cero</b><span>Playbooks, ebooks y landing</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/negocio-en-internet/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/internet.jpg?v=3cc52ec8" alt="Vista previa de Negocio en Internet" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/internet.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Negocio en Internet</b><span>Playbooks, ebooks y landing</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/papeles-en-orden/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/papeles.jpg?v=3cc52ec8" alt="Vista previa de Papeles en Orden" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/papeles.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Papeles en Orden</b><span>Playbooks, ebooks y landing</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/no-te-dejes-robar/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/robar.jpg?v=3cc52ec8" alt="Vista previa de No te Dejes Robar" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/robar.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>No te Dejes Robar</b><span>Playbooks, ebooks y landing</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/ebook-es/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/ebook-es.jpg?v=3cc52ec8" alt="Vista previa de Ebook ES" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/ebook-es.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Ebook ES</b><span>Playbooks, ebooks y landing</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/ebook-en/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/ebook-en.jpg?v=3cc52ec8" alt="Vista previa de Ebook EN" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/ebook-en.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Ebook EN</b><span>Playbooks, ebooks y landing</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://connectia.mx/claude-landing/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/landing.jpg?v=3cc52ec8" alt="Vista previa de Landing" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/landing.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Landing</b><span>Playbooks, ebooks y landing</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+      <a class="slide" href="https://arhcarrasco-cloud.github.io/vision-board/" target="_blank" rel="noopener">
+        <span class="shot"><img src="previews/vision.jpg?v=3cc52ec8" alt="Vista previa de Vision Board" loading="lazy"></span>
+        <span class="meta">
+          <img class="chip" src="iconos/vision.png?v=3cc52ec8" alt="" width="52" height="52">
+          <span class="txt"><b>Vision Board</b><span>Metas a 3, 5 y 10 años · fuera de connectia.mx</span></span>
+          <span class="open">Abrir</span>
+        </span>
+      </a>
+    </div>
+  </div>
 
     <section class="folder" data-folder="Connectia">
       <button class="fhead" aria-expanded="true">
         <span class="chev" aria-hidden="true"></span>
         <span class="fname">Connectia</span>
         <span class="fnote">Operación, inventario y territorio</span>
-        <span class="fcount">6</span>
+        <span class="fcount">8</span>
       </button>
       <div class="wall">
-        <a class="app" href="https://connectia.mx/" target="_blank" rel="noopener"
-           data-q="connectia connectia" style="--tint:#A93FB4">
-          <span class="ico"><img src="iconos/connectia.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/" target="_blank" rel="noopener" data-q="connectia connectia">
+          <span class="ico"><img src="iconos/connectia.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Connectia</span>
         </a>
-        <a class="app" href="https://connectia.mx/SitiosConnectia/" target="_blank" rel="noopener"
-           data-q="sitios connectia" style="--tint:#C567D6">
-          <span class="ico"><img src="iconos/sitios.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/SitiosConnectia/" target="_blank" rel="noopener" data-q="sitios connectia">
+          <span class="ico"><img src="iconos/sitios.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Sitios</span>
         </a>
-        <a class="app" href="https://connectia.mx/geonexa/" target="_blank" rel="noopener"
-           data-q="geonexa connectia" style="--tint:#4FD6B4">
-          <span class="ico"><img src="iconos/geonexa.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/geonexa/" target="_blank" rel="noopener" data-q="geonexa connectia">
+          <span class="ico"><img src="iconos/geonexa.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Geonexa</span>
         </a>
-        <a class="app" href="https://flotillas.connectia.mx/" target="_blank" rel="noopener"
-           data-q="flotillas connectia" style="--tint:#DE7BEF">
-          <span class="ico"><img src="iconos/flotillas.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://flotillas.connectia.mx/" target="_blank" rel="noopener" data-q="flotillas connectia">
+          <span class="ico"><img src="iconos/flotillas.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Flotillas</span>
         </a>
-        <a class="app" href="https://erp.connectia.mx" target="_blank" rel="noopener"
-           data-q="erp connectia" style="--tint:#6E8CEC">
-          <span class="ico"><img src="iconos/erp.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://erp.connectia.mx" target="_blank" rel="noopener" data-q="erp connectia">
+          <span class="ico"><img src="iconos/erp.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">ERP</span>
         </a>
-        <a class="app" href="https://connectia.mx/RecorridoRoger/" target="_blank" rel="noopener"
-           data-q="recorrido connectia" style="--tint:#54AEF2">
-          <span class="ico"><img src="iconos/recorrido.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/RecorridoRoger/" target="_blank" rel="noopener" data-q="recorrido connectia">
+          <span class="ico"><img src="iconos/recorrido.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Recorrido</span>
+        </a>
+        <a class="app" href="https://connectia.mx/cotizador-proyectos/" target="_blank" rel="noopener" data-q="cotizador proyectos connectia">
+          <span class="ico"><img src="iconos/cot-proyectos.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
+          <span class="lbl">Cotizador Proyectos</span>
+        </a>
+        <a class="app" href="https://connectia.mx/cotizador-flotillas/" target="_blank" rel="noopener" data-q="cotizador flotillas connectia">
+          <span class="ico"><img src="iconos/cot-flotillas.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
+          <span class="lbl">Cotizador Flotillas</span>
         </a>
       </div>
     </section>
@@ -254,14 +343,12 @@ footer{
         <span class="fcount">2</span>
       </button>
       <div class="wall">
-        <a class="app" href="https://connectia.mx/rh-analisis/" target="_blank" rel="noopener"
-           data-q="análisis rh talento" style="--tint:#5AE8AE">
-          <span class="ico"><img src="iconos/rh.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/rh-analisis/" target="_blank" rel="noopener" data-q="análisis rh talento">
+          <span class="ico"><img src="iconos/rh.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Análisis RH</span>
         </a>
-        <a class="app" href="https://connectia.mx/psicometrica/" target="_blank" rel="noopener"
-           data-q="psicométrica talento" style="--tint:#F062BE">
-          <span class="ico"><img src="iconos/psico.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/psicometrica/" target="_blank" rel="noopener" data-q="psicométrica talento">
+          <span class="ico"><img src="iconos/psico.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Psicométrica</span>
         </a>
       </div>
@@ -274,39 +361,32 @@ footer{
         <span class="fcount">7</span>
       </button>
       <div class="wall">
-        <a class="app" href="https://connectia.mx/claude-desde-cero/" target="_blank" rel="noopener"
-           data-q="claude desde cero guías" style="--tint:#F0B75E">
-          <span class="ico"><img src="iconos/claude.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/claude-desde-cero/" target="_blank" rel="noopener" data-q="claude desde cero guías">
+          <span class="ico"><img src="iconos/claude.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Claude desde cero</span>
         </a>
-        <a class="app" href="https://connectia.mx/negocio-en-internet/" target="_blank" rel="noopener"
-           data-q="negocio en internet guías" style="--tint:#5AC8E8">
-          <span class="ico"><img src="iconos/internet.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/negocio-en-internet/" target="_blank" rel="noopener" data-q="negocio en internet guías">
+          <span class="ico"><img src="iconos/internet.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Negocio en Internet</span>
         </a>
-        <a class="app" href="https://connectia.mx/papeles-en-orden/" target="_blank" rel="noopener"
-           data-q="papeles en orden guías" style="--tint:#EFC96A">
-          <span class="ico"><img src="iconos/papeles.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/papeles-en-orden/" target="_blank" rel="noopener" data-q="papeles en orden guías">
+          <span class="ico"><img src="iconos/papeles.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Papeles en Orden</span>
         </a>
-        <a class="app" href="https://connectia.mx/no-te-dejes-robar/" target="_blank" rel="noopener"
-           data-q="no te dejes robar guías" style="--tint:#F07A7A">
-          <span class="ico"><img src="iconos/robar.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/no-te-dejes-robar/" target="_blank" rel="noopener" data-q="no te dejes robar guías">
+          <span class="ico"><img src="iconos/robar.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">No te Dejes Robar</span>
         </a>
-        <a class="app" href="https://connectia.mx/ebook-es/" target="_blank" rel="noopener"
-           data-q="ebook es guías" style="--tint:#E8A85A">
-          <span class="ico"><img src="iconos/ebook-es.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/ebook-es/" target="_blank" rel="noopener" data-q="ebook es guías">
+          <span class="ico"><img src="iconos/ebook-es.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Ebook ES</span>
         </a>
-        <a class="app" href="https://connectia.mx/ebook-en/" target="_blank" rel="noopener"
-           data-q="ebook en guías" style="--tint:#B98CEF">
-          <span class="ico"><img src="iconos/ebook-en.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/ebook-en/" target="_blank" rel="noopener" data-q="ebook en guías">
+          <span class="ico"><img src="iconos/ebook-en.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Ebook EN</span>
         </a>
-        <a class="app" href="https://connectia.mx/claude-landing/" target="_blank" rel="noopener"
-           data-q="landing guías" style="--tint:#8CA0F0">
-          <span class="ico"><img src="iconos/landing.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://connectia.mx/claude-landing/" target="_blank" rel="noopener" data-q="landing guías">
+          <span class="ico"><img src="iconos/landing.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Landing</span>
         </a>
       </div>
@@ -319,20 +399,19 @@ footer{
         <span class="fcount">1</span>
       </button>
       <div class="wall">
-        <a class="app" href="https://arhcarrasco-cloud.github.io/vision-board/" target="_blank" rel="noopener"
-           data-q="vision board personal" style="--tint:#EFAE5A">
-          <span class="ico"><img src="iconos/vision.png" alt="" loading="lazy" width="112" height="112"></span>
+        <a class="app" href="https://arhcarrasco-cloud.github.io/vision-board/" target="_blank" rel="noopener" data-q="vision board personal">
+          <span class="ico"><img src="iconos/vision.png?v=3cc52ec8" alt="" loading="lazy" width="112" height="112"></span>
           <span class="lbl">Vision Board</span>
         </a>
       </div>
     </section>
 
   <p class="void" id="void" hidden>Nada con ese nombre.</p>
-</div>
+</main>
 
 <footer>
   <span>Facilitadores Publicitarios HS</span>
-  <span id="stamp"></span>
+  <span>Build 3cc52ec8 · <span id="stamp"></span></span>
 </footer>
 
 <script>
@@ -340,57 +419,66 @@ const q = document.getElementById("q");
 const apps = [...document.querySelectorAll(".app")];
 const folders = [...document.querySelectorAll(".folder")];
 const voidMsg = document.getElementById("void");
+const reelwrap = document.getElementById("reelwrap");
 
-/* carpetas: abrir y cerrar, con estado recordado */
 const SHUT = "hub-carpetas-cerradas";
 let shut = new Set(JSON.parse(localStorage.getItem(SHUT) || "[]"));
-
 folders.forEach(f => {
-  const name = f.dataset.folder;
-  const head = f.querySelector(".fhead");
-  if (shut.has(name)) { f.classList.add("shut"); head.setAttribute("aria-expanded", "false"); }
+  const name = f.dataset.folder, head = f.querySelector(".fhead");
+  if (shut.has(name)) { f.classList.add("shut"); head.setAttribute("aria-expanded","false"); }
   head.addEventListener("click", () => {
-    const nowShut = f.classList.toggle("shut");
-    head.setAttribute("aria-expanded", String(!nowShut));
-    nowShut ? shut.add(name) : shut.delete(name);
+    const cerrada = f.classList.toggle("shut");
+    head.setAttribute("aria-expanded", String(!cerrada));
+    cerrada ? shut.add(name) : shut.delete(name);
     localStorage.setItem(SHUT, JSON.stringify([...shut]));
   });
 });
 
-/* búsqueda: filtra y abre todo mientras se escribe */
 function filter() {
   const term = q.value.trim().toLowerCase();
   let hits = 0;
-
   apps.forEach(a => {
     const on = !term || a.dataset.q.includes(term);
     a.style.display = on ? "" : "none";
     if (on) hits++;
   });
-
   folders.forEach(f => {
-    const live = [...f.querySelectorAll(".app")].some(a => a.style.display !== "none");
-    f.hidden = !live;
+    f.hidden = ![...f.querySelectorAll(".app")].some(a => a.style.display !== "none");
     if (term) f.classList.remove("shut");
     else if (shut.has(f.dataset.folder)) f.classList.add("shut");
   });
-
+  reelwrap.hidden = !!term;
   voidMsg.hidden = hits > 0;
 }
-
 q.addEventListener("input", filter);
 
 document.addEventListener("keydown", e => {
   if (e.key === "/" && document.activeElement !== q) { e.preventDefault(); q.focus(); }
-  if (e.key === "Escape" && document.activeElement === q) { q.value = ""; q.blur(); filter(); }
+  if (e.key === "Escape" && document.activeElement === q) { q.value=""; q.blur(); filter(); }
   if (e.key === "Enter" && document.activeElement === q) {
     const first = apps.find(a => a.style.display !== "none");
     if (first) window.open(first.href, "_blank", "noopener");
   }
 });
 
+const reel = document.getElementById("reel");
+const prev = document.getElementById("prev");
+const next = document.getElementById("next");
+if (reel && reel.querySelector(".slide")) {
+  const salto = () => reel.querySelector(".slide").getBoundingClientRect().width + 18;
+  prev.addEventListener("click", () => reel.scrollBy({ left: -salto(), behavior: "smooth" }));
+  next.addEventListener("click", () => reel.scrollBy({ left:  salto(), behavior: "smooth" }));
+  const estado = () => {
+    prev.disabled = reel.scrollLeft < 8;
+    next.disabled = reel.scrollLeft + reel.clientWidth >= reel.scrollWidth - 8;
+  };
+  reel.addEventListener("scroll", estado, { passive: true });
+  window.addEventListener("resize", estado);
+  estado();
+}
+
 document.getElementById("stamp").textContent =
-  new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
+  new Date().toLocaleDateString("es-MX", { day:"2-digit", month:"short", year:"numeric" });
 </script>
 </body>
 </html>

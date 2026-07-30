@@ -1,0 +1,225 @@
+{
+  "_lee_esto": "Fuente única de verdad del App Hub. Agrega, quita o edita apps aquí y corre _hub/publicar.sh. El campo 'ruta' es la carpeta dentro del repo (null si el sitio vive fuera).",
+  "carpetas": [
+    {
+      "nombre": "Connectia",
+      "nota": "Operación, inventario y territorio"
+    },
+    {
+      "nombre": "Talento",
+      "nota": "Evaluación y análisis de candidatos"
+    },
+    {
+      "nombre": "Guías",
+      "nota": "Playbooks, ebooks y landing"
+    },
+    {
+      "nombre": "Personal",
+      "nota": "Metas a 3, 5 y 10 años · fuera de connectia.mx"
+    }
+  ],
+  "apps": [
+    {
+      "id": "connectia",
+      "nombre": "Connectia",
+      "carpeta": "Connectia",
+      "ruta": ".",
+      "url": "https://connectia.mx/",
+      "glifo": "logo",
+      "hi": "#A93FB4",
+      "lo": "#5E1E64",
+      "app_mac": true
+    },
+    {
+      "id": "sitios",
+      "nombre": "Sitios",
+      "carpeta": "Connectia",
+      "ruta": "SitiosConnectia",
+      "url": "https://connectia.mx/SitiosConnectia/",
+      "glifo": "billboard",
+      "hi": "#C567D6",
+      "lo": "#7A2184",
+      "app_mac": true
+    },
+    {
+      "id": "geonexa",
+      "nombre": "Geonexa",
+      "carpeta": "Connectia",
+      "ruta": "geonexa",
+      "url": "https://connectia.mx/geonexa/",
+      "glifo": "pin",
+      "hi": "#4FD6B4",
+      "lo": "#12665C",
+      "app_mac": true
+    },
+    {
+      "id": "flotillas",
+      "nombre": "Flotillas",
+      "carpeta": "Connectia",
+      "ruta": null,
+      "url": "https://flotillas.connectia.mx/",
+      "glifo": "van",
+      "hi": "#DE7BEF",
+      "lo": "#6E1B80",
+      "app_mac": true,
+      "externo": "Next.js, deploy propio"
+    },
+    {
+      "id": "erp",
+      "nombre": "ERP",
+      "carpeta": "Connectia",
+      "ruta": null,
+      "url": "https://erp.connectia.mx",
+      "glifo": "capas",
+      "hi": "#6E8CEC",
+      "lo": "#22307E",
+      "app_mac": true,
+      "externo": "app propia, deploy propio"
+    },
+    {
+      "id": "recorrido",
+      "nombre": "Recorrido",
+      "carpeta": "Connectia",
+      "ruta": "RecorridoRoger",
+      "url": "https://connectia.mx/RecorridoRoger/",
+      "glifo": "ruta",
+      "hi": "#54AEF2",
+      "lo": "#0A4292",
+      "app_mac": true
+    },
+    {
+      "id": "cot-proyectos",
+      "nombre": "Cotizador Proyectos",
+      "carpeta": "Connectia",
+      "ruta": "cotizador-proyectos",
+      "url": "https://connectia.mx/cotizador-proyectos/",
+      "glifo": "calculadora",
+      "hi": "#9B6CE0",
+      "lo": "#3E1E80",
+      "app_mac": true
+    },
+    {
+      "id": "cot-flotillas",
+      "nombre": "Cotizador Flotillas",
+      "carpeta": "Connectia",
+      "ruta": "cotizador-flotillas",
+      "url": "https://connectia.mx/cotizador-flotillas/",
+      "glifo": "etiqueta",
+      "hi": "#3EC0E8",
+      "lo": "#0E5E7E",
+      "app_mac": true
+    },
+    {
+      "id": "rh",
+      "nombre": "Análisis RH",
+      "carpeta": "Talento",
+      "ruta": "rh-analisis",
+      "url": "https://connectia.mx/rh-analisis/",
+      "glifo": "tablero",
+      "hi": "#5AE8AE",
+      "lo": "#128052",
+      "app_mac": true
+    },
+    {
+      "id": "psico",
+      "nombre": "Psicométrica",
+      "carpeta": "Talento",
+      "ruta": "psicometrica",
+      "url": "https://connectia.mx/psicometrica/",
+      "glifo": "radar",
+      "hi": "#F062BE",
+      "lo": "#7E1560",
+      "app_mac": true
+    },
+    {
+      "id": "claude",
+      "nombre": "Claude desde cero",
+      "carpeta": "Guías",
+      "ruta": "claude-desde-cero",
+      "url": "https://connectia.mx/claude-desde-cero/",
+      "glifo": "libro",
+      "hi": "#F0B75E",
+      "lo": "#7E4E12",
+      "app_mac": true
+    },
+    {
+      "id": "internet",
+      "nombre": "Negocio en Internet",
+      "carpeta": "Guías",
+      "ruta": "negocio-en-internet",
+      "url": "https://connectia.mx/negocio-en-internet/",
+      "glifo": "globo",
+      "hi": "#5AC8E8",
+      "lo": "#125E80",
+      "app_mac": true
+    },
+    {
+      "id": "papeles",
+      "nombre": "Papeles en Orden",
+      "carpeta": "Guías",
+      "ruta": "papeles-en-orden",
+      "url": "https://connectia.mx/papeles-en-orden/",
+      "glifo": "docs",
+      "hi": "#EFC96A",
+      "lo": "#7E5E12",
+      "app_mac": true
+    },
+    {
+      "id": "robar",
+      "nombre": "No te Dejes Robar",
+      "carpeta": "Guías",
+      "ruta": "no-te-dejes-robar",
+      "url": "https://connectia.mx/no-te-dejes-robar/",
+      "glifo": "escudo",
+      "hi": "#F07A7A",
+      "lo": "#801C1C",
+      "app_mac": true
+    },
+    {
+      "id": "ebook-es",
+      "nombre": "Ebook ES",
+      "carpeta": "Guías",
+      "ruta": "ebook-es",
+      "url": "https://connectia.mx/ebook-es/",
+      "glifo": "ebook:ES",
+      "hi": "#E8A85A",
+      "lo": "#7E5212",
+      "app_mac": true
+    },
+    {
+      "id": "ebook-en",
+      "nombre": "Ebook EN",
+      "carpeta": "Guías",
+      "ruta": "ebook-en",
+      "url": "https://connectia.mx/ebook-en/",
+      "glifo": "ebook:EN",
+      "hi": "#B98CEF",
+      "lo": "#4E2280",
+      "app_mac": true
+    },
+    {
+      "id": "landing",
+      "nombre": "Landing",
+      "carpeta": "Guías",
+      "ruta": "claude-landing",
+      "url": "https://connectia.mx/claude-landing/",
+      "glifo": "navegador",
+      "hi": "#8CA0F0",
+      "lo": "#2A3480",
+      "app_mac": true
+    },
+    {
+      "id": "vision",
+      "nombre": "Vision Board",
+      "carpeta": "Personal",
+      "ruta": null,
+      "url": "https://arhcarrasco-cloud.github.io/vision-board/",
+      "glifo": "diana",
+      "hi": "#EFAE5A",
+      "lo": "#7E5212",
+      "app_mac": true,
+      "repo_externo": "arhcarrasco-cloud/vision-board",
+      "preview_local": "~/Documents/Claude/Artifacts/vision-board-roger/index.html"
+    }
+  ]
+}

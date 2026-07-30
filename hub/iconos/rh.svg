@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1024" height="1024" viewBox="0 0 1024 1024">
+ <defs>
+  <linearGradient id="t" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5AE8AE"/><stop offset="1" stop-color="#128052"/></linearGradient>
+  <linearGradient id="s" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity=".26"/>
+    <stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <filter id="d" x="-30%" y="-30%" width="160%" height="160%">
+    <feDropShadow dx="0" dy="20" stdDeviation="26" flood-color="#000" flood-opacity=".34"/></filter>
+  <filter id="g" x="-30%" y="-30%" width="160%" height="160%">
+    <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity=".22"/></filter>
+  <clipPath id="c"><rect x="92" y="92" width="840" height="840" rx="200"/></clipPath>
+ </defs>
+ <g filter="url(#d)"><rect x="92" y="92" width="840" height="840" rx="200" fill="url(#t)"/></g>
+ <g clip-path="url(#c)"><rect x="92" y="92" width="840" height="420" fill="url(#s)"/></g>
+ <rect x="94" y="94" width="836" height="836" rx="198" fill="none"
+       stroke="#fff" stroke-opacity=".22" stroke-width="3"/>
+ <g filter="url(#g)" transform="translate(260.00,260.00) scale(0.98438)">
+  <rect x="104" y="86" width="304" height="376" rx="34" fill="#fff"/>
+  <rect x="196" y="52" width="120" height="66" rx="26" fill="#fff"/>
+  <rect x="196" y="52" width="120" height="66" rx="26" fill="#000" opacity=".22"/>
+  <rect x="162" y="304" width="46" height="98"  rx="11" fill="#000" opacity=".34"/>
+  <rect x="233" y="252" width="46" height="150" rx="11" fill="#000" opacity=".46"/>
+  <rect x="304" y="196" width="46" height="206" rx="11" fill="#000" opacity=".34"/>
+  <path d="M162 172 H350" stroke="#000" stroke-width="24" opacity=".22" stroke-linecap="round"/></g>
+</svg>
