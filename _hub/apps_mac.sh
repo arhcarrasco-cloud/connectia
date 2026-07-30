@@ -11,6 +11,9 @@ mkdir -p "$LOCAL/iconos"
 cp "$ROOT/hub/index.html"    "$LOCAL/index.html"
 cp "$ROOT/hub/manifest.json" "$LOCAL/manifest.json"
 cp "$ROOT/hub/iconos/"*.png  "$LOCAL/iconos/"
+mkdir -p "$LOCAL/previews"
+cp "$ROOT/hub/previews/"*.jpg "$LOCAL/previews/" 2>/dev/null || true
+rm -rf "$LOCAL/icons"
 
 # .icns
 ICNS="$LOCAL/icns"; rm -rf "$ICNS"; mkdir -p "$ICNS"
