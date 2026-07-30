@@ -60,7 +60,7 @@ PLIST
   touch "$APP"
 }
 
-crear "Connectia App Hub" "file://$LOCAL/index.html" "connectia"
+crear "Connectia App Hub" "https://connectia.mx/hub/" "connectia"
 
 python3 - "$ROOT/_hub/catalogo.json" <<'PY' | while IFS='|' read -r n u i; do crear "$n" "$u" "$i"; done
 import json, sys

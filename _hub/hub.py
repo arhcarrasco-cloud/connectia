@@ -185,6 +185,17 @@ h1{{font-family:var(--display);font-weight:700;font-size:clamp(34px,4.6vw,52px);
   border:1px dashed var(--line);border-radius:18px;margin-top:34px;background:#fff}}
 .void[hidden],.reelwrap[hidden]{{display:none}}
 
+.instalar{{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));
+  z-index:40;display:flex;align-items:center;gap:12px;
+  background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;
+  box-shadow:0 18px 44px -18px rgba(23,19,26,.5);font-size:13.5px;line-height:1.4}}
+.instalar[hidden]{{display:none}}
+.instalar img{{border-radius:9px;flex-shrink:0}}
+.instalar span{{flex:1;color:var(--ink-2)}}
+.instalar b{{color:var(--ink)}}
+.instalar button{{flex-shrink:0;width:28px;height:28px;border-radius:50%;border:none;
+  background:#EDEAF0;color:var(--ink-2);font-size:17px;line-height:1;cursor:pointer}}
+
 footer{{max-width:1120px;margin:0 auto;padding:22px 26px calc(34px + env(safe-area-inset-bottom));
   border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;
   flex-wrap:wrap;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}}
@@ -240,6 +251,12 @@ footer{{max-width:1120px;margin:0 auto;padding:22px 26px calc(34px + env(safe-ar
 
   <p class="void" id="void" hidden>Nada con ese nombre.</p>
 </main>
+
+<div class="instalar" id="instalar" hidden>
+  <img src="iconos/apple-touch.png?v={sello}" alt="" width="38" height="38">
+  <span>Instálalo: toca <b>Compartir</b> y luego <b>Añadir a pantalla de inicio</b>.</span>
+  <button id="cerrarInstalar" aria-label="Cerrar">&times;</button>
+</div>
 
 <footer>
   <span>Facilitadores Publicitarios HS</span>
@@ -308,6 +325,25 @@ if (reel && reel.querySelector(".slide")) {{
   window.addEventListener("resize", estado);
   estado();
 }}
+
+/* offline en Mac y iPhone */
+if ("serviceWorker" in navigator) {{
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {{}}));
+}}
+
+/* en Safari de iPhone, y solo si aún no está instalado, recuerda cómo instalarlo */
+(() => {{
+  const banner = document.getElementById("instalar");
+  const esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const yaInstalado = window.navigator.standalone === true ||
+                      window.matchMedia("(display-mode: standalone)").matches;
+  const oculto = localStorage.getItem("hub-instalar-oculto") === "1";
+  if (esIOS && !yaInstalado && !oculto) banner.hidden = false;
+  document.getElementById("cerrarInstalar").addEventListener("click", () => {{
+    banner.hidden = true;
+    localStorage.setItem("hub-instalar-oculto", "1");
+  }});
+}})();
 
 document.getElementById("stamp").textContent =
   new Date().toLocaleDateString("es-MX", {{ day:"2-digit", month:"short", year:"numeric" }});
