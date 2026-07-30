@@ -34,7 +34,7 @@ if ('serviceWorker' in navigator) {
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;overflow:hidden}
 #map{width:100%;height:100%}
-#topbar{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.08);z-index:100;display:flex;align-items:center;padding:0 16px;gap:14px}
+#topbar{position:fixed;top:0;left:0;right:0;height:76px;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.08);z-index:100;display:flex;align-items:center;padding:0 16px;gap:14px}
 .logo{font-size:20px;font-weight:800;color:#872B90;flex-shrink:0;letter-spacing:-.3px}
 .logo span{color:#86868b}
 .tmenu-item{padding:4px 10px;font-size:12px;font-weight:500;color:#424245;cursor:pointer;border-radius:5px;transition:background .15s;white-space:nowrap}
@@ -47,7 +47,7 @@ html,body{width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,'S
 .sug-item{padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f5f5f7}
 .sug-item:hover{background:#f5f5f7}
 #coords{font-size:11px;color:#64748b;font-family:'SF Mono',Monaco,monospace;flex-shrink:0;margin-left:auto}
-#toolbar{position:fixed;top:74px;left:12px;z-index:90;background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-radius:12px;padding:6px;border:1px solid rgba(0,0,0,.06);box-shadow:0 1px 4px rgba(0,0,0,.04);display:grid;grid-template-columns:1fr 1fr;gap:2px;width:96px}
+#toolbar{position:fixed;top:86px;left:12px;z-index:90;background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-radius:12px;padding:6px;border:1px solid rgba(0,0,0,.06);box-shadow:0 1px 4px rgba(0,0,0,.04);display:grid;grid-template-columns:1fr 1fr;gap:2px;width:96px}
 .tb{width:42px;height:44px;border:none;border-radius:8px;background:transparent;cursor:pointer;font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:all .2s;position:relative;color:#1d1d1f;padding:2px 0}
 .tb .tb-lbl{font-size:6px;font-weight:600;color:#86868b;letter-spacing:-.2px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40px}
 .tb:hover{background:rgba(0,0,0,.05)}
@@ -99,7 +99,7 @@ html,body{width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,'S
 .src{font-size:9px;color:#94a3b8;padding:10px 16px;border-top:1px solid #f1f5f9;text-align:center}
 select{width:100%;padding:7px 10px;border:1px solid #d2d2d7;border-radius:8px;font-size:12px;margin-bottom:8px;outline:none;background:#f5f5f7;transition:border-color .2s}
 select:focus{border-color:#0071e3}
-.ai-box{display:flex;flex-direction:column;height:calc(100vh - 216px)}
+.ai-box{display:flex;flex-direction:column;height:calc(100vh - 228px)}
 #ai-msgs{flex:1;overflow-y:auto;padding:8px 0}
 .ai-msg{padding:8px 10px;margin:4px 0;border-radius:8px;font-size:12px;line-height:1.5}
 .ai-msg.user{background:#e8e8ed;text-align:right}
@@ -129,7 +129,7 @@ select:focus{border-color:#0071e3}
 #ai-search-input{width:100%;padding:7px 12px;border:1px solid #8B5CF6;border-radius:8px;font-size:13px;outline:none;background:#faf5ff;transition:all .2s;color:#502090}
 #ai-search-input:focus{border-color:#502090;box-shadow:0 0 0 3px rgba(80,32,144,.2);background:#fff}
 #ai-search-input::placeholder{color:#a78bfa;opacity:0.8}
-#places-menu{position:fixed;top:74px;left:56px;width:280px;max-height:calc(100vh - 116px);background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;padding:0;box-shadow:0 4px 20px rgba(0,0,0,.08);z-index:89;overflow:hidden;display:none}
+#places-menu{position:fixed;top:86px;left:56px;width:280px;max-height:calc(100vh - 128px);background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;padding:0;box-shadow:0 4px 20px rgba(0,0,0,.08);z-index:89;overflow:hidden;display:none}
 #places-menu.open{display:flex;flex-direction:column}
 #places-menu .pm-header{padding:10px 14px;border-bottom:1px solid rgba(80,32,144,.15);font-weight:600;color:#fff;font-size:13px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#502090,#872B90);border-radius:12px 12px 0 0}
 #places-menu .pm-search{padding:8px 14px;border-bottom:1px solid rgba(0,0,0,.06)}
@@ -141,12 +141,12 @@ select:focus{border-color:#0071e3}
 .pm-item .pm-icon{width:20px;text-align:center;font-size:14px}
 .pm-item .pm-count{margin-left:auto;font-size:10px;color:#86868b;background:#f5f5f7;padding:1px 6px;border-radius:10px}
 .pm-item input[type="checkbox"]{accent-color:#1d1d1f;cursor:pointer;flex-shrink:0}
-#heatmap-dropdown{position:fixed;top:74px;left:56px;width:200px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;padding:10px;box-shadow:0 4px 20px rgba(0,0,0,.08);z-index:89;display:none}
+#heatmap-dropdown{position:fixed;top:86px;left:56px;width:200px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;padding:10px;box-shadow:0 4px 20px rgba(0,0,0,.08);z-index:89;display:none}
 #heatmap-dropdown.open{display:block}
 .hm-item{padding:8px 10px;cursor:pointer;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:8px;transition:background .15s;color:#1d1d1f}
 .hm-item:hover{background:#f5f5f7}
 .hm-item input[type="radio"]{accent-color:#1d1d1f;cursor:pointer}
-#nse-layers-menu{position:fixed;top:74px;left:56px;width:280px;max-height:calc(100vh - 116px);background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;padding:0;box-shadow:0 4px 20px rgba(0,0,0,.08);z-index:89;overflow:hidden;display:none}
+#nse-layers-menu{position:fixed;top:86px;left:56px;width:280px;max-height:calc(100vh - 128px);background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;padding:0;box-shadow:0 4px 20px rgba(0,0,0,.08);z-index:89;overflow:hidden;display:none}
 #nse-layers-menu.open{display:flex;flex-direction:column}
 #nse-layers-menu .pm-header{padding:10px 14px;border-bottom:1px solid rgba(80,32,144,.15);font-weight:600;color:#fff;font-size:13px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#502090,#872B90);border-radius:12px 12px 0 0}
 #nse-layers-menu .pm-body{flex:1;overflow-y:auto;padding:6px 0}
@@ -154,10 +154,10 @@ select:focus{border-color:#0071e3}
 .nse-item:hover{background:#f5f5f7}
 .nse-item input[type="checkbox"]{accent-color:#1d1d1f;cursor:pointer}
 
-#afl-panel{position:fixed;top:76px;right:0;width:380px;max-height:calc(100vh - 86px);background:#fff;border-radius:12px 0 0 12px;box-shadow:-4px 0 20px rgba(0,0,0,.15);z-index:1100;display:none;overflow:hidden;font-family:Inter,system-ui,sans-serif}
+#afl-panel{position:fixed;top:88px;right:0;width:380px;max-height:calc(100vh - 98px);background:#fff;border-radius:12px 0 0 12px;box-shadow:-4px 0 20px rgba(0,0,0,.15);z-index:1100;display:none;overflow:hidden;font-family:Inter,system-ui,sans-serif}
 #afl-panel .afl-hdr{padding:12px 16px;background:linear-gradient(135deg,#7C3AED,#9333EA);color:#fff;border-radius:12px 0 0 0;display:flex;justify-content:space-between;align-items:center}
 #afl-panel .afl-hdr h3{margin:0;font-size:14px;font-weight:700}
-#afl-panel .afl-body{padding:14px 16px;overflow-y:auto;max-height:calc(100vh - 146px)}
+#afl-panel .afl-body{padding:14px 16px;overflow-y:auto;max-height:calc(100vh - 158px)}
 .afl-section{font-size:12px;font-weight:700;color:#7C3AED;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #F3E8FF}
 .afl-bar{display:flex;align-items:center;margin-bottom:3px;font-size:10px}
 .afl-bar .abl{width:80px;text-align:right;padding-right:6px;color:#374151;font-size:9px}
@@ -230,7 +230,7 @@ select:focus{border-color:#0071e3}
 <div id="map"></div>
 
 <div id="topbar">
-  <div class="logo" style="cursor:pointer;display:flex;align-items:center" onclick="_showMainMenu()"><img src="../assets/logo-oficial.svg" alt="connectia" style="height:58px;display:block"></div>
+  <div class="logo" style="cursor:pointer;display:flex;align-items:center" onclick="_showMainMenu()"><img src="../assets/logo-oficial.svg" alt="connectia" style="height:64px;display:block"></div>
   <!-- Horizontal top menu -->
   <div id="top-menu" style="display:flex;gap:2px;margin-right:6px">
     <div class="tmenu-item" onclick="_showMainMenu()">Archivo ▾</div>
@@ -1672,7 +1672,7 @@ function showMultiSelectPanel(){
     pp=document.createElement('div');
     pp.id='multi-select-panel';
     pp.setAttribute('data-draggable','true');
-    pp.style.cssText='position:fixed;top:82px;left:62px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:0;z-index:95;box-shadow:0 4px 16px rgba(0,0,0,.12);width:300px;max-height:85vh;overflow-y:auto';
+    pp.style.cssText='position:fixed;top:94px;left:62px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:0;z-index:95;box-shadow:0 4px 16px rgba(0,0,0,.12);width:300px;max-height:85vh;overflow-y:auto';
     document.body.appendChild(pp);
     makePanelDraggable(pp);
   }
@@ -7748,7 +7748,7 @@ function toggleMeasure(){
     if(!modePanel){
       modePanel=document.createElement('div');
       modePanel.id='measure-mode-panel';
-      modePanel.style.cssText='position:fixed;top:106px;left:20px;background:#fff;border:1px solid #ddd;border-radius:6px;padding:8px;z-index:95;box-shadow:0 2px 6px rgba(0,0,0,0.15);display:flex;gap:4px';
+      modePanel.style.cssText='position:fixed;top:118px;left:20px;background:#fff;border:1px solid #ddd;border-radius:6px;padding:8px;z-index:95;box-shadow:0 2px 6px rgba(0,0,0,0.15);display:flex;gap:4px';
       var lineBtn=document.createElement('button');
       lineBtn.textContent='📏 Línea';
       lineBtn.className='active';
@@ -8127,7 +8127,7 @@ function toggleGlobalFilterPanel(btnOrForce){
   h+='</div></div>';
 
   // Body
-  h+='<div style="padding:8px 10px;max-height:calc(100vh - 136px);overflow-y:auto">';
+  h+='<div style="padding:8px 10px;max-height:calc(100vh - 148px);overflow-y:auto">';
 
   // Row 1: NSE chips
   h+='<div style="margin-bottom:6px">';
@@ -9965,7 +9965,7 @@ function loadSessionMenu(){
   if(panel){panel.remove();return;}
   panel=document.createElement('div');
   panel.id='session-panel';
-  panel.style.cssText='position:fixed;top:78px;right:420px;width:280px;max-height:400px;overflow-y:auto;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.15);z-index:95;padding:0;font-size:11px';
+  panel.style.cssText='position:fixed;top:90px;right:420px;width:280px;max-height:400px;overflow-y:auto;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.15);z-index:95;padding:0;font-size:11px';
   var h='<div style="font-weight:700;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#502090,#872B90);border-radius:12px 12px 0 0"><span>Sesiones Guardadas</span><button onclick="document.getElementById(\'session-panel\').remove()" style="border:none;background:none;cursor:pointer;font-size:14px;color:rgba(255,255,255,.7)">×</button></div><div style="padding:12px">';
   saved.forEach(function(s,i){
     var dt=new Date(s.timestamp);
@@ -10768,7 +10768,7 @@ function _aiDemographicSearch(detected){
   // Show demographic panel
   var panel=document.createElement('div');
   panel.id='ai-demo-panel';
-  panel.style.cssText='position:fixed;top:66px;right:12px;width:380px;max-height:calc(100vh - 86px);overflow-y:auto;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:95;font-size:11px';
+  panel.style.cssText='position:fixed;top:78px;right:12px;width:380px;max-height:calc(100vh - 98px);overflow-y:auto;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:95;font-size:11px';
   var h='<div style="padding:10px 14px;background:linear-gradient(135deg,#502090,#872B90);border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center">';
   h+='<span style="font-weight:600;color:#fff;font-size:13px">📊 Análisis Demográfico</span>';
   h+='<button onclick="this.closest(\'#ai-demo-panel\').remove()" style="border:none;background:none;color:rgba(255,255,255,.7);font-size:16px;cursor:pointer">×</button></div>';
@@ -11123,7 +11123,7 @@ function showAIResultsPanel(query,detected,clusters,totalFound){
   if(panel)panel.remove();
   panel=document.createElement('div');
   panel.id='ai-results-panel';
-  panel.style.cssText='position:fixed;top:82px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:380px;max-height:75vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
+  panel.style.cssText='position:fixed;top:94px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:380px;max-height:75vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
 
   var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
   h+='<div style="font-weight:700;color:#1d1d1f;font-size:15px">Reporte IA</div>';
@@ -11555,7 +11555,7 @@ function showAIRoutesReport(query,detected,routeResults,searchKeyword){
   if(panel)panel.remove();
   panel=document.createElement('div');
   panel.id='ai-results-panel';
-  panel.style.cssText='position:fixed;top:78px;right:12px;width:370px;max-height:calc(100vh - 96px);overflow-y:auto;background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:0;box-shadow:0 10px 40px rgba(0,0,0,.15);z-index:91';
+  panel.style.cssText='position:fixed;top:90px;right:12px;width:370px;max-height:calc(100vh - 108px);overflow-y:auto;background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:0;box-shadow:0 10px 40px rgba(0,0,0,.15);z-index:91';
 
   var h='<div style="padding:12px 16px;border-bottom:none;background:linear-gradient(135deg,#502090,#872B90);border-radius:12px 12px 0 0">';
   h+='<div style="display:flex;justify-content:space-between;align-items:center">';
@@ -11731,7 +11731,7 @@ function _csShowLoader(msg){
   if(!el){
     el=document.createElement('div');
     el.id='cs-loader';
-    el.style.cssText='position:fixed;top:72px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#502090,#872B90);color:#fff;padding:7px 16px;border-radius:16px;font-size:11px;z-index:9999;box-shadow:0 4px 16px rgba(80,32,144,.35);font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;align-items:center;gap:8px;font-weight:500;letter-spacing:-.1px';
+    el.style.cssText='position:fixed;top:84px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#502090,#872B90);color:#fff;padding:7px 16px;border-radius:16px;font-size:11px;z-index:9999;box-shadow:0 4px 16px rgba(80,32,144,.35);font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;align-items:center;gap:8px;font-weight:500;letter-spacing:-.1px';
     el.innerHTML='<div class="cs-spinner" style="width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:csSpin 0.7s linear infinite"></div><span id="cs-loader-msg"></span>';
     if(!document.getElementById('cs-spin-style')){
       var style=document.createElement('style');
@@ -12051,7 +12051,7 @@ function _csShowRutaAnclaReport(query,p,routeData,refLoc,candidates){
   if(panel)panel.remove();
   panel=document.createElement('div');
   panel.id='ai-results-panel';
-  panel.style.cssText='position:fixed;top:82px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:380px;max-height:75vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
+  panel.style.cssText='position:fixed;top:94px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:380px;max-height:75vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
   var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
   h+='<div style="font-weight:700;color:#1d1d1f;font-size:15px">🚙 Ruta de vallas móviles</div>';
   h+='<button onclick="clearAIResults();allRoutes.forEach(function(r){if(r.renderer)r.renderer.setMap(null);if(r.markers)r.markers.forEach(function(m){m.setMap(null)})});allRoutes=[];" style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8;padding:0 4px">✕</button></div>';
@@ -12220,7 +12220,7 @@ function _csShowCrossReport(query,p,matched,totalA){
   if(panel)panel.remove();
   panel=document.createElement('div');
   panel.id='ai-results-panel';
-  panel.style.cssText='position:fixed;top:82px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:380px;max-height:75vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
+  panel.style.cssText='position:fixed;top:94px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:380px;max-height:75vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
   var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
   h+='<div style="font-weight:700;color:#1d1d1f;font-size:15px">📍 Cruce de marcas</div>';
   h+='<button onclick="clearAIResults()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8;padding:0 4px">✕</button></div>';
@@ -12326,7 +12326,7 @@ function _csExecZonasNSEAll(p,rawQuery){
   if(panel)panel.remove();
   panel=document.createElement('div');
   panel.id='ai-results-panel';
-  panel.style.cssText='position:fixed;top:82px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:340px;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
+  panel.style.cssText='position:fixed;top:94px;right:10px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.15);max-width:340px;font-family:-apple-system,BlinkMacSystemFont,sans-serif';
   var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
   h+='<div style="font-weight:700;color:#1d1d1f;font-size:15px">🗺️ Zonas NSE '+nseList.join(' · ')+'</div>';
   h+='<button onclick="clearAIResults()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8">✕</button></div>';
@@ -12587,7 +12587,7 @@ function showImportedPlacesPanel(){
   if(!pp){
     pp=document.createElement('div');
     pp.id='imported-places-panel';
-    pp.style.cssText='position:fixed;top:82px;left:62px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:0;z-index:95;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:260px;max-height:400px;overflow-y:auto';
+    pp.style.cssText='position:fixed;top:94px;left:62px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:0;z-index:95;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:260px;max-height:400px;overflow-y:auto';
     document.body.appendChild(pp);
   }
   var PLACE_COLORS=['#1d1d1f','#2563eb','#16a34a','#d97706','#dc2626','#0891b2','#be185d','#4d7c0f','#7c3aed','#0d9488'];
@@ -12712,7 +12712,7 @@ function showRouteControlPanel(){
   if(rp)rp.remove();
   rp=document.createElement('div');
   rp.id='route-control-panel';
-  rp.style.cssText='position:fixed;top:82px;left:62px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:12px;z-index:95;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:240px';
+  rp.style.cssText='position:fixed;top:94px;left:62px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:12px;z-index:95;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:240px';
   var html='<div style="font-weight:700;color:#fff;font-size:13px;margin:-12px -12px 8px;padding:10px 12px;border-radius:10px 10px 0 0;background:linear-gradient(135deg,#502090,#872B90)">Nueva Ruta</div>';
   html+='<div style="font-size:10px;color:#94a3b8;margin-bottom:8px">Rutas activas: '+allRoutes.length+'</div>';
   html+='<div id="route-points-count" style="font-size:12px;color:#64748b;margin-bottom:8px">Puntos: 0</div>';
@@ -12732,7 +12732,7 @@ function showRoutesListPanel(){
   if(rp)rp.remove();
   rp=document.createElement('div');
   rp.id='routes-list-panel';
-  rp.style.cssText='position:fixed;top:82px;left:310px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:12px;z-index:96;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:260px;max-height:400px;overflow-y:auto';
+  rp.style.cssText='position:fixed;top:94px;left:310px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:12px;z-index:96;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:260px;max-height:400px;overflow-y:auto';
   var html='<div style="display:flex;justify-content:space-between;align-items:center;margin:-12px -12px 8px;padding:10px 12px;border-radius:10px 10px 0 0;background:linear-gradient(135deg,#502090,#872B90)"><span style="font-weight:700;color:#fff;font-size:13px">Rutas activas</span><button onclick="document.getElementById(\'routes-list-panel\').remove()" style="border:none;background:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,.7)">×</button></div>';
   if(allRoutes.length===0){
     html+='<div style="font-size:11px;color:#94a3b8">No hay rutas trazadas</div>';
@@ -13732,7 +13732,7 @@ function toggleFilterPanel(){
 function createFilterPanel(){
   var panel=document.createElement('div');
   panel.id='filter-panel';
-  panel.style.cssText='position:fixed;top:82px;left:62px;width:380px;max-height:calc(100vh - 116px);background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px;box-shadow:0 2px 12px rgba(0,0,0,.1);z-index:85;overflow-y:auto;display:none';
+  panel.style.cssText='position:fixed;top:94px;left:62px;width:380px;max-height:calc(100vh - 128px);background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px;box-shadow:0 2px 12px rgba(0,0,0,.1);z-index:85;overflow-y:auto;display:none';
 
   var html='<div style="font-weight:700;color:#fff;margin:-14px -14px 12px;padding:10px 14px;background:linear-gradient(135deg,#502090,#872B90);border-radius:10px 10px 0 0;font-size:13px">Filtros de Comercios</div>';
   html+='<input type="text" id="filter-search" placeholder="Buscar..." style="width:100%;padding:7px;border:1px solid #cbd5e1;border-radius:6px;margin-bottom:12px;font-size:12px">';
@@ -14759,7 +14759,7 @@ function showMobilityPanel(center,radiusM){
 
   var panel=document.createElement('div');
   panel.id='mobility-panel';
-  panel.style.cssText='position:fixed;bottom:20px;left:60px;width:320px;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.15);z-index:85;max-height:calc(100vh - 116px);overflow-y:auto;font-size:12px';
+  panel.style.cssText='position:fixed;bottom:20px;left:60px;width:320px;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.15);z-index:85;max-height:calc(100vh - 128px);overflow-y:auto;font-size:12px';
 
   var header='<div style="padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#502090,#872B90);border-radius:12px 12px 0 0">';
   header+='<span style="font-weight:700;color:#fff;font-size:13px">&#x1F6A6; Análisis de Movilidad</span>';
@@ -15146,7 +15146,7 @@ function showNSEPanel(){
   if(nsePanel){nsePanel.remove();}
   var panel=document.createElement('div');
   panel.id='nse-panel';
-  panel.style.cssText='position:fixed;top:96px;right:20px;width:220px;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.15);z-index:85;font-size:12px';
+  panel.style.cssText='position:fixed;top:108px;right:20px;width:220px;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.15);z-index:85;font-size:12px';
 
   var levels=[
     {id:'AB',label:'AB (Alto)',color:'#15803d',checked:true},
@@ -16314,7 +16314,7 @@ setInterval(function(){
 <div id="global-filter-panel" style="display:none"></div>
 
 <!-- Area Report Panel -->
-<div id="report-panel" style="display:none;position:fixed;top:64px;right:10px;width:400px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.08);z-index:90;max-height:calc(100vh - 84px);overflow-y:auto">
+<div id="report-panel" style="display:none;position:fixed;top:76px;right:10px;width:400px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.08);z-index:90;max-height:calc(100vh - 96px);overflow-y:auto">
   <div style="padding:10px 16px;border-bottom:1px solid rgba(80,32,144,.15);display:flex;justify-content:space-between;align-items:center;cursor:move;background:linear-gradient(135deg,#502090,#872B90);border-radius:12px 12px 0 0" id="report-title-bar">
     <span style="font-weight:600;color:#fff;font-size:13px;letter-spacing:-.2px">Reporte del Area</span>
     <div style="display:flex;gap:4px;align-items:center">
@@ -16364,7 +16364,7 @@ setInterval(function(){
 <!-- ============================================================ -->
 <!-- PRE-SAVED REPORTS LAYERS PANEL                               -->
 <!-- ============================================================ -->
-<div id="reports-layer-panel" style="display:none;position:fixed;top:64px;left:10px;width:340px;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:95;max-height:calc(100vh - 84px);overflow:hidden">
+<div id="reports-layer-panel" style="display:none;position:fixed;top:76px;left:10px;width:340px;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:95;max-height:calc(100vh - 96px);overflow:hidden">
   <div id="reports-layer-title-bar" style="padding:10px 14px;border-bottom:1px solid rgba(80,32,144,.15);display:flex;justify-content:space-between;align-items:center;cursor:move;background:linear-gradient(135deg,#502090,#872B90);border-radius:12px 12px 0 0">
     <span style="font-weight:600;color:#fff;font-size:13px;letter-spacing:-.2px">📑 Reportes Pre-guardados</span>
     <div style="display:flex;gap:4px;align-items:center">
@@ -16378,7 +16378,7 @@ setInterval(function(){
     </label>
     <span id="reports-layer-count" style="font-size:10px;color:#888">0 reportes</span>
   </div>
-  <div id="reports-layer-list" style="overflow-y:auto;max-height:calc(100vh - 186px);padding:4px 0"></div>
+  <div id="reports-layer-list" style="overflow-y:auto;max-height:calc(100vh - 198px);padding:4px 0"></div>
   <div id="reports-layer-empty" style="padding:30px 20px;text-align:center;color:#aaa;font-size:11px">
     No hay reportes pre-guardados.<br><span style="font-size:10px;color:#ccc;margin-top:4px;display:inline-block">Usa Archivo → Pre-guardar Reporte</span>
   </div>
@@ -16401,7 +16401,7 @@ setInterval(function(){
     // 1) Create the panel DOM
     var panel=document.createElement('div');
     panel.id='auto-report';
-    panel.style.cssText='display:none;position:fixed;top:64px;right:0;width:420px;height:calc(100vh - 64px);min-width:280px;max-width:92vw;min-height:200px;max-height:calc(100vh - 64px);background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-left:1px solid rgba(0,0,0,.06);z-index:9999;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif;transition:transform .3s ease';
+    panel.style.cssText='display:none;position:fixed;top:76px;right:0;width:420px;height:calc(100vh - 76px);min-width:280px;max-width:92vw;min-height:200px;max-height:calc(100vh - 76px);background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-left:1px solid rgba(0,0,0,.06);z-index:9999;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif;transition:transform .3s ease';
     panel.innerHTML='<div id="ar-header" style="padding:10px 16px;border-bottom:1px solid rgba(80,32,144,.15);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#502090,#872B90)"><span style="font-weight:600;color:#fff;font-size:13px;letter-spacing:-.2px">Reporte del Area</span><div style="display:flex;gap:4px;align-items:center"><button id="ar-btn-pdf" style="padding:3px 8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;border-radius:5px;cursor:pointer;font-size:9px;font-weight:500">PDF</button><button id="ar-btn-pptx" style="padding:3px 8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;border-radius:5px;cursor:pointer;font-size:9px;font-weight:500">PPTX</button><button id="ar-btn-save" style="padding:3px 8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;border-radius:5px;cursor:pointer;font-size:9px;font-weight:500">Save</button></div></div><div id="ar-tabs" style="display:flex;border-bottom:1px solid rgba(0,0,0,.06);background:#f5f5f7"></div><div id="ar-body" style="padding:12px 16px;min-height:200px;font-size:11px"></div>';
     document.body.appendChild(panel);
 
@@ -17264,7 +17264,7 @@ function toggleLayerManager(){
   panel=document.createElement('div');
   panel.id='layer-manager-panel';
   panel.setAttribute('data-draggable','true');
-  panel.style.cssText='position:fixed;top:96px;left:70px;width:280px;background:rgba(255,255,255,.95);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid rgba(0,0,0,.08);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9999;overflow:hidden';
+  panel.style.cssText='position:fixed;top:108px;left:70px;width:280px;background:rgba(255,255,255,.95);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:1px solid rgba(0,0,0,.08);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9999;overflow:hidden';
 
   var h='<div data-drag-handle style="padding:10px 14px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center;background:rgba(245,245,247,.8)">';
   h+='<span style="font-weight:600;font-size:13px;color:#1d1d1f">Gestión de Capas</span>';
@@ -17725,7 +17725,7 @@ function _showGroupManager(){
   if(old){_renderGroupManager(old);return;}
   var dlg=document.createElement('div');
   dlg.id='pin-group-manager';
-  dlg.style.cssText='position:fixed;top:96px;left:calc(50% - 260px);background:#fff;border:1px solid #cbd5e1;border-radius:14px;padding:0;box-shadow:0 20px 60px rgba(0,0,0,.25);z-index:10006;width:520px;max-height:85vh;overflow-y:auto';
+  dlg.style.cssText='position:fixed;top:108px;left:calc(50% - 260px);background:#fff;border:1px solid #cbd5e1;border-radius:14px;padding:0;box-shadow:0 20px 60px rgba(0,0,0,.25);z-index:10006;width:520px;max-height:85vh;overflow-y:auto';
   _renderGroupManager(dlg);
   document.body.appendChild(dlg);
   _pgMakeDraggable(dlg);
@@ -18336,7 +18336,7 @@ function _showMainMenu(){
   var old=document.getElementById('main-menu-dropdown');if(old){old.remove();return;}
   var menu=document.createElement('div');
   menu.id='main-menu-dropdown';
-  menu.style.cssText='position:fixed;top:62px;left:12px;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.08);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.15);z-index:10010;min-width:220px;padding:4px 0;font-size:12px';
+  menu.style.cssText='position:fixed;top:74px;left:12px;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,.08);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.15);z-index:10010;min-width:220px;padding:4px 0;font-size:12px';
   var items=[
     {label:'💾 Guardar Sesión',action:_saveSession},
     {label:'📂 Cargar Sesión',action:_loadSession},
@@ -22633,8 +22633,8 @@ header.brand .ci-icon{
 
 /* === Heatmap layer panel categorizado === */
 #cn-layers-panel{
-  position:fixed; top:80px; right:14px; z-index:9100;
-  width:280px; max-height:calc(100vh - 100px);
+  position:fixed; top:92px; right:14px; z-index:9100;
+  width:280px; max-height:calc(100vh - 112px);
   background:#fff; border-radius:14px;
   box-shadow:0 12px 36px rgba(0,0,0,.18);
   display:none; flex-direction:column; overflow:hidden;
@@ -23223,8 +23223,8 @@ header.brand .ci-icon{
 
 /* === Comparativa panel === */
 #cn-cmp-panel{
-  position:fixed; top:80px; right:14px; z-index:9100;
-  width:340px; max-height:calc(100vh - 100px);
+  position:fixed; top:92px; right:14px; z-index:9100;
+  width:340px; max-height:calc(100vh - 112px);
   background:#fff; border-radius:14px;
   box-shadow:0 12px 36px rgba(0,0,0,.18);
   display:none; flex-direction:column; overflow:hidden;
@@ -24068,10 +24068,10 @@ header.brand .ci-icon{
 #cn-cmp-dash{
   /* Anula modal background */
   position:fixed !important;
-  top:96px !important; right:14px !important;
+  top:108px !important; right:14px !important;
   bottom:auto !important; left:auto !important;
   width:420px !important; max-width:96vw !important;
-  max-height:calc(100vh - 116px);
+  max-height:calc(100vh - 128px);
   background:transparent !important; backdrop-filter:none !important;
   display:none !important; align-items:flex-start !important;
   z-index:9300 !important;
@@ -24079,7 +24079,7 @@ header.brand .ci-icon{
 }
 #cn-cmp-dash.show{ display:flex !important; }
 #cn-cmp-dash .dash-card{
-  width:100% !important; max-height:calc(100vh - 126px); margin:0 !important;
+  width:100% !important; max-height:calc(100vh - 138px); margin:0 !important;
   border-radius:14px !important;
   pointer-events:auto;
   position:relative;
@@ -26237,7 +26237,7 @@ small,.sub,.subtitle,
     z-index:90 !important;
     position:fixed !important;
     top:0 !important; left:0 !important; right:0 !important;
-    height:64px !important;
+    height:76px !important;
   }
 }
 
@@ -26675,8 +26675,8 @@ small,.sub,.subtitle,
 
 /* Dashboard v2 */
 #cn-cmp-dash-v2{
-  position:fixed; top:96px; right:14px; z-index:99998;
-  width:440px; max-height:calc(100vh - 116px); overflow-y:auto;
+  position:fixed; top:108px; right:14px; z-index:99998;
+  width:440px; max-height:calc(100vh - 128px); overflow-y:auto;
   background:#fff; border-radius:14px;
   border:1px solid rgba(60,60,67,.12);
   box-shadow:0 16px 40px rgba(0,0,0,.18);
@@ -27190,8 +27190,8 @@ small,.sub,.subtitle,
 <style id="connectia-round20-css">
 /* Sección Heatmaps por categoría POI dentro del panel de capas */
 #cn-poi-heatmaps{
-  position:fixed; top:80px; right:14px; z-index:9100;
-  width:280px; max-height:calc(100vh - 100px);
+  position:fixed; top:92px; right:14px; z-index:9100;
+  width:280px; max-height:calc(100vh - 112px);
   background:#fff; border-radius:14px;
   border:1px solid rgba(60,60,67,.12);
   box-shadow:0 12px 32px rgba(0,0,0,.10);
@@ -28069,7 +28069,7 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 /* === Comparar v3 — panel limpio bullet-proof === */
 #cn-cmp-v3{
   position:fixed; z-index:99999;
-  top:80px; left:50%;
+  top:92px; left:50%;
   transform:translateX(-50%);
   width:380px; max-height:560px;
   background:#fff; border-radius:14px;
@@ -28167,8 +28167,8 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 /* Dashboard v3 con Chart.js */
 #cn-cmp-v3-dash{
   position:fixed; z-index:99998;
-  top:96px; left:auto; right:14px;
-  width:480px; max-height:calc(100vh - 116px); overflow-y:auto;
+  top:108px; left:auto; right:14px;
+  width:480px; max-height:calc(100vh - 128px); overflow-y:auto;
   background:#fff; border-radius:14px;
   border:1px solid rgba(60,60,67,.12);
   box-shadow:0 16px 40px rgba(0,0,0,.18);
@@ -31327,7 +31327,7 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 ============================================================ -->
 <style id="sv-helpers-style">
 #sv-back-btn{
-  position:fixed;top:76px;left:50%;transform:translateX(-50%);
+  position:fixed;top:88px;left:50%;transform:translateX(-50%);
   z-index:100000;display:none;align-items:center;gap:6px;
   padding:8px 14px;border:none;border-radius:10px;
   background:linear-gradient(135deg,#502090,#872B90);color:#fff;
@@ -31354,7 +31354,7 @@ body > [role="dialog"]:not([id^="cn-"]):not([id^="connectia"]):not([id^="afl"]):
 }
 @media (max-width:520px){
   #sv-minimap-wrap{width:160px;height:120px;right:10px;bottom:10px}
-  #sv-back-btn{top:70px;padding:7px 12px;font-size:11px}
+  #sv-back-btn{top:82px;padding:7px 12px;font-size:11px}
 }
 </style>
 <button id="sv-back-btn" type="button" aria-label="Volver al mapa">
