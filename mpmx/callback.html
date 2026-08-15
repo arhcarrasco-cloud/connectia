@@ -5,15 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Market Pulse MX — TikTok</title>
 <style>
-  :root{--m:#872B90}
+  :root{--m:#E5842A}
   *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:#faf7fb;color:#231F20;display:grid;place-items:center;min-height:100vh}
-  .card{background:#fff;max-width:560px;width:92%;border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.08);overflow:hidden}
-  .hd{background:var(--m);color:#fff;padding:26px 28px}.hd h1{margin:0;font-size:1.4rem}.hd small{color:#eadcec}
+  body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:#0f0f12;color:#f2ede8;display:grid;place-items:center;min-height:100vh}
+  .card{background:#17171c;max-width:560px;width:92%;border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.35);overflow:hidden;border:1px solid #26262d}
+  .hd{background:var(--m);color:#1a1206;padding:26px 28px}.hd h1{margin:0;font-size:1.4rem}.hd small{color:#5a3d17}
   .bd{padding:28px}
-  .ok{color:#1a7f37;font-weight:600}.err{color:#b3261e;font-weight:600}
-  code{display:block;word-break:break-all;background:#f3eef5;padding:12px 14px;border-radius:10px;margin-top:12px;font-size:.9rem}
-  small{color:#6b6b6b}
+  .ok{color:#3fbf6a;font-weight:600}.err{color:#ff6b5e;font-weight:600}
+  code{display:block;word-break:break-all;background:#0f0f12;padding:12px 14px;border-radius:10px;margin-top:12px;font-size:.9rem;color:#f4b24c;border:1px solid #26262d}
+  a.btn{display:inline-block;margin-top:16px;background:var(--m);color:#1a1206;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:600}
+  small{color:#9a9490}
 </style>
 </head>
 <body>
@@ -26,12 +27,17 @@
 <script>
   var p = new URLSearchParams(location.search);
   var code = p.get("code");
+  var st = p.get("state") || "";
   var err = p.get("error") || p.get("error_description");
   var out = document.getElementById("out");
   if (code) {
+    var fwd = "https://localhost:8788/callback/tiktok?code=" + encodeURIComponent(code) + "&state=" + encodeURIComponent(st);
     out.innerHTML = '<p class="ok">&#10003; Autorización con TikTok exitosa.</p>' +
-      '<p><small>Copia este código de autorización y pégalo en el conector Market Pulse MX:</small></p>' +
+      '<p><small>Volviendo a la aplicación Market Pulse MX…</small></p>' +
+      '<p><a class="btn" href="' + fwd + '">Continuar a Market Pulse MX</a></p>' +
+      '<p><small>Si no continúa solo, copia este código en el conector:</small></p>' +
       '<code>' + code.replace(/[<>&]/g, "") + '</code>';
+    setTimeout(function(){ try { location.replace(fwd); } catch(e){} }, 1200);
   } else {
     out.innerHTML = '<p class="err">No se recibió el código de autorización.</p>' +
       '<p><small>' + (err ? String(err).replace(/[<>&]/g, "") : "Vuelve a intentar la conexión.") + '</small></p>';
