@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Pulse MX — TikTok</title>
+<style>
+  :root{--m:#872B90}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:#faf7fb;color:#231F20;display:grid;place-items:center;min-height:100vh}
+  .card{background:#fff;max-width:560px;width:92%;border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.08);overflow:hidden}
+  .hd{background:var(--m);color:#fff;padding:26px 28px}.hd h1{margin:0;font-size:1.4rem}.hd small{color:#eadcec}
+  .bd{padding:28px}
+  .ok{color:#1a7f37;font-weight:600}.err{color:#b3261e;font-weight:600}
+  code{display:block;word-break:break-all;background:#f3eef5;padding:12px 14px;border-radius:10px;margin-top:12px;font-size:.9rem}
+  small{color:#6b6b6b}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="hd"><h1>Market Pulse MX</h1><small>Autorización de TikTok</small></div>
+  <div class="bd">
+    <div id="out">Procesando la autorización…</div>
+  </div>
+</div>
+<script>
+  var p = new URLSearchParams(location.search);
+  var code = p.get("code");
+  var err = p.get("error") || p.get("error_description");
+  var out = document.getElementById("out");
+  if (code) {
+    out.innerHTML = '<p class="ok">&#10003; Autorización con TikTok exitosa.</p>' +
+      '<p><small>Copia este código de autorización y pégalo en el conector Market Pulse MX:</small></p>' +
+      '<code>' + code.replace(/[<>&]/g, "") + '</code>';
+  } else {
+    out.innerHTML = '<p class="err">No se recibió el código de autorización.</p>' +
+      '<p><small>' + (err ? String(err).replace(/[<>&]/g, "") : "Vuelve a intentar la conexión.") + '</small></p>';
+  }
+</script>
+</body>
+</html>
