@@ -1,0 +1,906 @@
+<title>Herdez · Congelador Nestlé</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap">
+<style>
+
+:root{
+  --violet:#872B90;
+  --indigo:#201040;
+  --violet-mid:#502090;
+  --violet-hot:#7B3FF2;
+  --lime:#C8FF00;
+  --citrus:#FF6A1A;
+  --ink:#0A0118;
+  --graphite:#1F1B2E;
+  --slate:#6B6580;
+  --mist:#E9E6F0;
+  --paper:#FAFAFB;
+  --white:#FFFFFF;
+  --lav:#F1ECF9;
+  --sans:'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --page:1600px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#0A0118;
+  font-family:var(--sans);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  padding:0 0 64px;
+}
+
+/* ---------- slide shell ---------- */
+.deck{width:100%;max-width:var(--page);margin:0 auto;padding:0 16px}
+.slide{
+  position:relative;
+  aspect-ratio:16/9;
+  width:100%;
+  margin:28px 0;
+  background:var(--white);
+  overflow:hidden;
+  border-radius:4px;
+  container-type:inline-size;
+  box-shadow:0 24px 60px rgba(0,0,0,.45);
+}
+/* everything inside scales with the slide */
+.slide{font-size:calc(100cqw / 88)}   /* 1em ~ 1.14% del ancho de lámina */
+
+.pad{position:absolute;inset:4.6em 5.2em 4.8em}
+.canvas{position:absolute;left:0;right:0;display:flex;align-items:center;justify-content:center}
+.canvas svg{width:100%;height:100%}
+
+/* chrome */
+.eyebrow{
+  position:absolute;top:2.4em;left:5em;
+  font-size:.78em;font-weight:600;text-transform:uppercase;
+  letter-spacing:.34em;color:var(--violet);
+}
+.pageno{
+  position:absolute;top:2.4em;right:5em;
+  font-size:.78em;font-weight:600;letter-spacing:.24em;color:var(--slate);
+}
+.footbar{
+  position:absolute;bottom:2.1em;left:5em;right:5em;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:.72em;letter-spacing:.16em;text-transform:uppercase;color:#A9A3B8;
+  border-top:1px solid var(--mist);padding-top:1.1em;
+}
+.footbar img{height:1.5em;opacity:.5}
+.slide.dark .footbar{border-top-color:rgba(255,255,255,.14);color:rgba(255,255,255,.5)}
+.slide.dark .eyebrow{color:var(--lime)}
+.slide.dark .pageno{color:rgba(255,255,255,.5)}
+
+h1,h2,h3{text-transform:uppercase;line-height:.98;letter-spacing:-.02em}
+h2{font-size:3.5em;font-weight:800;color:var(--ink)}
+h3{font-size:1.5em;font-weight:700;color:var(--violet)}
+.slide.dark h2{color:#fff}
+.lede{font-size:1.15em;line-height:1.5;color:var(--slate);font-weight:400;max-width:44em}
+.slide.dark .lede{color:rgba(255,255,255,.72)}
+.aforismo{
+  font-size:1.05em;font-style:italic;color:var(--violet);font-weight:500;
+}
+.slide.dark .aforismo{color:var(--lime)}
+
+/* ---------- cover ---------- */
+.cover{
+  background:linear-gradient(180deg,#872B90 0%,#5A1B82 25%,#E01C8A 55%,#FF2E63 78%,#FF6A1A 100%);
+}
+.cover .top{
+  position:absolute;top:3.2em;left:5em;right:5em;display:flex;justify-content:space-between;
+  font-size:.72em;font-weight:600;text-transform:uppercase;letter-spacing:.5em;color:#fff;
+}
+.cover .mid{
+  position:absolute;top:50%;left:5em;transform:translateY(-50%);
+}
+.cover .mid img{width:34em;display:block}
+.cover .cobrand{
+  margin-top:1.6em;font-size:1.05em;font-weight:600;letter-spacing:.28em;
+  text-transform:uppercase;color:rgba(255,255,255,.94);
+}
+.cover .subject{
+  margin-top:.7em;font-size:.82em;font-weight:400;letter-spacing:.2em;
+  text-transform:uppercase;color:rgba(255,255,255,.66);
+}
+.cover .bl{position:absolute;bottom:3.4em;left:5em;font-size:1.05em;font-style:italic;color:rgba(255,255,255,.92)}
+.cover .br{position:absolute;bottom:3.6em;right:5em;font-size:.72em;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.7);text-align:right}
+.dot{position:absolute;border-radius:50%;background:#fff}
+
+/* ---------- generic blocks ---------- */
+.num{
+  font-size:.8em;font-weight:800;letter-spacing:.1em;color:var(--violet);
+  display:block;margin-bottom:.6em;
+}
+.slide.dark .num{color:var(--lime)}
+
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:2.4em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:3em}
+
+.card{border-top:2px solid var(--violet);padding-top:1.1em}
+.card h4{font-size:1.05em;font-weight:800;text-transform:uppercase;letter-spacing:-.01em;margin-bottom:.5em}
+.card p{font-size:.86em;line-height:1.5;color:var(--slate)}
+.slide.dark .card{border-top-color:var(--lime)}
+.slide.dark .card h4{color:#fff}
+.slide.dark .card p{color:rgba(255,255,255,.68)}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1.6em}
+.stat{background:var(--lav);padding:1.3em 1.4em;border-radius:3px}
+.stat .k{font-size:2.2em;font-weight:800;color:var(--violet);letter-spacing:-.03em;line-height:1}
+.stat .l{font-size:.72em;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:var(--slate);margin-top:.7em}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:.85em}
+thead th{
+  background:var(--violet);color:#fff;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;font-size:.82em;padding:1em 1em;text-align:left;
+}
+thead th.r,tbody td.r{text-align:right}
+tbody td{padding:1.05em 1em;border-bottom:1px solid var(--mist);color:var(--ink)}
+tbody tr:nth-child(even) td{background:#FBF9FD}
+tbody td.b{font-weight:700}
+tr.total td{background:var(--violet) !important;color:#fff;font-weight:700;font-size:1.05em;font-style:normal}
+.tag{
+  display:inline-block;font-size:.72em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:.3em .7em;border-radius:2px;background:var(--lav);color:var(--violet);
+}
+.tag.base{background:var(--violet);color:#fff}
+
+.note{background:var(--lav);border-radius:3px;padding:1.2em 1.4em;font-size:.8em;line-height:1.55;color:#4A4358}
+.note b{color:var(--violet)}
+.warn{border-left:3px solid var(--citrus);background:#FFF6F0}
+.warn b{color:var(--citrus)}
+
+ul.ticks{list-style:none}
+ul.ticks li{font-size:.86em;line-height:1.5;color:var(--slate);padding-left:1.3em;position:relative;margin-bottom:.55em}
+ul.ticks li::before{content:'';position:absolute;left:0;top:.55em;width:.42em;height:.42em;background:var(--violet);border-radius:50%}
+.slide.dark ul.ticks li{color:rgba(255,255,255,.7)}
+.slide.dark ul.ticks li::before{background:var(--lime)}
+
+svg{display:block;width:100%;height:auto}
+
+/* closing */
+.closing{background:linear-gradient(135deg,#201040 0%,#502090 50%,#872B90 100%)}
+.closing .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.closing img{width:26em;margin-bottom:2em}
+.closing .sl{font-size:1.15em;font-style:italic;color:rgba(255,255,255,.9)}
+.closing .rs{margin-top:2.6em;font-size:.72em;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.55);line-height:2}
+
+/* print */
+@media print{
+  body{background:#fff;padding:0}
+  .deck{max-width:none;padding:0}
+  .slide{margin:0;border-radius:0;box-shadow:none;break-after:page;width:100%}
+}
+</style>
+
+<div class="deck">
+
+<!-- ===== BIBLIOTECA DE ARTE (ilustrativa · el arte final lo entrega el cliente) ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+
+  <symbol id="artFront" viewBox="0 0 990 700" preserveAspectRatio="none">
+    <rect width="990" height="700" fill="#111015"/>
+    <circle cx="712" cy="34" r="188" fill="#F2A03C"/>
+    <path d="M0 452 C 160 386, 316 512, 486 460 C 580 431, 646 460, 726 494 L726 700 L0 700 Z" fill="#1E6B5E"/>
+    <path d="M648 556 L990 494 L990 700 L648 700 Z" fill="#2B5FAF"/>
+    <rect x="52" y="60" width="352" height="136" rx="8" fill="none" stroke="#C9A24A" stroke-width="4" stroke-dasharray="16 10"/>
+    <text x="228" y="118" text-anchor="middle" font-family="Inter Tight,sans-serif" font-size="33" font-weight="800" letter-spacing="3" fill="#C9A24A">ZONA DE MARCA</text>
+    <text x="228" y="160" text-anchor="middle" font-family="Inter Tight,sans-serif" font-size="24" font-weight="500" letter-spacing="4" fill="#937B39">ARTE CLIENTE</text>
+    <g>
+      <rect x="300" y="306" width="76" height="154" rx="28" fill="#4A2A18"/><rect x="330" y="452" width="16" height="62" rx="6" fill="#D9C79A"/>
+      <rect x="424" y="294" width="76" height="154" rx="28" fill="#6B3D22"/><rect x="454" y="440" width="16" height="62" rx="6" fill="#D9C79A"/>
+      <rect x="548" y="306" width="76" height="154" rx="28" fill="#EDE6D6"/><rect x="578" y="452" width="16" height="62" rx="6" fill="#D9C79A"/>
+      <rect x="672" y="296" width="76" height="154" rx="28" fill="#4A2A18"/><rect x="702" y="442" width="16" height="62" rx="6" fill="#D9C79A"/>
+    </g>
+  </symbol>
+
+  <symbol id="artSide" viewBox="0 0 650 700" preserveAspectRatio="none">
+    <rect width="650" height="700" fill="#111015"/>
+    <circle cx="536" cy="26" r="152" fill="#F2A03C"/>
+    <path d="M0 470 C 130 404, 282 526, 424 474 C 512 442, 582 470, 650 496 L650 700 L0 700 Z" fill="#1E6B5E"/>
+    <rect x="44" y="72" width="286" height="118" rx="8" fill="none" stroke="#C9A24A" stroke-width="4" stroke-dasharray="16 10"/>
+    <text x="187" y="126" text-anchor="middle" font-family="Inter Tight,sans-serif" font-size="32" font-weight="800" letter-spacing="3" fill="#C9A24A">ZONA DE</text>
+    <text x="187" y="166" text-anchor="middle" font-family="Inter Tight,sans-serif" font-size="32" font-weight="800" letter-spacing="3" fill="#C9A24A">MARCA</text>
+    <rect x="330" y="312" width="74" height="152" rx="27" fill="#6B3D22"/><rect x="359" y="456" width="16" height="60" rx="6" fill="#D9C79A"/>
+    <rect x="456" y="302" width="74" height="152" rx="27" fill="#EDE6D6"/><rect x="485" y="446" width="16" height="60" rx="6" fill="#D9C79A"/>
+  </symbol>
+
+  <symbol id="artCopete" viewBox="0 0 880 440" preserveAspectRatio="none">
+    <rect width="880" height="440" fill="#D8232A"/>
+    <rect x="16" y="14" width="848" height="184" fill="#FFFFFF"/>
+    <g fill="#EFEFEF">
+      <rect x="32" y="30" width="196" height="152"/><rect x="244" y="30" width="196" height="152"/>
+      <rect x="456" y="30" width="196" height="152"/><rect x="668" y="30" width="180" height="152"/>
+    </g>
+    <g font-family="Inter Tight,sans-serif" font-weight="800" fill="#B4141B" text-anchor="middle">
+      <text x="130" y="126" font-size="56">2 × $__</text>
+      <text x="342" y="126" font-size="56">3 × $__</text>
+      <text x="554" y="126" font-size="56">2 × $__</text>
+    </g>
+    <text x="758" y="98" text-anchor="middle" font-family="Inter Tight,sans-serif" font-size="26" font-weight="700" letter-spacing="2" fill="#9A9A9A">ZONA</text>
+    <text x="758" y="132" text-anchor="middle" font-family="Inter Tight,sans-serif" font-size="26" font-weight="700" letter-spacing="2" fill="#9A9A9A">DE MARCA</text>
+    <g>
+      <ellipse cx="152" cy="320" rx="88" ry="68" fill="#C79A2E"/>
+      <ellipse cx="332" cy="320" rx="88" ry="68" fill="#E2574C"/>
+      <ellipse cx="512" cy="320" rx="88" ry="68" fill="#8CC63E"/>
+      <ellipse cx="692" cy="320" rx="88" ry="68" fill="#4FA9D8"/>
+    </g>
+  </symbol>
+
+</defs></svg>
+
+
+<!-- ========== 01 · PORTADA ========== -->
+<section class="slide cover">
+  <div class="top"><span>Connectia · Propuesta de Producción</span><span>V1 · 2026</span></div>
+  <div class="dot" style="width:1.1em;height:1.1em;left:46em;top:26em"></div>
+  <div class="dot" style="width:.85em;height:.85em;left:52em;top:33em;opacity:.9"></div>
+  <div class="dot" style="width:.42em;height:.42em;left:63em;top:14em;opacity:.7"></div>
+  <div class="dot" style="width:.34em;height:.34em;left:71em;top:21em;opacity:.55"></div>
+  <div class="dot" style="width:.5em;height:.5em;left:80em;top:31em;opacity:.8"></div>
+  <div class="dot" style="width:.3em;height:.3em;left:88em;top:18em;opacity:.6"></div>
+  <div class="dot" style="width:.4em;height:.4em;left:75em;top:44em;opacity:.7"></div>
+  <div class="dot" style="width:.28em;height:.28em;left:59em;top:47em;opacity:.55"></div>
+  <div class="dot" style="width:.36em;height:.36em;left:85em;top:39em;opacity:.65"></div>
+  <div class="dot" style="width:.3em;height:.3em;left:67em;top:38em;opacity:.6"></div>
+  <div class="dot" style="width:.26em;height:.26em;left:92em;top:27em;opacity:.55"></div>
+  <div class="dot" style="width:.44em;height:.44em;left:40em;top:12em;opacity:.75"></div>
+  <div class="dot" style="width:.3em;height:.3em;left:33em;top:8em;opacity:.6"></div>
+  <div class="dot" style="width:.34em;height:.34em;left:22em;top:6em;opacity:.6"></div>
+  <div class="dot" style="width:.28em;height:.28em;left:12em;top:9em;opacity:.55"></div>
+  <div class="dot" style="width:.32em;height:.32em;left:7em;top:44em;opacity:.6"></div>
+  <div class="dot" style="width:.26em;height:.26em;left:16em;top:48em;opacity:.55"></div>
+  <div class="dot" style="width:.3em;height:.3em;left:94em;top:47em;opacity:.6"></div>
+  <div class="dot" style="width:.75em;height:.75em;left:30em;top:52em;background:#C8FF00"></div>
+  <div class="dot" style="width:.75em;height:.75em;left:78em;top:12em;background:#FF6A1A"></div>
+  <div class="mid">
+    <img src="__LOGO_WHITE__" alt="connectia">
+    <div class="cobrand">× Herdez · Nestlé Helados</div>
+    <div class="subject">Vinil de refrigerador y copete · Rollout nacional</div>
+  </div>
+  <div class="bl">everything is connected.</div>
+  <div class="br">Facilitadores Publicitarios HS, S.A. de C.V.</div>
+</section>
+
+<!-- ========== 02 · EL ENCARGO ========== -->
+<section class="slide">
+  <div class="eyebrow">Connectia · El encargo</div><div class="pageno">02</div>
+  <div class="pad">
+    <span class="num">01</span>
+    <h2>PRODUCCIÓN<br>PARA PISO<br>DE VENTA</h2>
+    <p class="lede" style="margin-top:1.4em">
+      Herdez requiere vestir el parque de congeladores Nestlé Helados en punto de venta.
+      Connectia produce e instala la pieza completa: <b>vinil en frente y dos laterales</b> del
+      congelador, más el <b>copete superior</b> — el elemento que a la altura del ojo comunica
+      portafolio y precio.
+    </p>
+    <div class="stats" style="position:absolute;bottom:0;left:0;right:0">
+      <div class="stat"><div class="k">3</div><div class="l">Caras vestidas por unidad</div></div>
+      <div class="stat"><div class="k">1,440</div><div class="l">DPI reales de impresión</div></div>
+      <div class="stat"><div class="k">2</div><div class="l">Cotizaciones · vinil y coroplast</div></div>
+      <div class="stat"><div class="k">20K</div><div class="l">Piezas · volumen base</div></div>
+    </div>
+  </div>
+  <div class="footbar"><span>Connectia · Cultural marketing · MX</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 03 · EL SOPORTE ========== -->
+<section class="slide">
+  <div class="eyebrow">Connectia · El soporte</div><div class="pageno">03</div>
+  <div class="pad">
+    <span class="num">02</span>
+    <h2 style="font-size:2.6em">ANATOMÍA DE LA UNIDAD</h2>
+    <div class="grid2" style="margin-top:1.8em;grid-template-columns:1.15fr 1fr;gap:3.4em">
+      <div>
+        <svg viewBox="0 0 620 420" role="img" aria-label="Diagrama de partes del congelador">
+          <defs>
+            <marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 Z" fill="#872B90"/>
+            </marker>
+          </defs>
+          <!-- copete -->
+          <rect x="150" y="30" width="264" height="132" fill="#872B90" opacity=".16"/>
+          <rect x="150" y="30" width="264" height="132" fill="none" stroke="#872B90" stroke-width="2"/>
+          <!-- glass lid -->
+          <path d="M120 190 L444 190 L444 214 L120 214 Z" fill="#E9E6F0" stroke="#B9B2C8" stroke-width="1.5"/>
+          <!-- body -->
+          <rect x="120" y="214" width="297" height="210" fill="#1F1B2E"/>
+          <rect x="417" y="214" width="27" height="210" fill="#0A0118"/>
+          <!-- labels -->
+          <line x1="414" y1="96" x2="520" y2="96" stroke="#872B90" stroke-width="1.5" marker-end="url(#ar)"/>
+          <text x="470" y="86" font-family="Inter Tight,sans-serif" font-size="15" font-weight="800" fill="#872B90">COPETE</text>
+          <text x="470" y="112" font-family="Inter Tight,sans-serif" font-size="13" fill="#6B6580">88 × 44 cm</text>
+          <line x1="450" y1="202" x2="520" y2="178" stroke="#872B90" stroke-width="1.5" marker-end="url(#ar)"/>
+          <text x="470" y="168" font-family="Inter Tight,sans-serif" font-size="15" font-weight="800" fill="#872B90">TAPA VIDRIO</text>
+          <text x="470" y="192" font-family="Inter Tight,sans-serif" font-size="13" fill="#6B6580">No se interviene</text>
+          <line x1="450" y1="320" x2="520" y2="290" stroke="#872B90" stroke-width="1.5" marker-end="url(#ar)"/>
+          <text x="470" y="278" font-family="Inter Tight,sans-serif" font-size="15" font-weight="800" fill="#872B90">CUERPO</text>
+          <text x="470" y="302" font-family="Inter Tight,sans-serif" font-size="13" fill="#6B6580">99 × 70 cm · fondo 65</text>
+          <line x1="30" y1="214" x2="30" y2="424" stroke="#872B90" stroke-width="1.5"/>
+          <line x1="24" y1="214" x2="36" y2="214" stroke="#872B90" stroke-width="1.5"/>
+          <line x1="24" y1="424" x2="36" y2="424" stroke="#872B90" stroke-width="1.5"/>
+          <text x="44" y="325" font-family="Inter Tight,sans-serif" font-size="13" font-weight="700" fill="#872B90">70 cm</text>
+        </svg>
+      </div>
+      <div>
+        <h3 style="margin-bottom:.9em">SUPERFICIE POR UNIDAD</h3>
+        <table>
+          <thead><tr><th>Cara</th><th class="r">Medida</th><th class="r">m²</th></tr></thead>
+          <tbody>
+            <tr><td>Frente</td><td class="r">99 × 70 cm</td><td class="r b">0.693</td></tr>
+            <tr><td>Lateral izquierdo</td><td class="r">65 × 70 cm</td><td class="r b">0.455</td></tr>
+            <tr><td>Lateral derecho</td><td class="r">65 × 70 cm</td><td class="r b">0.455</td></tr>
+            <tr class="total"><td>Total refrigerador</td><td class="r">3 caras</td><td class="r">1.603</td></tr>
+            <tr><td>Copete · 1 cara</td><td class="r">88 × 44 cm</td><td class="r b">0.387</td></tr>
+            <tr><td>Copete · 2 caras</td><td class="r">88 × 44 cm</td><td class="r b">0.774</td></tr>
+          </tbody>
+        </table>
+        <div class="note warn" style="margin-top:1.3em">
+          <b>Dato a confirmar.</b> El fondo de 65 cm se tomó de la medición de referencia,
+          donde la cota quedó parcialmente oculta. Confirmado el fondo real, el metraje y el
+          plano se ajustan sin cambio de precio unitario.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footbar"><span>Connectia · Cultural marketing · MX</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 04 · RENDER 3 LADOS ========== -->
+<section class="slide dark" style="background:linear-gradient(135deg,#201040 0%,#3A1A63 100%)">
+  <div class="eyebrow">Connectia · Propuesta visual</div><div class="pageno">04</div>
+  <div class="pad">
+    <span class="num">03</span>
+    <h2 style="font-size:2.5em">LA UNIDAD VESTIDA<br>POR TRES LADOS</h2>
+    <div class="canvas" style="top:8.6em;bottom:0">
+      <svg viewBox="0 0 940 400" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Render tridimensional del congelador con vinil en frente y laterales, y copete">
+        <ellipse cx="252" cy="386" rx="222" ry="14" fill="#000" opacity=".38"/>
+
+        <!-- CUERPO · frente 99x70 cm a 0.26 px/mm => 257x182 · origen 40,200 -->
+        <use href="#artFront" width="990" height="700" transform="translate(40,200) scale(0.26)"/>
+        <!-- CUERPO · lateral derecho en fuga -->
+        <use href="#artSide" width="650" height="700" transform="matrix(0.2253,-0.1293,0,0.26,297,200)"/>
+        <polygon points="297,200 443,116 443,298 297,382" fill="#000" opacity=".34"/>
+
+        <!-- TAPA DE VIDRIO -->
+        <path d="M40 200 L297 200 L297 176 L40 176 Z" fill="#8FB6D6"/>
+        <path d="M297 200 L443 116 L443 92 L297 176 Z" fill="#6C96BA"/>
+        <path d="M40 176 L186 92 L443 92 L297 176 Z" fill="#BED8E9" stroke="#5D8AAE" stroke-width="1"/>
+        <rect x="40" y="194" width="257" height="6" fill="#F2F5F8"/>
+
+        <!-- COPETE 88x44 cm => 229x114 · sobre la tapa, retrasado 30% del fondo -->
+        <use href="#artCopete" width="880" height="440" transform="translate(116,26) scale(0.26)"/>
+        <path d="M345 140 L356 133 L356 19 L345 26 Z" fill="#8E171D"/>
+        <path d="M116 26 L127 19 L356 19 L345 26 Z" fill="#E8464C"/>
+
+        <rect x="64" y="382" width="13" height="11" rx="4" fill="#2A2733"/>
+        <rect x="260" y="382" width="13" height="11" rx="4" fill="#2A2733"/>
+
+        <!-- CALLOUTS -->
+        <g font-family="Inter Tight,sans-serif">
+          <line x1="356" y1="78" x2="520" y2="78" stroke="#C8FF00" stroke-width="1.5"/>
+          <circle cx="356" cy="78" r="4" fill="#C8FF00"/>
+          <text x="534" y="72" font-size="18" font-weight="800" letter-spacing="1.5" fill="#fff">COPETE</text>
+          <text x="534" y="95" font-size="14" fill="rgba(255,255,255,.62)">88 × 44 cm · impresión a 1 cara</text>
+
+          <line x1="380" y1="236" x2="520" y2="182" stroke="#C8FF00" stroke-width="1.5"/>
+          <circle cx="380" cy="236" r="4" fill="#C8FF00"/>
+          <text x="534" y="176" font-size="18" font-weight="800" letter-spacing="1.5" fill="#fff">LATERAL DERECHO</text>
+          <text x="534" y="199" font-size="14" fill="rgba(255,255,255,.62)">65 × 70 cm · 0.455 m²</text>
+
+          <line x1="170" y1="300" x2="520" y2="286" stroke="#C8FF00" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <circle cx="170" cy="300" r="4" fill="#C8FF00"/>
+          <text x="534" y="280" font-size="18" font-weight="800" letter-spacing="1.5" fill="#fff">FRENTE</text>
+          <text x="534" y="303" font-size="14" fill="rgba(255,255,255,.62)">99 × 70 cm · 0.693 m²</text>
+
+          <text x="534" y="350" font-size="18" font-weight="800" letter-spacing="1.5" fill="#fff">LATERAL IZQUIERDO</text>
+          <text x="534" y="373" font-size="14" fill="rgba(255,255,255,.62)">Espejo del derecho · 0.455 m² · no visible en esta vista</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="footbar"><span>Composición ilustrativa · el arte final lo entrega el cliente</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 05 · DESARROLLO DE CARAS ========== -->
+<section class="slide">
+  <div class="eyebrow">Connectia · Desarrollo de caras</div><div class="pageno">05</div>
+  <div class="pad">
+    <span class="num">04</span>
+    <h2 style="font-size:2.5em">LOS TRES LADOS, EN PLANO</h2>
+    <div class="canvas" style="top:6.4em;bottom:0">
+      <svg viewBox="0 0 1400 610" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Desarrollo plano de las tres caras del refrigerador y del copete">
+        <g font-family="Inter Tight,sans-serif">
+
+        <!-- lateral izq · 65x70 cm a 3.4 px/cm => 221x238 -->
+        <text x="20" y="26" font-size="16" font-weight="800" letter-spacing="2.5" fill="#872B90">LATERAL IZQUIERDO</text>
+        <g transform="translate(20,44)">
+          <use href="#artSide" width="650" height="700" transform="scale(0.34)"/>
+          <rect width="221" height="238" fill="none" stroke="#872B90" stroke-width="2"/>
+        </g>
+        <text x="20" y="308" font-size="15" fill="#6B6580">65 × 70 cm · 0.455 m²</text>
+
+        <!-- frente · 99x70 => 337x238 -->
+        <text x="290" y="26" font-size="16" font-weight="800" letter-spacing="2.5" fill="#872B90">FRENTE</text>
+        <g transform="translate(290,44)">
+          <use href="#artFront" width="990" height="700" transform="scale(0.34)"/>
+          <rect width="337" height="238" fill="none" stroke="#872B90" stroke-width="2"/>
+        </g>
+        <text x="290" y="308" font-size="15" fill="#6B6580">99 × 70 cm · 0.693 m²</text>
+
+        <!-- lateral der -->
+        <text x="700" y="26" font-size="16" font-weight="800" letter-spacing="2.5" fill="#872B90">LATERAL DERECHO</text>
+        <g transform="translate(700,44)">
+          <use href="#artSide" width="650" height="700" transform="scale(0.34)"/>
+          <rect width="221" height="238" fill="none" stroke="#872B90" stroke-width="2"/>
+        </g>
+        <text x="700" y="308" font-size="15" fill="#6B6580">65 × 70 cm · 0.455 m² · en espejo</text>
+
+        <!-- copete · 88x44 => 299x150 -->
+        <text x="20" y="382" font-size="16" font-weight="800" letter-spacing="2.5" fill="#872B90">COPETE</text>
+        <g transform="translate(20,400)">
+          <use href="#artCopete" width="880" height="440" transform="scale(0.34)"/>
+          <rect width="299" height="150" fill="none" stroke="#872B90" stroke-width="2"/>
+        </g>
+        <text x="20" y="576" font-size="15" fill="#6B6580">88 × 44 cm · 0.387 m² a una cara</text>
+
+        <!-- total -->
+        <g transform="translate(390,400)">
+          <rect width="530" height="150" fill="#F1ECF9"/>
+          <text x="30" y="40" font-size="16" font-weight="800" letter-spacing="2.5" fill="#872B90">TOTAL POR UNIDAD</text>
+          <text x="30" y="98" font-size="52" font-weight="800" letter-spacing="-1.5" fill="#872B90">1.603 m²</text>
+          <text x="30" y="126" font-size="15" fill="#6B6580">Refrigerador · frente y dos laterales</text>
+          <text x="300" y="98" font-size="34" font-weight="800" fill="#1F1B2E">+ 0.387 m²</text>
+          <text x="300" y="126" font-size="15" fill="#6B6580">Copete · una cara</text>
+        </g>
+
+        <!-- panel notas -->
+        <g transform="translate(970,44)">
+          <rect width="410" height="506" fill="#FAFAFB" stroke="#E9E6F0" stroke-width="1.5"/>
+          <text x="30" y="46" font-size="16" font-weight="800" letter-spacing="2.5" fill="#872B90">CRITERIO DE PRODUCCIÓN</text>
+
+          <text x="30" y="92" font-size="15" font-weight="800" fill="#1F1B2E">Una tira por cara</text>
+          <text x="30" y="116" font-size="14" fill="#6B6580">Cada cara sale de una sola pieza.</text>
+          <text x="30" y="138" font-size="14" fill="#6B6580">Sin costura ni traslape visible.</text>
+
+          <text x="30" y="184" font-size="15" font-weight="800" fill="#1F1B2E">Laterales en espejo</text>
+          <text x="30" y="208" font-size="14" fill="#6B6580">Misma composición, orientada para</text>
+          <text x="30" y="230" font-size="14" fill="#6B6580">que la marca lea hacia el pasillo.</text>
+
+          <text x="30" y="276" font-size="15" font-weight="800" fill="#1F1B2E">Continuidad de gráfico</text>
+          <text x="30" y="300" font-size="14" fill="#6B6580">La onda inferior empata de cara a</text>
+          <text x="30" y="322" font-size="14" fill="#6B6580">cara en la arista del equipo.</text>
+
+          <text x="30" y="368" font-size="15" font-weight="800" fill="#1F1B2E">Kit por unidad</text>
+          <text x="30" y="392" font-size="14" fill="#6B6580">Cuatro piezas rotuladas, enrolladas</text>
+          <text x="30" y="414" font-size="14" fill="#6B6580">con el arte hacia afuera.</text>
+
+          <line x1="30" y1="446" x2="380" y2="446" stroke="#E9E6F0" stroke-width="1.5"/>
+          <text x="30" y="478" font-size="13" fill="#A9A3B8">Composición ilustrativa.</text>
+          <text x="30" y="498" font-size="13" fill="#A9A3B8">El arte final lo entrega el cliente.</text>
+        </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="footbar"><span>Composición ilustrativa · el arte final lo entrega el cliente</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 06 · PLANO TÉCNICO ========== -->
+<section class="slide">
+  <div class="eyebrow">Connectia · Plano técnico</div><div class="pageno">06</div>
+  <div class="pad">
+    <span class="num">05</span>
+    <h2 style="font-size:2.5em">PLANO TÉCNICO ACOTADO</h2>
+    <div class="canvas" style="top:6.4em;bottom:0">
+      <svg viewBox="0 0 1400 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Plano técnico acotado de las tres caras y el copete, con sangrado y área de seguridad">
+        <defs>
+          <marker id="a1" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#1F1B2E"/></marker>
+          <marker id="a2" markerWidth="9" markerHeight="9" refX="1" refY="4.5" orient="auto"><path d="M9,0 L0,4.5 L9,9 Z" fill="#1F1B2E"/></marker>
+          <pattern id="bleed" width="9" height="9" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="9" stroke="#872B90" stroke-width="2.6" opacity=".32"/>
+          </pattern>
+        </defs>
+        <g font-family="Inter Tight,sans-serif">
+
+        <!-- ===== FRENTE ===== 3.6 px/cm · 99x70 => 356.4 x 252 -->
+        <g transform="translate(96,60)">
+          <rect x="-7.2" y="-7.2" width="370.8" height="266.4" fill="url(#bleed)"/>
+          <rect x="-7.2" y="-7.2" width="370.8" height="266.4" fill="none" stroke="#872B90" stroke-width="1.2" stroke-dasharray="7 5"/>
+          <rect width="356.4" height="252" fill="#fff" stroke="#1F1B2E" stroke-width="2.2"/>
+          <rect x="14.4" y="14.4" width="327.6" height="223.2" fill="none" stroke="#C9C4D4" stroke-width="1.2" stroke-dasharray="5 5"/>
+          <text x="178" y="118" text-anchor="middle" font-size="24" font-weight="800" letter-spacing="3.5" fill="#872B90">FRENTE</text>
+          <text x="178" y="146" text-anchor="middle" font-size="15" fill="#6B6580">0.693 m² · 1 pieza</text>
+          <line x1="0" y1="286" x2="356.4" y2="286" stroke="#1F1B2E" stroke-width="1.3" marker-start="url(#a2)" marker-end="url(#a1)"/>
+          <line x1="0" y1="262" x2="0" y2="294" stroke="#1F1B2E" stroke-width="1"/>
+          <line x1="356.4" y1="262" x2="356.4" y2="294" stroke="#1F1B2E" stroke-width="1"/>
+          <rect x="148" y="274" width="60" height="24" fill="#fff"/>
+          <text x="178" y="292" text-anchor="middle" font-size="16" font-weight="800" fill="#1F1B2E">99 cm</text>
+          <line x1="-40" y1="0" x2="-40" y2="252" stroke="#1F1B2E" stroke-width="1.3" marker-start="url(#a2)" marker-end="url(#a1)"/>
+          <line x1="-48" y1="0" x2="-16" y2="0" stroke="#1F1B2E" stroke-width="1"/>
+          <line x1="-48" y1="252" x2="-16" y2="252" stroke="#1F1B2E" stroke-width="1"/>
+          <text x="-40" y="126" text-anchor="middle" font-size="16" font-weight="800" fill="#1F1B2E" transform="rotate(-90,-40,126)">70 cm</text>
+        </g>
+
+        <!-- ===== LATERAL ===== 65x70 => 234 x 252 -->
+        <g transform="translate(560,60)">
+          <rect x="-7.2" y="-7.2" width="248.4" height="266.4" fill="url(#bleed)"/>
+          <rect x="-7.2" y="-7.2" width="248.4" height="266.4" fill="none" stroke="#872B90" stroke-width="1.2" stroke-dasharray="7 5"/>
+          <rect width="234" height="252" fill="#fff" stroke="#1F1B2E" stroke-width="2.2"/>
+          <rect x="14.4" y="14.4" width="205.2" height="223.2" fill="none" stroke="#C9C4D4" stroke-width="1.2" stroke-dasharray="5 5"/>
+          <text x="117" y="118" text-anchor="middle" font-size="22" font-weight="800" letter-spacing="3" fill="#872B90">LATERAL</text>
+          <text x="117" y="146" text-anchor="middle" font-size="15" fill="#6B6580">0.455 m² · 2 piezas</text>
+          <line x1="0" y1="286" x2="234" y2="286" stroke="#1F1B2E" stroke-width="1.3" marker-start="url(#a2)" marker-end="url(#a1)"/>
+          <line x1="0" y1="262" x2="0" y2="294" stroke="#1F1B2E" stroke-width="1"/>
+          <line x1="234" y1="262" x2="234" y2="294" stroke="#1F1B2E" stroke-width="1"/>
+          <rect x="87" y="274" width="60" height="24" fill="#fff"/>
+          <text x="117" y="292" text-anchor="middle" font-size="16" font-weight="800" fill="#1F1B2E">65 cm</text>
+          <line x1="-40" y1="0" x2="-40" y2="252" stroke="#1F1B2E" stroke-width="1.3" marker-start="url(#a2)" marker-end="url(#a1)"/>
+          <line x1="-48" y1="0" x2="-16" y2="0" stroke="#1F1B2E" stroke-width="1"/>
+          <line x1="-48" y1="252" x2="-16" y2="252" stroke="#1F1B2E" stroke-width="1"/>
+          <text x="-40" y="126" text-anchor="middle" font-size="16" font-weight="800" fill="#1F1B2E" transform="rotate(-90,-40,126)">70 cm</text>
+        </g>
+
+        <!-- ===== COPETE ===== 88x44 => 316.8 x 158.4 -->
+        <g transform="translate(902,60)">
+          <rect x="-7.2" y="-7.2" width="331.2" height="172.8" fill="url(#bleed)"/>
+          <rect x="-7.2" y="-7.2" width="331.2" height="172.8" fill="none" stroke="#872B90" stroke-width="1.2" stroke-dasharray="7 5"/>
+          <rect width="316.8" height="158.4" fill="#fff" stroke="#1F1B2E" stroke-width="2.2"/>
+          <rect x="14.4" y="14.4" width="288" height="129.6" fill="none" stroke="#C9C4D4" stroke-width="1.2" stroke-dasharray="5 5"/>
+          <text x="158" y="72" text-anchor="middle" font-size="22" font-weight="800" letter-spacing="3" fill="#872B90">COPETE</text>
+          <text x="158" y="100" text-anchor="middle" font-size="15" fill="#6B6580">0.387 m² · 1 cara</text>
+          <line x1="0" y1="192" x2="316.8" y2="192" stroke="#1F1B2E" stroke-width="1.3" marker-start="url(#a2)" marker-end="url(#a1)"/>
+          <line x1="0" y1="168" x2="0" y2="200" stroke="#1F1B2E" stroke-width="1"/>
+          <line x1="316.8" y1="168" x2="316.8" y2="200" stroke="#1F1B2E" stroke-width="1"/>
+          <rect x="128" y="180" width="60" height="24" fill="#fff"/>
+          <text x="158" y="198" text-anchor="middle" font-size="16" font-weight="800" fill="#1F1B2E">88 cm</text>
+          <line x1="-40" y1="0" x2="-40" y2="158.4" stroke="#1F1B2E" stroke-width="1.3" marker-start="url(#a2)" marker-end="url(#a1)"/>
+          <line x1="-48" y1="0" x2="-16" y2="0" stroke="#1F1B2E" stroke-width="1"/>
+          <line x1="-48" y1="158.4" x2="-16" y2="158.4" stroke="#1F1B2E" stroke-width="1"/>
+          <text x="-40" y="79" text-anchor="middle" font-size="16" font-weight="800" fill="#1F1B2E" transform="rotate(-90,-40,79)">44 cm</text>
+
+          <g transform="translate(0,236)">
+            <text x="0" y="-10" font-size="14" font-weight="800" letter-spacing="2.5" fill="#872B90">CANTO · VISTA SUPERIOR</text>
+            <rect width="316.8" height="11" fill="#D8232A" stroke="#1F1B2E" stroke-width="1.6"/>
+            <text x="0" y="34" font-size="14" fill="#6B6580">Calibre según sustrato · vinil sobre lámina o coroplast 4 mm</text>
+          </g>
+        </g>
+
+        <!-- ===== LEYENDA (franja inferior) ===== -->
+        <g transform="translate(96,410)">
+          <rect width="1208" height="140" fill="#FAFAFB" stroke="#E9E6F0" stroke-width="1.5"/>
+
+          <text x="30" y="38" font-size="15" font-weight="800" letter-spacing="2.5" fill="#872B90">ESPECIFICACIÓN DE CORTE</text>
+          <rect x="30" y="58" width="26" height="18" fill="url(#bleed)" stroke="#872B90" stroke-width="1.2" stroke-dasharray="5 4"/>
+          <text x="68" y="67" font-size="14" font-weight="700" fill="#1F1B2E">Sangrado</text>
+          <text x="68" y="86" font-size="13.5" fill="#6B6580">+1 cm perimetral en cada cara</text>
+          <line x1="30" y1="110" x2="56" y2="110" stroke="#C9C4D4" stroke-width="1.5" stroke-dasharray="5 5"/>
+          <text x="68" y="106" font-size="14" font-weight="700" fill="#1F1B2E">Área de seguridad</text>
+          <text x="68" y="125" font-size="13.5" fill="#6B6580">−4 cm · nada crítico fuera</text>
+
+          <line x1="380" y1="24" x2="380" y2="118" stroke="#E9E6F0" stroke-width="1.5"/>
+
+          <text x="412" y="38" font-size="15" font-weight="800" letter-spacing="2.5" fill="#872B90">MEDIDAS DE PRODUCCIÓN</text>
+          <text x="412" y="70" font-size="14" fill="#6B6580">Frente</text><text x="670" y="70" text-anchor="end" font-size="14" font-weight="700" fill="#1F1B2E">101 × 72 cm</text>
+          <text x="412" y="94" font-size="14" fill="#6B6580">Lateral · 2 piezas</text><text x="670" y="94" text-anchor="end" font-size="14" font-weight="700" fill="#1F1B2E">67 × 72 cm</text>
+          <text x="412" y="118" font-size="14" fill="#6B6580">Copete</text><text x="670" y="118" text-anchor="end" font-size="14" font-weight="700" fill="#1F1B2E">90 × 46 cm</text>
+
+          <line x1="700" y1="24" x2="700" y2="118" stroke="#E9E6F0" stroke-width="1.5"/>
+
+          <text x="732" y="38" font-size="15" font-weight="800" letter-spacing="2.5" fill="#872B90">ÁREA POR UNIDAD</text>
+          <text x="732" y="92" font-size="44" font-weight="800" letter-spacing="-1.5" fill="#872B90">2.106 m²</text>
+          <text x="732" y="118" font-size="13.5" fill="#6B6580">4 piezas · sangrado incluido</text>
+
+          <line x1="990" y1="24" x2="990" y2="118" stroke="#E9E6F0" stroke-width="1.5"/>
+
+          <text x="1022" y="38" font-size="15" font-weight="800" letter-spacing="2.5" fill="#872B90">ESCALA</text>
+          <text x="1022" y="70" font-size="14" fill="#6B6580">1 : 28</text>
+          <text x="1022" y="94" font-size="14" fill="#6B6580">Cotas en centímetros</text>
+          <text x="1022" y="118" font-size="14" fill="#6B6580">Tolerancia ± 0.5 cm</text>
+        </g>
+
+        <text x="96" y="586" font-size="13" letter-spacing="1.5" fill="#A9A3B8">
+          FONDO DE 65 CM TOMADO DE LA MEDICIÓN DE REFERENCIA · SUJETO A VALIDACIÓN EN LA PRIMERA UNIDAD
+        </text>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="footbar"><span>Connectia · Cultural marketing · MX</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 07 · ESPECIFICACIÓN ========== -->
+<section class="slide dark" style="background:var(--indigo)">
+  <div class="eyebrow">Connectia · Producción</div><div class="pageno">07</div>
+  <div class="pad">
+    <span class="num">06</span>
+    <h2 style="font-size:2.6em">ESPECIFICACIÓN<br>DE PRODUCCIÓN</h2>
+    <div class="grid3" style="margin-top:2.4em">
+      <div class="card">
+        <h4>Sustrato · vinil</h4>
+        <p>Vinil autoadherible de alta calidad, calandrado premium, adhesivo permanente
+        de canales de aire para instalación sin burbuja sobre lámina esmaltada.</p>
+      </div>
+      <div class="card">
+        <h4>Impresión UVE 1440 dpi</h4>
+        <p>Tinta UV con curado LED a 1,440 dpi reales. Color sólido, sin banding, sin
+        tiempo de outgassing. Perfil ICC calibrado contra el estándar de marca.</p>
+      </div>
+      <div class="card">
+        <h4>Protección</h4>
+        <p>Laminado de acabado sobre toda la superficie impresa: resiste abrasión de piso
+        de venta, limpieza diaria y condensación de congelador.</p>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:2.4em">
+      <div class="card">
+        <h4>Copete · coroplast</h4>
+        <p>Alternativa rígida en polipropileno corrugado con impresión directa, para
+        copete autoportante. Disponible a una o dos caras.</p>
+      </div>
+      <div class="card">
+        <h4>Corte y registro</h4>
+        <p>Corte de precisión por cara, con sangrado perimetral de 1 cm y marcas de
+        registro. Cada unidad se entrega en kit rotulado por pieza.</p>
+      </div>
+      <div class="card">
+        <h4>Instalación</h4>
+        <p>Aplicación en frío por instalador certificado: limpieza, desengrase,
+        posicionamiento, arrastre y sellado de cantos. Retiro de residuo incluido.</p>
+      </div>
+    </div>
+    <p class="aforismo" style="position:absolute;bottom:0;left:0">La marca aparece donde importa, no donde sobra.</p>
+  </div>
+  <div class="footbar"><span>Connectia · Cultural marketing · MX</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 08 · COTIZACIÓN 01 ========== -->
+<section class="slide">
+  <div class="eyebrow">Connectia · Cotización 01</div><div class="pageno">08</div>
+  <div class="pad">
+    <span class="num">07</span>
+    <h2 style="font-size:2.6em">VINIL UVE · INSTALADO</h2>
+    <p class="lede" style="margin-top:.7em;font-size:.98em">
+      Precio unitario en pesos mexicanos, <b>más IVA</b>. Incluye producción, material,
+      laminado, corte, logística e instalación en sitio.
+    </p>
+    <div class="grid2" style="margin-top:1.6em;grid-template-columns:1.55fr 1fr;gap:2.8em">
+      <div>
+        <table>
+          <thead>
+            <tr>
+              <th>Volumen</th>
+              <th>Ajuste</th>
+              <th class="r">Refrigerador · 3 caras</th>
+              <th class="r">Copete · 1 cara</th>
+              <th class="r">Paquete</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="b">20,000 pzas</td><td><span class="tag base">Base</span></td>
+              <td class="r b">$1,300.00</td><td class="r b">$608.00</td><td class="r b">$1,908.00</td>
+            </tr>
+            <tr>
+              <td class="b">10,000 pzas</td><td><span class="tag">+10 %</span></td>
+              <td class="r b">$1,430.00</td><td class="r b">$668.80</td><td class="r b">$2,098.80</td>
+            </tr>
+            <tr>
+              <td class="b">5,000 pzas</td><td><span class="tag">+30 %</span></td>
+              <td class="r b">$1,690.00</td><td class="r b">$790.40</td><td class="r b">$2,480.40</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note" style="margin-top:1.4em">
+          <b>Cómo se lee la escalera.</b> El precio base corresponde a 20,000 piezas.
+          Los incrementos de 10 % y 30 % se aplican <b>siempre sobre el precio base</b>,
+          no de forma acumulada. Volúmenes intermedios se cotizan sobre el mismo criterio.
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:.8em">QUÉ INCLUYE</h3>
+        <ul class="ticks">
+          <li>Vinil de alta calidad con impresión UVE a 1,440 dpi</li>
+          <li>Frente 99 × 70 cm y dos laterales 65 × 70 cm</li>
+          <li>Copete 88 × 44 cm impreso a una cara</li>
+          <li>Laminado de protección sobre toda la superficie</li>
+          <li>Corte con sangrado y kit rotulado por unidad</li>
+          <li>Instalación por personal certificado</li>
+          <li>Retiro de material de desecho</li>
+        </ul>
+        <div class="note warn" style="margin-top:1.3em">
+          <b>No incluye.</b> Diseño y adaptación del arte, retiro de vinil previo,
+          reparación de lámina y maniobras fuera de horario comercial.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footbar"><span>Precios en MXN · más IVA · vigencia 30 días</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 09 · COTIZACIÓN 02 ========== -->
+<section class="slide">
+  <div class="eyebrow">Connectia · Cotización 02</div><div class="pageno">09</div>
+  <div class="pad">
+    <span class="num">08</span>
+    <h2 style="font-size:2.6em">COPETE EN COROPLAST</h2>
+    <p class="lede" style="margin-top:.7em;font-size:.98em">
+      Copete autoportante en polipropileno corrugado, impreso e instalado.
+      Misma escalera de volumen. Precio unitario en MXN, <b>más IVA</b>.
+    </p>
+    <div class="grid2" style="margin-top:1.6em;grid-template-columns:1.45fr 1fr;gap:2.8em">
+      <div>
+        <table>
+          <thead>
+            <tr><th>Volumen</th><th>Ajuste</th><th class="r">Una cara</th><th class="r">Dos caras</th><th class="r">Δ 2ª cara</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="b">20,000 pzas</td><td><span class="tag base">Base</span></td><td class="r b">$900.00</td><td class="r b">$1,100.00</td><td class="r">+$200.00</td></tr>
+            <tr><td class="b">10,000 pzas</td><td><span class="tag">+10 %</span></td><td class="r b">$990.00</td><td class="r b">$1,210.00</td><td class="r">+$220.00</td></tr>
+            <tr><td class="b">5,000 pzas</td><td><span class="tag">+30 %</span></td><td class="r b">$1,170.00</td><td class="r b">$1,430.00</td><td class="r">+$260.00</td></tr>
+          </tbody>
+        </table>
+        <div class="note" style="margin-top:1.4em">
+          <b>Cuándo conviene dos caras.</b> El copete se lee por ambos lados cuando el
+          congelador queda en isla, a media tienda o de espaldas a un pasillo con tránsito.
+          Contra góndola o pared, la segunda cara no se ve y no se cobra.
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:.8em">POR QUÉ CAMBIAR EL SUSTRATO</h3>
+        <ul class="ticks">
+          <li>Pieza rígida y autoportante: no depende de la lámina del copete</li>
+          <li>Aguanta golpes de carrito y manipulación de reposición</li>
+          <li>Reemplazo por temporada sin retirar vinil ni dañar el equipo</li>
+          <li>Permite doble cara real, imposible en vinil sobre lámina</li>
+          <li>Sustitución en punto de venta en minutos, sin instalador</li>
+        </ul>
+        <div class="note" style="margin-top:1.3em">
+          <b>Lectura comercial.</b> El coroplast a una cara cuesta $292.00 más que el
+          copete en vinil, y compra la posibilidad de rotar mensaje de precio sin volver
+          a intervenir el equipo.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footbar"><span>Precios en MXN · más IVA · vigencia 30 días</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 10 · ESCENARIOS ========== -->
+<section class="slide">
+  <div class="eyebrow">Connectia · Escenarios</div><div class="pageno">10</div>
+  <div class="pad">
+    <span class="num">09</span>
+    <h2 style="font-size:2.6em">TRES FORMAS DE ARMARLO</h2>
+    <div class="grid3" style="margin-top:1.8em">
+      <div style="background:var(--lav);padding:1.6em 1.5em;border-radius:3px">
+        <div class="tag base">Escenario A</div>
+        <h4 style="font-size:1.15em;font-weight:800;text-transform:uppercase;margin:.8em 0 .5em">Todo en vinil</h4>
+        <p style="font-size:.82em;line-height:1.5;color:var(--slate)">Refrigerador 3 caras + copete en vinil a una cara. La ruta más económica.</p>
+        <div style="font-size:2.5em;font-weight:800;color:var(--violet);letter-spacing:-.03em;margin-top:.7em;line-height:1">$1,908</div>
+        <div style="font-size:.72em;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-top:.4em">Por unidad · 20,000 pzas</div>
+      </div>
+      <div style="background:var(--lav);padding:1.6em 1.5em;border-radius:3px">
+        <div class="tag">Escenario B</div>
+        <h4 style="font-size:1.15em;font-weight:800;text-transform:uppercase;margin:.8em 0 .5em">Copete rígido</h4>
+        <p style="font-size:.82em;line-height:1.5;color:var(--slate)">Refrigerador en vinil + copete en coroplast a una cara. Rotación de mensaje sin instalador.</p>
+        <div style="font-size:2.5em;font-weight:800;color:var(--violet);letter-spacing:-.03em;margin-top:.7em;line-height:1">$2,200</div>
+        <div style="font-size:.72em;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-top:.4em">Por unidad · 20,000 pzas</div>
+      </div>
+      <div style="background:var(--indigo);padding:1.6em 1.5em;border-radius:3px">
+        <div class="tag" style="background:var(--lime);color:var(--ink)">Escenario C</div>
+        <h4 style="font-size:1.15em;font-weight:800;text-transform:uppercase;margin:.8em 0 .5em;color:#fff">Doble cara</h4>
+        <p style="font-size:.82em;line-height:1.5;color:rgba(255,255,255,.7)">Refrigerador en vinil + copete en coroplast a dos caras. Cobertura 360° en isla.</p>
+        <div style="font-size:2.5em;font-weight:800;color:var(--lime);letter-spacing:-.03em;margin-top:.7em;line-height:1">$2,400</div>
+        <div style="font-size:.72em;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-top:.4em">Por unidad · 20,000 pzas</div>
+      </div>
+    </div>
+    <div style="margin-top:2.2em">
+      <h3 style="margin-bottom:.8em">INVERSIÓN TOTAL POR ESCENARIO · MXN MÁS IVA</h3>
+      <table>
+        <thead><tr><th>Escenario</th><th class="r">Unitario</th><th class="r">5,000 pzas</th><th class="r">10,000 pzas</th><th class="r">20,000 pzas</th></tr></thead>
+        <tbody>
+          <tr><td class="b">A · Todo en vinil</td><td class="r">$1,908.00</td><td class="r">$12,402,000</td><td class="r">$20,988,000</td><td class="r b">$38,160,000</td></tr>
+          <tr><td class="b">B · Copete coroplast 1 cara</td><td class="r">$2,200.00</td><td class="r">$14,300,000</td><td class="r">$24,200,000</td><td class="r b">$44,000,000</td></tr>
+          <tr><td class="b">C · Copete coroplast 2 caras</td><td class="r">$2,400.00</td><td class="r">$15,600,000</td><td class="r">$26,400,000</td><td class="r b">$48,000,000</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:.72em;color:#A9A3B8;margin-top:.8em;letter-spacing:.04em">
+        Unitario mostrado al volumen base de 20,000 piezas. Las columnas de 5,000 y 10,000 aplican
+        el ajuste de +30 % y +10 % sobre base, respectivamente.
+      </p>
+    </div>
+  </div>
+  <div class="footbar"><span>Precios en MXN · más IVA · vigencia 30 días</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 11 · OPERACIÓN ========== -->
+<section class="slide dark" style="background:var(--indigo)">
+  <div class="eyebrow">Connectia · Operación</div><div class="pageno">11</div>
+  <div class="pad">
+    <span class="num">10</span>
+    <h2 style="font-size:2.6em">CÓMO SE EJECUTA</h2>
+    <div style="margin-top:2.4em;display:grid;grid-template-columns:repeat(5,1fr);gap:1.8em">
+      <div class="card"><h4>01 · Arte</h4><p>Recepción de arte editable, adaptación a las cuatro caras y prueba de color firmada.</p></div>
+      <div class="card"><h4>02 · Producción</h4><p>Impresión UVE 1,440 dpi, laminado, corte con sangrado y armado de kit por unidad.</p></div>
+      <div class="card"><h4>03 · Logística</h4><p>Ruteo por punto de venta y consolidación de kits por zona de instalación.</p></div>
+      <div class="card"><h4>04 · Instalación</h4><p>Aplicación en sitio por cuadrilla certificada, en horario acordado con la tienda.</p></div>
+      <div class="card"><h4>05 · Evidencia</h4><p>Reporte fotográfico por unidad instalada, con folio, ubicación y firma de conformidad.</p></div>
+    </div>
+    <div class="stats" style="margin-top:3em;grid-template-columns:repeat(3,1fr)">
+      <div class="stat" style="background:rgba(255,255,255,.06)">
+        <div class="k" style="color:var(--lime)">± 0.5 cm</div>
+        <div class="l" style="color:rgba(255,255,255,.6)">Tolerancia de corte</div>
+      </div>
+      <div class="stat" style="background:rgba(255,255,255,.06)">
+        <div class="k" style="color:var(--lime)">2.106 m²</div>
+        <div class="l" style="color:rgba(255,255,255,.6)">Impresión por unidad, con sangrado</div>
+      </div>
+      <div class="stat" style="background:rgba(255,255,255,.06)">
+        <div class="k" style="color:var(--lime)">100 %</div>
+        <div class="l" style="color:rgba(255,255,255,.6)">Unidades con evidencia fotográfica</div>
+      </div>
+    </div>
+    <p class="aforismo" style="position:absolute;bottom:0;left:0">La marca genera conversación, no solo mensajes.</p>
+  </div>
+  <div class="footbar"><span>Connectia · Cultural marketing · MX</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 12 · TÉRMINOS ========== -->
+<section class="slide">
+  <div class="eyebrow">Connectia · Términos</div><div class="pageno">12</div>
+  <div class="pad">
+    <span class="num">11</span>
+    <h2 style="font-size:2.6em">TÉRMINOS Y CONDICIONES</h2>
+    <div class="grid2" style="margin-top:1.8em;gap:3.2em">
+      <div>
+        <ul class="ticks" style="font-size:1.02em">
+          <li><b style="color:var(--ink)">Moneda y impuestos.</b> Todos los precios están expresados en pesos mexicanos y son <b style="color:var(--ink)">más IVA</b>.</li>
+          <li><b style="color:var(--ink)">Vigencia.</b> 30 días naturales a partir de la fecha de emisión.</li>
+          <li><b style="color:var(--ink)">Escalera de volumen.</b> Los ajustes de 10 % y 30 % se aplican sobre el precio base de 20,000 piezas, de forma no acumulativa.</li>
+          <li><b style="color:var(--ink)">Arte.</b> El cliente entrega el arte final en vectores o alta resolución. La adaptación a caras se cotiza por separado.</li>
+          <li><b style="color:var(--ink)">Medidas.</b> Sujetas a validación en sitio de la primera unidad antes de liberar producción en serie.</li>
+          <li><b style="color:var(--ink)">Acceso.</b> El cliente gestiona los permisos de acceso y las ventanas de instalación con cada punto de venta.</li>
+        </ul>
+      </div>
+      <div>
+        <div style="border:2px solid var(--citrus);background:#FFF6F0;padding:1.6em 1.7em;border-radius:3px">
+          <div class="tag" style="background:var(--citrus);color:#fff">Disclaimer</div>
+          <h3 style="color:var(--citrus);margin:.8em 0 .6em;font-size:1.2em">ALCANCE GEOGRÁFICO</h3>
+          <p style="font-size:.95em;line-height:1.6;color:#4A4358">
+            Esta cotización está calculada sobre la base de <b>instalación en un solo lugar
+            de la Ciudad de México</b>. Cualquier dispersión de unidades en más de un punto,
+            en zona metropolitana o en el interior de la República, modifica el costo de
+            logística y de instalación, y requiere recotización.
+          </p>
+        </div>
+        <div class="note" style="margin-top:1.6em">
+          <b>Datos abiertos de esta versión.</b> El tercer escalón de volumen se presenta en
+          5,000 piezas y el fondo del refrigerador en 65 cm. Ambos se ajustan en la versión
+          final una vez confirmados, sin afectar el precio base.
+        </div>
+        <div style="margin-top:1.8em;font-size:.78em;line-height:1.9;color:var(--slate);letter-spacing:.04em">
+          <b style="color:var(--ink);letter-spacing:.1em;text-transform:uppercase">Facilitadores Publicitarios HS, S.A. de C.V.</b><br>
+          Hacienda de Temoluco #130 · Col. Villaquietud<br>
+          Coyoacán · CDMX · C.P. 04960
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footbar"><span>Connectia · Cultural marketing · MX</span><span>Herdez × Nestlé Helados</span></div>
+</section>
+
+<!-- ========== 13 · CIERRE ========== -->
+<section class="slide closing">
+  <div class="c">
+    <img src="__LOGO_WHITE__" alt="connectia">
+    <div class="sl">everything is connected.</div>
+    <div class="rs">
+      Facilitadores Publicitarios HS, S.A. de C.V.<br>
+      Hacienda de Temoluco #130 · Coyoacán · CDMX<br>
+      Cultural marketing · MX
+    </div>
+  </div>
+</section>
+
+</div>
