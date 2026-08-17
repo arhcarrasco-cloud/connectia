@@ -33,11 +33,23 @@ const {{ chromium }} = require('playwright');
   await b.close();
 }})();
 """
+# Hereda el entorno para que playwright encuentre su chromium. Si node no
+# resuelve playwright por si solo, se le apunta a un global conocido.
+env = dict(os.environ)
+for candidate in ("/opt/node22/lib/node_modules", "/usr/local/lib/node_modules"):
+    if pathlib.Path(candidate, "playwright").is_dir():
+        env["NODE_PATH"] = os.pathsep.join(
+            filter(None, [env.get("NODE_PATH"), candidate])
+        )
+        break
+
 try:
-    # Hereda el entorno: playwright necesita PLAYWRIGHT_BROWSERS_PATH para
-    # encontrar el chromium preinstalado.
-    env = {**os.environ, "NODE_PATH": "/opt/node22/lib/node_modules"}
     subprocess.run(["node", "-e", script], check=True, env=env)
     print("PDF ->", PDF.name)
 except (subprocess.CalledProcessError, FileNotFoundError) as exc:
-    print("PDF omitido:", exc, file=sys.stderr)
+    print(f"PDF omitido: {exc}", file=sys.stderr)
+    print(
+        "El HTML si quedo. Para el PDF: npm i -D playwright && npx playwright install chromium,\n"
+        "o abre index.html en el navegador e imprime a PDF (1600 x 900, sin margen).",
+        file=sys.stderr,
+    )
