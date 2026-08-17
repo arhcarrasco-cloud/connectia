@@ -6,6 +6,7 @@
 Se corre desde la raiz del repo. El PDF necesita playwright + chromium.
 """
 import base64
+import os
 import pathlib
 import subprocess
 import sys
@@ -33,11 +34,10 @@ const {{ chromium }} = require('playwright');
 }})();
 """
 try:
-    subprocess.run(
-        ["node", "-e", script],
-        check=True,
-        env={"NODE_PATH": "/opt/node22/lib/node_modules", "PATH": "/usr/bin:/bin:/opt/node22/bin"},
-    )
+    # Hereda el entorno: playwright necesita PLAYWRIGHT_BROWSERS_PATH para
+    # encontrar el chromium preinstalado.
+    env = {**os.environ, "NODE_PATH": "/opt/node22/lib/node_modules"}
+    subprocess.run(["node", "-e", script], check=True, env=env)
     print("PDF ->", PDF.name)
 except (subprocess.CalledProcessError, FileNotFoundError) as exc:
     print("PDF omitido:", exc, file=sys.stderr)
