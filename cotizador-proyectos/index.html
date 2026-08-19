@@ -9,6 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="proyectos-store.js"></script>
 <style>
   :root{
     --indigo:#201040;
@@ -479,14 +481,235 @@
   .footer-logo{height:20px;width:auto;display:block;}
   .footer-tag{font-size:11px;color:var(--muted);font-style:italic;}
 
+  /* ===== Comisiones por línea ===== */
+  .rowcomm-btn{
+    margin-top:5px;border:1px solid var(--border);background:#fff;color:var(--violet);
+    border-radius:5px;font-size:9.5px;font-weight:800;padding:3px 7px;cursor:pointer;white-space:nowrap;
+  }
+  .rowcomm-btn:hover{background:var(--calc-bg);}
+  .rc-mode{display:flex;gap:16px;margin-bottom:14px;font-size:13px;font-weight:600;}
+  .rc-mode label{display:flex;align-items:center;gap:6px;cursor:pointer;}
+  .rc-list{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+  .rc-item{display:flex;gap:8px;align-items:center;}
+  .rc-item input[type=text]{flex:1;border:1px solid var(--border);border-radius:7px;padding:7px 9px;font-family:inherit;font-size:13px;}
+  .rc-item input[type=number]{width:90px;border:1px solid var(--border);border-radius:7px;padding:7px 9px;font-family:inherit;font-size:13px;text-align:right;}
+  .rc-item button{border:none;background:none;color:var(--warn);font-size:15px;cursor:pointer;}
+  .rc-total{font-size:12px;color:var(--muted);font-weight:700;}
+
+  /* ===== Importador ===== */
+  .imp-drop{
+    border:2px dashed var(--violet-light);border-radius:12px;padding:26px;text-align:center;
+    background:var(--calc-bg);color:var(--violet);font-weight:700;font-size:13.5px;margin-bottom:16px;cursor:pointer;
+  }
+  .imp-drop:hover{background:#e9e1fa;}
+  .imp-drop small{display:block;font-weight:500;color:var(--muted);margin-top:6px;font-size:11.5px;}
+  .imp-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .imp-table th{background:var(--tc-bg);color:var(--indigo);font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;padding:7px 8px;text-align:left;}
+  .imp-table td{padding:6px 8px;border-bottom:1px solid var(--border);}
+  .imp-table td.num,.imp-table th.num{text-align:right;}
+  .imp-table input{border:1px solid var(--border);border-radius:6px;padding:5px 6px;font-family:inherit;font-size:12px;width:100%;}
+  .imp-table input.num{text-align:right;}
+  .imp-scroll{max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:9px;}
+  .imp-meta{font-size:12px;color:var(--muted);margin-bottom:12px;}
+  .imp-meta b{color:var(--indigo);}
+
+  /* ===== Sellado de proyecto ===== */
+  .btn-seal{background:#1a8f5e;color:#fff;}
+  .btn-seal:hover{background:#14724a;}
+  .btn-board{background:#fff;color:var(--indigo);border:1.5px solid var(--indigo);text-decoration:none;display:inline-block;}
+  .btn-board:hover{background:var(--tc-bg);}
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(24,12,48,.55);
+    display:flex;align-items:flex-start;justify-content:center;
+    padding:40px 16px;overflow-y:auto;z-index:200;
+  }
+  .modal-backdrop.hidden{display:none;}
+  .modal{
+    background:#fff;border-radius:14px;width:100%;max-width:900px;
+    box-shadow:0 20px 60px rgba(32,16,64,.35);overflow:hidden;
+  }
+  .modal-head{
+    background:var(--indigo);color:#fff;padding:18px 26px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .modal-head h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em;}
+  .modal-head p{margin:3px 0 0;font-size:11.5px;opacity:.75;}
+  .modal-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;}
+  .modal-body{padding:22px 26px 8px;}
+  .modal-foot{
+    padding:16px 26px 22px;display:flex;justify-content:space-between;
+    align-items:center;gap:12px;flex-wrap:wrap;
+  }
+  .seal-resumen{
+    background:var(--calc-bg);border:1px solid var(--border);border-radius:10px;
+    padding:14px 16px;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;
+  }
+  .seal-resumen div span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;}
+  .seal-resumen div b{font-size:14px;color:var(--indigo);}
+  .seal-block{margin-bottom:20px;}
+  .seal-block-title{
+    font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:800;
+    color:var(--violet);margin-bottom:9px;padding-bottom:5px;border-bottom:1px solid var(--border);
+  }
+  .seal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .seal-grid.cols3{grid-template-columns:repeat(3,1fr);}
+  .seal-field{display:flex;flex-direction:column;gap:4px;}
+  .seal-field label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  .seal-field input,.seal-field select,.seal-field textarea{
+    border:1px solid var(--border);border-radius:7px;padding:8px 9px;
+    font-family:inherit;font-size:13px;color:var(--text);background:#fff;width:100%;
+  }
+  .seal-field input:focus,.seal-field select:focus{outline:2px solid var(--violet-light);outline-offset:-1px;}
+  .seal-field .hint{font-size:10px;color:var(--muted);font-style:italic;}
+  .seal-check{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text);padding-top:18px;}
+  .doc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .doc-slot{
+    border:1.5px dashed var(--border);border-radius:9px;padding:11px 13px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fcfbff;
+  }
+  .doc-slot.filled{border-style:solid;border-color:var(--ok);background:var(--ok-bg);}
+  .doc-slot-main{overflow:hidden;}
+  .doc-slot-label{font-size:11.5px;font-weight:800;color:var(--indigo);}
+  .doc-slot-file{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:250px;}
+  .doc-slot-btn{
+    border:none;background:var(--violet);color:#fff;border-radius:6px;
+    padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;
+  }
+  .doc-slot-btn.ghost{background:#fff;color:var(--warn);border:1px solid var(--border);}
+  .doc-slot-btn.alt{background:#fff;color:var(--violet);border:1px solid var(--violet-light);}
+  .doc-actions{display:flex;gap:5px;flex-shrink:0;}
+
+  /* ===== Panel de control de flujo dentro del cotizador ===== */
+  .flow-panel{
+    margin:0 36px 26px;padding:20px 22px;background:#fbfaff;
+    border:1px solid var(--border);border-radius:12px;
+  }
+  .flow-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
+  .flow-head h3{margin:0;font-size:14px;font-weight:800;color:var(--indigo);letter-spacing:-.01em;}
+  .flow-head p{margin:3px 0 0;font-size:11.5px;color:var(--muted);}
+  .flow-alert{font-size:10.5px;font-weight:800;padding:5px 10px;border-radius:6px;background:#f3f1f8;color:var(--muted);white-space:nowrap;}
+  .flow-alert.due{background:var(--warn-bg);color:var(--warn);}
+  .flow-alert.soon{background:#fdf4e0;color:#b8860b;}
+  .flow-alert.ok{background:var(--ok-bg);color:var(--ok);}
+  .flow-alert.paid{background:#eef0f5;color:#69708a;}
+
+  /* ===== Vistas (Cotizador / Proyectos) ===== */
+  .viewtabs{max-width:1700px;margin:0 auto 12px;padding:0 20px;display:flex;gap:8px;align-items:center;}
+  .viewtab{
+    border:1.5px solid var(--border);background:#fff;color:var(--muted);
+    border-radius:9px 9px 0 0;padding:10px 20px;font-size:13.5px;font-weight:800;cursor:pointer;
+    font-family:inherit;border-bottom:none;
+  }
+  .viewtab.active{background:var(--indigo);color:#fff;border-color:var(--indigo);}
+  .viewtab .count{
+    display:inline-block;margin-left:7px;background:rgba(255,255,255,.22);
+    border-radius:10px;padding:1px 7px;font-size:11px;
+  }
+  .viewtab:not(.active) .count{background:var(--tc-bg);color:var(--violet);}
+  .hidden{display:none !important;}
+
+  /* ===== Tablero de proyectos ===== */
+  #viewProyectos{max-width:1700px;margin:0 auto;padding:0 20px;}
+  #viewProyectos .board-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+  #viewProyectos .board-head h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.02em;}
+  #viewProyectos .board-head p{margin:2px 0 0;font-size:11.5px;color:var(--muted);}
+  #viewProyectos .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;margin-bottom:14px;}
+  #viewProyectos .kpi{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  #viewProyectos .kpi span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:800;margin-bottom:4px;}
+  #viewProyectos .kpi b{font-size:16px;color:var(--indigo);letter-spacing:-.02em;}
+  #viewProyectos .kpi.alert b{color:var(--warn);}
+  #viewProyectos .kpi.good b{color:var(--ok);}
+  #viewProyectos .filters{background:#fff;border:1px solid var(--border);border-radius:10px;padding:13px 15px;margin-bottom:14px;}
+  #viewProyectos .filters-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:800;color:var(--violet);margin-bottom:9px;}
+  #viewProyectos .filters-grid{display:grid;grid-template-columns:repeat(5,1fr) auto;gap:11px;align-items:end;}
+  #viewProyectos .f-item{display:flex;flex-direction:column;gap:4px;}
+  #viewProyectos .f-item label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  #viewProyectos .f-range{display:flex;gap:5px;}
+  #viewProyectos .f-item input,#viewProyectos .f-item select{
+    border:1px solid var(--border);border-radius:7px;padding:7px 8px;font-family:inherit;font-size:12px;color:var(--text);background:#fff;width:100%;
+  }
+  #viewProyectos .f-actions{display:flex;gap:8px;}
+  #viewProyectos .chip{
+    display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:7px 11px;
+    border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;white-space:nowrap;
+  }
+  #viewProyectos .chip.active{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);}
+  #viewProyectos .board-card{background:#fff;border:1px solid var(--border);border-radius:10px;overflow-x:auto;box-shadow:0 1px 4px rgba(32,16,64,.06);}
+  #viewProyectos table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1560px;}
+  #viewProyectos thead th{
+    background:var(--indigo);color:#fff;font-size:10px;text-transform:uppercase;letter-spacing:.05em;
+    font-weight:800;padding:11px 9px;text-align:left;white-space:nowrap;
+  }
+  #viewProyectos thead th.num{text-align:right;}
+  #viewProyectos thead th.sortable{cursor:pointer;}
+  #viewProyectos thead th.sortable:hover{background:#2c1857;}
+  #viewProyectos tbody tr{border-bottom:1px solid var(--border);cursor:pointer;}
+  #viewProyectos tbody tr:hover{background:var(--calc-bg);}
+  #viewProyectos tbody td{padding:10px 9px;vertical-align:middle;}
+  #viewProyectos tbody td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  #viewProyectos .cell-strong{font-weight:700;color:var(--indigo);}
+  #viewProyectos .cell-sub{font-size:10.5px;color:var(--muted);}
+  #viewProyectos .m-ok{color:var(--ok);font-weight:800;}
+  #viewProyectos .m-warn{color:var(--warn);font-weight:800;}
+  #viewProyectos tfoot td{
+    background:var(--calc-bg);font-weight:800;color:var(--indigo);padding:13px 9px;
+    border-top:2px solid var(--violet-light);font-size:13px;
+  }
+  #viewProyectos tfoot td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  #viewProyectos .empty{padding:46px 20px;text-align:center;color:var(--muted);font-size:13.5px;}
+  .dot{display:inline-block;width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+  .dot.paid{background:#9aa0b5;} .dot.ok{background:var(--ok);}
+  .dot.soon{background:#e0a80f;} .dot.none{background:#d6d2e4;}
+  .dot.due{background:var(--warn);box-shadow:0 0 0 3px rgba(179,38,30,.18);}
+  .alert-badge{font-size:10px;font-weight:800;padding:3px 7px;border-radius:5px;white-space:nowrap;}
+  .alert-badge.due{background:var(--warn-bg);color:var(--warn);}
+  .alert-badge.soon{background:#fdf4e0;color:#b8860b;}
+  .alert-badge.ok{background:var(--ok-bg);color:var(--ok);}
+  .alert-badge.paid{background:#eef0f5;color:#69708a;}
+  .alert-badge.none{background:#f3f1f8;color:var(--muted);}
+  .doc-pills{display:flex;gap:4px;}
+  .pill{border:1px solid var(--border);background:#f7f5fc;color:#a49dbb;border-radius:5px;font-size:9.5px;font-weight:800;padding:4px 6px;white-space:nowrap;}
+  .pill.has{background:var(--ok-bg);border-color:#a9dfc7;color:var(--ok);cursor:pointer;}
+  .pill.has:hover{background:#d3f0e3;}
+  .status-tag{font-size:10px;font-weight:800;padding:4px 8px;border-radius:5px;background:var(--tc-bg);color:var(--violet);white-space:nowrap;}
+  .status-tag.borrador{background:#f0eef6;color:var(--muted);}
+  .etapa-btn{
+    border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:10.5px;
+    font-weight:800;cursor:pointer;white-space:nowrap;background:#fff;color:var(--muted);font-family:inherit;
+  }
+  .etapa-btn.cotizacion{background:#fff6e5;border-color:#e8c887;color:#9a6b0d;}
+  .etapa-btn.cerrado{background:var(--ok-bg);border-color:#a9dfc7;color:var(--ok);}
+  .etapa-btn:hover{filter:brightness(.96);}
+  .d-resumen{background:var(--calc-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px;}
+  .d-resumen div span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:800;}
+  .d-resumen div b{font-size:14px;color:var(--indigo);}
+  .d-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .d-table th{background:var(--tc-bg);color:var(--indigo);font-size:9.5px;padding:7px 8px;text-align:left;text-transform:uppercase;letter-spacing:.04em;}
+  .d-table th.num,.d-table td.num{text-align:right;}
+  .d-table td{padding:7px 8px;border-bottom:1px solid var(--border);}
+
+  @media (max-width:1280px){
+    #viewProyectos .kpis{grid-template-columns:repeat(3,1fr);}
+    #viewProyectos .filters-grid{grid-template-columns:repeat(2,1fr);}
+    .seal-grid,.seal-grid.cols3{grid-template-columns:repeat(2,1fr);}
+    .d-resumen{grid-template-columns:repeat(3,1fr);}
+  }
+
   @media print{
+    .viewtabs{display:none;}
     .toolbar{display:none;}
+    .modal-backdrop{display:none !important;}
     body{background:#fff;padding:0;}
     .quote-wrap{box-shadow:none;border:none;}
   }
 </style>
 </head>
 <body>
+
+<div class="viewtabs">
+  <button class="viewtab active" id="tabCotizador" onclick="setView('cotizador')">Cotizador</button>
+  <button class="viewtab" id="tabProyectos" onclick="setView('proyectos')">Proyectos <span class="count" id="tabProyCount">0</span></button>
+</div>
 
 <div class="toolbar">
   <div class="session-group">
@@ -499,14 +722,21 @@
       </div>
     </div>
     <button class="btn btn-secondary" onclick="newSession()">+ Nueva</button>
+    <button class="btn btn-secondary" onclick="pickImportFile()">⬆ Importar Excel / Word</button>
     <span id="sessionStatus" class="session-status"></span>
   </div>
-  <div class="export-group">
+  <div class="export-group" id="groupCotizador">
+    <button class="btn btn-seal" onclick="sellarProyecto()">🔒 Guardar y sellar proyecto</button>
     <button class="btn btn-export" onclick="exportPDF()">Exportar PDF</button>
     <button class="btn btn-export" onclick="exportExcel()">Exportar Excel</button>
   </div>
+  <div class="export-group hidden" id="groupProyectos">
+    <button class="btn btn-export" onclick="exportarProyectosExcel()">Exportar Excel</button>
+    <button class="btn btn-export" onclick="window.print()">Imprimir</button>
+  </div>
 </div>
 
+<div id="viewCotizador">
 <div class="quote-wrap">
 
   <div class="header">
@@ -613,6 +843,131 @@
     </div>
   </div>
 
+  <!-- ===== CONTROL DE FLUJO (fuente de datos de la pestaña Proyectos) ===== -->
+  <div class="flow-panel">
+    <div class="flow-head">
+      <div>
+        <h3>Control de flujo del proyecto</h3>
+        <p>Se guarda junto con la sesión y alimenta la pestaña <b>Proyectos</b>.</p>
+      </div>
+      <span class="flow-alert" id="fxAlerta">Sin fechas capturadas</span>
+    </div>
+
+    <div class="seal-block">
+      <div class="seal-block-title">Datos del proyecto</div>
+      <div class="seal-grid">
+        <div class="seal-field">
+          <label>Fecha de captura</label>
+          <input type="date" id="fxCaptura" onchange="onFlowInput()">
+        </div>
+        <div class="seal-field">
+          <label>Etapa</label>
+          <select id="fxEtapa" onchange="onFlowInput()">
+            <option value="Cotización">Cotización</option>
+            <option value="Cerrado">Cerrado</option>
+          </select>
+        </div>
+        <div class="seal-field">
+          <label>Estatus</label>
+          <select id="fxEstatus" onchange="onFlowInput()">
+            <option>Borrador</option>
+            <option>Sellado</option>
+            <option>En ejecución</option>
+            <option>Facturado</option>
+            <option>Cobrado</option>
+            <option>Cerrado</option>
+            <option>Cancelado</option>
+          </select>
+        </div>
+        <div class="seal-field">
+          <label>Proveedor</label>
+          <input type="text" id="fxProveedor" placeholder="Nombre del proveedor" oninput="onFlowInput()">
+        </div>
+      </div>
+    </div>
+
+    <div class="seal-block">
+      <div class="seal-block-title">Cobranza — Cliente</div>
+      <div class="seal-grid">
+        <div class="seal-field">
+          <label>No. factura cliente</label>
+          <input type="text" id="fxFacCliNum" placeholder="A-000" oninput="onFlowInput()">
+        </div>
+        <div class="seal-field">
+          <label>Fecha de factura</label>
+          <input type="date" id="fxFacCliFecha" onchange="onFlowInput(true)">
+        </div>
+        <div class="seal-field">
+          <label>Días de pago</label>
+          <input type="number" min="0" step="1" id="fxDiasCli" value="30" oninput="onFlowInput(true)">
+          <span class="hint">a partir de la factura</span>
+        </div>
+        <div class="seal-field">
+          <label>Fecha de pago cliente</label>
+          <input type="date" id="fxPagoCliFecha" onchange="onFlowInput()">
+          <label class="seal-check" style="padding-top:2px">
+            <input type="checkbox" id="fxPagadoCli" onchange="onFlowInput()"> Ya pagado
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="seal-block">
+      <div class="seal-block-title">Pago — Proveedor</div>
+      <div class="seal-grid">
+        <div class="seal-field">
+          <label>No. factura proveedor</label>
+          <input type="text" id="fxFacProvNum" placeholder="F-000" oninput="onFlowInput()">
+        </div>
+        <div class="seal-field">
+          <label>Fecha de factura</label>
+          <input type="date" id="fxFacProvFecha" onchange="onFlowInput(true)">
+        </div>
+        <div class="seal-field">
+          <label>Días de pago</label>
+          <input type="number" min="0" step="1" id="fxDiasProv" value="30" oninput="onFlowInput(true)">
+          <span class="hint">a partir de la factura</span>
+        </div>
+        <div class="seal-field">
+          <label>Fecha de pago proveedor</label>
+          <input type="date" id="fxPagoProvFecha" onchange="onFlowInput()">
+          <label class="seal-check" style="padding-top:2px">
+            <input type="checkbox" id="fxPagadoProv" onchange="onFlowInput()"> Ya pagado
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="seal-block">
+      <div class="seal-block-title">Comisiones</div>
+      <div class="seal-grid">
+        <div class="seal-field">
+          <label>Monto total de comisiones</label>
+          <input type="text" id="fxCommMonto" disabled>
+        </div>
+        <div class="seal-field">
+          <label>Fecha de pago de comisiones</label>
+          <input type="date" id="fxCommFecha" onchange="onFlowInput()">
+        </div>
+        <div class="seal-field">
+          <label>&nbsp;</label>
+          <label class="seal-check" style="padding-top:0">
+            <input type="checkbox" id="fxCommPagado" onchange="onFlowInput()"> Comisiones pagadas
+          </label>
+        </div>
+        <div class="seal-field">
+          <label>Notas</label>
+          <input type="text" id="fxNotas" placeholder="Acuerdos de pago, observaciones…" oninput="onFlowInput()">
+        </div>
+      </div>
+    </div>
+
+    <div class="seal-block" style="margin-bottom:0">
+      <div class="seal-block-title">Documentos — órdenes de compra y facturas</div>
+      <div class="doc-grid" id="fxDocGrid"></div>
+    </div>
+  </div>
+
   <div class="tc-box">
     <label>Términos y condiciones</label>
     <textarea id="terminos">Vigencia de la cotización según lo indicado arriba a partir de la fecha de emisión. Precios en pesos mexicanos (MXN). Forma de pago: 50% anticipo, 50% contra entrega, salvo acuerdo distinto por escrito. Sujeto a disponibilidad de espacios al momento de confirmar.</textarea>
@@ -624,6 +979,212 @@
   </div>
 
 </div>
+</div><!-- /viewCotizador -->
+
+<!-- ============ VISTA: PROYECTOS (control de flujos) ============ -->
+<div id="viewProyectos" class="hidden">
+  <div class="board-head">
+    <div>
+      <h2>Proyectos y control de flujos</h2>
+      <p>Todas las sesiones guardadas del cotizador — captura, facturación, cobranza, pago a proveedor y comisiones</p>
+    </div>
+  </div>
+
+  <div class="kpis" id="pkpis"></div>
+
+  <div class="filters">
+    <div class="filters-title">Filtros de control de flujo</div>
+    <div class="filters-grid">
+      <div class="f-item">
+        <label>Fecha de captura</label>
+        <div class="f-range">
+          <input type="date" id="fCapturaDe" onchange="renderBoard()">
+          <input type="date" id="fCapturaA" onchange="renderBoard()">
+        </div>
+      </div>
+      <div class="f-item">
+        <label>Fecha de factura (cliente)</label>
+        <div class="f-range">
+          <input type="date" id="fFacturaDe" onchange="renderBoard()">
+          <input type="date" id="fFacturaA" onchange="renderBoard()">
+        </div>
+      </div>
+      <div class="f-item">
+        <label>Fecha de pago (cliente)</label>
+        <div class="f-range">
+          <input type="date" id="fPagoDe" onchange="renderBoard()">
+          <input type="date" id="fPagoA" onchange="renderBoard()">
+        </div>
+      </div>
+      <div class="f-item">
+        <label>Cliente / concepto / folio</label>
+        <input type="text" id="fTexto" placeholder="Buscar…" oninput="renderBoard()">
+      </div>
+      <div class="f-item">
+        <label>Etapa</label>
+        <select id="fEtapa" onchange="renderBoard()">
+          <option value="">Todas</option>
+          <option>Cotización</option>
+          <option>Cerrado</option>
+        </select>
+      </div>
+      <div class="f-actions">
+        <div class="chip" id="chipVencidos" onclick="toggleVencidos()">⚠ Solo vencidos</div>
+        <button class="btn btn-secondary" onclick="limpiarFiltros()">Limpiar</button>
+      </div>
+    </div>
+    <div class="filters-grid" style="margin-top:11px;grid-template-columns:repeat(5,1fr) auto;">
+      <div class="f-item">
+        <label>Estatus</label>
+        <select id="fEstatus" onchange="renderBoard()">
+          <option value="">Todos</option>
+          <option>Borrador</option>
+          <option>Sellado</option>
+          <option>En ejecución</option>
+          <option>Facturado</option>
+          <option>Cobrado</option>
+          <option>Cerrado</option>
+          <option>Cancelado</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="board-card">
+    <table id="boardTable">
+      <thead>
+        <tr>
+          <th style="width:32px"></th>
+          <th class="sortable" onclick="setSort('etapa')">Etapa</th>
+          <th class="sortable" onclick="setSort('capturaAt')">Captura</th>
+          <th class="sortable" onclick="setSort('cliente')">Cliente</th>
+          <th>Concepto</th>
+          <th class="num sortable" onclick="setSort('costoProveedor')">Costo proveedor</th>
+          <th class="num sortable" onclick="setSort('precioCliente')">Precio cliente</th>
+          <th class="num">Comisiones</th>
+          <th class="num sortable" onclick="setSort('utilidad')">Utilidad</th>
+          <th class="num">Margen</th>
+          <th>Documentos</th>
+          <th class="num">Días de pago</th>
+          <th class="sortable" onclick="setSort('fechaPagoCliente')">Fecha pago cliente</th>
+          <th>Alerta</th>
+          <th>Estatus</th>
+        </tr>
+      </thead>
+      <tbody id="boardBody"></tbody>
+      <tfoot id="boardFoot"></tfoot>
+    </table>
+    <div class="empty hidden" id="boardEmpty">
+      Aún no hay sesiones guardadas. Captura una cotización y usa <b>💾 Guardar sesión</b> o <b>🔒 Guardar y sellar proyecto</b>.
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Detalle de proyecto ===== -->
+<div class="modal-backdrop hidden" id="detalleModal">
+  <div class="modal" style="max-width:1020px">
+    <div class="modal-head">
+      <div>
+        <h2 id="dTitulo">Detalle del proyecto</h2>
+        <p id="dSubtitulo"></p>
+      </div>
+      <button class="modal-close" onclick="cerrarDetalle()">✕</button>
+    </div>
+    <div class="modal-body" id="dBody"></div>
+    <div class="modal-foot">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button class="btn btn-secondary" onclick="abrirEnCotizador()">✎ Abrir en el cotizador</button>
+        <span class="session-status" id="dStatus"></span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary" onclick="cerrarDetalle()">Cerrar</button>
+        <button class="btn btn-primary" onclick="guardarDetalle()">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+<input type="file" id="docFileInput" style="display:none" accept=".pdf,.xml,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+
+<!-- ===== MODAL: Comisiones por línea ===== -->
+<div class="modal-backdrop hidden" id="rowCommModal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-head">
+      <div>
+        <h2>Comisiones de la línea</h2>
+        <p id="rcConcepto"></p>
+      </div>
+      <button class="modal-close" onclick="closeRowComm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="rc-mode">
+        <label><input type="radio" name="rcMode" value="general" onchange="rcSetMode('general')"> Usar comisiones generales del proyecto</label>
+        <label><input type="radio" name="rcMode" value="propia" onchange="rcSetMode('propia')"> Comisiones propias</label>
+      </div>
+      <div id="rcEditor">
+        <div class="rc-list" id="rcList"></div>
+        <button class="comm-add-btn" onclick="rcAdd()">+ Agregar comisión</button>
+        <div class="rc-total" id="rcTotal"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary" onclick="closeRowComm()">Cancelar</button>
+        <button class="btn btn-primary" onclick="rcApply()">Aplicar a esta línea</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Importar Excel / Word ===== -->
+<div class="modal-backdrop hidden" id="importModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2>Importar Excel o Word</h2>
+        <p>Detecta automáticamente conceptos, cantidades, costos de proveedor, precios y comisiones.</p>
+      </div>
+      <button class="modal-close" onclick="closeImportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="imp-drop" id="impDrop" onclick="pickImportFile()">
+        Arrastra aquí tu archivo o haz click para elegirlo
+        <small>Formatos: .xlsx · .xls · .csv · .docx — se leen tablas con encabezados tipo Concepto / Cantidad / Costo / Precio / Comisión</small>
+      </div>
+      <div id="impResultado" style="display:none">
+        <div class="imp-meta" id="impMeta"></div>
+        <div class="imp-scroll">
+          <table class="imp-table">
+            <thead>
+              <tr>
+                <th style="width:34px"></th>
+                <th>Concepto</th>
+                <th class="num" style="width:80px">Cant.</th>
+                <th class="num" style="width:120px">Costo unit. prov.</th>
+                <th class="num" style="width:120px">Precio unit. cliente</th>
+                <th class="num" style="width:110px">Comisión línea</th>
+              </tr>
+            </thead>
+            <tbody id="impBody"></tbody>
+          </table>
+        </div>
+        <div id="impComisiones" style="margin-top:14px"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="session-status" id="impStatus"></span>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary" onclick="closeImportModal()">Cancelar</button>
+        <button class="btn btn-secondary" id="impBtnAgregar" style="display:none" onclick="applyImport(false)">Agregar a lo existente</button>
+        <button class="btn btn-primary" id="impBtnReemplazar" style="display:none" onclick="applyImport(true)">Reemplazar conceptos</button>
+      </div>
+    </div>
+  </div>
+</div>
+<input type="file" id="importFileInput" style="display:none" accept=".xlsx,.xls,.csv,.docx">
+
+<input type="file" id="flowFileInput" style="display:none" accept=".pdf,.xml,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+
 
 <script>
 const LOGO_B64 = "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";
@@ -661,8 +1222,14 @@ function setFieldVal(id, val){
 }
 
 /* ---------- Motor de cálculo ---------- */
+/* Comisiones efectivas de una línea: propias si tiene override, si no las generales */
+function rowCommissions(r){
+  return Array.isArray(r.commOverride) ? r.commOverride : commissions;
+}
+
 function computeRow(r){
-  const commPctSum = commissions.reduce((s,c)=> s + (parseFloat(c.pct)||0), 0) / 100;
+  const effComms = rowCommissions(r);
+  const commPctSum = effComms.reduce((s,c)=> s + (parseFloat(c.pct)||0), 0) / 100;
   const target = (targetPct||0)/100;
 
   const qty = (r.cantidad===null || r.cantidad===undefined || isNaN(r.cantidad) || r.cantidad<=0) ? 1 : r.cantidad;
@@ -692,7 +1259,7 @@ function computeRow(r){
     return {qty, CPunit, CPtotal, PCunit:null, PCtotal:null, commAmounts:[], commSum:null, margin:null, marginPct:null, flagPC, status:"pending", error:null};
   }
 
-  const commAmounts = commissions.map(c => ({label:c.label, pct:c.pct, amount: PCtotal * (parseFloat(c.pct)||0)/100}));
+  const commAmounts = effComms.map(c => ({label:c.label, pct:c.pct, amount: PCtotal * (parseFloat(c.pct)||0)/100}));
   const commSum = commAmounts.reduce((s,c)=>s+c.amount,0);
 
   let margin=null, marginPct=null, status="pending";
@@ -769,7 +1336,12 @@ function buildRow(i){
       <label class="manual-toggle"><input type="checkbox" ${r.manualPC?'checked':''} onchange="toggleManual(${i},this.checked)"> manual</label>
     </td>
     <td id="pctotal-${i}" class="computed">-</td>
-    <td id="comm-${i}" class="comm-breakdown">-</td>
+    <td class="comm-breakdown">
+      <div id="comm-${i}">-</div>
+      <button class="rowcomm-btn" onclick="openRowComm(${i})" title="Comisiones de esta línea">
+        ${Array.isArray(r.commOverride) ? '✎ propias' : '✎ generales'}
+      </button>
+    </td>
     <td id="margin-${i}" class="computed">-</td>
     <td id="marginpct-${i}" class="computed">-</td>
     <td id="status-${i}">-</td>
@@ -1086,7 +1658,9 @@ function getState(){
     },
     commissions: commissions.map(c => ({...c})),
     targetPct: targetPct,
-    rows: rows.map(r => ({...r}))
+    rows: rows.map(r => ({...r})),
+    flow: JSON.parse(JSON.stringify(readFlowPanel())),
+    totals: currentTotals()
   };
 }
 
@@ -1111,6 +1685,14 @@ function setState(state){
 
   rows = (state.rows || []).map(r => ({...r}));
   renderRows();
+
+  currentFlow = {...defaultFlow(), ...(state.flow || {})};
+  currentFlow.proveedor = {...defaultFlow().proveedor, ...(currentFlow.proveedor||{})};
+  currentFlow.clientePago = {...defaultFlow().clientePago, ...(currentFlow.clientePago||{})};
+  currentFlow.comisionesPago = {...defaultFlow().comisionesPago, ...(currentFlow.comisionesPago||{})};
+  currentFlow.docs = currentFlow.docs || {};
+  if(!state.flow && h.fechaCotizacion) currentFlow.capturaAt = h.fechaCotizacion;
+  renderFlowPanel();
 }
 
 function loadSessions(){
@@ -1243,6 +1825,8 @@ function newSession(){
   renderCommList();
   rows = [{concepto:'Nuevo concepto', cantidad:1, costoUnitario:null, manualPC:false, precioUnitarioManual:null}];
   renderRows();
+  currentFlow = defaultFlow();
+  renderFlowPanel();
   showSessionStatus('Nueva cotización iniciada');
 }
 
@@ -1284,10 +1868,984 @@ function seedProjectSessions(){
   localStorage.setItem(SEED_VERSION_KEY, String(SEED_VERSION));
 }
 
+/* ============================================================
+   COMISIONES POR LÍNEA
+   ============================================================ */
+let rcIndex = null, rcDraft = [], rcMode = 'general';
+
+function openRowComm(i){
+  rcIndex = i;
+  const r = rows[i];
+  rcMode = Array.isArray(r.commOverride) ? 'propia' : 'general';
+  rcDraft = (Array.isArray(r.commOverride) ? r.commOverride : commissions).map(c => ({label:c.label, pct:c.pct}));
+  document.getElementById('rcConcepto').textContent = r.concepto || 'Concepto sin nombre';
+  document.querySelectorAll('input[name="rcMode"]').forEach(el => { el.checked = (el.value === rcMode); });
+  rcRender();
+  document.getElementById('rowCommModal').classList.remove('hidden');
+}
+function closeRowComm(){
+  document.getElementById('rowCommModal').classList.add('hidden');
+  rcIndex = null;
+}
+function rcSetMode(mode){
+  rcMode = mode;
+  if(mode === 'general') rcDraft = commissions.map(c => ({label:c.label, pct:c.pct}));
+  rcRender();
+}
+function rcRender(){
+  const disabled = rcMode === 'general';
+  document.getElementById('rcEditor').style.opacity = disabled ? .5 : 1;
+  document.getElementById('rcEditor').style.pointerEvents = disabled ? 'none' : 'auto';
+  document.getElementById('rcList').innerHTML = rcDraft.map((c,i) => `
+    <div class="rc-item">
+      <input type="text" value="${CX.esc(c.label)}" oninput="rcUpdate(${i},'label',this.value)">
+      <input type="number" step="0.1" value="${c.pct}" oninput="rcUpdate(${i},'pct',this.value)">
+      <span>%</span>
+      <button onclick="rcRemove(${i})" title="Quitar">✕</button>
+    </div>`).join('');
+  const sum = rcDraft.reduce((s,c)=> s + (parseFloat(c.pct)||0), 0);
+  document.getElementById('rcTotal').textContent = 'Suma de comisiones: ' + sum.toFixed(2) + '%';
+}
+function rcUpdate(i, field, val){
+  if(field === 'label') rcDraft[i].label = val;
+  else rcDraft[i].pct = val === '' ? 0 : parseFloat(val);
+  const sum = rcDraft.reduce((s,c)=> s + (parseFloat(c.pct)||0), 0);
+  document.getElementById('rcTotal').textContent = 'Suma de comisiones: ' + sum.toFixed(2) + '%';
+}
+function rcAdd(){ rcDraft.push({label:'Nueva', pct:0}); rcRender(); }
+function rcRemove(i){ rcDraft.splice(i,1); rcRender(); }
+function rcApply(){
+  if(rcIndex === null) return;
+  rows[rcIndex].commOverride = (rcMode === 'propia') ? rcDraft.map(c => ({label:c.label, pct:c.pct})) : null;
+  closeRowComm();
+  renderRows();
+}
+document.getElementById('rowCommModal').addEventListener('click', function(e){ if(e.target===this) closeRowComm(); });
+
+/* ============================================================
+   IMPORTADOR EXCEL / WORD
+   ============================================================ */
+let impRows = [], impComms = [], impFileName = '';
+
+const COLS = {
+  concepto:   /concep|descrip|producto|servicio|partida|item|art[íi]culo|espacio|medio/i,
+  cantidad:   /cant|qty|unidad(es)?|piezas|pzas|n[uú]m\.?\s*de/i,
+  costoUnit:  /(costo|c\.?u\.?).*(unit|proveedor|prov)|costo\s*unitario|precio\s*proveedor|costo\s*prov/i,
+  costoTot:   /(costo|importe).*(total)|total\s*costo|costo\s*proveedor\s*total/i,
+  costoGen:   /costo|proveedor|compra/i,
+  precioUnit: /(precio|venta|p\.?u\.?).*(unit|cliente)|precio\s*unitario|venta\s*unitaria/i,
+  precioTot:  /(precio|venta|importe).*(total)|total\s*cliente|precio\s*cliente/i,
+  precioGen:  /precio|venta|cliente|tarifa/i,
+  comision:   /comisi/i
+};
+
+function numify(x){
+  if(x === null || x === undefined) return null;
+  if(typeof x === 'number') return isNaN(x) ? null : x;
+  let s = String(x).replace(/\s| /g,'').replace(/[$€]/g,'').replace(/mxn/ig,'');
+  if(!s) return null;
+  const pctFlag = s.indexOf('%') !== -1;
+  s = s.replace('%','');
+  // 1.234,56  ->  1234.56
+  if(/,\d{1,2}$/.test(s) && s.indexOf('.') !== -1) s = s.replace(/\./g,'').replace(',','.');
+  else s = s.replace(/,/g,'');
+  const n = parseFloat(s);
+  if(isNaN(n)) return null;
+  return pctFlag ? n : n;
+}
+
+function pickImportFile(){
+  const input = document.getElementById('importFileInput');
+  input.value = '';
+  input.onchange = () => {
+    const f = input.files && input.files[0];
+    if(f) handleImportFile(f);
+  };
+  input.click();
+}
+
+async function handleImportFile(file){
+  impFileName = file.name;
+  openImportModal();
+  document.getElementById('impStatus').textContent = 'Leyendo ' + file.name + '…';
+  try{
+    let matrix = [];
+    if(/\.docx$/i.test(file.name)){
+      matrix = await readDocxTables(file);
+    } else {
+      matrix = await readSheet(file);
+    }
+    const parsed = parseMatrix(matrix);
+    impRows = parsed.rows;
+    impComms = parsed.comisiones;
+    if(!impRows.length){
+      document.getElementById('impStatus').textContent = 'No se detectaron conceptos en el archivo. Revisa que tenga una tabla con encabezados.';
+      document.getElementById('impResultado').style.display = 'none';
+      return;
+    }
+    document.getElementById('impStatus').textContent = '';
+    renderImportPreview(parsed.mapeo);
+  }catch(e){
+    document.getElementById('impStatus').textContent = 'No se pudo leer el archivo: ' + e.message;
+  }
+}
+
+function readSheet(file){
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = e => {
+      try{
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+        let out = [];
+        wb.SheetNames.forEach(name => {
+          const m = XLSX.utils.sheet_to_json(wb.Sheets[name], {header:1, defval:null, blankrows:false});
+          out = out.concat(m);
+        });
+        resolve(out);
+      }catch(err){ reject(err); }
+    };
+    fr.onerror = () => reject(new Error('lectura fallida'));
+    fr.readAsArrayBuffer(file);
+  });
+}
+
+function readDocxTables(file){
+  return new Promise((resolve, reject) => {
+    if(typeof mammoth === 'undefined'){ reject(new Error('el lector de Word no cargó (revisa tu conexión)')); return; }
+    const fr = new FileReader();
+    fr.onload = e => {
+      mammoth.convertToHtml({arrayBuffer: e.target.result})
+        .then(res => {
+          const doc = new DOMParser().parseFromString(res.value, 'text/html');
+          let matrix = [];
+          doc.querySelectorAll('table').forEach(tb => {
+            tb.querySelectorAll('tr').forEach(tr => {
+              matrix.push(Array.from(tr.querySelectorAll('th,td')).map(td => td.textContent.trim()));
+            });
+          });
+          // párrafos sueltos: sirven para detectar comisiones escritas en texto
+          doc.querySelectorAll('p').forEach(p => {
+            const txt = p.textContent.trim();
+            if(txt && COLS.comision.test(txt)) matrix.push([txt]);
+          });
+          resolve(matrix);
+        })
+        .catch(reject);
+    };
+    fr.onerror = () => reject(new Error('lectura fallida'));
+    fr.readAsArrayBuffer(file);
+  });
+}
+
+/* Detecta la fila de encabezados y mapea columnas */
+function parseMatrix(matrix){
+  const comisiones = [];
+  let headerIdx = -1, map = null;
+
+  for(let i=0; i<Math.min(matrix.length, 40); i++){
+    const fila = (matrix[i]||[]).map(c => (c===null||c===undefined) ? '' : String(c));
+    const m = mapHeader(fila);
+    if(m && m.concepto !== undefined && (m.costoUnit!==undefined || m.costoTot!==undefined || m.precioUnit!==undefined || m.precioTot!==undefined)){
+      headerIdx = i; map = m; break;
+    }
+  }
+
+  // Comisiones sueltas en texto: "Comisión agencia 18%"
+  matrix.forEach(fila => {
+    const txt = (fila||[]).filter(Boolean).join(' ');
+    if(!txt || !COLS.comision.test(txt)) return;
+    const pm = txt.match(/(\d{1,2}(?:[.,]\d+)?)\s*%/);
+    if(pm){
+      const label = txt.replace(/comisi[óo]n(es)?\s*(de|por|para)?/i,'').replace(/\d{1,2}(?:[.,]\d+)?\s*%/,'').replace(/[:\-–—]/g,'').trim();
+      comisiones.push({label: label || 'Comisión', pct: parseFloat(pm[1].replace(',','.'))});
+    }
+  });
+
+  const out = [];
+  if(headerIdx === -1) return {rows: out, comisiones: dedupComms(comisiones), mapeo:null};
+
+  for(let i=headerIdx+1; i<matrix.length; i++){
+    const fila = matrix[i] || [];
+    const concepto = String(fila[map.concepto] ?? '').trim();
+    if(!concepto) continue;
+    if(/^(total|subtotal|iva|gran total|suma)/i.test(concepto)) continue;
+
+    const qty = map.cantidad !== undefined ? (numify(fila[map.cantidad]) || 1) : 1;
+    let cu = map.costoUnit !== undefined ? numify(fila[map.costoUnit]) : null;
+    const ct = map.costoTot !== undefined ? numify(fila[map.costoTot]) : null;
+    if(cu === null && ct !== null) cu = ct / (qty || 1);
+    let pu = map.precioUnit !== undefined ? numify(fila[map.precioUnit]) : null;
+    const pt = map.precioTot !== undefined ? numify(fila[map.precioTot]) : null;
+    if(pu === null && pt !== null) pu = pt / (qty || 1);
+    const comPct = map.comision !== undefined ? numify(fila[map.comision]) : null;
+
+    if(cu === null && pu === null) continue;
+    out.push({concepto, cantidad: qty, costoUnitario: cu, precioUnitario: pu, comisionPct: comPct});
+  }
+  return {rows: out, comisiones: dedupComms(comisiones), mapeo: map};
+}
+
+function mapHeader(fila){
+  const m = {};
+  fila.forEach((celda, idx) => {
+    const t = String(celda||'').trim();
+    if(!t) return;
+    if(m.concepto === undefined && COLS.concepto.test(t)) { m.concepto = idx; return; }
+    if(m.cantidad === undefined && COLS.cantidad.test(t)) { m.cantidad = idx; return; }
+    if(m.costoUnit === undefined && COLS.costoUnit.test(t)) { m.costoUnit = idx; return; }
+    if(m.costoTot === undefined && COLS.costoTot.test(t) && COLS.costoGen.test(t)) { m.costoTot = idx; return; }
+    if(m.precioUnit === undefined && COLS.precioUnit.test(t)) { m.precioUnit = idx; return; }
+    if(m.precioTot === undefined && COLS.precioTot.test(t)) { m.precioTot = idx; return; }
+    if(m.comision === undefined && COLS.comision.test(t)) { m.comision = idx; return; }
+    if(m.costoUnit === undefined && m.costoTot === undefined && COLS.costoGen.test(t)) { m.costoUnit = idx; return; }
+    if(m.precioUnit === undefined && m.precioTot === undefined && COLS.precioGen.test(t)) { m.precioUnit = idx; return; }
+  });
+  return Object.keys(m).length ? m : null;
+}
+
+function dedupComms(list){
+  const seen = new Set(), out = [];
+  list.forEach(c => {
+    const k = (c.label||'').toLowerCase() + '|' + c.pct;
+    if(!seen.has(k)){ seen.add(k); out.push(c); }
+  });
+  return out.slice(0,8);
+}
+
+function openImportModal(){
+  impRows = []; impComms = [];
+  document.getElementById('impResultado').style.display = 'none';
+  document.getElementById('impBtnAgregar').style.display = 'none';
+  document.getElementById('impBtnReemplazar').style.display = 'none';
+  document.getElementById('impStatus').textContent = '';
+  document.getElementById('importModal').classList.remove('hidden');
+}
+function closeImportModal(){ document.getElementById('importModal').classList.add('hidden'); }
+
+function renderImportPreview(mapeo){
+  document.getElementById('impResultado').style.display = 'block';
+  document.getElementById('impBtnAgregar').style.display = 'inline-block';
+  document.getElementById('impBtnReemplazar').style.display = 'inline-block';
+  const cols = mapeo ? Object.keys(mapeo).join(', ') : 'sin encabezados claros';
+  document.getElementById('impMeta').innerHTML =
+    `Archivo <b>${CX.esc(impFileName)}</b> · <b>${impRows.length}</b> conceptos detectados · columnas reconocidas: ${CX.esc(cols)}. ` +
+    `Ajusta lo que haga falta antes de aplicar.`;
+
+  document.getElementById('impBody').innerHTML = impRows.map((r,i) => `
+    <tr>
+      <td><input type="checkbox" checked onchange="impRows[${i}].skip=!this.checked"></td>
+      <td><input type="text" value="${CX.esc(r.concepto)}" oninput="impRows[${i}].concepto=this.value"></td>
+      <td><input class="num" type="number" step="1" value="${r.cantidad ?? 1}" oninput="impRows[${i}].cantidad=parseFloat(this.value)"></td>
+      <td><input class="num" type="number" step="0.01" value="${r.costoUnitario ?? ''}" oninput="impRows[${i}].costoUnitario=this.value===''?null:parseFloat(this.value)"></td>
+      <td><input class="num" type="number" step="0.01" value="${r.precioUnitario ?? ''}" oninput="impRows[${i}].precioUnitario=this.value===''?null:parseFloat(this.value)"></td>
+      <td><input class="num" type="number" step="0.1" placeholder="—" value="${r.comisionPct ?? ''}" oninput="impRows[${i}].comisionPct=this.value===''?null:parseFloat(this.value)"></td>
+    </tr>`).join('');
+
+  document.getElementById('impComisiones').innerHTML = impComms.length ? `
+    <div class="seal-block-title">Comisiones generales detectadas</div>
+    <div class="imp-meta">Se agregarán al panel de comisiones del proyecto (aplican a todas las líneas sin comisión propia):</div>
+    ${impComms.map((c,i) => `
+      <label style="display:inline-flex;align-items:center;gap:6px;margin:0 14px 8px 0;font-size:12.5px;font-weight:600">
+        <input type="checkbox" checked onchange="impComms[${i}].skip=!this.checked">
+        ${CX.esc(c.label)} — ${c.pct}%
+      </label>`).join('')}
+  ` : '<div class="imp-meta">No se detectaron comisiones generales en el archivo; puedes capturarlas después en el panel de comisiones.</div>';
+}
+
+function applyImport(replace){
+  const nuevos = impRows.filter(r => !r.skip).map(r => ({
+    concepto: r.concepto || 'Concepto importado',
+    cantidad: (!r.cantidad || isNaN(r.cantidad)) ? 1 : r.cantidad,
+    costoUnitario: (r.costoUnitario === null || isNaN(r.costoUnitario)) ? null : r.costoUnitario,
+    manualPC: r.precioUnitario !== null && !isNaN(r.precioUnitario),
+    precioUnitarioManual: (r.precioUnitario === null || isNaN(r.precioUnitario)) ? null : r.precioUnitario,
+    commOverride: (r.comisionPct !== null && r.comisionPct !== undefined && !isNaN(r.comisionPct))
+      ? [{label:'Comisión línea', pct: r.comisionPct}] : null
+  }));
+  if(!nuevos.length){ document.getElementById('impStatus').textContent = 'No seleccionaste ningún concepto.'; return; }
+
+  rows = replace ? nuevos : rows.concat(nuevos);
+
+  const addComms = impComms.filter(c => !c.skip);
+  if(addComms.length){
+    addComms.forEach(c => {
+      if(!commissions.some(x => (x.label||'').toLowerCase() === (c.label||'').toLowerCase())){
+        commissions.push({label:c.label, pct:c.pct});
+      }
+    });
+    renderCommList();
+  }
+
+  renderRows();
+  closeImportModal();
+  showSessionStatus(nuevos.length + ' conceptos importados desde ' + impFileName);
+}
+
+/* Drag & drop sobre el modal */
+(function(){
+  const drop = document.getElementById('impDrop');
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.style.background = '#e2d7f8'; }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.style.background = ''; }));
+  drop.addEventListener('drop', e => {
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if(f) handleImportFile(f);
+  });
+})();
+document.getElementById('importModal').addEventListener('click', function(e){ if(e.target===this) closeImportModal(); });
+
+/* ============================================================
+   CONTROL DE FLUJO — vive en el cotizador y viaja con la sesión
+   ============================================================ */
+function defaultFlow(){
+  return {
+    capturaAt: CX.today(),
+    etapa: 'Cotización',
+    estatus: 'Borrador',
+    notas: '',
+    proveedor: {nombre:'', facturaNum:'', facturaFecha:'', diasCredito:30, fechaPago:'', pagado:false},
+    clientePago: {facturaNum:'', facturaFecha:'', diasCredito:30, fechaPago:'', pagado:false},
+    comisionesPago: {monto:0, fecha:'', pagado:false},
+    docs: {},
+    sealedAt: null
+  };
+}
+let currentFlow = defaultFlow();
+
+function currentTotals(){
+  let totCP=0, totPC=0, totComm=0, totMargin=0;
+  rows.forEach(r => {
+    const c = computeRow(r);
+    if(!c.error && c.CPtotal!==null && c.PCtotal!==null){
+      totCP += c.CPtotal; totPC += c.PCtotal; totComm += c.commSum; totMargin += c.margin;
+    }
+  });
+  const ivaOn = document.getElementById('ivaToggle').checked;
+  const iva = ivaOn ? totPC*0.16 : 0;
+  return {costoProveedor:totCP, precioCliente:totPC, comisiones:totComm, utilidad:totMargin,
+          margenPct: totPC>0 ? (totMargin/totPC*100) : null, iva, total: totPC+iva};
+}
+
+function renderFlowPanel(){
+  const f = currentFlow;
+  setFieldVal('fxCaptura', f.capturaAt || CX.today());
+  document.getElementById('fxEtapa').value = f.etapa || 'Cotización';
+  document.getElementById('fxEstatus').value = f.estatus || 'Borrador';
+  setFieldVal('fxProveedor', f.proveedor.nombre);
+  setFieldVal('fxFacCliNum', f.clientePago.facturaNum);
+  setFieldVal('fxFacCliFecha', f.clientePago.facturaFecha);
+  document.getElementById('fxDiasCli').value = f.clientePago.diasCredito ?? 30;
+  setFieldVal('fxPagoCliFecha', f.clientePago.fechaPago);
+  document.getElementById('fxPagadoCli').checked = !!f.clientePago.pagado;
+  setFieldVal('fxFacProvNum', f.proveedor.facturaNum);
+  setFieldVal('fxFacProvFecha', f.proveedor.facturaFecha);
+  document.getElementById('fxDiasProv').value = f.proveedor.diasCredito ?? 30;
+  setFieldVal('fxPagoProvFecha', f.proveedor.fechaPago);
+  document.getElementById('fxPagadoProv').checked = !!f.proveedor.pagado;
+  setFieldVal('fxCommFecha', f.comisionesPago.fecha);
+  document.getElementById('fxCommPagado').checked = !!f.comisionesPago.pagado;
+  setFieldVal('fxNotas', f.notas);
+  renderFlowDocs();
+  updateFlowAlert();
+}
+
+function readFlowPanel(){
+  const f = currentFlow;
+  f.capturaAt = fieldVal('fxCaptura');
+  f.etapa = fieldVal('fxEtapa');
+  f.estatus = fieldVal('fxEstatus');
+  f.notas = fieldVal('fxNotas');
+  f.clientePago = {
+    facturaNum: fieldVal('fxFacCliNum'), facturaFecha: fieldVal('fxFacCliFecha'),
+    diasCredito: parseInt(document.getElementById('fxDiasCli').value || '0', 10),
+    fechaPago: fieldVal('fxPagoCliFecha'), pagado: document.getElementById('fxPagadoCli').checked
+  };
+  f.proveedor = {
+    nombre: fieldVal('fxProveedor'),
+    facturaNum: fieldVal('fxFacProvNum'), facturaFecha: fieldVal('fxFacProvFecha'),
+    diasCredito: parseInt(document.getElementById('fxDiasProv').value || '0', 10),
+    fechaPago: fieldVal('fxPagoProvFecha'), pagado: document.getElementById('fxPagadoProv').checked
+  };
+  f.comisionesPago = {
+    monto: currentTotals().comisiones,
+    fecha: fieldVal('fxCommFecha'), pagado: document.getElementById('fxCommPagado').checked
+  };
+  return f;
+}
+
+/* recalcDates=true cuando cambió una fecha de factura o los días de pago */
+function onFlowInput(recalcDates){
+  if(recalcDates){
+    const fc = fieldVal('fxFacCliFecha'), dc = document.getElementById('fxDiasCli').value;
+    if(fc) setFieldVal('fxPagoCliFecha', CX.addDays(fc, dc));
+    const fp = fieldVal('fxFacProvFecha'), dp = document.getElementById('fxDiasProv').value;
+    if(fp) setFieldVal('fxPagoProvFecha', CX.addDays(fp, dp));
+  }
+  readFlowPanel();
+  updateFlowAlert();
+}
+
+function updateFlowAlert(){
+  const el = document.getElementById('fxAlerta');
+  if(!el) return;
+  const al = CX.projectAlert(currentFlow);
+  el.className = 'flow-alert ' + al.level;
+  el.textContent = al.level === 'none' ? 'Sin fechas capturadas' : al.detalle;
+  const m = document.getElementById('fxCommMonto');
+  if(m) m.value = CX.money(currentTotals().comisiones);
+}
+
+function renderFlowDocs(){
+  document.getElementById('fxDocGrid').innerHTML = CX.DOC_SLOTS.map(slot => {
+    const d = currentFlow.docs[slot.key];
+    return `
+      <div class="doc-slot ${d?'filled':''}">
+        <div class="doc-slot-main">
+          <div class="doc-slot-label">${slot.label}</div>
+          <div class="doc-slot-file">${d ? CX.esc(d.name)+' · '+Math.round(d.size/1024)+' KB' : 'Sin archivo'}</div>
+        </div>
+        <div class="doc-actions">
+          ${d ? `<button class="doc-slot-btn" onclick="CX.openDocInTab('${d.docId}')">Ver</button>
+                 <button class="doc-slot-btn alt" onclick="CX.downloadDoc('${d.docId}')">↓</button>
+                 <button class="doc-slot-btn ghost" onclick="removeFlowDoc('${slot.key}')">✕</button>`
+              : `<button class="doc-slot-btn" onclick="pickFlowDoc('${slot.key}')">Subir</button>`}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function pickFlowDoc(slotKey){
+  const input = document.getElementById('flowFileInput');
+  input.value = '';
+  input.onchange = async () => {
+    const file = input.files && input.files[0];
+    if(!file) return;
+    try{
+      currentFlow.docs[slotKey] = await CX.putDoc(file, {slot:slotKey});
+      renderFlowDocs();
+      if(currentSessionId) saveSessionSilent();
+    }catch(e){ alert('No se pudo guardar el archivo: ' + e.message); }
+  };
+  input.click();
+}
+
+async function removeFlowDoc(slotKey){
+  const d = currentFlow.docs[slotKey];
+  if(d && d.docId) await CX.deleteDoc(d.docId);
+  delete currentFlow.docs[slotKey];
+  renderFlowDocs();
+  if(currentSessionId) saveSessionSilent();
+}
+
+/* Guarda la sesión actual sin pedir nombre (para autoguardar documentos y flujo) */
+function saveSessionSilent(){
+  if(!currentSessionId) return;
+  const list = loadSessions();
+  const idx = list.findIndex(s => s.id === currentSessionId);
+  if(idx === -1) return;
+  list[idx].data = getState();
+  list[idx].savedAt = new Date().toISOString();
+  persistSessions(list);
+  renderBoard();
+}
+
+/* Botón principal: guarda la sesión y sella el proyecto */
+function sellarProyecto(){
+  const t = currentTotals();
+  if(t.precioCliente <= 0){
+    alert('Captura al menos un concepto con precio antes de sellar el proyecto.');
+    return;
+  }
+  readFlowPanel();
+  currentFlow.sealedAt = currentFlow.sealedAt || new Date().toISOString();
+  if(currentFlow.estatus === 'Borrador') {
+    currentFlow.estatus = currentFlow.etapa === 'Cerrado' ? 'En ejecución' : 'Sellado';
+    document.getElementById('fxEstatus').value = currentFlow.estatus;
+  }
+  const nombre = (currentSessionId && (loadSessions().find(s=>s.id===currentSessionId)||{}).name)
+    || fieldVal('conceptoGeneral') || fieldVal('clienteNombre') || fieldVal('folio') || 'Proyecto sin nombre';
+  saveSession(nombre);
+  updateFlowAlert();
+  renderBoard();
+  showSessionStatus('Proyecto sellado — ya aparece en la pestaña Proyectos');
+  setView('proyectos');
+}
+
+/* ============================================================
+   VISTA PROYECTOS — se construye sobre las SESIONES guardadas
+   Cada sesión = una línea. El registro de control de flujo
+   (fechas, docs, etapa) se guarda con el mismo id de la sesión.
+   ============================================================ */
+let sortKey = 'capturaAt', sortDir = -1, soloVencidos = false, proyectoActivo = null, sesionActiva = null;
+
+function setView(view){
+  const esProy = view === 'proyectos';
+  document.getElementById('viewCotizador').classList.toggle('hidden', esProy);
+  document.getElementById('viewProyectos').classList.toggle('hidden', !esProy);
+  document.getElementById('tabCotizador').classList.toggle('active', !esProy);
+  document.getElementById('tabProyectos').classList.toggle('active', esProy);
+  document.getElementById('groupCotizador').classList.toggle('hidden', esProy);
+  document.getElementById('groupProyectos').classList.toggle('hidden', !esProy);
+  if(esProy) renderBoard();
+  window.scrollTo(0,0);
+}
+
+/* Totales de una sesión guardada (independiente del estado en pantalla) */
+function computeSessionTotals(data){
+  const gComms = (data && data.commissions) || [];
+  const target = (data && data.targetPct) || 0;
+  let CP=0, PC=0, COM=0, MAR=0;
+  ((data && data.rows) || []).forEach(r => {
+    const comms = Array.isArray(r.commOverride) ? r.commOverride : gComms;
+    const pctSum = comms.reduce((s,c)=> s + (parseFloat(c.pct)||0), 0)/100;
+    const qty = (!r.cantidad || isNaN(r.cantidad) || r.cantidad<=0) ? 1 : r.cantidad;
+    const cu = (r.costoUnitario===null || r.costoUnitario===undefined || isNaN(r.costoUnitario)) ? null : r.costoUnitario;
+    const ct = cu!==null ? cu*qty : null;
+    let pu = null;
+    if(r.manualPC){
+      pu = (r.precioUnitarioManual===null || r.precioUnitarioManual===undefined || isNaN(r.precioUnitarioManual)) ? null : r.precioUnitarioManual;
+    } else if(cu!==null){
+      const f = 1 - pctSum - target/100;
+      if(f > 0) pu = cu/f;
+    }
+    const pt = pu!==null ? pu*qty : null;
+    if(ct===null || pt===null) return;
+    const cs = pt * pctSum;
+    CP += ct; PC += pt; COM += cs; MAR += (pt - cs - ct);
+  });
+  const ivaOn = !(data && data.header && data.header.ivaOn === false);
+  const iva = ivaOn ? PC*0.16 : 0;
+  return {costoProveedor:CP, precioCliente:PC, comisiones:COM, utilidad:MAR,
+          margenPct: PC>0 ? (MAR/PC*100) : null, iva, total: PC+iva};
+}
+
+/* Cada línea sale de una sesión; el control de flujo vive en session.data.flow */
+function buildBoardRows(){
+  return loadSessions().map(s => {
+    const h = (s.data && s.data.header) || {};
+    const flow = (s.data && s.data.flow) || {};
+    return {
+      id: s.id,
+      nombre: s.name || 'Sin nombre',
+      sesion: s,
+      cliente: h.clienteNombre || h.razonSocial || s.name || 'Sin cliente',
+      concepto: h.conceptoGeneral || ((s.data && s.data.rows && s.data.rows[0] && s.data.rows[0].concepto) || '—'),
+      folio: h.folio || '',
+      capturaAt: flow.capturaAt || h.fechaCotizacion || (s.savedAt||'').slice(0,10),
+      etapa: flow.etapa || 'Cotización',
+      estatus: flow.estatus || 'Borrador',
+      sellado: !!flow.sealedAt,
+      totals: computeSessionTotals(s.data),
+      clientePago: flow.clientePago || {},
+      proveedor: flow.proveedor || {},
+      comisionesPago: flow.comisionesPago || {},
+      docs: flow.docs || {},
+      notas: flow.notas || ''
+    };
+  });
+}
+
+/* Escribe el control de flujo (y los datos de encabezado) de vuelta en la sesión */
+function persistBoardRow(p){
+  const list = loadSessions();
+  const idx = list.findIndex(s => s.id === p.id);
+  if(idx === -1) return;
+  const data = list[idx].data = list[idx].data || {header:{}};
+  data.header = data.header || {};
+  data.header.clienteNombre = p.cliente;
+  data.header.conceptoGeneral = p.concepto;
+  data.header.folio = p.folio;
+  data.header.fechaCotizacion = p.capturaAt;
+  data.flow = {
+    capturaAt: p.capturaAt, etapa: p.etapa, estatus: p.estatus, notas: p.notas,
+    proveedor: p.proveedor, clientePago: p.clientePago, comisionesPago: p.comisionesPago,
+    docs: p.docs, sealedAt: (data.flow && data.flow.sealedAt) || new Date().toISOString()
+  };
+  data.totals = p.totals;
+  list[idx].savedAt = new Date().toISOString();
+  persistSessions(list);
+  renderSessionsList();
+  // si la sesión abierta es esta, refresca el panel del cotizador
+  if(currentSessionId === p.id){
+    currentFlow = JSON.parse(JSON.stringify(data.flow));
+    setFieldVal('clienteNombre', p.cliente);
+    setFieldVal('conceptoGeneral', p.concepto);
+    setFieldVal('folio', p.folio);
+    renderFlowPanel();
+  }
+}
+
+function bv(id){ const e = document.getElementById(id); return e ? e.value : ''; }
+function enRango(fecha, de, a){
+  if(!de && !a) return true;
+  if(!fecha) return false;
+  if(de && fecha < de) return false;
+  if(a && fecha > a) return false;
+  return true;
+}
+function aplicarFiltros(list){
+  const texto = bv('fTexto').trim().toLowerCase();
+  const estatus = bv('fEstatus'), etapa = bv('fEtapa');
+  return list.filter(p => {
+    if(!enRango(p.capturaAt, bv('fCapturaDe'), bv('fCapturaA'))) return false;
+    if(!enRango(p.clientePago.facturaFecha, bv('fFacturaDe'), bv('fFacturaA'))) return false;
+    if(!enRango(p.clientePago.fechaPago, bv('fPagoDe'), bv('fPagoA'))) return false;
+    if(estatus && p.estatus !== estatus) return false;
+    if(etapa && p.etapa !== etapa) return false;
+    if(soloVencidos && CX.projectAlert(p).level !== 'due') return false;
+    if(texto){
+      const blob = [p.cliente, p.concepto, p.folio, p.nombre, p.proveedor.nombre].filter(Boolean).join(' ').toLowerCase();
+      if(blob.indexOf(texto) === -1) return false;
+    }
+    return true;
+  });
+}
+function toggleVencidos(){
+  soloVencidos = !soloVencidos;
+  document.getElementById('chipVencidos').classList.toggle('active', soloVencidos);
+  renderBoard();
+}
+function limpiarFiltros(){
+  ['fCapturaDe','fCapturaA','fFacturaDe','fFacturaA','fPagoDe','fPagoA','fTexto'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('fEstatus').value = '';
+  document.getElementById('fEtapa').value = '';
+  soloVencidos = false;
+  document.getElementById('chipVencidos').classList.remove('active');
+  renderBoard();
+}
+function setSort(key){
+  if(sortKey === key) sortDir = -sortDir; else { sortKey = key; sortDir = 1; }
+  renderBoard();
+}
+function sortVal(p, key){
+  switch(key){
+    case 'etapa': return p.etapa;
+    case 'cliente': return (p.cliente||'').toLowerCase();
+    case 'capturaAt': return p.capturaAt || '';
+    case 'fechaPagoCliente': return p.clientePago.fechaPago || '';
+    case 'costoProveedor': return p.totals.costoProveedor;
+    case 'precioCliente': return p.totals.precioCliente;
+    case 'utilidad': return p.totals.utilidad;
+    default: return '';
+  }
+}
+
+function renderBoard(){
+  const todos = buildBoardRows();
+  document.getElementById('tabProyCount').textContent = todos.length;
+  const list = aplicarFiltros(todos).sort((a,b) => {
+    const va = sortVal(a,sortKey), vb = sortVal(b,sortKey);
+    return va < vb ? -1*sortDir : va > vb ? 1*sortDir : 0;
+  });
+
+  const s = CX.sumTotals(list);
+  const porCobrar = list.filter(p => !p.clientePago.pagado).reduce((a,p)=> a + p.totals.total, 0);
+  const porPagar  = list.filter(p => !p.proveedor.pagado).reduce((a,p)=> a + p.totals.costoProveedor, 0);
+  const vencidos  = list.filter(p => CX.projectAlert(p).level === 'due').length;
+  document.getElementById('pkpis').innerHTML = `
+    <div class="kpi"><span>Proyectos</span><b>${list.length} <small style="font-size:11px;color:var(--muted)">· ${list.filter(p=>p.etapa==='Cerrado').length} cerrados</small></b></div>
+    <div class="kpi"><span>Venta total</span><b>${CX.money(s.precioCliente)}</b></div>
+    <div class="kpi"><span>Costo proveedor</span><b>${CX.money(s.costoProveedor)}</b></div>
+    <div class="kpi good"><span>Utilidad · margen</span><b>${CX.money(s.utilidad)} <small style="font-size:12px">(${CX.pct(s.margenPct)})</small></b></div>
+    <div class="kpi"><span>Por cobrar / por pagar</span><b>${CX.money(porCobrar)}<small style="font-size:11px;color:var(--muted)"> · ${CX.money(porPagar)}</small></b></div>
+    <div class="kpi ${vencidos?'alert':''}"><span>Vencidos</span><b>${vencidos ? '⚠ '+vencidos : '0'}</b></div>`;
+
+  document.getElementById('boardEmpty').classList.toggle('hidden', todos.length > 0);
+
+  document.getElementById('boardBody').innerHTML = list.map(p => {
+    const t = p.totals, al = CX.projectAlert(p), cp = p.clientePago;
+    const dias = (cp.diasCredito || cp.diasCredito === 0) ? cp.diasCredito : null;
+    const pagoSt = CX.pagoStatus(cp.fechaPago, cp.pagado);
+    const margenCls = t.margenPct !== null && t.margenPct >= 15 ? 'm-ok' : 'm-warn';
+    return `
+      <tr onclick="abrirDetalle('${p.id}')">
+        <td><span class="dot ${al.level}" title="${CX.esc(al.detalle)}"></span></td>
+        <td onclick="event.stopPropagation()">
+          <button class="etapa-btn ${p.etapa==='Cerrado'?'cerrado':'cotizacion'}"
+                  title="Click para cambiar entre Cotización y Cerrado"
+                  onclick="toggleEtapa('${p.id}')">${p.etapa==='Cerrado'?'✔ Cerrado':'◔ Cotización'}</button>
+        </td>
+        <td><div class="cell-strong">${CX.fmtDate(p.capturaAt)}</div><div class="cell-sub">${CX.esc(p.folio || p.nombre)}</div></td>
+        <td class="cell-strong">${CX.esc(p.cliente)}</td>
+        <td><div>${CX.esc(p.concepto)}</div>${p.proveedor.nombre ? `<div class="cell-sub">Prov: ${CX.esc(p.proveedor.nombre)}</div>`:''}</td>
+        <td class="num">${CX.money(t.costoProveedor)}</td>
+        <td class="num cell-strong">${CX.money(t.precioCliente)}</td>
+        <td class="num">${CX.money(t.comisiones)}</td>
+        <td class="num cell-strong">${CX.money(t.utilidad)}</td>
+        <td class="num ${margenCls}">${CX.pct(t.margenPct)}</td>
+        <td onclick="event.stopPropagation()"><div class="doc-pills">
+          ${CX.DOC_SLOTS.map(sl => {
+            const d = p.docs[sl.key];
+            return d ? `<span class="pill has" title="${CX.esc(d.name)}" onclick="CX.openDocInTab('${d.docId}')">${sl.short}</span>`
+                     : `<span class="pill" title="Sin archivo">${sl.short}</span>`;
+          }).join('')}
+        </div></td>
+        <td class="num"><div class="cell-strong">${dias!==null?dias+' d':'—'}</div>
+          <div class="cell-sub">${cp.facturaFecha ? 'Fac '+CX.fmtDate(cp.facturaFecha) : 'sin factura'}</div></td>
+        <td><div class="cell-strong">${CX.fmtDate(cp.fechaPago)}</div><div class="cell-sub">${pagoSt.texto}</div></td>
+        <td><span class="alert-badge ${al.level}">${al.level==='due'?'⚠ ':''}${CX.esc(al.texto)}</span></td>
+        <td><span class="status-tag ${p.estatus==='Borrador'?'borrador':''}">${CX.esc(p.estatus)}</span></td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('boardFoot').innerHTML = list.length ? `
+    <tr>
+      <td></td>
+      <td colspan="4">TOTALES · ${list.length} proyecto${list.length===1?'':'s'}</td>
+      <td class="num">${CX.money(s.costoProveedor)}</td>
+      <td class="num">${CX.money(s.precioCliente)}</td>
+      <td class="num">${CX.money(s.comisiones)}</td>
+      <td class="num">${CX.money(s.utilidad)}</td>
+      <td class="num">${CX.pct(s.margenPct)}</td>
+      <td colspan="5"></td>
+    </tr>` : '';
+}
+
+function toggleEtapa(id){
+  const p = buildBoardRows().find(x => x.id === id);
+  if(!p) return;
+  p.etapa = p.etapa === 'Cerrado' ? 'Cotización' : 'Cerrado';
+  if(p.etapa === 'Cerrado' && (p.estatus === 'Borrador' || p.estatus === 'Sellado')) p.estatus = 'En ejecución';
+  persistBoardRow(p);
+  renderBoard();
+}
+
+/* ---------- Detalle ---------- */
+function abrirDetalle(id){
+  const p = buildBoardRows().find(x => x.id === id);
+  if(!p) return;
+  proyectoActivo = JSON.parse(JSON.stringify(p));
+  sesionActiva = id;
+  document.getElementById('dTitulo').textContent = p.cliente + ' — ' + p.concepto;
+  document.getElementById('dSubtitulo').textContent =
+    'Sesión "' + p.nombre + '" · Folio ' + (p.folio || '—') + ' · Captura ' + CX.fmtDate(p.capturaAt) +
+    (p.sellado ? ' · Sellado' : ' · Sin sellar');
+  document.getElementById('dStatus').textContent = '';
+  renderDetalle();
+  document.getElementById('detalleModal').classList.remove('hidden');
+}
+function cerrarDetalle(){
+  document.getElementById('detalleModal').classList.add('hidden');
+  proyectoActivo = null;
+  renderBoard();
+}
+function abrirEnCotizador(){
+  if(!sesionActiva) return;
+  const id = sesionActiva;
+  cerrarDetalle();
+  openSession(id);
+  setView('cotizador');
+}
+
+function renderDetalle(){
+  const p = proyectoActivo, t = p.totals;
+  const cp = p.clientePago, pr = p.proveedor, co = p.comisionesPago;
+  const filas = (p.sesion.data && p.sesion.data.rows) || [];
+  const coms  = (p.sesion.data && p.sesion.data.commissions) || [];
+
+  document.getElementById('dBody').innerHTML = `
+    <div class="d-resumen">
+      <div><span>Costo proveedor</span><b>${CX.money(t.costoProveedor)}</b></div>
+      <div><span>Precio cliente</span><b>${CX.money(t.precioCliente)}</b></div>
+      <div><span>Comisiones</span><b>${CX.money(t.comisiones)}</b></div>
+      <div><span>Utilidad</span><b>${CX.money(t.utilidad)}</b></div>
+      <div><span>Margen</span><b>${CX.pct(t.margenPct)}</b></div>
+      <div><span>Total c/IVA</span><b>${CX.money(t.total)}</b></div>
+    </div>
+
+    <div class="seal-block">
+      <div class="seal-block-title">Datos del proyecto</div>
+      <div class="seal-grid">
+        <div class="seal-field"><label>Cliente</label><input id="edCliente" value="${CX.esc(p.cliente)}"></div>
+        <div class="seal-field"><label>Concepto</label><input id="edConcepto" value="${CX.esc(p.concepto)}"></div>
+        <div class="seal-field"><label>Fecha de captura</label><input type="date" id="edCaptura" value="${p.capturaAt||''}"></div>
+        <div class="seal-field"><label>Folio</label><input id="edFolio" value="${CX.esc(p.folio)}"></div>
+        <div class="seal-field"><label>Proveedor</label><input id="edProvNombre" value="${CX.esc(pr.nombre||'')}"></div>
+        <div class="seal-field"><label>Etapa</label><select id="edEtapa">
+          ${['Cotización','Cerrado'].map(x=>`<option ${p.etapa===x?'selected':''}>${x}</option>`).join('')}
+        </select></div>
+        <div class="seal-field"><label>Estatus</label><select id="edEstatus">
+          ${['Borrador','Sellado','En ejecución','Facturado','Cobrado','Cerrado','Cancelado'].map(x=>`<option ${p.estatus===x?'selected':''}>${x}</option>`).join('')}
+        </select></div>
+        <div class="seal-field"><label>Notas</label><input id="edNotas" value="${CX.esc(p.notas)}"></div>
+      </div>
+    </div>
+
+    <div class="seal-block">
+      <div class="seal-block-title">Cobranza — Cliente</div>
+      <div class="seal-grid">
+        <div class="seal-field"><label>No. factura</label><input id="edFacCliNum" value="${CX.esc(cp.facturaNum||'')}"></div>
+        <div class="seal-field"><label>Fecha de factura</label><input type="date" id="edFacCliFecha" value="${cp.facturaFecha||''}" onchange="recalcDetalleFechas()"></div>
+        <div class="seal-field"><label>Días de pago</label><input type="number" min="0" id="edDiasCli" value="${cp.diasCredito ?? 30}" oninput="recalcDetalleFechas()"></div>
+        <div class="seal-field"><label>Fecha de pago</label><input type="date" id="edPagoCliFecha" value="${cp.fechaPago||''}">
+          <label class="seal-check" style="padding-top:2px"><input type="checkbox" id="edPagadoCli" ${cp.pagado?'checked':''}> Pagado</label></div>
+      </div>
+    </div>
+
+    <div class="seal-block">
+      <div class="seal-block-title">Pago — Proveedor</div>
+      <div class="seal-grid">
+        <div class="seal-field"><label>No. factura</label><input id="edFacProvNum" value="${CX.esc(pr.facturaNum||'')}"></div>
+        <div class="seal-field"><label>Fecha de factura</label><input type="date" id="edFacProvFecha" value="${pr.facturaFecha||''}" onchange="recalcDetalleFechas()"></div>
+        <div class="seal-field"><label>Días de pago</label><input type="number" min="0" id="edDiasProv" value="${pr.diasCredito ?? 30}" oninput="recalcDetalleFechas()"></div>
+        <div class="seal-field"><label>Fecha de pago</label><input type="date" id="edPagoProvFecha" value="${pr.fechaPago||''}">
+          <label class="seal-check" style="padding-top:2px"><input type="checkbox" id="edPagadoProv" ${pr.pagado?'checked':''}> Pagado</label></div>
+      </div>
+    </div>
+
+    <div class="seal-block">
+      <div class="seal-block-title">Comisiones</div>
+      <div class="seal-grid cols3">
+        <div class="seal-field"><label>Monto</label><input value="${CX.money(t.comisiones)}" disabled></div>
+        <div class="seal-field"><label>Fecha de pago</label><input type="date" id="edCommFecha" value="${co.fecha||''}"></div>
+        <div class="seal-field"><label>&nbsp;</label><label class="seal-check" style="padding-top:0"><input type="checkbox" id="edCommPagado" ${co.pagado?'checked':''}> Comisiones pagadas</label></div>
+      </div>
+      ${coms.length ? `<table class="d-table" style="margin-top:10px">
+        <thead><tr><th>Beneficiario</th><th class="num">%</th><th class="num">Monto</th></tr></thead>
+        <tbody>${coms.map(c=>`<tr><td>${CX.esc(c.label)}</td><td class="num">${c.pct}%</td><td class="num">${CX.money(t.precioCliente*(parseFloat(c.pct)||0)/100)}</td></tr>`).join('')}</tbody>
+      </table>` : ''}
+    </div>
+
+    <div class="seal-block">
+      <div class="seal-block-title">Documentos</div>
+      <div class="doc-grid">
+        ${CX.DOC_SLOTS.map(sl => {
+          const d = p.docs[sl.key];
+          return `<div class="doc-slot ${d?'filled':''}">
+            <div class="doc-slot-main">
+              <div class="doc-slot-label">${sl.label}</div>
+              <div class="doc-slot-file">${d ? CX.esc(d.name)+' · '+Math.round(d.size/1024)+' KB' : 'Sin archivo'}</div>
+            </div>
+            <div class="doc-actions">
+              ${d ? `<button class="doc-slot-btn" onclick="CX.openDocInTab('${d.docId}')">Ver</button>
+                     <button class="doc-slot-btn alt" onclick="CX.downloadDoc('${d.docId}')">↓</button>
+                     <button class="doc-slot-btn ghost" onclick="quitarDoc('${sl.key}')">✕</button>`
+                  : `<button class="doc-slot-btn" onclick="subirDoc('${sl.key}')">Subir</button>`}
+            </div></div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    ${filas.length ? `<div class="seal-block">
+      <div class="seal-block-title">Partidas de la cotización</div>
+      <table class="d-table">
+        <thead><tr><th>Concepto</th><th class="num">Cant.</th><th class="num">Costo unit.</th><th class="num">Costo total</th><th class="num">Precio unit.</th><th class="num">Precio total</th></tr></thead>
+        <tbody>${filas.map(r => {
+          const q = (!r.cantidad || isNaN(r.cantidad)) ? 1 : r.cantidad;
+          const cu = r.costoUnitario, pu = r.precioUnitarioManual;
+          return `<tr><td>${CX.esc(r.concepto)}${Array.isArray(r.commOverride)?' <span class="cell-sub">(comisión propia)</span>':''}</td>
+            <td class="num">${q}</td><td class="num">${CX.money(cu)}</td><td class="num">${cu!=null?CX.money(cu*q):'—'}</td>
+            <td class="num">${CX.money(pu)}</td><td class="num">${pu!=null?CX.money(pu*q):'—'}</td></tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>` : ''}
+  `;
+}
+
+function recalcDetalleFechas(){
+  const fc = bv('edFacCliFecha'), dc = bv('edDiasCli');
+  if(fc) document.getElementById('edPagoCliFecha').value = CX.addDays(fc, dc);
+  const fp = bv('edFacProvFecha'), dp = bv('edDiasProv');
+  if(fp) document.getElementById('edPagoProvFecha').value = CX.addDays(fp, dp);
+}
+
+function leerDetalleEnMemoria(){
+  const p = proyectoActivo;
+  p.cliente = bv('edCliente'); p.concepto = bv('edConcepto');
+  p.capturaAt = bv('edCaptura'); p.folio = bv('edFolio');
+  p.etapa = bv('edEtapa'); p.estatus = bv('edEstatus'); p.notas = bv('edNotas');
+  p.clientePago = {facturaNum:bv('edFacCliNum'), facturaFecha:bv('edFacCliFecha'),
+    diasCredito:parseInt(bv('edDiasCli')||'0',10), fechaPago:bv('edPagoCliFecha'),
+    pagado:document.getElementById('edPagadoCli').checked};
+  p.proveedor = {nombre:bv('edProvNombre'), facturaNum:bv('edFacProvNum'), facturaFecha:bv('edFacProvFecha'),
+    diasCredito:parseInt(bv('edDiasProv')||'0',10), fechaPago:bv('edPagoProvFecha'),
+    pagado:document.getElementById('edPagadoProv').checked};
+  p.comisionesPago = {monto:p.totals.comisiones, fecha:bv('edCommFecha'), pagado:document.getElementById('edCommPagado').checked};
+}
+
+function guardarDetalle(){
+  if(!proyectoActivo) return;
+  leerDetalleEnMemoria();
+  persistBoardRow(proyectoActivo);
+  document.getElementById('dStatus').textContent = 'Cambios guardados en la sesión.';
+  renderBoard();
+  setTimeout(()=>{ const el=document.getElementById('dStatus'); if(el) el.textContent=''; }, 2500);
+}
+
+function subirDoc(slotKey){
+  const input = document.getElementById('docFileInput');
+  input.value = '';
+  input.onchange = async () => {
+    const file = input.files && input.files[0];
+    if(!file || !proyectoActivo) return;
+    try{
+      leerDetalleEnMemoria();
+      proyectoActivo.docs = proyectoActivo.docs || {};
+      proyectoActivo.docs[slotKey] = await CX.putDoc(file, {slot:slotKey, projectId:proyectoActivo.id});
+      persistBoardRow(proyectoActivo);
+      renderDetalle(); renderBoard();
+    }catch(e){ alert('No se pudo guardar el archivo: ' + e.message); }
+  };
+  input.click();
+}
+async function quitarDoc(slotKey){
+  if(!proyectoActivo || !proyectoActivo.docs) return;
+  const d = proyectoActivo.docs[slotKey];
+  if(d && d.docId) await CX.deleteDoc(d.docId);
+  leerDetalleEnMemoria();
+  delete proyectoActivo.docs[slotKey];
+  persistBoardRow(proyectoActivo);
+  renderDetalle(); renderBoard();
+}
+
+document.getElementById('detalleModal').addEventListener('click', function(e){ if(e.target===this) cerrarDetalle(); });
+
+function exportarProyectosExcel(){
+  const list = aplicarFiltros(buildBoardRows());
+  const data = list.map(p => {
+    const t = p.totals, cp = p.clientePago, pr = p.proveedor, co = p.comisionesPago;
+    return {
+      'Etapa': p.etapa, 'Fecha captura': p.capturaAt || '', 'Folio': p.folio || '',
+      'Sesión': p.nombre, 'Cliente': p.cliente, 'Concepto': p.concepto, 'Proveedor': pr.nombre || '',
+      'Costo proveedor': t.costoProveedor, 'Precio cliente': t.precioCliente,
+      'Comisiones': t.comisiones, 'Utilidad': t.utilidad,
+      'Margen %': t.margenPct !== null ? Number(t.margenPct.toFixed(2)) : '',
+      'Total c/IVA': t.total,
+      'Factura cliente': cp.facturaNum || '', 'Fecha factura cliente': cp.facturaFecha || '',
+      'Días pago cliente': cp.diasCredito ?? '', 'Fecha pago cliente': cp.fechaPago || '',
+      'Cliente pagado': cp.pagado ? 'Sí' : 'No',
+      'Factura proveedor': pr.facturaNum || '', 'Fecha factura proveedor': pr.facturaFecha || '',
+      'Días pago proveedor': pr.diasCredito ?? '', 'Fecha pago proveedor': pr.fechaPago || '',
+      'Proveedor pagado': pr.pagado ? 'Sí' : 'No',
+      'Fecha pago comisiones': co.fecha || '', 'Comisiones pagadas': co.pagado ? 'Sí' : 'No',
+      'OC Cliente': p.docs.ocCliente ? p.docs.ocCliente.name : '',
+      'OC Proveedor': p.docs.ocProveedor ? p.docs.ocProveedor.name : '',
+      'Factura cliente (archivo)': p.docs.facturaCliente ? p.docs.facturaCliente.name : '',
+      'Factura proveedor (archivo)': p.docs.facturaProveedor ? p.docs.facturaProveedor.name : '',
+      'Alerta': CX.projectAlert(p).texto, 'Estatus': p.estatus
+    };
+  });
+  const s = CX.sumTotals(list);
+  data.push({'Etapa':'', 'Fecha captura':'', 'Folio':'', 'Sesión':'', 'Cliente':'TOTALES', 'Concepto':'', 'Proveedor':'',
+    'Costo proveedor':s.costoProveedor, 'Precio cliente':s.precioCliente, 'Comisiones':s.comisiones,
+    'Utilidad':s.utilidad, 'Margen %': s.margenPct!==null?Number(s.margenPct.toFixed(2)):'', 'Total c/IVA':s.total});
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Proyectos');
+  XLSX.writeFile(wb, 'Connectia-Proyectos-' + CX.today() + '.xlsx');
+}
+
 seedProjectSessions();
 renderCommList();
 renderRows();
+renderFlowPanel();
 renderSessionsList();
+renderBoard();
+
+/* Si llegaste desde un acceso directo a proyectos.html, abre esa vista */
+if(sessionStorage.getItem('cxAbrirVista') === 'proyectos'){
+  sessionStorage.removeItem('cxAbrirVista');
+  setView('proyectos');
+}
 </script>
 </body>
 </html>
