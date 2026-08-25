@@ -4,6 +4,10 @@ Placa rígida de una sola pieza con **una** cavidad negativa de caballo mecedora
 hundida bajo la cara superior. Molde abierto de una cara: da un bombón de dorso
 plano, no una figura hueca.
 
+El caballo está de perfil, así que lleva **dos patas** —una delantera y una
+trasera—, no cuatro. Al quedar solas cargan todo el peso visual y van más
+gruesas de lo que irían en una versión de cuatro.
+
 ![Vista tres cuartos superior](render-molde-3-4.png)
 
 ---
@@ -24,8 +28,8 @@ plano, no una figura hueca.
 
 La cara superior es un plano exacto: la única interrupción es el contorno de la
 cavidad. El fondo de la cavidad es plano a 9.5 mm de profundidad; los grabados
-(ojo, ollar, sonrisa, mechones de melena, contorno de montura, cincha, línea de
-cascos y franja de la base) bajan otros 0.5 mm hasta los 10 mm nominales, así
+(ojo, ollar, sonrisa, mechones de melena, contorno de montura, cincha, las dos
+líneas de casco y la franja de la base) bajan otros 0.5 mm hasta los 10 mm nominales, así
 que salen **en relieve** sobre el chocolate.
 
 El retiro total del contorno entre la boca y el fondo es de 2.05 mm: 0.52 mm de
@@ -36,22 +40,23 @@ los 3° de salida y el resto del radio interior de 2 mm.
 `python3 verificar_fabricabilidad.py`
 
 ```
-[PASA] G1 sin socavados        0 celdas de hueco con material encima (de 3,235,261)
+[PASA] G1 sin socavados        0 celdas de hueco con material encima (de 3,012,944)
 [PASA] G2 angulo de salida     3.00 grados medidos en la pared
-[PASA] G3 pared minima         1.02 mm de plastico entre cavidades (p5 3.14)
-[PASA] G4 grosor de la pieza   3.20 mm de chocolate en el punto mas fino (p5 6.36)
+[PASA] G3 pared minima         2.47 mm de plastico entre cavidades (p5 4.91)
+[PASA] G4 grosor de la pieza   3.20 mm de chocolate en el punto mas fino (p5 6.25)
 [PASA] G5 fondo solido         5.000 mm bajo el punto mas profundo
-[PASA] G6 malla                cerrada, 1 cuerpo, euler 2, orientada, 132.93 cm3
+[PASA] G6 malla                cerrada, 1 cuerpo, euler 2, orientada, 134.93 cm3
 ```
 
 **G1 es la compuerta que importa para desmoldar.** La cavidad es la
 intersección de un prisma con salida hacia arriba y un semiespacio sobre el
 fondo: por construcción no puede tener socavados, y la comprobación lo verifica
-columna por columna sobre 3.2 millones de celdas de hueco. Sale sin forzar.
+columna por columna sobre 3.0 millones de celdas de hueco. Sale sin forzar.
 
-El punto de 1.02 mm de G3 es la cuña entre la panza y la pata trasera lejana;
-es una arista rematada con radio, no una aleta suelta. El percentil 5 de las
-paredes está en 3.1 mm.
+El punto de 2.47 mm de G3 está en la muesca entre el borrén trasero de la
+montura y la grupa. El percentil 5 de las paredes está en 4.9 mm. Pasar de
+cuatro patas a dos subió ese mínimo de 1.02 a 2.47 mm: las cuñas más finas
+eran los entrepiernas del par lejano.
 
 ## Archivos
 
@@ -68,7 +73,7 @@ paredes está en 3.1 mm.
 porque no aporta nada sobre el STL.
 
 Malla: 200 000 triángulos, cerrada, una sola pieza, euler 2, volumen
-132.93 cm³. Sale de una malla de 28 M de vóxeles a 0.20 mm simplificada con
+134.93 cm³. Sale de una malla de 28 M de vóxeles a 0.20 mm simplificada con
 error cuadrático; la desviación contra las cotas nominales es 0.000 mm.
 
 ## Imprimir en Bambu Studio
@@ -85,7 +90,7 @@ cavidad hacia arriba: **no lo rotes**. En esa posición no hay un solo voladizo.
 | Relleno | 25 %, gyroid | |
 | Soportes | **ninguno** | G1: no hay socavados ni voladizos |
 | Balsa / brim | ninguno | base plana de 120 × 90 mm |
-| Detect thin walls | activado | para que la cuña de 1.02 mm se imprima |
+| Detect thin walls | activado | para la muesca de 2.47 mm entre montura y grupa |
 | Velocidad de perímetro exterior | 80–100 mm/s | define el filo del contorno |
 | Planchado (ironing) | solo cara superior | opcional, deja la cara superior de espejo |
 
@@ -93,8 +98,8 @@ Si te importa que el bombón mida exactamente 100 × 70, escala al **100.4 %**
 para compensar la contracción del material; si no, imprime al 100 %.
 
 Consumo y tiempo: **ESTIMADO**, no medido — aquí no hay slicer. Con esos
-ajustes espera del orden de 55–70 cm³ de filamento (≈ 70–90 g de PLA) y entre
-6 y 9 horas en una P1S. El número real lo da Bambu Studio al rebanar; no
+ajustes espera del orden de 57 cm³ de filamento (≈ 71 g de PLA) y entre
+1.2 y 2.5 horas en una P1S. El número real lo da Bambu Studio al rebanar; no
 mandes este rango a un cliente como si fuera una cotización.
 
 ## Material y uso con alimentos
@@ -113,7 +118,7 @@ Para desmoldar del molde rígido: templa el chocolate, viértelo, golpea la plac
 contra la mesa para sacar el aire de las patas y de las orejas, enfría 15–20
 minutos en refrigeración y voltea con un golpe seco.
 
-Rendimiento por colada: cavidad de **28.6 cm³ ≈ 37 g** de chocolate.
+Rendimiento por colada: cavidad de **26.6 cm³ ≈ 34 g** de chocolate.
 
 ## Costos y precios
 
@@ -127,13 +132,13 @@ python3 costeo.py --gramos 71.4 --horas 2.1     # pasa de ESTIMADO a MEDIDO
 
 | | PLA+ / P1S | PETG / A1 |
 |---|---|---|
-| Filamento | 57.05 cm³ | 57.05 cm³ |
-| Masa | 70.7 g | 72.5 g |
+| Filamento | 57.29 cm³ | 57.29 cm³ |
+| Masa | 71.0 g | 72.8 g |
 | Tiempo | 1.9 h (banda 1.2–2.5) | 2.5 h (banda 1.6–3.3) |
-| COGS | $67 | $73 |
+| COGS | $67.44 | $72.85 |
 
 **Los dos pisos de precio no coinciden.** El KPI de $48/hora se satisface desde
-$196 de PV, pero la regla de 150 g/$1000 exige $472. Manda el gramaje: la
+$197 de PV, pero la regla de 150 g/$1000 exige $474. Manda el gramaje: la
 pieza es una placa maciza, pesada y rápida de imprimir, así que el atajo del
 gramaje pide más del doble que el KPI.
 

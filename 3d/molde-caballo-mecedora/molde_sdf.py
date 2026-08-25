@@ -162,23 +162,18 @@ def _horse_parts():
     add(lambda x, y: sd_circle(x, y, (0.2, 13.0), 2.7), 0.9)    # borren delantero
     add(lambda x, y: sd_circle(x, y, (11.0, 13.4), 2.9), 0.9)   # borren trasero
 
-    # --- patas gruesas + cascos ---------------------------------------------
-    # delantera lejana
-    add(lambda x, y: sd_round_cone(x, y, (-3.0, -3.0), (-6.0, -18.0), 4.4, 3.6), 3.0)
-    add(lambda x, y: sd_circle(x, y, (-7.0, -27.0), 3.8), 1.3)
-    add(lambda x, y: sd_round_cone(x, y, (-6.0, -18.0), (-7.0, -26.0), 3.6, 3.7), 1.3)
-    # delantera cercana
-    add(lambda x, y: sd_round_cone(x, y, (-12.0, -3.0), (-19.0, -18.0), 5.2, 4.2), 3.0)
-    add(lambda x, y: sd_round_cone(x, y, (-19.0, -18.0), (-21.0, -25.0), 4.2, 4.4), 1.4)
-    add(lambda x, y: sd_circle(x, y, (-21.5, -26.4), 4.6), 1.4)
-    # trasera lejana
-    add(lambda x, y: sd_round_cone(x, y, (5.0, -3.0), (9.0, -18.0), 4.6, 3.7), 3.0)
-    add(lambda x, y: sd_round_cone(x, y, (9.0, -18.0), (10.0, -26.0), 3.7, 3.8), 1.3)
-    add(lambda x, y: sd_circle(x, y, (10.0, -27.0), 3.9), 1.3)
-    # trasera cercana
-    add(lambda x, y: sd_round_cone(x, y, (14.0, -3.0), (22.0, -18.0), 5.4, 4.3), 3.0)
-    add(lambda x, y: sd_round_cone(x, y, (22.0, -18.0), (24.0, -25.0), 4.3, 4.4), 1.4)
-    add(lambda x, y: sd_circle(x, y, (24.5, -26.3), 4.6), 1.4)
+    # --- dos patas gruesas + cascos -----------------------------------------
+    # Vista de perfil: se ve una pata delantera y una trasera, no cuatro. Al
+    # quedar solas cargan todo el peso visual, asi que van mas gruesas que en
+    # una version de cuatro patas.
+    # delantera
+    add(lambda x, y: sd_round_cone(x, y, (-11.0, -3.0), (-18.5, -18.0), 6.4, 5.1), 3.0)
+    add(lambda x, y: sd_round_cone(x, y, (-18.5, -18.0), (-20.5, -25.0), 5.1, 5.3), 1.4)
+    add(lambda x, y: sd_circle(x, y, (-21.0, -26.4), 5.5), 1.4)
+    # trasera
+    add(lambda x, y: sd_round_cone(x, y, (14.0, -3.0), (21.5, -18.0), 6.6, 5.2), 3.0)
+    add(lambda x, y: sd_round_cone(x, y, (21.5, -18.0), (23.5, -25.0), 5.2, 5.4), 1.4)
+    add(lambda x, y: sd_circle(x, y, (24.0, -26.3), 5.6), 1.4)
 
     # --- cola curva ----------------------------------------------------------
     add(lambda x, y: sd_round_cone(x, y, (22.0, 8.5), (34.5, 3.0), 4.8, 3.6), 2.6)
@@ -279,10 +274,8 @@ def _detail_sd_list(px, py):
 
     # linea de cascos
     hooves = [
-        [(-25.8, -22.6), (-17.4, -22.6)],
-        [(-10.6, -23.4), (-3.6, -23.4)],
-        [(20.6, -22.4), (28.6, -22.4)],
-        [(6.6, -23.4), (13.6, -23.4)],
+        [(-25.8, -22.4), (-16.2, -22.4)],
+        [(19.2, -22.2), (28.8, -22.2)],
     ]
     for h in hooves:
         out.append((sd_polyline(px, py, h, 0.75), 0.75, 0.50))
