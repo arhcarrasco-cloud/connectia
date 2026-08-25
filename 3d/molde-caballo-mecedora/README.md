@@ -115,6 +115,37 @@ minutos en refrigeración y voltea con un golpe seco.
 
 Rendimiento por colada: cavidad de **28.6 cm³ ≈ 37 g** de chocolate.
 
+## Costos y precios
+
+`python3 costeo.py` — modelo de costeo MPMX con gramos y horas simulados sobre
+la geometría real (perímetros, cascarones y relleno capa por capa). Cuando
+Bambu Studio dé los números buenos:
+
+```bash
+python3 costeo.py --gramos 71.4 --horas 2.1     # pasa de ESTIMADO a MEDIDO
+```
+
+| | PLA+ / P1S | PETG / A1 |
+|---|---|---|
+| Filamento | 57.05 cm³ | 57.05 cm³ |
+| Masa | 70.7 g | 72.5 g |
+| Tiempo | 1.9 h (banda 1.2–2.5) | 2.5 h (banda 1.6–3.3) |
+| COGS | $67 | $73 |
+
+**Los dos pisos de precio no coinciden.** El KPI de $48/hora se satisface desde
+$196 de PV, pero la regla de 150 g/$1000 exige $472. Manda el gramaje: la
+pieza es una placa maciza, pesada y rápida de imprimir, así que el atajo del
+gramaje pide más del doble que el KPI.
+
+**No pasa el catálogo de MPMX.** La regla es *alimento solo polvo seco* y esto
+es contacto con alimento graso y líquido. Como SKU de MPMX está bloqueado. Las
+salidas: modelo maestro para silicona, venta B2B a chocolatería, o vender el
+chocolate en vez del molde.
+
+**El bloque B3 va SIN DATO.** Mercado Libre está bloqueado por egress en el
+entorno donde se generó esto; el RADAR hay que correrlo desde Chrome. Sin
+ventas verificadas no hay banda de mercado, y un precio sin ventas no es banda.
+
 ## Cambiar el diseño
 
 Todo es paramétrico. Las cotas viven al inicio de `molde_sdf.py`
