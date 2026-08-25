@@ -1,0 +1,169 @@
+# Molde de chocolate — caballo mecedora
+
+Placa rígida de una sola pieza con **una** cavidad negativa de caballo mecedora,
+hundida bajo la cara superior. Molde abierto de una cara: da un bombón de dorso
+plano, no una figura hueca.
+
+El caballo está de perfil, así que lleva **dos patas** —una delantera y una
+trasera—, no cuatro. Al quedar solas cargan todo el peso visual y van más
+gruesas de lo que irían en una versión de cuatro.
+
+![Vista tres cuartos superior](render-molde-3-4.png)
+
+---
+
+## Cotas — medidas sobre la geometría, no sobre el brief
+
+| Cota | Nominal | Medido |
+|---|---|---|
+| Placa exterior | 120 × 90 mm | **120.000 × 90.000 mm** |
+| Espesor total | 15 mm | **15.000 mm** |
+| Cavidad (caja de la silueta) | 100 × 70 mm | **100.000 × 70.000 mm** |
+| Profundidad máxima | 10 mm | **10.000 mm** |
+| Fondo sólido bajo la cavidad | 5 mm | **5.000 mm** |
+| Margen perimetral | 10 mm | **10.0 mm** en los cuatro lados |
+| Radio de esquinas exteriores | 6 mm | 6.0 mm |
+| Redondeo de aristas interiores | 2 mm | 2.0 mm |
+| Ángulo de salida de la pared | 3° | **3.00°** medidos entre Z = 12.9 y Z = 14.9 |
+
+La cara superior es un plano exacto: la única interrupción es el contorno de la
+cavidad. El fondo de la cavidad es plano a 9.5 mm de profundidad; los grabados
+(ojo, ollar, sonrisa, mechones de melena, contorno de montura, cincha, las dos
+líneas de casco y la franja de la base) bajan otros 0.5 mm hasta los 10 mm nominales, así
+que salen **en relieve** sobre el chocolate.
+
+El retiro total del contorno entre la boca y el fondo es de 2.05 mm: 0.52 mm de
+los 3° de salida y el resto del radio interior de 2 mm.
+
+## Compuertas de fabricabilidad
+
+`python3 verificar_fabricabilidad.py`
+
+```
+[PASA] G1 sin socavados        0 celdas de hueco con material encima (de 3,012,944)
+[PASA] G2 angulo de salida     3.00 grados medidos en la pared
+[PASA] G3 pared minima         2.47 mm de plastico entre cavidades (p5 4.91)
+[PASA] G4 grosor de la pieza   3.20 mm de chocolate en el punto mas fino (p5 6.25)
+[PASA] G5 fondo solido         5.000 mm bajo el punto mas profundo
+[PASA] G6 malla                cerrada, 1 cuerpo, euler 2, orientada, 134.93 cm3
+```
+
+**G1 es la compuerta que importa para desmoldar.** La cavidad es la
+intersección de un prisma con salida hacia arriba y un semiespacio sobre el
+fondo: por construcción no puede tener socavados, y la comprobación lo verifica
+columna por columna sobre 3.0 millones de celdas de hueco. Sale sin forzar.
+
+El punto de 2.47 mm de G3 está en la muesca entre el borrén trasero de la
+montura y la grupa. El percentil 5 de las paredes está en 4.9 mm. Pasar de
+cuatro patas a dos subió ese mínimo de 1.02 a 2.47 mm: las cuñas más finas
+eran los entrepiernas del par lejano.
+
+## Archivos
+
+| Archivo | Para qué |
+|---|---|
+| `molde-caballo-mecedora-120x90x15.3mf` | **el que se abre en Bambu Studio** |
+| `molde-caballo-mecedora-120x90x15.stl` | cualquier otro slicer |
+| `molde_sdf.py` | el modelo paramétrico (todas las cotas son constantes al inicio) |
+| `generar_molde.py` | malla y exportación, con verificación por relectura |
+| `verificar_fabricabilidad.py` | las seis compuertas |
+| `render_molde.py` | los renders, trazados sobre el campo analítico |
+
+`generar_molde.py` escribe además un `.obj` para render externo; no se versiona
+porque no aporta nada sobre el STL.
+
+Malla: 200 000 triángulos, cerrada, una sola pieza, euler 2, volumen
+134.93 cm³. Sale de una malla de 28 M de vóxeles a 0.20 mm simplificada con
+error cuadrático; la desviación contra las cotas nominales es 0.000 mm.
+
+## Imprimir en Bambu Studio
+
+Abre el `.3mf`. Ya viene apoyado sobre la cara de cama (Z = 0) y con la
+cavidad hacia arriba: **no lo rotes**. En esa posición no hay un solo voladizo.
+
+| Ajuste | Valor | Por qué |
+|---|---|---|
+| Boquilla | 0.4 mm | el detalle más fino son ranuras de 1.6 mm de ancho |
+| Altura de capa | 0.16 mm (0.12 para más detalle) | las ranuras grabadas son de 0.5 mm de fondo |
+| Perímetros (wall loops) | 4 | rigidez; el molde se flexiona al desmoldar |
+| Capas superiores / inferiores | 6 / 4 | la cara superior tiene que quedar plana de verdad |
+| Relleno | 25 %, gyroid | |
+| Soportes | **ninguno** | G1: no hay socavados ni voladizos |
+| Balsa / brim | ninguno | base plana de 120 × 90 mm |
+| Detect thin walls | activado | para la muesca de 2.47 mm entre montura y grupa |
+| Velocidad de perímetro exterior | 80–100 mm/s | define el filo del contorno |
+| Planchado (ironing) | solo cara superior | opcional, deja la cara superior de espejo |
+
+Si te importa que el bombón mida exactamente 100 × 70, escala al **100.4 %**
+para compensar la contracción del material; si no, imprime al 100 %.
+
+Consumo y tiempo: **ESTIMADO**, no medido — aquí no hay slicer. Con esos
+ajustes espera del orden de 57 cm³ de filamento (≈ 71 g de PLA) y entre
+1.2 y 2.5 horas en una P1S. El número real lo da Bambu Studio al rebanar; no
+mandes este rango a un cliente como si fuera una cotización.
+
+## Material y uso con alimentos
+
+El chocolate es anhidro, así que el riesgo microbiológico es bajo, pero una
+pieza FDM tiene líneas de capa donde se acumula grasa. Dos caminos:
+
+1. **Directo.** Imprime en PETG (o PP) de grado alimentario, lávalo a mano con
+   agua tibia y dedícalo solo a chocolate. Evita el lavavajillas: el PLA se
+   deforma arriba de 55 °C.
+2. **Recomendado para producción.** Usa esta pieza como **modelo maestro** y
+   cuela sobre ella silicona de platino de grado alimentario. El molde flexible
+   resultante desmolda mucho mejor y sí es lavable.
+
+Para desmoldar del molde rígido: templa el chocolate, viértelo, golpea la placa
+contra la mesa para sacar el aire de las patas y de las orejas, enfría 15–20
+minutos en refrigeración y voltea con un golpe seco.
+
+Rendimiento por colada: cavidad de **26.6 cm³ ≈ 34 g** de chocolate.
+
+## Costos y precios
+
+`python3 costeo.py` — modelo de costeo MPMX con gramos y horas simulados sobre
+la geometría real (perímetros, cascarones y relleno capa por capa). Cuando
+Bambu Studio dé los números buenos:
+
+```bash
+python3 costeo.py --gramos 71.4 --horas 2.1     # pasa de ESTIMADO a MEDIDO
+```
+
+| | PLA+ / P1S | PETG / A1 |
+|---|---|---|
+| Filamento | 57.29 cm³ | 57.29 cm³ |
+| Masa | 71.0 g | 72.8 g |
+| Tiempo | 1.9 h (banda 1.2–2.5) | 2.5 h (banda 1.6–3.3) |
+| COGS | $67.44 | $72.85 |
+
+**Los dos pisos de precio no coinciden.** El KPI de $48/hora se satisface desde
+$197 de PV, pero la regla de 150 g/$1000 exige $474. Manda el gramaje: la
+pieza es una placa maciza, pesada y rápida de imprimir, así que el atajo del
+gramaje pide más del doble que el KPI.
+
+**No pasa el catálogo de MPMX.** La regla es *alimento solo polvo seco* y esto
+es contacto con alimento graso y líquido. Como SKU de MPMX está bloqueado. Las
+salidas: modelo maestro para silicona, venta B2B a chocolatería, o vender el
+chocolate en vez del molde.
+
+**El bloque B3 va SIN DATO.** Mercado Libre está bloqueado por egress en el
+entorno donde se generó esto; el RADAR hay que correrlo desde Chrome. Sin
+ventas verificadas no hay banda de mercado, y un precio sin ventas no es banda.
+
+## Cambiar el diseño
+
+Todo es paramétrico. Las cotas viven al inicio de `molde_sdf.py`
+(`PLATE_W`, `CAV_DEPTH`, `DRAFT_DEG`, `FILLET_R`…) y la silueta es una lista de
+primitivas en `_horse_parts()`. La silueta se reescala sola para que su caja
+mida exactamente `CAV_W × CAV_H`, así que puedes mover una pata sin recalcular
+nada.
+
+```bash
+python3 generar_molde.py --res 0.20 --faces 200000   # malla + exportación
+python3 verificar_fabricabilidad.py                  # las seis compuertas
+python3 render_molde.py --w 1500 --ss 2              # los renders
+```
+
+Después de tocar la silueta, corre siempre `verificar_fabricabilidad.py`: G3 es
+la que se rompe primero cuando dos partes del caballo se acercan.
