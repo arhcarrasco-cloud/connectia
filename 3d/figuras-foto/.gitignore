@@ -1,0 +1,8 @@
+# El STL se regenera con `python3 exportar_stl.py` en 3 min y pesa 50 MB.
+# Un binario de ese tamano no tiene por que vivir en el repo: lo que se
+# versiona es el generador, que ademas verifica el archivo al releerlo.
+*.stl
+# cache del rebanado: derivado, con huella de la geometria y del proceso
+.rebanado.json
+.render.log
+__pycache__/
