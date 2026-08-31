@@ -90,9 +90,10 @@ Nuestro grupo de 4 sobre base: costo con merma **$1,219.58**, precio calculado
 
 | Nivel | Precio con IVA | Margen s/venta | Contribución $/h-máq | Cuándo |
 |---|---:|---:|---:|---|
-| **Piso técnico** — no bajar | $2,890 | ~55% | ~$62/h | Solo cliente ancla o volumen |
-| **Calculado (margen 60%)** | $3,790 | 60% | $68/h | Lanzamiento, primeros pedidos, construir portafolio |
-| **De mercado** ← recomendado | **$4,990** | **70%** | **$106/h** | Una vez que haya fotos de producto real que sostengan el precio |
+| **Piso técnico** — no bajar | $3,390 | 54.9% | $55/h | Solo cliente ancla o volumen |
+| **Calculado (margen 60%)** | $3,790 | 60.0% | $68/h | Lanzamiento, primeros pedidos, construir portafolio |
+| **De mercado** ← recomendado | **$4,990** | **70.2%** | **$106/h** | Una vez que haya fotos de producto real que sostengan el precio |
+| Cuatro MiniYo de Cactus, lineal | $6,720 | 78.1% | $161/h | Solo como referencia: es lo que el cliente pagaría comprando suelto |
 | Techo internacional (Etsy USA/EU) | $9,950–$15,100 | — | — | Canal de exportación, no venta en MX |
 
 A $4,990 seguimos **debajo** de los $6,720 que costaría replicarlo comprando
