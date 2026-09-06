@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Permiso SEDEMA · Bosque de Chapultepec · Connectia</title>
+<meta name="description" content="Expediente para tramitar la autorización de evento ante la Dirección Ejecutiva del Bosque de Chapultepec (SEDEMA): oficio de solicitud, checklist de requisitos y ruta del trámite." />
+<link rel="icon" href="../../assets/logo/connectia-square.png" />
+<style>
+/* Tipografía canónica Connectia: Coplette (display) + Cooper Hewitt (texto).
+   Si no están instaladas cae a la sans del sistema; NO se carga Inter. */
+:root{
+  --purple:#872B90; --purple-deep:#5A1C60; --purple-dark:#2E0F31;
+  --ink:#231F20; --slate:#6B6580; --mist:#E9E6F0; --paper:#FAFAFB; --white:#fff;
+  --tint:#F7EFF8; --ok:#1f9d55; --warn:#d97706; --bad:#dc2626;
+  --radius:14px; --shadow:0 6px 24px rgba(35,31,32,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Cooper Hewitt','Coplette',-apple-system,'Segoe UI','Helvetica Neue','Liberation Sans',Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:'Coplette','Cooper Hewitt',-apple-system,'Segoe UI','Helvetica Neue','Liberation Sans',Arial,sans-serif;letter-spacing:-.01em}
+a{color:var(--purple);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:999px;font-weight:700;transition:.15s}
+.btn-primary{background:var(--purple);color:#fff;padding:11px 22px;font-size:14px}
+.btn-primary:hover{background:var(--purple-deep)}
+.btn-line{background:#fff;color:var(--purple);border:1.5px solid var(--mist);padding:10px 18px;font-size:14px}
+.btn-line:hover{border-color:var(--purple)}
+input,select,textarea{font-family:inherit;font-size:14px;width:100%;padding:10px 12px;border:1.5px solid var(--mist);border-radius:10px;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--purple)}
+textarea{min-height:84px;resize:vertical}
+label{font-size:12px;font-weight:700;color:var(--slate);display:block;margin-bottom:5px;letter-spacing:.02em}
+.eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;color:var(--purple)}
+
+/* ── Nav (brandbook plataformas: morado plano, logo a la izquierda) ── */
+.topbar{position:sticky;top:0;z-index:50;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 22px;gap:14px;flex-wrap:wrap}
+.topbar .brand{display:flex;align-items:center;gap:14px}
+.topbar .brand img{height:26px;width:auto;display:block}
+.topbar .brand span{font-size:13px;opacity:.85;border-left:1px solid rgba(255,255,255,.35);padding-left:14px}
+.topbar .nav{display:flex;gap:4px;flex-wrap:wrap}
+.navlink{color:rgba(255,255,255,.85);padding:8px 13px;font-size:13px;border-radius:999px;font-weight:600}
+.navlink:hover{background:rgba(255,255,255,.14);color:#fff;text-decoration:none}
+
+.container{max-width:1120px;margin:0 auto;padding:0 22px}
+.hero{padding:40px 0 22px}
+.hero h1{font-size:30px;line-height:1.15;margin:8px 0 10px}
+.hero p{color:var(--slate);max-width:760px;font-size:15px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.pill{background:#fff;border:1.5px solid var(--mist);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--slate)}
+.pill b{color:var(--ink)}
+.pill.warn{border-color:#f5d0a0;color:#8a4b00;background:#fff7ec}
+.pill.bad{border-color:#f3c2c2;color:#8a1c1c;background:#fff2f2}
+.pill.ok{border-color:#b9e6c9;color:#14532d;background:#effaf3}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid .full{grid-column:1/-1}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+
+section.block{padding:26px 0}
+.card{background:#fff;border:1.5px solid var(--mist);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.card h2{font-size:20px;margin:4px 0 14px}
+.card .sub{color:var(--slate);font-size:13px;margin-bottom:16px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:14px 0 10px}
+.note{background:var(--tint);border-left:3px solid var(--purple);padding:10px 14px;font-size:13px;border-radius:0 10px 10px 0;margin:12px 0}
+.note.warn{background:#fff7ec;border-color:var(--warn)}
+.small{font-size:12px;color:var(--slate)}
+
+/* ── Checklist ── */
+.check{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:start;padding:12px 0;border-top:1px solid var(--mist)}
+.check:first-of-type{border-top:none}
+.check input[type=checkbox]{width:18px;height:18px;margin-top:3px;accent-color:var(--purple)}
+.check .t{font-weight:700;font-size:14px}
+.check .d{font-size:13px;color:var(--slate);margin-top:2px}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--mist);color:var(--slate);white-space:nowrap}
+.tag.doc{background:#ece6f5;color:var(--purple-deep)}
+.tag.ext{background:#e6f1fb;color:#134c86}
+.tag.ver{background:#fff1dc;color:#8a4b00}
+.progress{height:8px;background:var(--mist);border-radius:999px;overflow:hidden;margin:8px 0 4px}
+.progress i{display:block;height:100%;background:var(--purple);width:0;transition:.3s}
+
+/* ── Ruta ── */
+.steps{counter-reset:s;display:grid;gap:10px}
+.step{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start}
+.step::before{counter-increment:s;content:counter(s,decimal-leading-zero);font-family:'Coplette',inherit;font-weight:800;color:var(--purple);font-size:18px;line-height:1.2}
+.step .t{font-weight:700}
+.step .d{font-size:13px;color:var(--slate)}
+
+/* ── Oficio (A4) ── */
+.sheet-wrap{display:flex;justify-content:center;background:#ECEAF0;padding:26px 10px;border-radius:var(--radius);overflow-x:auto}
+.sheet{width:210mm;min-height:297mm;background:#fff;box-shadow:0 12px 40px rgba(35,31,32,.14);display:flex;position:relative;color:var(--ink);font-size:9.6pt;line-height:1.45;flex-shrink:0}
+.sheet .sidebar{position:absolute;left:0;top:0;bottom:0;width:9mm;background:linear-gradient(180deg,var(--purple-dark) 0%,var(--purple-deep) 55%,var(--purple) 100%);display:flex;align-items:flex-end;justify-content:center;padding-bottom:7mm}
+.sheet .sidebar span{color:rgba(255,255,255,.4);font-size:6pt;font-weight:700;letter-spacing:.22em;text-transform:uppercase;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}
+.sheet .main{flex:1;display:flex;flex-direction:column;margin-left:9mm;padding:7mm 13mm 10mm 10mm}
+.sheet .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:2.5mm}
+.sheet .head img{width:30mm;height:auto;display:block}
+.sheet .head .r{text-align:right}
+.sheet .head .eyebrow{font-size:7.5pt}
+.sheet .head .date{font-size:8.5pt;color:var(--slate);margin-top:2px}
+.sheet .rule{height:1px;background:var(--mist);margin-bottom:3mm}
+.sheet .lbl{font-size:7.5pt;font-weight:700;color:var(--purple);letter-spacing:.18em;text-transform:uppercase}
+.sheet .lbl.g{color:var(--slate);letter-spacing:.15em}
+.sheet .asunto{font-size:10pt;font-weight:700;margin:1px 0 2.5mm}
+.sheet .dest{font-size:10pt;font-weight:700}
+.sheet .dest-sub{font-size:8.6pt;color:var(--slate);line-height:1.35}
+.sheet .citydate{margin:2.5mm 0}
+.sheet p{margin-bottom:1.9mm;text-align:justify}
+.sheet .entity{color:var(--purple);font-weight:700}
+.sheet table.ficha{width:100%;border-collapse:collapse;margin:.5mm 0 2.8mm;font-size:8.9pt}
+.sheet table.ficha td{padding:.9mm 1.8mm;border-bottom:1px solid var(--mist);vertical-align:top;line-height:1.35}
+.sheet table.ficha td:first-child{width:30%;font-weight:700;color:var(--slate);font-size:7.8pt;letter-spacing:.04em;text-transform:uppercase}
+.sheet ol{margin:0 0 2.2mm 5mm;font-size:8.7pt;line-height:1.32}
+.sheet ol li{margin-bottom:.6mm}
+.sheet .sign{margin-top:5mm;max-width:110mm;page-break-inside:avoid;break-inside:avoid}
+.sheet .sign .line{border-top:1px solid var(--ink);height:1px;margin-bottom:2mm}
+.sheet .sign .n{font-weight:700;font-size:10pt}
+.sheet .sign .c{font-size:8.6pt;color:var(--purple)}
+.sheet .foot{position:absolute;left:9mm;right:0;bottom:0;padding:2.5mm 14mm 2.5mm 11mm;border-top:1px solid var(--mist);font-size:7pt;color:var(--slate);display:flex;justify-content:space-between;align-items:center;background:#fff}
+.sheet .foot .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--purple)}
+.blank{background:#FFF3B0;color:#6b4d00;padding:0 3px;border-radius:3px;font-weight:700}
+.sheet .page2{page-break-before:always}
+
+footer.site{padding:30px 0 40px;color:var(--slate);font-size:12px}
+
+/* ── Impresión: solo el oficio, A4 sin márgenes ── */
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  .topbar,.hero,section.block:not(#oficio),footer.site,.toolbar,.note,.no-print{display:none!important}
+  section.block{padding:0}
+  .container{max-width:none;padding:0}
+  .card{border:none;box-shadow:none;padding:0;border-radius:0}
+  .card h2,.card .sub{display:none}
+  .sheet-wrap{background:#fff;padding:0;border-radius:0;display:block;overflow:visible}
+  .sheet{box-shadow:none;width:210mm;min-height:296mm;page-break-after:avoid}
+  .sheet .sidebar{position:fixed;top:0;bottom:0;left:0;height:auto}
+  html,body{height:auto}
+  .blank{background:#fff;color:var(--ink);text-decoration:underline;text-decoration-style:dotted}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <a href="../../"><img src="../../assets/logo/connectia-white.png" alt="Connectia" /></a>
+    <span>Permisos · SEDEMA · Bosque de Chapultepec</span>
+  </div>
+  <nav class="nav">
+    <a class="navlink" href="#evento">1 · Evento</a>
+    <a class="navlink" href="#oficio">2 · Oficio</a>
+    <a class="navlink" href="#requisitos">3 · Requisitos</a>
+    <a class="navlink" href="#ruta">4 · Ruta</a>
+    <a class="navlink" href="#contacto">5 · Contacto</a>
+  </nav>
+</header>
+
+<main class="container">
+
+<div class="hero">
+  <div class="eyebrow">Trámite · Autorización de evento</div>
+  <h1>Permiso ante la Dirección Ejecutiva del Bosque de Chapultepec (SEDEMA)</h1>
+  <p>Expediente único para solicitar la autorización de un evento o activación de marca dentro del Bosque de Chapultepec. Captura los datos del evento, imprime el oficio membretado, marca los anexos conforme los reúnas y sigue la ruta del trámite.</p>
+  <div class="pills" id="pills">
+    <span class="pill">Solicitante <b>Facilitadores Publicitarios HS, S.A. de C.V. (Connectia)</b></span>
+    <span class="pill">Autoridad <b>Dirección Ejecutiva del Bosque de Chapultepec · SEDEMA CDMX</b></span>
+    <span class="pill" id="pill-plazo">Plazo <b>captura la fecha del evento</b></span>
+  </div>
+</div>
+
+<!-- ── 1. EVENTO ── -->
+<section class="block" id="evento">
+  <div class="card">
+    <h2>1 · Datos del evento</h2>
+    <div class="sub">Todo lo que captures aquí se vuelca al oficio y se guarda en este navegador. Los campos vacíos aparecen resaltados en amarillo en el oficio.</div>
+    <div class="grid">
+      <div><label for="f-evento">Nombre del evento / activación</label><input id="f-evento" data-k="evento" placeholder="Ej. Activación de marca ___ · Fan Zone" /></div>
+      <div><label for="f-cliente">Marca / cliente (a nombre de quién se activa)</label><input id="f-cliente" data-k="cliente" placeholder="Ej. Kavak México" /></div>
+      <div><label for="f-tipo">Tipo de evento</label>
+        <select id="f-tipo" data-k="tipo">
+          <option value="">Selecciona…</option>
+          <option>Activación de marca (BTL)</option>
+          <option>Evento deportivo / carrera</option>
+          <option>Evento cultural</option>
+          <option>Evento recreativo / familiar</option>
+          <option>Filmación / sesión fotográfica</option>
+          <option>Otro</option>
+        </select></div>
+      <div><label for="f-seccion">Sección del Bosque</label>
+        <select id="f-seccion" data-k="seccion">
+          <option value="">Selecciona…</option>
+          <option>Primera Sección</option>
+          <option>Segunda Sección</option>
+          <option>Tercera Sección</option>
+          <option>Cuarta Sección</option>
+        </select></div>
+      <div class="full"><label for="f-lugar">Ubicación exacta / espacio solicitado</label><input id="f-lugar" data-k="lugar" placeholder="Ej. Explanada frente a la Estela de Luz · Paseo de la Reforma, acceso principal 1a Sección" /></div>
+      <div><label for="f-fecha">Fecha del evento (inicio)</label><input id="f-fecha" data-k="fecha" type="date" /></div>
+      <div><label for="f-fecha2">Fecha del evento (fin) — si es de varios días</label><input id="f-fecha2" data-k="fecha2" type="date" /></div>
+      <div><label for="f-horario">Horario del evento</label><input id="f-horario" data-k="horario" placeholder="Ej. 07:00 a 13:00 h" /></div>
+      <div><label for="f-aforo">Aforo estimado (asistentes)</label><input id="f-aforo" data-k="aforo" placeholder="Ej. 2,500 personas" /></div>
+      <div><label for="f-montaje">Montaje (fecha y horario)</label><input id="f-montaje" data-k="montaje" placeholder="Ej. 12 de octubre · 06:00 a 12:00 h" /></div>
+      <div><label for="f-desmontaje">Desmontaje (fecha y horario)</label><input id="f-desmontaje" data-k="desmontaje" placeholder="Ej. 13 de octubre · 14:00 a 18:00 h" /></div>
+      <div><label for="f-area">Superficie a ocupar (m²)</label><input id="f-area" data-k="area" placeholder="Ej. 25 m² (carpa 5 × 5 m) + 15 m² de circulación" /></div>
+      <div><label for="f-staff">Staff en sitio (personas)</label><input id="f-staff" data-k="staff" placeholder="Ej. 8 personas de Connectia + 2 de seguridad" /></div>
+      <div class="full"><label for="f-desc">Descripción de las actividades</label><textarea id="f-desc" data-k="desc" placeholder="Qué pasa en el espacio: dinámicas, entrega de hidratación, registro de asistentes, foto y video, etc."></textarea></div>
+      <div class="full"><label for="f-infra">Infraestructura y equipo a instalar</label><textarea id="f-infra" data-k="infra" placeholder="Ej. 1 carpa 5 × 5 m abierta, piso de vinil sobre pasto sintético, barra de 1.80 m, planta de luz silenciosa, 2 banderines, tablets de registro. Sin anclajes al suelo ni afectación a arbolado."></textarea></div>
+      <div><label for="f-resp">Responsable en sitio</label><input id="f-resp" data-k="resp" placeholder="Nombre y cargo" /></div>
+      <div><label for="f-cel">Celular del responsable</label><input id="f-cel" data-k="cel" placeholder="55 0000 0000" /></div>
+      <div><label for="f-titular">Titular de la Dirección Ejecutiva (verificar antes de imprimir)</label><input id="f-titular" data-k="titular" placeholder="Nombre completo del/la titular" /></div>
+      <div><label for="f-fechaoficio">Fecha del oficio</label><input id="f-fechaoficio" data-k="fechaoficio" type="date" /></div>
+    </div>
+    <div class="toolbar">
+      <span class="small">Se guarda automáticamente en este navegador.</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn-line" id="btn-clear">Limpiar</button>
+        <button class="btn-primary" id="btn-print">Imprimir / guardar PDF del oficio</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 2. OFICIO ── -->
+<section class="block" id="oficio">
+  <div class="card">
+    <h2>2 · Oficio de solicitud</h2>
+    <div class="sub">Carta membretada Connectia (Plantilla E). Se imprime en A4 sin márgenes. Los datos entre corchetes se llenan desde la sección 1.</div>
+    <div class="note no-print">Antes de imprimir: confirma el nombre del/la titular de la Dirección Ejecutiva y el domicilio de entrega en la sección 5. La firma es del apoderado legal; el oficio se ingresa en original y copia para acuse.</div>
+    <div class="sheet-wrap">
+      <div class="sheet" id="sheet">
+        <div class="sidebar"><span>connectia · cultural marketing · mx</span></div>
+        <div class="main">
+          <div class="head">
+            <img src="../../assets/logo/connectia-purple.png" alt="Connectia" />
+            <div class="r">
+              <div class="eyebrow">Connectia · Cultural Marketing</div>
+              <div class="date" data-o="fechaoficio-corta">2026</div>
+            </div>
+          </div>
+          <div class="rule"></div>
+
+          <div class="lbl g">Asunto</div>
+          <div class="asunto">SOLICITUD DE AUTORIZACIÓN PARA LA REALIZACIÓN DE EVENTO EN EL BOSQUE DE CHAPULTEPEC</div>
+
+          <div class="lbl">Para</div>
+          <div class="dest"><span data-o="titular">[NOMBRE DEL/LA TITULAR]</span></div>
+          <div class="dest-sub">Titular de la Dirección Ejecutiva del Bosque de Chapultepec</div>
+          <div class="dest-sub">Secretaría del Medio Ambiente de la Ciudad de México (SEDEMA)</div>
+          <div class="dest-sub">C.c.p. Subdirección de Proyectos del Bosque de Chapultepec</div>
+
+          <div class="citydate" data-o="fechaoficio-larga">Ciudad de México, a ______ de ____________________ de 20____.</div>
+
+          <p>Por medio del presente, yo, <span class="entity">Alejandro Rogelio Hernández Carrasco</span>, en mi carácter de apoderado legal de <span class="entity">FACILITADORES PUBLICITARIOS HS, S.A. DE C.V.</span> (Connectia), con RFC FPH181203KA8 y domicilio en Calle Hacienda de Temoluco 130, Col. Villaquietud, Alcaldía Coyoacán, C.P. 04960, Ciudad de México, me dirijo a usted con el debido respeto para solicitar la autorización de la Dirección Ejecutiva a su digno cargo para la realización del evento que a continuación se describe, en apego al Reglamento para el Uso y Preservación del Bosque de Chapultepec y a los lineamientos que emite esa Dirección para la celebración de eventos.</p>
+
+          <table class="ficha">
+            <tr><td>Evento</td><td><span data-o="evento">[NOMBRE DEL EVENTO]</span><span data-o="cliente-linea"></span></td></tr>
+            <tr><td>Tipo</td><td data-o="tipo">[TIPO DE EVENTO]</td></tr>
+            <tr><td>Ubicación solicitada</td><td><span data-o="lugar">[UBICACIÓN]</span>, <span data-o="seccion">[SECCIÓN]</span> del Bosque de Chapultepec</td></tr>
+            <tr><td>Fecha y horario</td><td><span data-o="fechas">[FECHA]</span> · <span data-o="horario">[HORARIO]</span></td></tr>
+            <tr><td>Montaje / desmontaje</td><td><span data-o="montaje">[MONTAJE]</span> / <span data-o="desmontaje">[DESMONTAJE]</span></td></tr>
+            <tr><td>Superficie y aforo</td><td><span data-o="area">[SUPERFICIE]</span> · aforo estimado <span data-o="aforo">[AFORO]</span> · staff <span data-o="staff">[STAFF]</span></td></tr>
+            <tr><td>Actividades</td><td data-o="desc">[DESCRIPCIÓN DE ACTIVIDADES]</td></tr>
+            <tr><td>Infraestructura</td><td data-o="infra">[INFRAESTRUCTURA Y EQUIPO]</td></tr>
+            <tr><td>Responsable en sitio</td><td><span data-o="resp">[RESPONSABLE]</span> · <span data-o="cel">[CELULAR]</span></td></tr>
+          </table>
+
+          <p>Para tal efecto, mi representada se compromete expresamente a: (i) realizar el manejo integral y la disposición adecuada de los residuos que genere el evento, entregando el espacio limpio al concluir; (ii) no afectar arbolado, áreas verdes, mobiliario ni infraestructura del Bosque, sin anclajes al suelo ni obra alguna, y restituir el espacio en las condiciones en que fue recibido; (iii) contar con póliza de seguro de responsabilidad civil vigente que cubra el evento, así como con las medidas de protección civil que esa Dirección y la autoridad competente determinen; (iv) cubrir los derechos o aprovechamientos que correspondan conforme al Código Fiscal de la Ciudad de México; y (v) acatar las condicionantes, horarios y supervisión que establezca esa Dirección en la autorización.</p>
+
+          <p>Para acreditar lo anterior, acompaño a la presente los siguientes anexos:</p>
+          <ol>
+            <li>Identificación oficial vigente del suscrito y copia del instrumento notarial que acredita mi personalidad como apoderado.</li>
+            <li>Acta constitutiva y Constancia de Situación Fiscal de FACILITADORES PUBLICITARIOS HS, S.A. DE C.V.</li>
+            <li>Ficha técnica del evento: programa, horarios, cronograma de montaje y desmontaje, listado de infraestructura y equipo.</li>
+            <li>Croquis de ubicación y plano de distribución (layout) del espacio solicitado, con superficie en m².</li>
+            <li>Programa de manejo de residuos y carta compromiso de restitución del espacio.</li>
+            <li>Póliza de seguro de responsabilidad civil y documentación de protección civil aplicable.</li>
+          </ol>
+
+          <p>Señalo como medio para recibir cualquier notificación relacionada con esta solicitud el teléfono 55 2299 8383 y el domicilio antes citado, y quedo a sus órdenes para proporcionar la información adicional que esa Dirección considere necesaria, así como para realizar la visita de sitio que se requiera.</p>
+
+          <p>Sin otro particular, agradezco de antemano la atención que se sirva brindar a la presente y le reitero la seguridad de mi consideración distinguida.</p>
+
+          <p style="text-align:left">Atentamente,</p>
+
+          <div class="sign">
+            <div class="line"></div>
+            <div class="n">Alejandro Rogelio Hernández Carrasco</div>
+            <div class="c">Apoderado legal · Facilitadores Publicitarios HS, S.A. de C.V. · Connectia</div>
+          </div>
+
+        </div>
+        <div class="foot">
+          <span>FACILITADORES PUBLICITARIOS HS, S.A. DE C.V. · Hacienda de Temoluco 130, Ciudad de México</span>
+          <span class="dot"></span>
+          <span style="font-style:italic">everything is connected</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. REQUISITOS ── -->
+<section class="block" id="requisitos">
+  <div class="card">
+    <h2>3 · Requisitos y anexos</h2>
+    <div class="sub">Marca cada documento conforme lo tengas listo. <span class="tag doc">Documento Connectia</span> ya existe en Drive · <span class="tag ext">Externo</span> lo emite un tercero · <span class="tag ver">Verificar</span> confirmar con la Subdirección de Proyectos porque los lineamientos vigentes no se pudieron consultar en línea.</div>
+    <div class="progress"><i id="prog"></i></div>
+    <div class="small" id="prog-txt">0 de 0</div>
+    <div id="checks">
+      <div class="check"><input type="checkbox" data-c="oficio" /><div><div class="t">Oficio de solicitud firmado por el apoderado legal (sección 2)</div><div class="d">Original y copia para acuse. Dirigido a la Dirección Ejecutiva, con copia a la Subdirección de Proyectos.</div></div><span class="tag doc">Documento</span></div>
+      <div class="check"><input type="checkbox" data-c="ine" /><div><div class="t">Identificación oficial vigente del firmante (INE)</div><div class="d">Copia legible por ambos lados. Original a la vista al ingresar.</div></div><span class="tag doc">Documento</span></div>
+      <div class="check"><input type="checkbox" data-c="poder" /><div><div class="t">Poder notarial (instrumento 16,081) y acta constitutiva</div><div class="d">Copia simple; original o copia certificada a la vista. En Drive: <a href="https://drive.google.com/file/d/18qTa6ilqZGJw8aEO5uuC45zdDAQXSIfF/view" target="_blank" rel="noopener">Poder Notarial</a> · <a href="https://drive.google.com/file/d/1LleNFpikyJXQEux42j0OkR1SsdXa1d40/view" target="_blank" rel="noopener">Acta Constitutiva Facilitadores</a>.</div></div><span class="tag doc">Documento</span></div>
+      <div class="check"><input type="checkbox" data-c="csf" /><div><div class="t">Constancia de Situación Fiscal (RFC FPH181203KA8)</div><div class="d">La más reciente es del 02-sep-2026: <a href="https://drive.google.com/file/d/1y3D6OO1bWxc_uWa05-yW6GnDIWsNAgj4/view" target="_blank" rel="noopener">01_CSF_FPH181203KA8_02sep2026.pdf</a>.</div></div><span class="tag doc">Documento</span></div>
+      <div class="check"><input type="checkbox" data-c="domicilio" /><div><div class="t">Comprobante de domicilio de la empresa (no mayor a 3 meses)</div><div class="d">Hacienda de Temoluco 130, Villaquietud, Coyoacán, C.P. 04960.</div></div><span class="tag ver">Verificar</span></div>
+      <div class="check"><input type="checkbox" data-c="ficha" /><div><div class="t">Ficha técnica del evento</div><div class="d">Programa por horas, cronograma de montaje y desmontaje, listado de infraestructura, equipo y staff, y renders del branding.</div></div><span class="tag doc">Documento</span></div>
+      <div class="check"><input type="checkbox" data-c="croquis" /><div><div class="t">Croquis de ubicación y layout del espacio</div><div class="d">Plano con medidas, superficie en m², accesos, rutas de evacuación y distancia a arbolado. Geonexa puede generar el mapa base con el pin.</div></div><span class="tag doc">Documento</span></div>
+      <div class="check"><input type="checkbox" data-c="residuos" /><div><div class="t">Programa de manejo integral de residuos</div><div class="d">Obligación expresa del Reglamento del Bosque: separación, contenedores, retiro y entrega limpia del espacio.</div></div><span class="tag doc">Documento</span></div>
+      <div class="check"><input type="checkbox" data-c="restitucion" /><div><div class="t">Carta compromiso de restitución y cuidado de áreas verdes</div><div class="d">Sin anclajes, sin obra, sin afectación a arbolado ni mobiliario. Se puede generar con la plantilla membretada.</div></div><span class="tag doc">Documento</span></div>
+      <div class="check"><input type="checkbox" data-c="seguro" /><div><div class="t">Póliza de seguro de responsabilidad civil vigente</div><div class="d">Debe cubrir daños a terceros y al patrimonio del Bosque durante montaje, evento y desmontaje. Pedir a la aseguradora endoso con el nombre del evento y las fechas.</div></div><span class="tag ext">Externo</span></div>
+      <div class="check"><input type="checkbox" data-c="pc" /><div><div class="t">Protección Civil: programa especial o visto bueno</div><div class="d">Según aforo e infraestructura (carpas, planta de luz, estructuras). Se gestiona ante la Secretaría de Gestión Integral de Riesgos y Protección Civil o la Alcaldía Miguel Hidalgo; suele exigir revisión física del montaje.</div></div><span class="tag ext">Externo</span></div>
+      <div class="check"><input type="checkbox" data-c="derechos" /><div><div class="t">Pago de derechos / aprovechamiento por uso del espacio</div><div class="d">El monto lo determina la Dirección en la autorización conforme al Código Fiscal de la CDMX. Guardar el comprobante de pago para anexarlo.</div></div><span class="tag ver">Verificar</span></div>
+      <div class="check"><input type="checkbox" data-c="marcas" /><div><div class="t">Autorización de uso de marcas de terceros (si aplica)</div><div class="d">Ej. logos de ligas o equipos deportivos: requieren carta de autorización escrita del titular de la marca.</div></div><span class="tag ext">Externo</span></div>
+      <div class="check"><input type="checkbox" data-c="cofepris" /><div><div class="t">Aviso de promoción ante COFEPRIS (si hay sorteo o dinámica con premio)</div><div class="d">Lo presenta la marca directamente. Connectia puede cotizar la gestoría.</div></div><span class="tag ext">Externo</span></div>
+      <div class="check"><input type="checkbox" data-c="servicios" /><div><div class="t">Servicios de apoyo según aforo</div><div class="d">Seguridad privada, servicio médico o ambulancia, sanitarios portátiles, señalización. Confirmar cuáles exige la Dirección para este aforo.</div></div><span class="tag ver">Verificar</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. RUTA ── -->
+<section class="block" id="ruta">
+  <div class="card">
+    <h2>4 · Ruta del trámite y plazos</h2>
+    <div class="sub">Quién autoriza, en qué orden y cuánto tarda.</div>
+    <div class="steps">
+      <div class="step"><div><div class="t">Sondeo de viabilidad con la Subdirección de Proyectos</div><div class="d">Antes de ingresar papeles: confirmar que el espacio y la fecha están disponibles y qué documentos exige la Dirección para este tipo de evento. Ahorra una prevención.</div></div></div>
+      <div class="step"><div><div class="t">Ingreso del oficio con anexos</div><div class="d">En las oficinas de la Dirección Ejecutiva del Bosque de Chapultepec. Llevar original y copia; el acuse sellado es la prueba de la fecha de ingreso.</div></div></div>
+      <div class="step"><div><div class="t">Evaluación: 20 días naturales</div><div class="d">La Dirección evalúa la solicitud en un plazo de 20 días naturales a partir del ingreso completo. Si requiere información adicional, se cuenta con 5 días para presentarla (referencia publicada para permisos del Bosque; confirmar para eventos).</div></div></div>
+      <div class="step"><div><div class="t">Dictamen y oficio de autorización con condicionantes</div><div class="d">Incluye horarios, área exacta, supervisión y el pago de derechos o aprovechamiento. Pagar y anexar el comprobante.</div></div></div>
+      <div class="step"><div><div class="t">Protección Civil y seguro</div><div class="d">Con la autorización en mano se cierra el programa especial de Protección Civil y el endoso de la póliza con fechas y sede definitivas.</div></div></div>
+      <div class="step"><div><div class="t">Montaje con supervisión, evento y desmontaje</div><div class="d">Personal del Bosque supervisa montaje y entrega. Cerrar con evidencia fotográfica de antes y después y acta de entrega del espacio limpio.</div></div></div>
+    </div>
+    <div class="note warn" id="plazo-note">Captura la fecha del evento en la sección 1 para calcular la fecha límite de ingreso.</div>
+  </div>
+</section>
+
+<!-- ── 5. CONTACTO ── -->
+<section class="block" id="contacto">
+  <div class="card">
+    <h2>5 · Autoridad y contacto</h2>
+    <div class="sub">Datos públicos localizados; los sitios oficiales de SEDEMA no se pudieron consultar directamente, así que verifícalos por teléfono antes de acudir.</div>
+    <div class="grid">
+      <div>
+        <div class="eyebrow">Autoridad que autoriza</div>
+        <p><b>Dirección Ejecutiva del Bosque de Chapultepec</b><br />Secretaría del Medio Ambiente de la Ciudad de México (SEDEMA)<br />Área operativa: Subdirección de Proyectos del Bosque de Chapultepec (evalúa viabilidad y espacios para eventos).</p>
+        <p class="small" style="margin-top:8px">Titular reportada en prensa (mayo 2026): Natasha Urén Vázquez. Un directorio más antiguo lista a Mónica Robles. <b>Confirmar el nombre vigente</b> antes de imprimir el oficio.</p>
+      </div>
+      <div>
+        <div class="eyebrow">Dónde y cómo</div>
+        <p>Oficinas de la Dirección dentro del Bosque de Chapultepec, Paseo de la Reforma s/n, Alcaldía Miguel Hidalgo, C.P. 11860 (por confirmar).<br />Teléfonos localizados: 55 5212 2171 · 55 5286 0505.<br />Secretaría: Plaza de la Constitución 1, 3er piso, Centro Histórico.</p>
+        <p class="small" style="margin-top:8px">Marco normativo: Reglamento para el Uso y Preservación del Bosque de Chapultepec; Programa de Manejo del Bosque de Chapultepec (2024); Código Fiscal de la CDMX (derechos por uso de espacios).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site container">FACILITADORES PUBLICITARIOS HS, S.A. DE C.V. · Connectia · <i>everything is connected</i></footer>
+
+<script>
+(function(){
+  var KEY='connectia.permiso.sedema.chapultepec';
+  var MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var fields=[].slice.call(document.querySelectorAll('[data-k]'));
+  var checks=[].slice.call(document.querySelectorAll('[data-c]'));
+  var state={};
+  try{state=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){state={};}
+
+  function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  function parseISO(s){if(!s)return null;var p=s.split('-');if(p.length!==3)return null;return new Date(+p[0],+p[1]-1,+p[2]);}
+  function fechaLarga(s){var d=parseISO(s);if(!d)return null;return d.getDate()+' de '+MESES[d.getMonth()]+' de '+d.getFullYear();}
+  function blank(t){return '<span class="blank">'+t+'</span>';}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function val(k,ph){var v=(state[k]||'').trim();return v?esc(v).replace(/\n/g,'<br />'):blank(ph);}
+  function set(sel,html){var els=document.querySelectorAll('[data-o="'+sel+'"]');for(var i=0;i<els.length;i++)els[i].innerHTML=html;}
+
+  function render(){
+    set('evento',val('evento','[NOMBRE DEL EVENTO]'));
+    set('cliente-linea',state.cliente&&state.cliente.trim()?' — activación de <b>'+esc(state.cliente.trim())+'</b>':'');
+    set('tipo',val('tipo','[TIPO DE EVENTO]'));
+    set('lugar',val('lugar','[UBICACIÓN]'));
+    set('seccion',val('seccion','[SECCIÓN]'));
+    set('horario',val('horario','[HORARIO]'));
+    set('montaje',val('montaje','[MONTAJE]'));
+    set('desmontaje',val('desmontaje','[DESMONTAJE]'));
+    set('area',val('area','[SUPERFICIE]'));
+    set('aforo',val('aforo','[AFORO]'));
+    set('staff',val('staff','[STAFF]'));
+    set('desc',val('desc','[DESCRIPCIÓN DE ACTIVIDADES]'));
+    set('infra',val('infra','[INFRAESTRUCTURA Y EQUIPO]'));
+    set('resp',val('resp','[RESPONSABLE]'));
+    set('cel',val('cel','[CELULAR]'));
+    set('titular',val('titular','[NOMBRE DEL/LA TITULAR]'));
+    var f1=fechaLarga(state.fecha),f2=fechaLarga(state.fecha2);
+    set('fechas',f1?(f2&&state.fecha2!==state.fecha?'del '+f1+' al '+f2:f1):blank('[FECHA]'));
+    var fo=state.fechaoficio||todayISO();
+    var d=parseISO(fo);
+    set('fechaoficio-larga','Ciudad de México, a '+d.getDate()+' de '+MESES[d.getMonth()]+' de '+d.getFullYear()+'.');
+    set('fechaoficio-corta',MESES[d.getMonth()].charAt(0).toUpperCase()+MESES[d.getMonth()].slice(1)+' '+d.getFullYear());
+    plazo();
+    progress();
+    fitPages();
+  }
+
+  function fitPages(){
+    var sh=document.getElementById('sheet');if(!sh)return;
+    sh.style.minHeight='297mm';
+    var pagePx=297/25.4*96;
+    // el padding inferior del cuerpo (10 mm) ya reserva el espacio del pie de página
+    var n=Math.max(1,Math.ceil((sh.scrollHeight-2)/pagePx));
+    sh.style.minHeight=(n*297-1)+'mm';
+  }
+  window.addEventListener('beforeprint',fitPages);
+
+  function plazo(){
+    var pill=document.getElementById('pill-plazo'),note=document.getElementById('plazo-note');
+    var ev=parseISO(state.fecha);
+    if(!ev){pill.className='pill';pill.innerHTML='Plazo <b>captura la fecha del evento</b>';note.className='note warn';note.textContent='Captura la fecha del evento en la sección 1 para calcular la fecha límite de ingreso.';return;}
+    var hoy=parseISO(todayISO());
+    var dias=Math.round((ev-hoy)/86400000);
+    // 20 días naturales de evaluación + 5 de prevención + margen para Protección Civil y pago.
+    var limite=new Date(ev);limite.setDate(limite.getDate()-30);
+    var lim=limite.getDate()+' de '+MESES[limite.getMonth()];
+    var cls=dias>=45?'ok':dias>=30?'warn':'bad';
+    pill.className='pill '+cls;
+    pill.innerHTML='Faltan <b>'+dias+' días</b> al evento · ingresar antes del <b>'+lim+'</b>';
+    note.className='note'+(cls==='bad'?' warn':'');
+    note.innerHTML=(cls==='bad'
+      ?'<b>Fuera de plazo cómodo:</b> quedan '+dias+' días y la evaluación toma 20 días naturales más 5 de prevención. Ingresa el oficio hoy mismo y llama a la Subdirección de Proyectos para acordar una revisión expedita.'
+      :'Fecha límite recomendada de ingreso: <b>'+lim+'</b> (30 días naturales antes del evento: 20 de evaluación, 5 de prevención y margen para Protección Civil y pago de derechos).');
+  }
+
+  function progress(){
+    var done=0;checks.forEach(function(c){if(c.checked)done++;});
+    document.getElementById('prog').style.width=(checks.length?done/checks.length*100:0)+'%';
+    document.getElementById('prog-txt').textContent=done+' de '+checks.length+' anexos listos';
+  }
+
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+
+  fields.forEach(function(f){
+    var k=f.getAttribute('data-k');
+    if(state[k]!=null)f.value=state[k];
+    f.addEventListener('input',function(){state[k]=f.value;save();render();});
+    f.addEventListener('change',function(){state[k]=f.value;save();render();});
+  });
+  if(!state.fechaoficio){var fo=document.getElementById('f-fechaoficio');fo.value=todayISO();}
+  checks.forEach(function(c){
+    var k='chk_'+c.getAttribute('data-c');
+    c.checked=!!state[k];
+    c.addEventListener('change',function(){state[k]=c.checked;save();progress();});
+  });
+  document.getElementById('btn-print').addEventListener('click',function(){window.print();});
+  document.getElementById('btn-clear').addEventListener('click',function(){
+    if(!confirm('¿Borrar todos los datos capturados de este trámite?'))return;
+    state={};save();fields.forEach(function(f){f.value='';});checks.forEach(function(c){c.checked=false;});
+    document.getElementById('f-fechaoficio').value=todayISO();render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>
