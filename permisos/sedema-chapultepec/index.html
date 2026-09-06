@@ -116,6 +116,15 @@ section.block{padding:26px 0}
 .sheet .sign .c{font-size:8.6pt;color:var(--purple)}
 .sheet .foot{position:absolute;left:9mm;right:0;bottom:0;padding:2.5mm 14mm 2.5mm 11mm;border-top:1px solid var(--mist);font-size:7pt;color:var(--slate);display:flex;justify-content:space-between;align-items:center;background:#fff}
 .sheet .foot .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--purple)}
+.sheet .only-pf{display:none}
+.sheet.personal .only-pf{display:revert}
+.sheet.personal .only-emp{display:none}
+.sheet.personal .sidebar{display:none}
+.sheet.personal .main{margin-left:0;padding-left:16mm}
+.sheet.personal .foot{left:0;padding-left:16mm;justify-content:center;text-align:center}
+.sheet .pf-name{font-weight:700;font-size:11pt;line-height:1.3}
+.sheet .pf-name small{font-weight:400;font-size:8pt;color:var(--slate)}
+.sheet.personal .head .r{align-self:flex-start}
 .blank{background:#FFF3B0;color:#6b4d00;padding:0 3px;border-radius:3px;font-weight:700}
 .sheet .page2{page-break-before:always}
 
@@ -133,6 +142,7 @@ footer.site{padding:30px 0 40px;color:var(--slate);font-size:12px}
   .sheet-wrap{background:#fff;padding:0;border-radius:0;display:block;overflow:visible}
   .sheet{box-shadow:none;width:210mm;min-height:296mm;page-break-after:avoid}
   .sheet .sidebar{position:fixed;top:0;bottom:0;left:0;height:auto}
+  .sheet.personal .sidebar{display:none}
   html,body{height:auto}
   .blank{background:#fff;color:var(--ink);text-decoration:underline;text-decoration-style:dotted}
 }
@@ -173,11 +183,17 @@ footer.site{padding:30px 0 40px;color:var(--slate);font-size:12px}
     <h2>1 · Datos del evento</h2>
     <div class="sub">Todo lo que captures aquí se vuelca al oficio y se guarda en este navegador. Los campos vacíos aparecen resaltados en amarillo en el oficio.</div>
     <div class="grid">
+      <div class="full"><label for="f-solicitante">Solicitante</label>
+        <select id="f-solicitante" data-k="solicitante">
+          <option value="empresa">Connectia · Facilitadores Publicitarios HS, S.A. de C.V. (evento de marca)</option>
+          <option value="pf">Roger · Alejandro Rogelio Hernández Carrasco, por su propio derecho (evento personal)</option>
+        </select></div>
       <div><label for="f-evento">Nombre del evento / activación</label><input id="f-evento" data-k="evento" placeholder="Ej. Activación de marca ___ · Fan Zone" /></div>
       <div><label for="f-cliente">Marca / cliente (a nombre de quién se activa)</label><input id="f-cliente" data-k="cliente" placeholder="Ej. Kavak México" /></div>
       <div><label for="f-tipo">Tipo de evento</label>
         <select id="f-tipo" data-k="tipo">
           <option value="">Selecciona…</option>
+          <option>Cumpleaños / reunión familiar</option>
           <option>Activación de marca (BTL)</option>
           <option>Evento deportivo / carrera</option>
           <option>Evento cultural</option>
@@ -230,9 +246,10 @@ footer.site{padding:30px 0 40px;color:var(--slate);font-size:12px}
         <div class="sidebar"><span>connectia · cultural marketing · mx</span></div>
         <div class="main">
           <div class="head">
-            <img src="../../assets/logo/connectia-purple.png" alt="Connectia" />
+            <img class="only-emp" src="../../assets/logo/connectia-purple.png" alt="Connectia" />
+            <div class="only-pf pf-name">Alejandro Rogelio Hernández Carrasco<br /><small>Hacienda de Temoluco 130, Villaquietud, Coyoacán, C.P. 04960, Ciudad de México · 55 2299 8383</small></div>
             <div class="r">
-              <div class="eyebrow">Connectia · Cultural Marketing</div>
+              <div class="eyebrow only-emp">Connectia · Cultural Marketing</div>
               <div class="date" data-o="fechaoficio-corta">2026</div>
             </div>
           </div>
@@ -242,14 +259,15 @@ footer.site{padding:30px 0 40px;color:var(--slate);font-size:12px}
           <div class="asunto">SOLICITUD DE AUTORIZACIÓN PARA LA REALIZACIÓN DE EVENTO EN EL BOSQUE DE CHAPULTEPEC</div>
 
           <div class="lbl">Para</div>
-          <div class="dest"><span data-o="titular">[NOMBRE DEL/LA TITULAR]</span></div>
-          <div class="dest-sub">Titular de la Dirección Ejecutiva del Bosque de Chapultepec</div>
+          <div class="dest"><span data-o="titular">Titular de la Dirección Ejecutiva del Bosque de Chapultepec</span></div>
+          <div class="dest-sub" data-o="titular-cargo"></div>
           <div class="dest-sub">Secretaría del Medio Ambiente de la Ciudad de México (SEDEMA)</div>
           <div class="dest-sub">C.c.p. Subdirección de Proyectos del Bosque de Chapultepec</div>
 
           <div class="citydate" data-o="fechaoficio-larga">Ciudad de México, a ______ de ____________________ de 20____.</div>
 
-          <p>Por medio del presente, yo, <span class="entity">Alejandro Rogelio Hernández Carrasco</span>, en mi carácter de apoderado legal de <span class="entity">FACILITADORES PUBLICITARIOS HS, S.A. DE C.V.</span> (Connectia), con RFC FPH181203KA8 y domicilio en Calle Hacienda de Temoluco 130, Col. Villaquietud, Alcaldía Coyoacán, C.P. 04960, Ciudad de México, me dirijo a usted con el debido respeto para solicitar la autorización de la Dirección Ejecutiva a su digno cargo para la realización del evento que a continuación se describe, en apego al Reglamento para el Uso y Preservación del Bosque de Chapultepec y a los lineamientos que emite esa Dirección para la celebración de eventos.</p>
+          <p class="only-emp">Por medio del presente, yo, <span class="entity">Alejandro Rogelio Hernández Carrasco</span>, en mi carácter de apoderado legal de <span class="entity">FACILITADORES PUBLICITARIOS HS, S.A. DE C.V.</span> (Connectia), con RFC FPH181203KA8 y domicilio en Calle Hacienda de Temoluco 130, Col. Villaquietud, Alcaldía Coyoacán, C.P. 04960, Ciudad de México, me dirijo a usted con el debido respeto para solicitar la autorización de la Dirección Ejecutiva a su digno cargo para la realización del evento que a continuación se describe, en apego al Reglamento para el Uso y Preservación del Bosque de Chapultepec y a los lineamientos que emite esa Dirección para la celebración de eventos.</p>
+          <p class="only-pf">Por medio del presente, yo, <span class="entity">Alejandro Rogelio Hernández Carrasco</span>, por mi propio derecho, con domicilio en Calle Hacienda de Temoluco 130, Col. Villaquietud, Alcaldía Coyoacán, C.P. 04960, Ciudad de México, me dirijo a usted con el debido respeto para solicitar la autorización de la Dirección Ejecutiva a su digno cargo para la realización del evento familiar que a continuación se describe, en apego al Reglamento para el Uso y Preservación del Bosque de Chapultepec y a los lineamientos que emite esa Dirección para la celebración de eventos.</p>
 
           <table class="ficha">
             <tr><td>Evento</td><td><span data-o="evento">[NOMBRE DEL EVENTO]</span><span data-o="cliente-linea"></span></td></tr>
@@ -263,16 +281,19 @@ footer.site{padding:30px 0 40px;color:var(--slate);font-size:12px}
             <tr><td>Responsable en sitio</td><td><span data-o="resp">[RESPONSABLE]</span> · <span data-o="cel">[CELULAR]</span></td></tr>
           </table>
 
-          <p>Para tal efecto, mi representada se compromete expresamente a: (i) realizar el manejo integral y la disposición adecuada de los residuos que genere el evento, entregando el espacio limpio al concluir; (ii) no afectar arbolado, áreas verdes, mobiliario ni infraestructura del Bosque, sin anclajes al suelo ni obra alguna, y restituir el espacio en las condiciones en que fue recibido; (iii) contar con póliza de seguro de responsabilidad civil vigente que cubra el evento, así como con las medidas de protección civil que esa Dirección y la autoridad competente determinen; (iv) cubrir los derechos o aprovechamientos que correspondan conforme al Código Fiscal de la Ciudad de México; y (v) acatar las condicionantes, horarios y supervisión que establezca esa Dirección en la autorización.</p>
+          <p class="only-emp">Para tal efecto, mi representada se compromete expresamente a: (i) realizar el manejo integral y la disposición adecuada de los residuos que genere el evento, entregando el espacio limpio al concluir; (ii) no afectar arbolado, áreas verdes, mobiliario ni infraestructura del Bosque, sin anclajes al suelo ni obra alguna, y restituir el espacio en las condiciones en que fue recibido; (iii) contar con póliza de seguro de responsabilidad civil vigente que cubra el evento, así como con las medidas de protección civil que esa Dirección y la autoridad competente determinen; (iv) cubrir los derechos o aprovechamientos que correspondan conforme al Código Fiscal de la Ciudad de México; y (v) acatar las condicionantes, horarios y supervisión que establezca esa Dirección en la autorización.</p>
+          <p class="only-pf">Para tal efecto, me comprometo expresamente a: (i) realizar el manejo adecuado de los residuos que genere la reunión, entregando el espacio limpio al concluir; (ii) no afectar arbolado, áreas verdes, mobiliario ni infraestructura del Bosque, sin anclajes al suelo ni instalación alguna distinta a la aquí descrita, y restituir el espacio en las condiciones en que fue recibido; (iii) no introducir bebidas alcohólicas ni emitir ruido que moleste a otros visitantes o a la fauna, y observar las medidas de protección civil que esa Dirección determine; (iv) cubrir los derechos o aprovechamientos que, en su caso, correspondan conforme al Código Fiscal de la Ciudad de México; y (v) acatar las condicionantes, horarios y supervisión que establezca esa Dirección en la autorización.</p>
 
           <p>Para acreditar lo anterior, acompaño a la presente los siguientes anexos:</p>
           <ol>
-            <li>Identificación oficial vigente del suscrito y copia del instrumento notarial que acredita mi personalidad como apoderado.</li>
-            <li>Acta constitutiva y Constancia de Situación Fiscal de FACILITADORES PUBLICITARIOS HS, S.A. DE C.V.</li>
+            <li class="only-emp">Identificación oficial vigente del suscrito y copia del instrumento notarial que acredita mi personalidad como apoderado.</li>
+            <li class="only-emp">Acta constitutiva y Constancia de Situación Fiscal de FACILITADORES PUBLICITARIOS HS, S.A. DE C.V.</li>
+            <li class="only-pf">Identificación oficial vigente del suscrito y comprobante de domicilio.</li>
             <li>Ficha técnica del evento: programa, horarios, cronograma de montaje y desmontaje, listado de infraestructura y equipo.</li>
             <li>Croquis de ubicación y plano de distribución (layout) del espacio solicitado, con superficie en m².</li>
             <li>Programa de manejo de residuos y carta compromiso de restitución del espacio.</li>
-            <li>Póliza de seguro de responsabilidad civil y documentación de protección civil aplicable.</li>
+            <li class="only-emp">Póliza de seguro de responsabilidad civil y documentación de protección civil aplicable.</li>
+            <li class="only-pf">Documentación de protección civil o seguro de responsabilidad civil, en caso de que esa Dirección lo requiera.</li>
           </ol>
 
           <p>Señalo como medio para recibir cualquier notificación relacionada con esta solicitud el teléfono 55 2299 8383 y el domicilio antes citado, y quedo a sus órdenes para proporcionar la información adicional que esa Dirección considere necesaria, así como para realizar la visita de sitio que se requiera.</p>
@@ -284,14 +305,16 @@ footer.site{padding:30px 0 40px;color:var(--slate);font-size:12px}
           <div class="sign">
             <div class="line"></div>
             <div class="n">Alejandro Rogelio Hernández Carrasco</div>
-            <div class="c">Apoderado legal · Facilitadores Publicitarios HS, S.A. de C.V. · Connectia</div>
+            <div class="c only-emp">Apoderado legal · Facilitadores Publicitarios HS, S.A. de C.V. · Connectia</div>
+            <div class="c only-pf">Por mi propio derecho</div>
           </div>
 
         </div>
         <div class="foot">
-          <span>FACILITADORES PUBLICITARIOS HS, S.A. DE C.V. · Hacienda de Temoluco 130, Ciudad de México</span>
-          <span class="dot"></span>
-          <span style="font-style:italic">everything is connected</span>
+          <span class="only-emp">FACILITADORES PUBLICITARIOS HS, S.A. DE C.V. · Hacienda de Temoluco 130, Ciudad de México</span>
+          <span class="dot only-emp"></span>
+          <span class="only-emp" style="font-style:italic">everything is connected</span>
+          <span class="only-pf">Alejandro Rogelio Hernández Carrasco · Hacienda de Temoluco 130, Villaquietud, Coyoacán, C.P. 04960, Ciudad de México · 55 2299 8383</span>
         </div>
       </div>
     </div>
@@ -374,6 +397,12 @@ footer.site{padding:30px 0 40px;color:var(--slate);font-size:12px}
   var checks=[].slice.call(document.querySelectorAll('[data-c]'));
   var state={};
   try{state=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){state={};}
+  // Prefill desde la URL: ?evento=...&fecha=2026-09-06&solicitante=pf (sobrescribe lo guardado)
+  try{
+    var qs=new URLSearchParams(location.search),touched=false;
+    qs.forEach(function(v,k){if(k!=='print'){state[k]=v;touched=true;}});
+    if(touched){localStorage.setItem(KEY,JSON.stringify(state));history.replaceState(null,'',location.pathname+location.hash);}
+  }catch(e){}
 
   function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
   function parseISO(s){if(!s)return null;var p=s.split('-');if(p.length!==3)return null;return new Date(+p[0],+p[1]-1,+p[2]);}
@@ -384,6 +413,8 @@ footer.site{padding:30px 0 40px;color:var(--slate);font-size:12px}
   function set(sel,html){var els=document.querySelectorAll('[data-o="'+sel+'"]');for(var i=0;i<els.length;i++)els[i].innerHTML=html;}
 
   function render(){
+    var sh=document.getElementById('sheet');
+    if(sh)sh.classList.toggle('personal',state.solicitante==='pf');
     set('evento',val('evento','[NOMBRE DEL EVENTO]'));
     set('cliente-linea',state.cliente&&state.cliente.trim()?' — activación de <b>'+esc(state.cliente.trim())+'</b>':'');
     set('tipo',val('tipo','[TIPO DE EVENTO]'));
@@ -399,7 +430,8 @@ footer.site{padding:30px 0 40px;color:var(--slate);font-size:12px}
     set('infra',val('infra','[INFRAESTRUCTURA Y EQUIPO]'));
     set('resp',val('resp','[RESPONSABLE]'));
     set('cel',val('cel','[CELULAR]'));
-    set('titular',val('titular','[NOMBRE DEL/LA TITULAR]'));
+    if(state.titular&&state.titular.trim()){set('titular',esc(state.titular.trim()));set('titular-cargo','Titular de la Dirección Ejecutiva del Bosque de Chapultepec');}
+    else{set('titular','Titular de la Dirección Ejecutiva del Bosque de Chapultepec');set('titular-cargo','');}
     var f1=fechaLarga(state.fecha),f2=fechaLarga(state.fecha2);
     set('fechas',f1?(f2&&state.fecha2!==state.fecha?'del '+f1+' al '+f2:f1):blank('[FECHA]'));
     var fo=state.fechaoficio||todayISO();
