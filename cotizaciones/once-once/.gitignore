@@ -1,3 +1,4 @@
-out/*.html
-out/*.png
-out/manifest.json
+# Salidas generadas y referencias con datos de pago: no se publican en el repo.
+out/
+ref/
+pago.json
