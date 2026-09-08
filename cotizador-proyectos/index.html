@@ -11,6 +11,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="proyectos-store.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="cx-auth.js"></script>
 <style>
   :root{
     --indigo:#201040;
@@ -702,6 +704,10 @@
     body{background:#fff;padding:0;}
     .quote-wrap{box-shadow:none;border:none;}
   }
+.btn-danger{background:#fff;color:#a4262c;border:1px solid #f0c2c2}
+.btn-danger:hover{background:#fdecec}
+.del-btn{background:transparent;border:0;cursor:pointer;font-size:15px;opacity:.45;padding:4px 6px;border-radius:6px}
+.del-btn:hover{opacity:1;background:#fdecec}
 </style>
 </head>
 <body>
@@ -883,6 +889,15 @@
           <label>Proveedor</label>
           <input type="text" id="fxProveedor" placeholder="Nombre del proveedor" oninput="onFlowInput()">
         </div>
+        <div class="seal-field">
+          <label>Inicio de campaña</label>
+          <input type="date" id="fxCampInicio" onchange="onFlowInput()">
+        </div>
+        <div class="seal-field">
+          <label>Fin de campaña</label>
+          <input type="date" id="fxCampFin" onchange="onFlowInput()">
+          <span class="hint">periodo en el que corre la campaña</span>
+        </div>
       </div>
     </div>
 
@@ -1017,6 +1032,13 @@
         </div>
       </div>
       <div class="f-item">
+        <label>Campaña (periodo)</label>
+        <div class="f-range">
+          <input type="date" id="fCampDe" onchange="renderBoard()">
+          <input type="date" id="fCampA" onchange="renderBoard()">
+        </div>
+      </div>
+      <div class="f-item">
         <label>Cliente / concepto / folio</label>
         <input type="text" id="fTexto" placeholder="Buscar…" oninput="renderBoard()">
       </div>
@@ -1057,7 +1079,9 @@
           <th style="width:32px"></th>
           <th class="sortable" onclick="setSort('etapa')">Etapa</th>
           <th class="sortable" onclick="setSort('capturaAt')">Captura</th>
+          <th class="sortable" onclick="setSort('campania')">Campaña</th>
           <th class="sortable" onclick="setSort('cliente')">Cliente</th>
+          <th>Responsable</th>
           <th>Concepto</th>
           <th class="num sortable" onclick="setSort('costoProveedor')">Costo proveedor</th>
           <th class="num sortable" onclick="setSort('precioCliente')">Precio cliente</th>
@@ -1069,6 +1093,7 @@
           <th class="sortable" onclick="setSort('fechaPagoCliente')">Fecha pago cliente</th>
           <th>Alerta</th>
           <th>Estatus</th>
+          <th style="width:44px"></th>
         </tr>
       </thead>
       <tbody id="boardBody"></tbody>
@@ -1097,6 +1122,7 @@
         <span class="session-status" id="dStatus"></span>
       </div>
       <div style="display:flex;gap:10px;">
+        <button class="btn btn-danger" id="dBtnEliminar" onclick="eliminarProyecto(sesionActiva)">🗑 Eliminar proyecto</button>
         <button class="btn btn-secondary" onclick="cerrarDetalle()">Cerrar</button>
         <button class="btn btn-primary" onclick="guardarDetalle()">Guardar cambios</button>
       </div>
@@ -1695,7 +1721,10 @@ function setState(state){
   renderFlowPanel();
 }
 
+function enLaNube(){ return !!(window.CXAUTH && CXAUTH.cloud); }
+
 function loadSessions(){
+  if(enLaNube()) return CXAUTH.all();
   try{
     const raw = localStorage.getItem(SESSIONS_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -1705,7 +1734,14 @@ function loadSessions(){
 }
 
 function persistSessions(list){
+  if(enLaNube()) return CXAUTH.syncFromList(list);
   localStorage.setItem(SESSIONS_KEY, JSON.stringify(list));
+}
+
+/* ¿puedo editar/eliminar este proyecto? (dueño o admin) */
+function puedoEditar(p){
+  if(!enLaNube()) return true;
+  return CXAUTH.puedeEditar(p);
 }
 
 function fmtDate(iso){
@@ -1836,6 +1872,7 @@ const SEED_VERSION_KEY = 'cotizadorConnectiaSeedVersion';
 const SEED_VERSION = 3; // v3: corrige costo proveedor de Walmart Pantallas Interlomas Junio-Julio ($42,000 c/u, no igual al precio cliente)
 
 function seedProjectSessions(){
+  if(enLaNube()) return; // en la nube cada usuario arranca con su propia base
   const storedVersion = parseInt(localStorage.getItem(SEED_VERSION_KEY) || '0', 10);
   if(storedVersion >= SEED_VERSION) return;
   let list = loadSessions();
@@ -2201,6 +2238,7 @@ function defaultFlow(){
     capturaAt: CX.today(),
     etapa: 'Cotización',
     estatus: 'Borrador',
+    campania: {inicio:'', fin:''},
     notas: '',
     proveedor: {nombre:'', facturaNum:'', facturaFecha:'', diasCredito:30, fechaPago:'', pagado:false},
     clientePago: {facturaNum:'', facturaFecha:'', diasCredito:30, fechaPago:'', pagado:false},
@@ -2230,6 +2268,9 @@ function renderFlowPanel(){
   setFieldVal('fxCaptura', f.capturaAt || CX.today());
   document.getElementById('fxEtapa').value = f.etapa || 'Cotización';
   document.getElementById('fxEstatus').value = f.estatus || 'Borrador';
+  f.campania = f.campania || {inicio:'', fin:''};
+  setFieldVal('fxCampInicio', f.campania.inicio);
+  setFieldVal('fxCampFin', f.campania.fin);
   setFieldVal('fxProveedor', f.proveedor.nombre);
   setFieldVal('fxFacCliNum', f.clientePago.facturaNum);
   setFieldVal('fxFacCliFecha', f.clientePago.facturaFecha);
@@ -2253,6 +2294,7 @@ function readFlowPanel(){
   f.capturaAt = fieldVal('fxCaptura');
   f.etapa = fieldVal('fxEtapa');
   f.estatus = fieldVal('fxEstatus');
+  f.campania = {inicio: fieldVal('fxCampInicio'), fin: fieldVal('fxCampFin')};
   f.notas = fieldVal('fxNotas');
   f.clientePago = {
     facturaNum: fieldVal('fxFacCliNum'), facturaFecha: fieldVal('fxFacCliFecha'),
@@ -2439,7 +2481,11 @@ function buildBoardRows(){
       proveedor: flow.proveedor || {},
       comisionesPago: flow.comisionesPago || {},
       docs: flow.docs || {},
-      notas: flow.notas || ''
+      notas: flow.notas || '',
+      campania: flow.campania || {inicio:'', fin:''},
+      responsable: (s.data && s.data.responsable) || null,
+      ownerId: s.ownerId || null,
+      ownerEmail: s.ownerEmail || ''
     };
   });
 }
@@ -2457,9 +2503,11 @@ function persistBoardRow(p){
   data.header.fechaCotizacion = p.capturaAt;
   data.flow = {
     capturaAt: p.capturaAt, etapa: p.etapa, estatus: p.estatus, notas: p.notas,
+    campania: p.campania || {inicio:'', fin:''},
     proveedor: p.proveedor, clientePago: p.clientePago, comisionesPago: p.comisionesPago,
     docs: p.docs, sealedAt: (data.flow && data.flow.sealedAt) || new Date().toISOString()
   };
+  data.responsable = (p.responsable && p.responsable.manual) ? p.responsable : null; // null = se recalcula por cuenta
   data.totals = p.totals;
   list[idx].savedAt = new Date().toISOString();
   persistSessions(list);
@@ -2482,6 +2530,16 @@ function enRango(fecha, de, a){
   if(a && fecha > a) return false;
   return true;
 }
+/* La campaña entra si su periodo se cruza con el rango buscado */
+function campaniaEnRango(c, de, a){
+  if(!de && !a) return true;
+  c = c || {};
+  const ini = c.inicio || c.fin, fin = c.fin || c.inicio;
+  if(!ini) return false;
+  if(de && fin < de) return false;
+  if(a && ini > a) return false;
+  return true;
+}
 function aplicarFiltros(list){
   const texto = bv('fTexto').trim().toLowerCase();
   const estatus = bv('fEstatus'), etapa = bv('fEtapa');
@@ -2489,6 +2547,7 @@ function aplicarFiltros(list){
     if(!enRango(p.capturaAt, bv('fCapturaDe'), bv('fCapturaA'))) return false;
     if(!enRango(p.clientePago.facturaFecha, bv('fFacturaDe'), bv('fFacturaA'))) return false;
     if(!enRango(p.clientePago.fechaPago, bv('fPagoDe'), bv('fPagoA'))) return false;
+    if(!campaniaEnRango(p.campania, bv('fCampDe'), bv('fCampA'))) return false;
     if(estatus && p.estatus !== estatus) return false;
     if(etapa && p.etapa !== etapa) return false;
     if(soloVencidos && CX.projectAlert(p).level !== 'due') return false;
@@ -2505,7 +2564,7 @@ function toggleVencidos(){
   renderBoard();
 }
 function limpiarFiltros(){
-  ['fCapturaDe','fCapturaA','fFacturaDe','fFacturaA','fPagoDe','fPagoA','fTexto'].forEach(id => document.getElementById(id).value='');
+  ['fCapturaDe','fCapturaA','fFacturaDe','fFacturaA','fPagoDe','fPagoA','fCampDe','fCampA','fTexto'].forEach(id => { const e=document.getElementById(id); if(e) e.value=''; });
   document.getElementById('fEstatus').value = '';
   document.getElementById('fEtapa').value = '';
   soloVencidos = false;
@@ -2517,6 +2576,7 @@ function setSort(key){
   renderBoard();
 }
 function sortVal(p, key){
+  if(key === 'campania') return (p.campania && (p.campania.inicio || p.campania.fin)) || '';
   switch(key){
     case 'etapa': return p.etapa;
     case 'cliente': return (p.cliente||'').toLowerCase();
@@ -2565,7 +2625,9 @@ function renderBoard(){
                   onclick="toggleEtapa('${p.id}')">${p.etapa==='Cerrado'?'✔ Cerrado':'◔ Cotización'}</button>
         </td>
         <td><div class="cell-strong">${CX.fmtDate(p.capturaAt)}</div><div class="cell-sub">${CX.esc(p.folio || p.nombre)}</div></td>
+        <td>${rangoCampania(p.campania)}</td>
         <td class="cell-strong">${CX.esc(p.cliente)}</td>
+        <td>${responsableCelda(p)}</td>
         <td><div>${CX.esc(p.concepto)}</div>${p.proveedor.nombre ? `<div class="cell-sub">Prov: ${CX.esc(p.proveedor.nombre)}</div>`:''}</td>
         <td class="num">${CX.money(t.costoProveedor)}</td>
         <td class="num cell-strong">${CX.money(t.precioCliente)}</td>
@@ -2584,20 +2646,79 @@ function renderBoard(){
         <td><div class="cell-strong">${CX.fmtDate(cp.fechaPago)}</div><div class="cell-sub">${pagoSt.texto}</div></td>
         <td><span class="alert-badge ${al.level}">${al.level==='due'?'⚠ ':''}${CX.esc(al.texto)}</span></td>
         <td><span class="status-tag ${p.estatus==='Borrador'?'borrador':''}">${CX.esc(p.estatus)}</span></td>
+        <td onclick="event.stopPropagation()">${puedoEditar(p) ? `<button class="del-btn" title="Eliminar proyecto" onclick="eliminarProyecto('${p.id}')">🗑</button>` : ''}</td>
       </tr>`;
   }).join('');
 
   document.getElementById('boardFoot').innerHTML = list.length ? `
     <tr>
       <td></td>
-      <td colspan="4">TOTALES · ${list.length} proyecto${list.length===1?'':'s'}</td>
+      <td colspan="6">TOTALES · ${list.length} proyecto${list.length===1?'':'s'}</td>
       <td class="num">${CX.money(s.costoProveedor)}</td>
       <td class="num">${CX.money(s.precioCliente)}</td>
       <td class="num">${CX.money(s.comisiones)}</td>
       <td class="num">${CX.money(s.utilidad)}</td>
       <td class="num">${CX.pct(s.margenPct)}</td>
-      <td colspan="5"></td>
+      <td colspan="6"></td>
     </tr>` : '';
+}
+
+function rangoCampania(c){
+  c = c || {};
+  if(!c.inicio && !c.fin) return '<span class="cell-sub">—</span>';
+  if(c.inicio && c.fin) return `<div class="cell-strong">${CX.fmtDate(c.inicio)}</div><div class="cell-sub">a ${CX.fmtDate(c.fin)}</div>`;
+  return `<div class="cell-strong">${CX.fmtDate(c.inicio || c.fin)}</div><div class="cell-sub">${c.inicio ? 'sin fin' : 'sin inicio'}</div>`;
+}
+function nombreCorto(email){
+  if(!email) return '—';
+  return email.split('@')[0];
+}
+function responsableTexto(p){
+  const r = p.responsable;
+  if(r && (r.nombre || r.email)) return r.nombre || nombreCorto(r.email);
+  return nombreCorto(p.ownerEmail);
+}
+function responsableCelda(p){
+  const r = p.responsable || {};
+  const cta = r.cuenta ? `<div class="cell-sub">${CX.esc(r.cuenta)}</div>` : '';
+  return `<div class="cell-strong" style="font-size:12.5px">${CX.esc(responsableTexto(p))}</div>${cta}`;
+}
+/* Opciones de responsable a partir del catálogo de cuentas */
+function opcionesResponsable(sel){
+  const cts = (window.CXAUTH && CXAUTH.cloud) ? CXAUTH.cuentas() : [];
+  const vistos = new Map();
+  cts.forEach(c => {
+    const key = (c.responsable_email || c.responsable_nombre || '').toLowerCase();
+    if(key && !vistos.has(key)) vistos.set(key, {nombre:c.responsable_nombre||'', email:c.responsable_email||''});
+  });
+  const actual = (sel && (sel.email||sel.nombre)) ? ((sel.email||'').toLowerCase() || (sel.nombre||'').toLowerCase()) : '';
+  if(actual && !vistos.has(actual)) vistos.set(actual, {nombre:sel.nombre||'', email:sel.email||''});
+  let html = `<option value="">— Automático (por cuenta) —</option>`;
+  vistos.forEach((v,k) => {
+    const etiqueta = (v.nombre || v.email) + (v.email ? ' · ' + v.email : ' · sin correo');
+    html += `<option value="${CX.esc(k)}" ${k===actual && sel && sel.manual ? 'selected':''}>${CX.esc(etiqueta)}</option>`;
+  });
+  return html;
+}
+
+/* Elimina el proyecto (sesión + documentos). Solo dueño o admin. */
+async function eliminarProyecto(id){
+  const p = buildBoardRows().find(x => x.id === id);
+  if(!p) return;
+  if(!puedoEditar(p)){ alert('Este proyecto es de otro usuario. Solo su dueño o la dirección pueden eliminarlo.'); return; }
+  const quien = p.ownerEmail ? ' (de ' + p.ownerEmail + ')' : '';
+  if(!confirm('¿Eliminar el proyecto "' + (p.cliente || p.nombre) + ' — ' + (p.concepto||'') + '"' + quien + '?\n\nSe borran también sus documentos. Esta acción no se puede deshacer.')) return;
+  try{
+    const docs = p.docs || {};
+    for(const k of Object.keys(docs)){ if(docs[k] && docs[k].docId) { try{ await CX.deleteDoc(docs[k].docId); }catch(e){} } }
+  }catch(e){}
+  let list = loadSessions();
+  list = list.filter(s => s.id !== id);
+  persistSessions(list);
+  if(currentSessionId === id){ currentSessionId = null; }
+  if(sesionActiva === id){ cerrarDetalle(); }
+  renderSessionsList();
+  renderBoard();
 }
 
 function toggleEtapa(id){
@@ -2618,7 +2739,11 @@ function abrirDetalle(id){
   document.getElementById('dTitulo').textContent = p.cliente + ' — ' + p.concepto;
   document.getElementById('dSubtitulo').textContent =
     'Sesión "' + p.nombre + '" · Folio ' + (p.folio || '—') + ' · Captura ' + CX.fmtDate(p.capturaAt) +
+    ' · Responsable: ' + responsableTexto(p) +
+    (p.ownerEmail ? ' · Capturó: ' + p.ownerEmail : '') +
     (p.sellado ? ' · Sellado' : ' · Sin sellar');
+  const bd = document.getElementById('dBtnEliminar');
+  if(bd) bd.style.display = puedoEditar(p) ? '' : 'none';
   document.getElementById('dStatus').textContent = '';
   renderDetalle();
   document.getElementById('detalleModal').classList.remove('hidden');
@@ -2658,6 +2783,12 @@ function renderDetalle(){
         <div class="seal-field"><label>Cliente</label><input id="edCliente" value="${CX.esc(p.cliente)}"></div>
         <div class="seal-field"><label>Concepto</label><input id="edConcepto" value="${CX.esc(p.concepto)}"></div>
         <div class="seal-field"><label>Fecha de captura</label><input type="date" id="edCaptura" value="${p.capturaAt||''}"></div>
+        <div class="seal-field"><label>Responsable de la cuenta</label>
+          <select id="edResp" ${(window.CXAUTH && CXAUTH.cloud && !CXAUTH.isAdmin()) ? 'disabled' : ''}>${opcionesResponsable(p.responsable)}</select>
+          <span class="hint">${p.responsable && p.responsable.cuenta ? 'Cuenta detectada: '+CX.esc(p.responsable.cuenta) : 'Se asigna solo según el cliente'}</span>
+        </div>
+        <div class="seal-field"><label>Inicio de campaña</label><input type="date" id="edCampInicio" value="${(p.campania&&p.campania.inicio)||''}"></div>
+        <div class="seal-field"><label>Fin de campaña</label><input type="date" id="edCampFin" value="${(p.campania&&p.campania.fin)||''}"></div>
         <div class="seal-field"><label>Folio</label><input id="edFolio" value="${CX.esc(p.folio)}"></div>
         <div class="seal-field"><label>Proveedor</label><input id="edProvNombre" value="${CX.esc(pr.nombre||'')}"></div>
         <div class="seal-field"><label>Etapa</label><select id="edEtapa">
@@ -2753,6 +2884,15 @@ function leerDetalleEnMemoria(){
   p.cliente = bv('edCliente'); p.concepto = bv('edConcepto');
   p.capturaAt = bv('edCaptura'); p.folio = bv('edFolio');
   p.etapa = bv('edEtapa'); p.estatus = bv('edEstatus'); p.notas = bv('edNotas');
+  p.campania = {inicio: bv('edCampInicio'), fin: bv('edCampFin')};
+  const rv = bv('edResp');
+  if(!rv){ p.responsable = null; }
+  else {
+    const cts = (window.CXAUTH && CXAUTH.cloud) ? CXAUTH.cuentas() : [];
+    const c = cts.find(x => (x.responsable_email||'').toLowerCase() === rv || (x.responsable_nombre||'').toLowerCase() === rv);
+    p.responsable = {cuenta:(p.responsable&&p.responsable.cuenta)||'', nombre: c ? (c.responsable_nombre||'') : ((p.responsable&&p.responsable.nombre)||rv),
+                     email: c ? (c.responsable_email||'') : rv, manual:true};
+  }
   p.clientePago = {facturaNum:bv('edFacCliNum'), facturaFecha:bv('edFacCliFecha'),
     diasCredito:parseInt(bv('edDiasCli')||'0',10), fechaPago:bv('edPagoCliFecha'),
     pagado:document.getElementById('edPagadoCli').checked};
@@ -2805,6 +2945,8 @@ function exportarProyectosExcel(){
     const t = p.totals, cp = p.clientePago, pr = p.proveedor, co = p.comisionesPago;
     return {
       'Etapa': p.etapa, 'Fecha captura': p.capturaAt || '', 'Folio': p.folio || '',
+      'Inicio campaña': (p.campania && p.campania.inicio) || '', 'Fin campaña': (p.campania && p.campania.fin) || '',
+      'Responsable': responsableTexto(p), 'Cuenta': (p.responsable && p.responsable.cuenta) || '', 'Capturó': p.ownerEmail || '',
       'Sesión': p.nombre, 'Cliente': p.cliente, 'Concepto': p.concepto, 'Proveedor': pr.nombre || '',
       'Costo proveedor': t.costoProveedor, 'Precio cliente': t.precioCliente,
       'Comisiones': t.comisiones, 'Utilidad': t.utilidad,
@@ -2825,7 +2967,7 @@ function exportarProyectosExcel(){
     };
   });
   const s = CX.sumTotals(list);
-  data.push({'Etapa':'', 'Fecha captura':'', 'Folio':'', 'Sesión':'', 'Cliente':'TOTALES', 'Concepto':'', 'Proveedor':'',
+  data.push({'Etapa':'', 'Fecha captura':'', 'Folio':'', 'Inicio campaña':'', 'Fin campaña':'', 'Responsable':'', 'Cuenta':'', 'Capturó':'', 'Sesión':'', 'Cliente':'TOTALES', 'Concepto':'', 'Proveedor':'',
     'Costo proveedor':s.costoProveedor, 'Precio cliente':s.precioCliente, 'Comisiones':s.comisiones,
     'Utilidad':s.utilidad, 'Margen %': s.margenPct!==null?Number(s.margenPct.toFixed(2)):'', 'Total c/IVA':s.total});
   const ws = XLSX.utils.json_to_sheet(data);
@@ -2834,18 +2976,24 @@ function exportarProyectosExcel(){
   XLSX.writeFile(wb, 'Connectia-Proyectos-' + CX.today() + '.xlsx');
 }
 
-seedProjectSessions();
-renderCommList();
-renderRows();
-renderFlowPanel();
-renderSessionsList();
-renderBoard();
+function cxArrancar(){
+  seedProjectSessions();
+  renderCommList();
+  renderRows();
+  renderFlowPanel();
+  renderSessionsList();
+  renderBoard();
 
-/* Si llegaste desde un acceso directo a proyectos.html, abre esa vista */
-if(sessionStorage.getItem('cxAbrirVista') === 'proyectos'){
-  sessionStorage.removeItem('cxAbrirVista');
-  setView('proyectos');
+  /* Si llegaste desde un acceso directo a proyectos.html, abre esa vista */
+  if(sessionStorage.getItem('cxAbrirVista') === 'proyectos'){
+    sessionStorage.removeItem('cxAbrirVista');
+    setView('proyectos');
+  }
 }
+
+/* Con nube: arranca hasta que el usuario entró y se descargaron sus proyectos */
+if(window.CXAUTH && CXAUTH.cloud) CXAUTH.onReady(cxArrancar);
+else cxArrancar();
 </script>
 </body>
 </html>
