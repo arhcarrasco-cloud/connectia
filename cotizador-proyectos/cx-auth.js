@@ -346,20 +346,26 @@
   async function migrarLocal() {
     let locales = [];
     try { locales = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); } catch (e) { locales = []; }
-    locales = (locales || []).filter(s => s && s.id && !String(s.id).startsWith('s_seed_'));
+    locales = (locales || []).filter(s => s && s.id);
+    // Los proyectos de ejemplo solo se suben para el admin (son su base real de trabajo)
+    if (!isAdmin()) locales = locales.filter(s => !String(s.id).startsWith('s_seed_'));
     if (!locales.length) return;
     const nuevos = locales.filter(s => !snapshot.has(s.id));
     if (!nuevos.length) return;
-    const ok = confirm('Encontré ' + nuevos.length + ' sesión(es) guardadas en este navegador.\n\n¿Las subo a tu cuenta (' + user.email + ') para que queden en la nube?');
-    if (!ok) { localStorage.setItem(LOCAL_KEY + '_ignorado', '1'); return; }
-    const filas = nuevos.map(s => sessionToRow({
-      id: s.id, name: s.name, data: s.data, savedAt: s.savedAt, lastOpenedAt: s.lastOpenedAt,
-      ownerId: user.id, ownerEmail: user.email
-    }));
+    sync('Subiendo ' + nuevos.length + '…');
+    const filas = nuevos.map(s => {
+      const ses = {
+        id: s.id, name: s.name, data: s.data || {}, savedAt: s.savedAt, lastOpenedAt: s.lastOpenedAt,
+        ownerId: user.id, ownerEmail: user.email
+      };
+      asignarResponsable(ses);
+      return sessionToRow(ses);
+    });
     const { error } = await sb.from(TABLA).upsert(filas, { onConflict: 'id' });
-    if (error) { alert('No se pudieron subir las sesiones locales: ' + error.message); return; }
+    if (error) { console.error('[CX] migración', error); sync('⚠ No se pudieron subir'); return; }
     localStorage.setItem(LOCAL_KEY + '_migrado', new Date().toISOString());
     await hydrate();
+    sync('Guardado ✓');
   }
 
   /* ---------------- arranque ---------------- */
