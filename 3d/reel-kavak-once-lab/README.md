@@ -8,19 +8,20 @@ y el proyecto KAVAK (casco impreso en 3D + lote de cápsulas PETG).
 | t | Escena | Fuente |
 |---|---|---|
 | 0.0–2.5 | Intro once once LAB (sello master, anillo girando, "LO HACEMOS REALIDAD") | `brand/oncelablogomaster.svg` |
-| 2.5–6.0 | Hook: casco KAVAK, push-in | `photos/casco.jpg` |
-| 6.0–11.0 | **Slot timelapse casco** (`--casco`) | stand-in: `brand/bambu_intro.mp4` |
-| 11.0–14.0 | Cápsulas a la medida, pan | `photos/capsulas_caja.jpg` |
-| 14.0–19.0 | **Slot timelapse cápsulas** (`--capsulas`) | stand-in: primera capa real P1S `src/video_2026-08-22_11-36-38.avi` |
-| 19.0–23.0 | Activación / merch | `photos/playera.jpg` |
-| 23.0–26.5 | Claim split casco + cápsulas: "Lo imaginaste. Lo imprimimos." | fotos |
+| 2.5–5.5 | Hook: casco azul KAVAK, push-in | `photos/casco.jpg` |
+| 5.5–8.5 | "En azul. Y en blanco.": casco blanco con máscara azul, dos tomas con corte seco | `photos/casco_blanco_a.jpg`, `casco_blanco_b.jpg` |
+| 8.5–13.0 | **Slot timelapse casco** (`--casco`) | stand-in: `brand/bambu_intro.mp4` |
+| 13.0–16.0 | Cápsulas a la medida, pan | `photos/capsulas_caja.jpg` |
+| 16.0–20.5 | **Slot timelapse cápsulas** (`--capsulas`) | stand-in: primera capa real P1S `src/video_2026-08-22_11-36-38.avi` |
+| 20.5–23.5 | Activación / merch | `photos/playera.jpg` |
+| 23.5–26.5 | Claim split detalle casco blanco + cápsulas: "Lo imaginaste. Lo imprimimos." | `photos/casco_blanco_detalle.jpg`, caja |
 | 26.5–30.0 | Outro once once LAB + "Impresión 3D · Sublimación · CDMX" | logo master |
 
 ## Render
 
 ```bash
 pip install pillow numpy cairosvg imageio-ffmpeg   # ffmpeg en PATH
-python3 build_reel.py OUT.mp4                       # versión V01 con stand-ins
+python3 build_reel.py OUT.mp4                       # versión V02 con stand-ins
 python3 build_reel.py OUT.mp4 \
   --casco    "~/Bambu/timelapse/P1S UNO/video_2026-08-16_05-23-14.avi" \
   --capsulas "~/Bambu/timelapse/P1S DOS/video_2026-08-18_12-26-10.avi"

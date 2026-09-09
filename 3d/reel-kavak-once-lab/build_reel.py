@@ -102,14 +102,15 @@ def cover(img, w=W, h=H):
     r = max(w/img.width, h/img.height); im = img.resize((math.ceil(img.width*r), math.ceil(img.height*r)), Image.LANCZOS)
     x = (im.width-w)//2; y = (im.height-h)//2; return im.crop((x, y, x+w, y+h))
 
-def kb_frame(img, t, r0, r1):
-    """Ken Burns: r = (cx, cy, scale) en fracciones; scale=1 -> imagen cubre lienzo."""
+def kb_frame(img, t, r0, r1, size=(W, H)):
+    """Ken Burns: r = (cx, cy, scale) en fracciones; scale=1 -> imagen cubre el destino."""
+    tw, th = size
     cx, cy, s = [lerp(a, b, ease(t)) for a, b in zip(r0, r1)]
-    base = max(W/img.width, H/img.height)*s
-    cw, ch = W/base, H/base
+    base = max(tw/img.width, th/img.height)*s
+    cw, ch = tw/base, th/base
     x0 = cx*img.width - cw/2; y0 = cy*img.height - ch/2
     x0 = min(max(0, x0), img.width-cw); y0 = min(max(0, y0), img.height-ch)
-    return img.crop((int(x0), int(y0), int(x0+cw), int(y0+ch))).resize((W, H), Image.LANCZOS).convert("RGBA")
+    return img.crop((int(x0), int(y0), int(x0+cw), int(y0+ch))).resize((tw, th), Image.LANCZOS).convert("RGBA")
 
 def video_frames(path, n, mode="cover", speed=None):
     """Decodifica n frames a 30fps. mode=cover (9:16 full bleed) o panel (16:9 → 1080x608)."""
@@ -170,7 +171,8 @@ def brand_card(t, dur, outro=False):
 
 # ---------- escenas ----------
 PH = {k: Image.open(os.path.join(HERE, "photos", v)).convert("RGB") for k, v in
-      {"casco": "casco.jpg", "caja": "capsulas_caja.jpg", "playera": "playera.jpg"}.items()}
+      {"casco": "casco.jpg", "caja": "capsulas_caja.jpg", "playera": "playera.jpg",
+       "blanco_a": "casco_blanco_a.jpg", "blanco_b": "casco_blanco_b.jpg", "blanco_det": "casco_blanco_detalle.jpg"}.items()}
 from PIL import ImageEnhance
 PH["playera"] = ImageEnhance.Contrast(ImageEnhance.Brightness(PH["playera"]).enhance(1.18)).enhance(1.08)
 PH["casco"] = ImageEnhance.Color(ImageEnhance.Contrast(PH["casco"]).enhance(1.06)).enhance(1.08)
@@ -207,10 +209,20 @@ def scene_clip(frames, i, t, dur, head, label, mode, sub=None):
             F = composite(F, L, ease_out((t-0.6)/0.4))
     return F
 
+def scene_two_shots(keys, t, dur, kbs, head, label):
+    """Dos tomas con corte seco a la mitad; titular y etiqueta persisten."""
+    half = dur/2; k = 0 if t < half else 1; tt = (t - k*half)/half
+    F = kb_frame(PH[keys[k]], tt, *kbs[k])
+    F = composite(F, scrim(0.88, 0.42))
+    ta = ease_out((t-0.15)/0.45); yb = H-360
+    F = composite(F, layer_text(head, display(138), CREMA, 84, yb+int((1-ta)*30), tracking=-3, gap=6), ta)
+    F = composite(F, label_pill(label, 84, yb+26), ease_out((t-0.45)/0.4))
+    return F
+
 def scene_claim(t, dur):
-    """Split: casco arriba / cápsulas abajo + claim."""
+    """Split: detalle casco blanco arriba / cápsulas abajo + claim."""
     F = Image.new("RGBA", (W, H), TINTA+(255,))
-    top = kb_frame(PH["casco"], t/dur, (0.5, 0.46, 1.15), (0.5, 0.46, 1.05)).crop((0, 300, W, 300+H//2))
+    top = kb_frame(PH["blanco_det"], t/dur, (0.42, 0.45, 1.02), (0.40, 0.42, 1.14), size=(W, H//2))
     bot = kb_frame(PH["caja"], t/dur, (0.5, 0.5, 1.05), (0.5, 0.5, 1.18)).crop((0, 500, W, 500+H//2))
     F.paste(top, (0, 0)); F.paste(bot, (0, H//2))
     F = composite(F, scrim(0.92, 0.35))
@@ -241,22 +253,25 @@ casco_fr, casco_mode, casco_head, casco_label, caps_fr, caps_label = load_proces
 # ---------- timeline (900 frames = 30.0 s) ----------
 SC = [
  ("intro",  75, lambda t, d, i: brand_card(t, d)),
- ("hook",  105, lambda t, d, i: scene_photo("casco", t, d, (0.50, 0.50, 1.02), (0.52, 0.46, 1.30),
+ ("hook",   90, lambda t, d, i: scene_photo("casco", t, d, (0.50, 0.50, 1.02), (0.52, 0.46, 1.30),
                                             [("UN CASCO", CREMA), ("KAVAK", ROSA), ("IMPRESO EN 3D", CREMA)], "ESCALA REAL · IMPRESIÓN 3D · PIEZA ÚNICA", 138)),
- ("proc1", 150, lambda t, d, i: scene_clip(casco_fr, i, t, d, casco_head, casco_label, casco_mode, "De archivo 3D a objeto real, capa por capa.")),
+ ("blanco", 90, lambda t, d, i: scene_two_shots(["blanco_a", "blanco_b"], t, d,
+                                            [((0.45, 0.55, 1.05), (0.42, 0.52, 1.22)), ((0.55, 0.48, 1.22), (0.52, 0.50, 1.04))],
+                                            [("EN AZUL.", CREMA), ("Y EN BLANCO.", ROSA)], "DOS VERSIONES · MÁSCARA Y HERRAJES IMPRESOS")),
+ ("proc1", 135, lambda t, d, i: scene_clip(casco_fr, i, t, d, casco_head, casco_label, casco_mode, "De archivo 3D a objeto real, capa por capa.")),
  ("caps",   90, lambda t, d, i: scene_photo("caja", t, d, (0.5, 0.62, 1.30), (0.5, 0.42, 1.06),
                                             [("CÁPSULAS", CREMA), ("A LA MEDIDA", ROSA)], "PETG · AZUL KAVAK · LOTE COMPLETO", 138)),
- ("proc2", 150, lambda t, d, i: scene_clip(caps_fr, i, t, d, [("LOTE TRAS", CREMA), ("LOTE.", ROSA)], caps_label, "panel",
+ ("proc2", 135, lambda t, d, i: scene_clip(caps_fr, i, t, d, [("LOTE TRAS", CREMA), ("LOTE.", ROSA)], caps_label, "panel",
                                             "Producción en serie con control de calidad pieza por pieza.")),
- ("merch", 120, lambda t, d, i: scene_photo("playera", t, d, (0.45, 0.55, 1.25), (0.55, 0.50, 1.04),
+ ("merch",  90, lambda t, d, i: scene_photo("playera", t, d, (0.45, 0.55, 1.25), (0.55, 0.50, 1.04),
                                             [("Y LA", CREMA), ("ACTIVACIÓN", ROSA), ("COMPLETA", CREMA)], "ACTIVACIÓN KAVAK · MERCH", 138)),
- ("claim", 105, lambda t, d, i: scene_claim(t, d)),
+ ("claim",  90, lambda t, d, i: scene_claim(t, d)),
  ("outro", 105, lambda t, d, i: brand_card(t, d, outro=True)),
 ]
 XF = 9  # frames de crossfade entre escenas (excepto intro→hook: corte seco)
 # escenas con crossfade hacia la siguiente ganan XF frames (se solapan) → salida exacta de 900 frames
 SC = [(n, l + (XF if (i+1 < len(SC) and n != "intro") else 0), f) for i, (n, l, f) in enumerate(SC)]
-assert sum(l for _, l, _ in SC) - XF*6 == 900
+assert sum(l for _, l, _ in SC) - XF*(len(SC)-2) == 900, sum(l for _, l, _ in SC)
 
 def render_scene(idx, i):
     name, n, fn = SC[idx]; return fn(i/FPS, n/FPS, i)
