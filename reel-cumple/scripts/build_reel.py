@@ -77,6 +77,19 @@ def media_date(path, kind):
         pass
     return datetime.datetime.fromtimestamp(os.path.getmtime(path))
 
+def find_animated(folder):
+    """Clips generados en Higgsfield (image-to-video) en reel-cumple/higgsfield/, emparejados por nombre con la foto."""
+    hf = os.path.join(ROOT, "higgsfield")
+    clips = {}
+    for p in glob.glob(os.path.join(hf, "*")):
+        if os.path.splitext(p)[1].lower() in VID_EXT:
+            stem = os.path.splitext(os.path.basename(p))[0].lower()
+            for suf in ("_higgsfield", "_hf", "_anim", "_animated", "_video"):
+                if stem.endswith(suf):
+                    stem = stem[: -len(suf)]
+            clips[stem] = p
+    return clips
+
 def scan_media(folder):
     items = []
     for p in sorted(glob.glob(os.path.join(folder, "*"))):
@@ -85,8 +98,12 @@ def scan_media(folder):
             items.append({"path": p, "kind": "photo"})
         elif ext in VID_EXT:
             items.append({"path": p, "kind": "video"})
+    anim = find_animated(folder)
     for it in items:
         it["date"] = media_date(it["path"], it["kind"])
+        stem = os.path.splitext(os.path.basename(it["path"]))[0].lower()
+        if it["kind"] == "photo" and stem in anim:
+            it["anim"] = anim[stem]
     order_file = os.path.join(folder, "..", "orden.txt")
     if os.path.exists(order_file):
         wanted = [l.strip() for l in open(order_file, encoding="utf-8") if l.strip() and not l.startswith("#")]
@@ -232,10 +249,10 @@ def seg_photo(comp, dst, dur, mode):
          "-t", f"{dur:.3f}", "-filter_complex", f"[0:v]{vf}[v]", "-map", "[v]", "-map", "1:a", *ENC, dst])
     return dur
 
-def seg_video(src, dst, maxdur):
+def seg_video(src, dst, maxdur, mute=False):
     info = ffprobe_json(src)
     d = float(info.get("format", {}).get("duration", maxdur))
-    has_audio = any(s.get("codec_type") == "audio" for s in info.get("streams", []))
+    has_audio = (not mute) and any(s.get("codec_type") == "audio" for s in info.get("streams", []))
     take = min(maxdur, d)
     start = max(0.0, min(d - take, d * 0.12)) if d > maxdur else 0.0
     vf = (f"[0:v]fps={FPS},split[a][b];"
@@ -302,8 +319,46 @@ def plan(media):
         timeline.append({"type": "card", "card": card})
         if ci < slots:
             for m in groups[ci]:
-                timeline.append({"type": m["kind"], "path": m["path"]})
+                timeline.append({"type": m["kind"], "path": m["path"], "anim": m.get("anim")})
     return timeline
+
+HF_MOTION = {
+    "in_center": ("Slow push-in", "a slow, gentle camera push-in toward the subject"),
+    "pan_lr": ("Slow pan left to right", "a very slow lateral camera drift from left to right"),
+    "out_center": ("Slow pull-back", "a slow, gentle camera pull-back revealing the scene"),
+    "in_up": ("Push-in with slight tilt up", "a slow push-in with a barely perceptible upward tilt"),
+    "pan_rl": ("Slow pan right to left", "a very slow lateral camera drift from right to left"),
+    "out_down": ("Pull-back with slight tilt down", "a slow pull-back with a barely perceptible downward tilt"),
+    "in_left": ("Push-in toward the left side", "a slow push-in drifting slightly toward the left side of the frame"),
+}
+
+def write_prompts(media, path):
+    """Un prompt por foto para Higgsfield (image-to-video), en inglés para mejor respuesta del modelo."""
+    modes = list(HF_MOTION.keys())
+    lines = ["# Prompts para Higgsfield · reel de cumpleaños", "",
+             "Modo: **Image to Video** · duración **5 s** · formato **9:16** (o el nativo de la foto) · motion strength baja.",
+             "Sube la foto indicada, pega el prompt y guarda el clip en `reel-cumple/higgsfield/` con el **mismo nombre** que la foto",
+             "(por ejemplo `IMG_0123.jpg` → `IMG_0123.mp4`). El motor usará el clip animado en lugar de la foto estática.", "",
+             "Regla general: la foto debe cobrar vida solo con movimiento de cámara y micro-movimientos naturales.",
+             "Nunca describir elementos que no están en la foto; si el modelo inventa algo (manos, dedos, objetos, rostros deformados), regenerar.", "",
+             "| # | Foto | Movimiento sugerido | Prompt |", "|---|---|---|---|"]
+    k = 0
+    for m in media:
+        if m["kind"] != "photo":
+            continue
+        k += 1
+        mode = modes[(k - 1) % len(modes)]
+        name, motion = HF_MOTION[mode]
+        prompt = (f"Cinematic, tender home-video feel. Bring this exact photograph to life with {motion}. "
+                  "Keep every person, face, expression, object, clothing and background exactly as in the photo. "
+                  "Add only subtle natural life: soft breathing, a gentle blink, slight hair or fabric movement, "
+                  "soft warm light. No new people, no new objects, no hand or finger changes, no text, no morphing. "
+                  "Slow, smooth, stable motion, shallow depth of field, warm golden tones, 24 fps, 5 seconds.")
+        lines.append(f"| {k} | `{os.path.basename(m['path'])}` | {name} | {prompt} |")
+    lines += ["", f"Total: {k} fotos. Si solo quieres animar algunas, elige las 4 a 6 más emotivas (hospital, primera sonrisa, familia completa);",
+              "el resto se queda con el movimiento Ken Burns del motor y se ve igual de cuidado."]
+    open(path, "w", encoding="utf-8").write("\n".join(lines))
+    print(f"Prompts: {path}")
 
 def main():
     ap = argparse.ArgumentParser()
@@ -312,6 +367,8 @@ def main():
     ap.add_argument("--version", default="V01")
     ap.add_argument("--photo-dur", type=float, default=PHOTO_DUR)
     ap.add_argument("--video-max", type=float, default=VIDEO_MAX)
+    ap.add_argument("--anim-max", type=float, default=5.0, help="segundos máximos por clip animado de Higgsfield")
+    ap.add_argument("--prompts", action="store_true", help="solo genera higgsfield_prompts.md con un prompt por foto")
     ap.add_argument("--music-gain", type=float, default=1.0)
     args = ap.parse_args()
 
@@ -325,7 +382,11 @@ def main():
             make_placeholders(ph)
         media = scan_media(ph)
         print(f"Sin material en {args.media}: usando {len(media)} placeholders de previsualización.")
-    print(f"Material: {len(media)} archivos ({sum(m['kind']=='photo' for m in media)} fotos, {sum(m['kind']=='video' for m in media)} videos)")
+    print(f"Material: {len(media)} archivos ({sum(m['kind']=='photo' for m in media)} fotos, {sum(m['kind']=='video' for m in media)} videos, "
+          f"{sum(bool(m.get('anim')) for m in media)} fotos animadas en Higgsfield)")
+    if args.prompts:
+        write_prompts(media, os.path.join(ROOT, "higgsfield_prompts.md"))
+        return
 
     tl = plan(media)
     # stills para fondos de tarjetas
@@ -346,6 +407,9 @@ def main():
             bg = blurred_bg(stills[nb["path"]], os.path.join(work, f"cardbg_{i:02d}.jpg"))
             dur = seg_card(bg, dst, it["card"], card_duration(it["card"]))
             label = it["card"]["text"][:40]
+        elif it["type"] == "photo" and it.get("anim"):
+            dur = seg_video(it["anim"], dst, args.anim_max, mute=True)
+            label = os.path.basename(it["path"]) + "  (animada en Higgsfield)"
         elif it["type"] == "photo":
             comp = compose_photo(it["path"], os.path.join(work, f"comp_{i:02d}.jpg"))
             dur = seg_photo(comp, dst, args.photo_dur, modes[i % len(modes)])

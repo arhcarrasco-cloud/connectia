@@ -18,6 +18,23 @@ material se sube a este repositorio:
 El orden es cronológico (fecha EXIF de la foto o del video). Para forzar un orden distinto crea
 `reel-cumple/orden.txt` con un nombre de archivo por línea.
 
+## Higgsfield: fotos que cobran vida
+
+Higgsfield corre desde la Mac de Roger (no es accesible desde el entorno de render). El flujo:
+
+1. Con las fotos ya en `media/`, genera la hoja de prompts:
+   `python3 scripts/build_reel.py --prompts` → crea `higgsfield_prompts.md` con un prompt por foto
+   (movimiento de cámara sugerido, reglas anti-alucinación, 5 s, 9:16).
+2. En Higgsfield, modo **Image to Video**: sube la foto, pega su prompt, motion strength baja.
+   Revisa el clip completo antes de aceptarlo (manos, rostros, objetos inventados → regenerar).
+3. Guarda cada clip en `reel-cumple/higgsfield/` con el **mismo nombre base que la foto**
+   (`IMG_0123.jpg` → `IMG_0123.mp4`; también se aceptan sufijos `_hf`, `_anim`, `_higgsfield`).
+4. Vuelve a renderizar. El motor sustituye la foto estática por su clip animado (sin audio, máximo
+   `--anim-max` segundos, 5 por defecto) y conserva la foto original como fondo de la tarjeta de texto.
+
+No hace falta animar todas: con 4 a 6 clips en los momentos clave el reel ya se siente vivo; el resto
+lleva el Ken Burns del motor.
+
 ## Cómo renderizar
 
 ```bash
