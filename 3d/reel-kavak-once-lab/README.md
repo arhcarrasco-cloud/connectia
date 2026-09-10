@@ -50,7 +50,12 @@ Los archivos < 3 MB de esa carpeta son impresiones abortadas (cama vacía).
 - Display: Archivo ExtraBold 800, wdth 112 · Texto: Instrument Sans · Técnica: IBM Plex Mono
 - Logo: siempre el sello master completo (círculo + anillo punteado + 11/once/LAB).
 
-## Higgsfield (mejora de intro/outro y hero shots)
+## Higgsfield
+
+Ver `HIGGSFIELD.md`: hoja de trabajo por toma (imagen fuente, preset de movimiento, prompt,
+nombre de archivo) y QC. Los clips se integran con `--clips CARPETA`.
+
+### Notas previas (prompts iniciales)
 
 Prompts listos para generar en Higgsfield y sustituir las fotos fijas:
 

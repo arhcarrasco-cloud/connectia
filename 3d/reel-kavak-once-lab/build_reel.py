@@ -2,7 +2,7 @@
 """
 once once LAB · Reel KAVAK (casco + cápsulas) · 1080x1920 · 30 fps · 30 s
 Uso:
-  python3 build_reel.py OUT.mp4 [--casco TIMELAPSE_CASCO.avi] [--capsulas TIMELAPSE_CAPSULAS.avi]
+  python3 build_reel.py OUT.mp4 [--casco TIMELAPSE_CASCO.avi] [--capsulas TIMELAPSE_CAPSULAS.avi] [--clips CARPETA_HIGGSFIELD]
 Sin --casco/--capsulas usa stand-ins (clip Bambu del banco de Reels + primera capa real P1S).
 """
 import sys, os, math, subprocess, argparse
@@ -17,6 +17,7 @@ CREMA = (240, 231, 211); CHICLE = (245, 110, 158)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("out"); ap.add_argument("--casco"); ap.add_argument("--capsulas")
+ap.add_argument("--clips", help="carpeta con clips Higgsfield: hook.mp4 blanco_a.mp4 blanco_b.mp4 caps.mp4 merch.mp4 claim_top.mp4")
 ap.add_argument("--preview", action="store_true", help="solo exporta PNGs clave")
 A = ap.parse_args()
 
@@ -117,6 +118,8 @@ def video_frames(path, n, mode="cover", speed=None):
     if mode == "cover":
         vf = f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}"
         w, h = W, H
+    elif mode == "half":
+        w, h = W, H//2; vf = f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}"
     else:
         w, h = 1080, 608; vf = f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}"
     if speed: vf = f"setpts={speed}*PTS," + vf
@@ -177,8 +180,26 @@ from PIL import ImageEnhance
 PH["playera"] = ImageEnhance.Contrast(ImageEnhance.Brightness(PH["playera"]).enhance(1.18)).enhance(1.08)
 PH["casco"] = ImageEnhance.Color(ImageEnhance.Contrast(PH["casco"]).enhance(1.06)).enhance(1.08)
 
-def scene_photo(key, t, dur, r0, r1, head, label, head_size=150, y_bottom=None, scrim_s=0.88):
-    F = kb_frame(PH[key], t/dur, r0, r1)
+# ---------- clips generados (Higgsfield) ----------
+CLIPS = {}
+def load_clips():
+    if not A.clips: return
+    spec = {"hook": ("cover", 100), "blanco_a": ("cover", 60), "blanco_b": ("cover", 60), "caps": ("cover", 100),
+            "merch": ("cover", 100), "claim_top": ("half", 100)}
+    for name, (mode, n) in spec.items():
+        for ext in ("mp4", "mov"):
+            path = os.path.join(A.clips, f"{name}.{ext}")
+            if os.path.exists(path):
+                CLIPS[name] = video_frames(path, n, mode)[0]; print("clip Higgsfield:", name, path); break
+
+def shot(clip, photo, t, dur, r0, r1, size=(W, H)):
+    """Frame de la toma: clip Higgsfield si existe, si no Ken Burns sobre la foto."""
+    if clip in CLIPS:
+        fr = CLIPS[clip]; return fr[min(int(round(t*FPS)), len(fr)-1)].convert("RGBA")
+    return kb_frame(PH[photo], t/dur, r0, r1, size)
+
+def scene_photo(key, t, dur, r0, r1, head, label, head_size=150, y_bottom=None, scrim_s=0.88, clip=None):
+    F = shot(clip or key, key, t, dur, r0, r1)
     F = composite(F, scrim(scrim_s, 0.42))
     ta = ease_out((t-0.15)/0.45)
     yb = y_bottom or H-360
@@ -211,8 +232,8 @@ def scene_clip(frames, i, t, dur, head, label, mode, sub=None):
 
 def scene_two_shots(keys, t, dur, kbs, head, label):
     """Dos tomas con corte seco a la mitad; titular y etiqueta persisten."""
-    half = dur/2; k = 0 if t < half else 1; tt = (t - k*half)/half
-    F = kb_frame(PH[keys[k]], tt, *kbs[k])
+    half = dur/2; k = 0 if t < half else 1; tt = (t - k*half)
+    F = shot(keys[k], keys[k], tt, half, *kbs[k])
     F = composite(F, scrim(0.88, 0.42))
     ta = ease_out((t-0.15)/0.45); yb = H-360
     F = composite(F, layer_text(head, display(138), CREMA, 84, yb+int((1-ta)*30), tracking=-3, gap=6), ta)
@@ -222,7 +243,7 @@ def scene_two_shots(keys, t, dur, kbs, head, label):
 def scene_claim(t, dur):
     """Split: detalle casco blanco arriba / cápsulas abajo + claim."""
     F = Image.new("RGBA", (W, H), TINTA+(255,))
-    top = kb_frame(PH["blanco_det"], t/dur, (0.42, 0.45, 1.02), (0.40, 0.42, 1.14), size=(W, H//2))
+    top = shot("claim_top", "blanco_det", t, dur, (0.42, 0.45, 1.02), (0.40, 0.42, 1.14), size=(W, H//2))
     bot = kb_frame(PH["caja"], t/dur, (0.5, 0.5, 1.05), (0.5, 0.5, 1.18)).crop((0, 500, W, 500+H//2))
     F.paste(top, (0, 0)); F.paste(bot, (0, H//2))
     F = composite(F, scrim(0.92, 0.35))
@@ -249,22 +270,23 @@ def load_process_clips():
     return casco_fr, casco_mode, casco_head, casco_label, caps_fr, caps_label
 
 casco_fr, casco_mode, casco_head, casco_label, caps_fr, caps_label = load_process_clips()
+load_clips()
 
 # ---------- timeline (900 frames = 30.0 s) ----------
 SC = [
  ("intro",  75, lambda t, d, i: brand_card(t, d)),
  ("hook",   90, lambda t, d, i: scene_photo("casco", t, d, (0.50, 0.50, 1.02), (0.52, 0.46, 1.30),
-                                            [("UN CASCO", CREMA), ("KAVAK", ROSA), ("IMPRESO EN 3D", CREMA)], "ESCALA REAL · IMPRESIÓN 3D · PIEZA ÚNICA", 138)),
+                                            [("UN CASCO", CREMA), ("KAVAK", ROSA), ("IMPRESO EN 3D", CREMA)], "ESCALA REAL · IMPRESIÓN 3D · PIEZA ÚNICA", 138, clip="hook")),
  ("blanco", 90, lambda t, d, i: scene_two_shots(["blanco_a", "blanco_b"], t, d,
                                             [((0.45, 0.55, 1.05), (0.42, 0.52, 1.22)), ((0.55, 0.48, 1.22), (0.52, 0.50, 1.04))],
                                             [("EN AZUL.", CREMA), ("Y EN BLANCO.", ROSA)], "DOS VERSIONES · MÁSCARA Y HERRAJES IMPRESOS")),
  ("proc1", 135, lambda t, d, i: scene_clip(casco_fr, i, t, d, casco_head, casco_label, casco_mode, "De archivo 3D a objeto real, capa por capa.")),
  ("caps",   90, lambda t, d, i: scene_photo("caja", t, d, (0.5, 0.62, 1.30), (0.5, 0.42, 1.06),
-                                            [("CÁPSULAS", CREMA), ("A LA MEDIDA", ROSA)], "PETG · AZUL KAVAK · LOTE COMPLETO", 138)),
+                                            [("CÁPSULAS", CREMA), ("A LA MEDIDA", ROSA)], "PETG · AZUL KAVAK · LOTE COMPLETO", 138, clip="caps")),
  ("proc2", 135, lambda t, d, i: scene_clip(caps_fr, i, t, d, [("LOTE TRAS", CREMA), ("LOTE.", ROSA)], caps_label, "panel",
                                             "Producción en serie con control de calidad pieza por pieza.")),
  ("merch",  90, lambda t, d, i: scene_photo("playera", t, d, (0.45, 0.55, 1.25), (0.55, 0.50, 1.04),
-                                            [("Y LA", CREMA), ("ACTIVACIÓN", ROSA), ("COMPLETA", CREMA)], "ACTIVACIÓN KAVAK · MERCH", 138)),
+                                            [("Y LA", CREMA), ("ACTIVACIÓN", ROSA), ("COMPLETA", CREMA)], "ACTIVACIÓN KAVAK · MERCH", 138, clip="merch")),
  ("claim",  90, lambda t, d, i: scene_claim(t, d)),
  ("outro", 105, lambda t, d, i: brand_card(t, d, outro=True)),
 ]
