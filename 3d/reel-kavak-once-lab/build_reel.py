@@ -19,6 +19,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("out"); ap.add_argument("--casco"); ap.add_argument("--capsulas")
 ap.add_argument("--clips", help="carpeta con clips Higgsfield: hook.mp4 blanco_a.mp4 blanco_b.mp4 caps.mp4 merch.mp4 claim_top.mp4")
 ap.add_argument("--preview", action="store_true", help="solo exporta PNGs clave")
+ap.add_argument("--cards", help="exporta intro.mp4 (2.5 s) y outro.mp4 (3.5 s) de once once LAB a esta carpeta y termina")
 A = ap.parse_args()
 
 # ---------- fuentes (manual once LAB cap. 05) ----------
@@ -297,6 +298,16 @@ assert sum(l for _, l, _ in SC) - XF*(len(SC)-2) == 900, sum(l for _, l, _ in SC
 
 def render_scene(idx, i):
     name, n, fn = SC[idx]; return fn(i/FPS, n/FPS, i)
+
+if A.cards:
+    os.makedirs(A.cards, exist_ok=True)
+    for name, n, outro in (("intro", 75, False), ("outro", 105, True)):
+        out = os.path.join(A.cards, f"{name}.mp4")
+        pc = subprocess.Popen(["ffmpeg", "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
+                               "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out], stdin=subprocess.PIPE)
+        for i in range(n): pc.stdin.write(brand_card(i/FPS, n/FPS, outro=outro).convert("RGB").tobytes())
+        pc.stdin.close(); pc.wait(); print("card:", out)
+    sys.exit(0)
 
 if A.preview:
     os.makedirs(os.path.join(HERE, "preview"), exist_ok=True)
