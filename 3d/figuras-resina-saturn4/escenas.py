@@ -29,7 +29,12 @@ A_PEANA = (78.0, 46.0)
 A_MUJER = dict(
     H=158.0, z0=PEANA_T, origen=(-38.0, 2.0), sexo="f",
     pelo="largo", lentes=True, zapato="vestir",
-    holgura_ropa=1.7, dobladillo=0.60,
+    # Sin dobladillo a proposito. El surco caia en z = 108.8 y ahi pasa la
+    # punta del codo de su brazo caido: 0.9 mm de corte sobre un casquete de
+    # radio chico dejaban dos superficies besandose, o sea 22 aristas
+    # no-manifold en la malla. El surco mide 0.9 mm en una figura de 190 y no
+    # se ve en ningun render; el defecto si estaba. Se quita el detalle.
+    holgura_ropa=1.7, dobladillo=None,
     muneca_x_pos=(-21.0, -36.0, 133.0),     # golpea el parche
     muneca_x_neg=(-40.0, -28.0, 121.0),     # sostiene el aro
 )

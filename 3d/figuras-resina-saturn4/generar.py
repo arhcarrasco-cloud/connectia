@@ -126,15 +126,56 @@ def pared_relleno(shell):
     return 1.0
 
 
-def _limpiar(m):
-    """Quita los triangulos de area cero que deja marching cubes.
+def _aristas_malas(m):
+    """(aristas de borde, aristas no-manifold) de la malla."""
+    import trimesh.grouping as gg
+    grupos = gg.group_rows(m.edges_sorted, require_count=None)
+    c = np.array([len(x) for x in grupos])
+    return int((c == 1).sum()), int((c > 2).sum())
 
-    Sin esto la malla reporta `is_watertight = False` aun teniendo cero
-    aristas de borde: los degenerados duplican aristas y rompen la cuenta.
+
+def _limpiar(m, reparar=True):
+    """Deja la malla cerrada y manifold, y dice que tuvo que arreglar.
+
+    Marching cubes deja triangulos de area cero: sin quitarlos la malla
+    reporta `is_watertight = False` aun teniendo cero aristas de borde,
+    porque los degenerados duplican aristas y rompen la cuenta.
+
+    Ademas, en una rejilla de voxeles siempre sobreviven un puniado de
+    configuraciones ambiguas -- del orden de decenas de aristas entre casi un
+    millon -- que salen como agujeros de un triangulo o como aristas con
+    cuatro caras. Son artefactos de muestreo, no defectos de la pieza, y se
+    tapan. Se reporta cuantos eran para que quede en el registro y no
+    escondido.
     """
     m.update_faces(m.nondegenerate_faces())
     m.merge_vertices()
     m.remove_unreferenced_vertices()
+    if not reparar:
+        return m
+    borde, nm = _aristas_malas(m)
+    if not (borde or nm):
+        return m
+
+    # Se intenta tapar, pero solo se acepta si de verdad mejora: fill_holes
+    # triangula el contorno del agujero y en estas mallas mete mas borde del
+    # que quita (6 aristas se volvian 18). Si empeora, se deja como estaba y
+    # se reporta el numero real. Una malla con dos docenas de aristas malas
+    # entre dos millones la repara cualquier rebanador; mentir sobre ellas no.
+    cand = m.copy()
+    trimesh.repair.fill_holes(cand)
+    cand.update_faces(cand.unique_faces())
+    cand.update_faces(cand.nondegenerate_faces())
+    cand.merge_vertices()
+    cand.remove_unreferenced_vertices()
+    b2, n2 = _aristas_malas(cand)
+    if (b2, n2) < (borde, nm):
+        print(f"    reparado: {borde} aristas de borde y {nm} no-manifold "
+              f"-> {b2} y {n2} (de {len(cand.edges_sorted):,})")
+        return cand
+    print(f"    {borde} aristas de borde y {nm} no-manifold de "
+          f"{len(m.edges_sorted):,}; el tapado las empeora a {b2} y {n2}, "
+          f"asi que se deja la malla como esta")
     return m
 
 
@@ -187,12 +228,24 @@ def main():
     ap.add_argument("--caras", type=int, default=500000)
     ap.add_argument("--macizo", action="store_true",
                     help="no ahuecar (solo para comparar volumenes)")
+    ap.add_argument("--desde-campo", action="store_true",
+                    help="reusa <escena>-campo.npz en vez de volver a evaluar "
+                         "el campo: vuelve a mallar y exportar en minutos en "
+                         "vez de en un cuarto de hora")
     a = ap.parse_args()
 
     esc = E.ESCENAS[a.escena]
     print(f"{esc['nombre'].upper()}  res {a.res} mm  pared {a.pared} mm")
 
-    campo, ejes = muestrear(esc, a.res)
+    if a.desde_campo:
+        d = np.load(f"{a.escena}-campo.npz")
+        campo = d["solido"].astype(np.float32)
+        ejes = (d["xs"], d["ys"], d["zs"])
+        a.res = float(d["res"])
+        print(f"    campo reusado de {a.escena}-campo.npz  "
+              f"{campo.shape} · voxel {a.res} mm")
+    else:
+        campo, ejes = muestrear(esc, a.res)
     vox = a.res ** 3
     v_macizo = float((campo < 0).sum()) * vox / 1000.0
 

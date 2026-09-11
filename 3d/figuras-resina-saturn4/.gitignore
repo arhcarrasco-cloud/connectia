@@ -1,5 +1,15 @@
-# Los campos muestreados son de cientos de MB y se regeneran con generar.py.
+# Los campos muestreados pesan cientos de MB y se regeneran con generar.py.
 *-campo.npz
 # El OBJ solo sirve para render externo; no aporta nada sobre el STL.
 *.obj
+# Del STL se versiona solo la version ligera de 200 k triangulos (10 MB).
+# La de 600 k pesa 30 MB y la de impresion se regenera con --caras 0.
+*.stl
+!*-ligero.stl
+# Salidas de corrida: lo que importa de ellas ya esta en el README.
 gen-*.log
+renders.log
+ver-*.txt
+cost-*.txt
+barrido-*.txt
+alig.txt

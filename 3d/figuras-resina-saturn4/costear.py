@@ -160,7 +160,12 @@ def datos(escena):
     lo, hi = idx.min(0), idx.max(0)
     dim = (hi - lo + 1) * res
     area = hueco.sum(axis=(0, 1)) * res * res
-    return dict(slug=str(d["slug"]), ml=float(d["v_malla"]),
+    # El volumen de referencia es el CONTEO DE VOXELES sobre el campo, no el
+    # de la malla exportada: la malla va diezmada a 600 000 triangulos y el
+    # suavizado del diezmado encoge la pieza cosa de un 4%. Los dos numeros
+    # acotan el verdadero y se imprimen ambos.
+    return dict(slug=str(d["slug"]), ml=float(d["v_hueco"]),
+                ml_malla=float(d["v_malla"]),
                 ml_macizo=float(d["v_macizo"]),
                 dim=dim, area_max=float(area.max()))
 
@@ -183,6 +188,9 @@ def informe(escena, resina, ml_medido, h_medido):
           f"{'CABE' if cabe_sola(D['dim'][:2]) else 'NO CABE'}")
     print(f"  resina de la pieza     {ml_pieza:7.1f} ml  "
           f"(maciza serian {D['ml_macizo']:.0f} ml)")
+    print(f"    medida sobre el campo {D['ml']:7.1f} ml · sobre la malla "
+          f"diezmada {D['ml_malla']:.1f} ml  ->  banda de +-"
+          f"{abs(D['ml']-D['ml_malla'])/2/D['ml']:.1%}")
     if ml_sop:
         print(f"  soportes al {SOPORTE_PCT:.0%}         {ml_sop:7.1f} ml")
     print(f"  resina total           {ml:7.1f} ml = {ml*DENSIDAD:.0f} g")
