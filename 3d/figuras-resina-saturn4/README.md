@@ -89,8 +89,19 @@ comparte: dos lavados, dos cortes de soporte. Si cupieran, la segunda pieza
 costaría casi solo su resina.
 
 **3. La resina es la mitad del costo y la mano de obra un cuarto.** No es como
-FDM, donde el plástico es lo de menos. Aquí bajar de 2.2 a 1.6 mm de pared es
-dinero de verdad — corre `barrido_pared.py` para ver cuánto.
+FDM, donde el plástico es lo de menos. Aquí la pared es dinero de verdad
+(`python3 barrido_pared.py diploma`):
+
+| Pared | Resina | vs maciza | Bolsas ciegas | $ resina | COGS |
+|---|---|---|---|---|---|
+| 1.6 mm | 152.1 ml | 38 % | 1 | $127.69 | **$312.94** |
+| 2.2 mm | 201.0 ml | 50 % | 0 | $168.73 | **$361.12** |
+| 2.8 mm | 261.5 ml | 65 % | 3 | $219.50 | **$420.71** |
+
+Cada 0.6 mm de pared son unos $50. Y el tiempo **no se mueve**: las mismas
+3 738 capas en los tres casos. Los 2.2 mm no son un capricho: a 1.6 aparece
+una bolsa ciega y la pieza empieza a abollarse al despegar; a 2.8 se pagan
+$60 de más por rigidez que nadie va a notar en una figura de escritorio.
 
 ### Precio sugerido — KPI $48–$77/hora de máquina
 
