@@ -1,0 +1,5 @@
+# Los campos muestreados son de cientos de MB y se regeneran con generar.py.
+*-campo.npz
+# El OBJ solo sirve para render externo; no aporta nada sobre el STL.
+*.obj
+gen-*.log
