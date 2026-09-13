@@ -1,0 +1,18 @@
+{
+  "nombre": "Market Pulse MX",
+  "raiz": "~/Documents/Market-Pulse-MX",
+  "catalogo": "01-PRODUCTOS",
+  "salida": "02-CONTENIDO/{fecha}/{red}",
+  "archivo": "CATALOGO_{destino}_todos_v1.mp4",
+  "cta": "hecho por pedido en Mexico",
+  "liga": "",
+  "color_cierre": "0x1A1A18",
+  "color_liga": "0xE8C8A0",
+  "tipografia": "00-MARCA/tipografias",
+  "palabras_prohibidas": [
+    "3d", "impres", "imprim", "filamento", "pla", "petg", "impresora",
+    "capa por capa", "bajo demanda", "gramos", "boquilla", "laminado"
+  ],
+  "seg_min": 1.4,
+  "seg_max": 3.5
+}

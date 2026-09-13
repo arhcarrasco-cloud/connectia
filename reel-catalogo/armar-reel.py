@@ -47,14 +47,22 @@ REDES = {
     "tiktok":   ("TT-reel", 24, 38, 34),
 }
 
-# Ritmo calmado: ningun producto por debajo de 1.4 s ni arriba de 3.5 s.
-SEG_MIN, SEG_MAX = 1.4, 3.5
-
-# Nunca decimos que hacemos 3D. Estas palabras no pueden salir en pantalla.
-PROHIBIDAS = [
-    "3d", "impres", "imprim", "filamento", "pla", "petg", "impresora",
-    "capa por capa", "bajo demanda", "gramos", "boquilla", "laminado",
-]
+# Todo lo que cambia entre marcas vive en marcas/<marca>.json, no aqui.
+MARCA_POR_DEFECTO = {
+    "nombre": "",
+    "raiz": "",
+    "catalogo": "",          # subcarpeta del catalogo; vacio = la raiz misma
+    "salida": "{fecha}/{red}",
+    "archivo": "CATALOGO_{destino}_todos_v1.mp4",
+    "cta": "",               # linea de cierre
+    "liga": "",              # liga de compra
+    "color_cierre": "0x1A1A18",
+    "color_liga": "0xE8C8A0",
+    "tipografia": "",        # archivo .ttf/.otf o carpeta donde buscarlo
+    "palabras_prohibidas": [],
+    "seg_min": 1.4,
+    "seg_max": 3.5,
+}
 
 EXT_IMG = (".jpg", ".jpeg", ".png", ".webp")
 EXT_VID = (".mp4", ".mov", ".m4v")
@@ -220,28 +228,81 @@ def elegir_toma(carpeta: Path) -> tuple[Path | None, str, bool]:
     return None, "", False
 
 
-def leer_catalogo(raiz: Path, solo: list[str], excluir: list[str]) -> list[Producto]:
-    base = raiz / "01-PRODUCTOS"
+def cargar_marca(ruta: Path) -> dict:
+    """
+    Lee marcas/<marca>.json. Lo que falte se queda vacio a proposito: el script
+    avisa y sigue, o se detiene, pero nunca rellena un dato de marca inventado.
+    """
+    if not ruta.is_file():
+        disponibles = sorted(x.stem for x in ruta.parent.glob("*.json")) \
+            if ruta.parent.is_dir() else []
+        morir(
+            f"No existe el perfil de marca {ruta}\n"
+            + (f"Perfiles disponibles: {', '.join(disponibles)}"
+               if disponibles else "No hay ningun perfil en marcas/.")
+        )
+    try:
+        datos = json.loads(ruta.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        morir(f"{ruta} no es JSON valido: {e}")
+    marca = dict(MARCA_POR_DEFECTO)
+    marca.update(datos)
+    faltan = [c for c in ("nombre", "raiz") if not marca.get(c)]
+    if faltan:
+        morir(f"{ruta} no tiene {' ni '.join(faltan)}. Llenalo antes de correr.")
+    return marca
+
+
+def base_catalogo(raiz: Path, sub: str) -> Path:
+    base = (raiz / sub) if sub else raiz
     if not base.is_dir():
         morir(
             f"No existe {base}\n"
-            "Este script corre donde vive el catalogo (la Mac de Roger). "
-            "Pasa la ruta correcta con --raiz."
+            "Este script corre donde vive el material de la marca. "
+            "Corrige 'raiz' en el perfil o pasa --raiz."
         )
+    return base
+
+
+def leer_catalogo(base: Path, solo: list[str], excluir: list[str]) -> list[Producto]:
+    """
+    Acepta tres formas de catalogo, en este orden:
+      1. Una carpeta por producto con fotos/ dentro (la forma de MPMX)
+      2. Una carpeta por producto con las imagenes sueltas adentro
+      3. Una sola carpeta con un archivo por producto
+    Asi sirve igual para un catalogo ordenado que para una carpeta de fotos.
+    """
+    def filtra(sku: str) -> bool:
+        if sku.startswith("."):
+            return False
+        if solo and sku not in solo:
+            return False
+        return sku not in excluir
+
+    carpetas = [d for d in sorted(base.iterdir()) if d.is_dir() and filtra(d.name)]
 
     productos: list[Producto] = []
-    for carpeta in sorted(p for p in base.iterdir() if p.is_dir()):
-        sku = carpeta.name
-        if sku.startswith("."):
-            continue
-        if solo and sku not in solo:
-            continue
-        if sku in excluir:
-            continue
-        p = Producto(sku, carpeta)
+    for carpeta in carpetas:
+        p = Producto(carpeta.name, carpeta)
         p.toma, p.origen, p.es_video = elegir_toma(carpeta)
-        p.nombre = nombre_desde_ficha(carpeta, sku)
+        p.nombre = nombre_desde_ficha(carpeta, carpeta.name)
         productos.append(p)
+
+    # Si ninguna subcarpeta traia material, el catalogo es plano: un archivo por producto.
+    if not any(p.toma for p in productos):
+        sueltos = [
+            f for f in sorted(base.iterdir())
+            if f.is_file() and f.suffix.lower() in EXT_IMG + EXT_VID and filtra(f.stem)
+        ]
+        if sueltos:
+            productos = []
+            for f in sueltos:
+                p = Producto(f.stem, base)
+                p.toma = f
+                p.origen = "archivo suelto"
+                p.es_video = f.suffix.lower() in EXT_VID
+                p.nombre = nombre_desde_ficha(base, f.stem)
+                productos.append(p)
     return productos
 
 
@@ -376,19 +437,26 @@ def normalizar_clip(origen: Path, salida: Path, dry: bool) -> None:
 
 
 def tarjeta_cta(texto: str, liga: str, dur: float, salida: Path,
-                fuente: Path | None, dry: bool) -> None:
+                fuente: Path | None, marca: dict, dry: bool) -> None:
     """Cierre con la liga de compra: va en toda pieza, tambien en el video."""
     f = f"fontfile={shlex.quote(str(fuente))}:" if fuente else ""
     y1 = ALTO // 2 - 70
     y2 = ALTO // 2 + 20
-    filtro = (
-        f"color=c=0x1A1A18:s={ANCHO}x{ALTO}:r={FPS}:d={dur:.3f},"
-        f"drawtext={f}text='{limpiar_texto(texto)}'"
-        f":fontcolor=white@0.95:fontsize=58:x=(w-text_w)/2:y={y1},"
-        f"drawtext={f}text='{limpiar_texto(liga)}'"
-        f":fontcolor=0xE8C8A0:fontsize=42:x=(w-text_w)/2:y={y2},"
-        f"format=yuv420p"
-    )
+    capas = [
+        f"color=c={marca['color_cierre']}:s={ANCHO}x{ALTO}:r={FPS}:d={dur:.3f}"
+    ]
+    if texto:
+        capas.append(
+            f"drawtext={f}text='{limpiar_texto(texto)}'"
+            f":fontcolor=white@0.95:fontsize=58:x=(w-text_w)/2:y={y1}"
+        )
+    if liga:
+        capas.append(
+            f"drawtext={f}text='{limpiar_texto(liga)}'"
+            f":fontcolor={marca['color_liga']}:fontsize=42:x=(w-text_w)/2:y={y2}"
+        )
+    capas.append("format=yuv420p")
+    filtro = ",".join(capas)
     cmd = [
         "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
         "-f", "lavfi", "-i", filtro,
@@ -520,17 +588,16 @@ def qc(salida: Path, red: str, esperado_prods: int, esperado_dur: float) -> None
 
 def main() -> None:
     ap = argparse.ArgumentParser(
-        description="Arma el reel de catalogo de Market Pulse MX (9:16, 1080x1920).",
+        description="Arma un reel de catalogo vertical (9:16, 1080x1920).",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    ap.add_argument("--raiz", type=Path,
-                    default=Path.home() / "Documents" / "Market-Pulse-MX",
-                    help="Raiz operativa de MPMX")
+    ap.add_argument("--marca", default="mpmx",
+                    help="Perfil de marca: nombre de un archivo en marcas/ o ruta a un .json")
+    ap.add_argument("--raiz", type=Path, help="Anula la raiz del perfil de marca")
     ap.add_argument("--red", choices=sorted(REDES), default="reels")
     ap.add_argument("--audio", type=Path, help="Pista de musica (obligatoria en la practica)")
-    ap.add_argument("--liga", help="Liga de compra que aparece en la tarjeta de cierre")
-    ap.add_argument("--cta", default="hecho por pedido en Mexico",
-                    help="Linea de cierre arriba de la liga")
+    ap.add_argument("--liga", help="Liga que aparece en la tarjeta de cierre")
+    ap.add_argument("--cta", help="Linea de cierre arriba de la liga")
     ap.add_argument("--seg", type=float,
                     help="Segundos por producto (por omision se calcula para la red)")
     ap.add_argument("--encuadre", choices=["auto", "cover", "blur"], default="auto")
@@ -538,7 +605,7 @@ def main() -> None:
     ap.add_argument("--fundido", type=float, default=0.3, help="Duracion del fundido")
     ap.add_argument("--sin-rotulo", action="store_true",
                     help="No poner el nombre del producto en pantalla")
-    ap.add_argument("--fuente", type=Path, help="Tipografia (Cooper Hewitt de MPMX)")
+    ap.add_argument("--fuente", type=Path, help="Tipografia; anula la del perfil de marca")
     ap.add_argument("--intro", type=Path, help="Clip de intro oficial (no se regenera)")
     ap.add_argument("--outro", type=Path, help="Clip de outro oficial (no se regenera)")
     ap.add_argument("--solo", default="", help="SKUs separados por coma")
@@ -553,40 +620,55 @@ def main() -> None:
 
     destino, smin, smax, objetivo = REDES[args.red]
 
+    # Perfil de marca: rutas, copy y colores. Nada de esto esta cableado.
+    ruta_marca = Path(args.marca)
+    if ruta_marca.suffix != ".json":
+        ruta_marca = Path(__file__).parent / "marcas" / f"{args.marca}.json"
+    marca = cargar_marca(ruta_marca)
+    raiz = args.raiz or Path(marca["raiz"]).expanduser()
+    cta = args.cta if args.cta is not None else marca["cta"]
+    liga = args.liga if args.liga is not None else marca["liga"]
+    seg_min, seg_max = float(marca["seg_min"]), float(marca["seg_max"])
+    print(f"\n== Marca ==")
+    log(f"perfil ........ {marca['nombre']}  ({ruta_marca.name})")
+    log(f"material ...... {raiz}")
+
     print(f"\n== Catalogo ==")
+    base = base_catalogo(raiz, marca["catalogo"])
     productos = leer_catalogo(
-        args.raiz,
+        base,
         [s.strip() for s in args.solo.split(",") if s.strip()],
         [s.strip() for s in args.excluir.split(",") if s.strip()],
     )
     if not productos:
-        morir(f"No se encontro ningun producto en {args.raiz / '01-PRODUCTOS'}.")
+        morir(f"No se encontro ningun producto en {base}.")
 
     usables = [p for p in productos if p.toma]
     for p in productos:
         if not p.toma:
             aviso(f"{p.sku}: sin foto ni video usable, queda fuera.")
         else:
-            marca = "  <-- fondo blanco, es para marketplace, no para reel" \
+            nota = "  <-- fondo blanco, es para marketplace, no para reel" \
                 if p.origen == "marketplace blanco" else ""
-            log(f"{p.sku:<28} {p.origen:<22} {p.toma.name}{marca}")
+            log(f"{p.sku:<28} {p.origen:<22} {p.toma.name}{nota}")
     if not usables:
         morir("Ningun producto tiene material usable.")
 
-    # Copy: nunca decimos que hacemos 3D, ni en pantalla.
+    # Copy: lo que la marca no dice, no sale en pantalla.
+    prohibidas = [w.lower() for w in marca["palabras_prohibidas"]]
     sucios = [
-        (p.sku, w) for p in usables for w in PROHIBIDAS
+        (p.sku, w) for p in usables for w in prohibidas
         if w in p.nombre.lower()
     ]
     if sucios and not args.sin_rotulo:
         for sku, w in sucios:
             aviso(f"{sku}: el nombre contiene '{w}', palabra prohibida en pantalla.")
-        morir("Corrige los nombres en las fichas o corre con --sin-rotulo.")
+        morir("Corrige los nombres o corre con --sin-rotulo.")
 
     # Ritmo: los segundos por producto salen de la ventana de la red.
     # Cada fundido solapa dos clips, asi que resta a la duracion final.
     n = len(usables)
-    cierre = 2.5 if args.liga else 0.0
+    cierre = 2.5 if (liga or cta) else 0.0
     d_intro = dur_video(args.intro) if args.intro and args.intro.is_file() else 0.0
     d_outro = dur_video(args.outro) if args.outro and args.outro.is_file() else 0.0
     fijos = cierre + d_intro + d_outro
@@ -597,7 +679,7 @@ def main() -> None:
         seg = args.seg
     else:
         seg = (objetivo - fijos + solape) / n
-        seg = max(SEG_MIN, min(SEG_MAX, seg))
+        seg = max(seg_min, min(seg_max, seg))
     total = seg * n + fijos - solape
 
     print(f"\n== Ritmo ==")
@@ -613,43 +695,56 @@ def main() -> None:
     log(f"{detalle} = {total:.1f} s")
 
     if total > smax:
-        caben = int((smax - fijos + solape) / SEG_MIN)
+        caben = int((smax - fijos + solape) / seg_min)
         aviso(f"{total:.0f} s pasa el maximo de {args.red} ({smax} s). "
               f"A ritmo calmado caben ~{caben} productos: "
               f"parte el catalogo en varios reels con --solo.")
     elif total < smin:
         aviso(f"{total:.0f} s no llega al minimo de {args.red} ({smin} s). "
               "Sube --seg o suma productos.")
-    if seg <= SEG_MIN + 0.01 and total <= smax:
+    if seg <= seg_min + 0.01 and total <= smax:
         aviso(f"{seg:.2f} s por producto es el piso de ritmo calmado.")
 
-    if not args.liga:
-        aviso("Sin --liga: el reel sale sin liga de compra, y la liga va en toda pieza.")
+    if not liga:
+        aviso("Sin liga: el reel sale sin liga, y la liga va en toda pieza. "
+              "Pasa --liga o llena 'liga' en el perfil de marca.")
+    if not cta:
+        aviso("Sin linea de cierre: llena 'cta' en el perfil de marca.")
     if not args.audio:
         aviso("Sin --audio: el reel sale mudo.")
     elif not args.audio.is_file():
         morir(f"No existe el audio {args.audio}")
 
     fuente = args.fuente
-    if fuente is None:
-        tipos = args.raiz / "00-MARCA" / "tipografias"
-        if tipos.is_dir():
+    if fuente is None and marca["tipografia"]:
+        cand = Path(marca["tipografia"]).expanduser()
+        if not cand.is_absolute():
+            cand = raiz / cand
+        if cand.is_dir():
             fuente = next(
-                (c for c in sorted(tipos.rglob("*"))
-                 if c.suffix.lower() in (".ttf", ".otf") and "cooper" in c.name.lower()),
+                (c for c in sorted(cand.rglob("*"))
+                 if c.suffix.lower() in (".ttf", ".otf")),
                 None,
             )
+            if fuente is None:
+                aviso(f"No hay ninguna .ttf ni .otf en {cand}")
+        elif cand.is_file():
+            fuente = cand
+        else:
+            morir(f"El perfil apunta a una tipografia que no existe: {cand}")
     if fuente and not Path(fuente).is_file():
         morir(f"No existe la tipografia {fuente}")
     if fuente:
         log(f"tipografia .... {fuente.name}")
     else:
-        aviso("Sin Cooper Hewitt: drawtext usara la fuente por omision de ffmpeg.")
+        aviso("Sin la tipografia de la marca: drawtext usara la de ffmpeg. "
+              "Llena 'tipografia' en el perfil.")
 
     hoy = dt.date.today().isoformat()
     salida = args.salida or (
-        args.raiz / "02-CONTENIDO" / hoy / args.red /
-        f"CATALOGO_{destino}_todos_v1.mp4"
+        raiz
+        / marca["salida"].format(fecha=hoy, red=args.red, destino=destino)
+        / marca["archivo"].format(fecha=hoy, red=args.red, destino=destino)
     )
     salida.parent.mkdir(parents=True, exist_ok=True)
 
@@ -674,10 +769,10 @@ def main() -> None:
             )
             clips.append(c)
 
-        if args.liga:
+        if cierre:
             c = tmp / "zzz-cta.mp4"
-            log("cierre con liga de compra")
-            tarjeta_cta(args.cta, args.liga, cierre, c, fuente, args.dry_run)
+            log("tarjeta de cierre")
+            tarjeta_cta(cta, liga, cierre, c, fuente, marca, args.dry_run)
             clips.append(c)
 
         if args.outro:
