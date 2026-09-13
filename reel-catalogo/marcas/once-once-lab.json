@@ -20,18 +20,23 @@
   ],
   "nombre": "once LAB",
   "raiz": "",
-  "catalogo": "",
+  "catalogo": [
+    "Reels",
+    "Imagenes"
+  ],
   "salida": "reels/{fecha}",
   "archivo": "CATALOGO_{destino}_hogar_v1.mp4",
-
   "cta": "Lo hacemos realidad.",
   "liga": "",
   "color_cierre": "0x151217",
   "color_liga": "0xF0246B",
   "tipografia": "",
-
-  "palabras_prohibidas": ["hecho a mano", "hecha a mano", "hechas a mano", "handmade"],
-
+  "palabras_prohibidas": [
+    "hecho a mano",
+    "hecha a mano",
+    "hechas a mano",
+    "handmade"
+  ],
   "nombres": {
     "lampara1_hero_wm": "Lampara 1",
     "lampara1_v2_wm": "Lampara 1",
@@ -66,12 +71,20 @@
     "reel_portahuevos": "Portahuevos",
     "reel_airtag": "Funda AirTag"
   },
-
   "redes": {
-    "reels":  { "destino": "IG-reel", "min": 7,  "max": 90, "objetivo": 45 },
-    "tiktok": { "destino": "TT-reel", "min": 15, "max": 30, "objetivo": 26 }
+    "reels": {
+      "destino": "IG-reel",
+      "min": 7,
+      "max": 90,
+      "objetivo": 45
+    },
+    "tiktok": {
+      "destino": "TT-reel",
+      "min": 15,
+      "max": 30,
+      "objetivo": 26
+    }
   },
-
   "seg_min": 1.4,
   "seg_max": 3.5
 }

@@ -265,15 +265,44 @@ def cargar_marca(ruta: Path) -> dict:
     return marca
 
 
-def base_catalogo(raiz: Path, sub: str) -> Path:
-    base = (raiz / sub) if sub else raiz
-    if not base.is_dir():
-        morir(
-            f"No existe {base}\n"
-            "Este script corre donde vive el material de la marca. "
-            "Corrige 'raiz' en el perfil o pasa --raiz."
+def bases_catalogo(raiz: Path, sub) -> list[Path]:
+    """
+    'catalogo' puede ser una carpeta o una lista de carpetas. Varias sirven
+    cuando el material esta repartido: los clips en una, las fotos en otra.
+    """
+    subs = sub if isinstance(sub, list) else [sub]
+    bases = []
+    for x in subs:
+        base = (raiz / x) if x else raiz
+        if not base.is_dir():
+            morir(
+                f"No existe {base}\n"
+                "Este script corre donde vive el material de la marca. "
+                "Corrige 'raiz' o 'catalogo' en el perfil, o pasa --raiz."
+            )
+        bases.append(base)
+    return bases
+
+
+def fusionar(grupos: list[Producto]) -> list[Producto]:
+    """
+    Un producto que aparece en varias carpetas es UN producto, no dos. Se
+    agrupan por el nombre que se vera en pantalla y gana el mejor material:
+    un clip real por encima de cualquier foto, y entre fotos la toma 'hero'.
+    """
+    def puntaje(p: Producto) -> tuple:
+        return (
+            1 if p.es_video else 0,
+            1 if p.toma and "hero" in p.toma.name.lower() else 0,
         )
-    return base
+
+    mejores: dict[str, Producto] = {}
+    for p in grupos:
+        clave = p.nombre.strip().lower()
+        actual = mejores.get(clave)
+        if actual is None or puntaje(p) > puntaje(actual):
+            mejores[clave] = p
+    return sorted(mejores.values(), key=lambda p: p.nombre.lower())
 
 
 def leer_catalogo(base: Path, solo: list[str], excluir: list[str],
@@ -657,24 +686,25 @@ def main() -> None:
     log(f"red ........... {args.red}  ({smin}-{smax} s)")
 
     print(f"\n== Catalogo ==")
-    base = base_catalogo(raiz, marca["catalogo"])
-    productos = leer_catalogo(
-        base,
-        [s.strip() for s in args.solo.split(",") if s.strip()],
-        [s.strip() for s in args.excluir.split(",") if s.strip()],
-        marca["nombres"] or {},
-    )
+    bases = bases_catalogo(raiz, marca["catalogo"])
+    solo = [s.strip() for s in args.solo.split(",") if s.strip()]
+    excluir = [s.strip() for s in args.excluir.split(",") if s.strip()]
+    productos: list[Producto] = []
+    for base in bases:
+        productos += leer_catalogo(base, solo, excluir, marca["nombres"] or {})
     if not productos:
-        morir(f"No se encontro ningun producto en {base}.")
+        morir(f"No se encontro ningun producto en {', '.join(str(b) for b in bases)}.")
 
-    usables = [p for p in productos if p.toma]
+    sin_material = [p for p in productos if not p.toma]
+    usables = fusionar([p for p in productos if p.toma])
+    productos = usables + sin_material
     for p in productos:
         if not p.toma:
             aviso(f"{p.sku}: sin foto ni video usable, queda fuera.")
         else:
             nota = "  <-- fondo blanco, es para marketplace, no para reel" \
                 if p.origen == "marketplace blanco" else ""
-            log(f"{p.sku:<28} {p.origen:<22} {p.toma.name}{nota}")
+            log(f"{p.nombre:<22} {p.origen:<22} {p.toma.name}{nota}")
     if not usables:
         morir("Ningun producto tiene material usable.")
 

@@ -44,6 +44,13 @@ Se detectan solas, en este orden:
 2. **Una carpeta por producto** con las imágenes sueltas adentro.
 3. **Una sola carpeta con un archivo por producto.**
 
+`catalogo` acepta **varias carpetas** (`["Reels", "Imagenes"]`): se leen todas y
+un producto que aparece en más de una se fusiona en uno solo, quedándose con el
+mejor material — un clip real le gana a cualquier foto, y entre fotos gana la
+toma `hero`. La fusión es por el nombre en pantalla, así que el mapa `nombres`
+del perfil es lo que hace que `reel_lampara1.mp4` y `lampara1_hero_wm.png` se
+reconozcan como la misma pieza.
+
 El nombre en pantalla sale del primer encabezado de `ficha/FICHA-CANONICA.md`
 si existe; si no, del nombre de la carpeta o del archivo, sin su código de SKU.
 
