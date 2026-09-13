@@ -1,104 +1,123 @@
-# Guion — reel de catálogo de hogar
+# Guion — reel de catálogo de hogar · once LAB
 
-**Pieza:** un reel vertical con todo el catálogo de productos de hogar.
+**Marca:** once LAB — taller de impresión 3D y sublimación.
+*11:11: pides un deseo; nosotros lo hacemos realidad.*
+**Pieza:** un reel vertical con las piezas de hogar del catálogo.
 **Formato:** 1080×1920, 30 fps, H.264 + AAC.
-**Marca:** Once Once Lab.
-**Dónde:** Instagram Reels (60–90 s, donde hay engagement) y un corte de TikTok
-de 24–38 s con los mismos productos y otro copy.
+**Dónde:** Instagram Reels (@once.oncelab) y TikTok, **15–30 s**, con copy
+distinto en cada una.
 
-> **Dos huecos que solo tú puedes cerrar.**
-> 1. El reel de referencia de Instagram no se pudo ver desde la sesión en la
->    nube. La estructura de abajo es una propuesta.
-> 2. **De Once Once Lab no hay nada** en el repo, en las skills ni en la
->    memoria: ni brandbook, ni logo, ni tipografía, ni rutas del material. Lo
->    que sigue es estructura de reel, no dirección de arte de la marca. Los
->    campos de marca están vacíos en `marcas/once-once-lab.json` a propósito.
+> El reel de Instagram de referencia no se pudo abrir desde la sesión en la
+> nube. La estructura de abajo sale del Manual de Identidad once LAB v2.0 y de
+> sus reglas de publicación, no de la referencia.
 
 ---
+
+## El catálogo de hogar
+
+Lo que hay hoy en Drive → `Once Once / Productos once LAB /`:
+
+| Producto | Imagen | Clip |
+|---|---|---|
+| Lámpara 1, 2 y 3 | hero + v2 + v3 | sí |
+| Jarrón rosa, verde, terracota | sí | — |
+| Maceta pastel | sí | — |
+| Florero crema | sí | — |
+| Pendant verde | sí | — |
+| Portarretrato | hero + v2 + v3 | sí |
+| Portahuevos | hero + v2 + v3 | sí |
+| Funda AirTag | hero + v2 + v3 | sí |
+
+**Seis productos ya tienen clip propio en `Reels/`** y esos son el mejor
+material: son movimiento real, no una foto animada. Los jarrones, la maceta, el
+florero y el pendant solo tienen PNG, así que entran con paneo-zoom.
+
+En `Once Once/` también hay **Timelapses**, que es justo lo que TikTok premia
+según el manual: *time-lapse de impresión, hook 3 s*.
 
 ## Estructura
 
 | Tramo | Duración | Qué pasa |
 |---|---|---|
-| **Gancho** | 0 – 2.5 s | El producto más fuerte del catálogo, ya **en uso**. Nada de logo ni claim antes del producto: Instagram te prueba con desconocidos y los primeros dos segundos deciden. |
-| **Recorrido** | 2.5 s → −2.5 s | Un producto por plano, paneo-zoom lento de 6%, fundido de 0.3 s entre planos. El nombre aparece abajo, pequeño, dentro de la zona segura. |
-| **Cierre** | últimos 2.5 s | Tarjeta con la línea de la marca y la liga de compra. |
+| **Hook** | 0 – 3 s | La pieza más fuerte, ya terminada, sobre su color sólido. El manual pide hook de 3 s: el deseo cumplido primero, el proceso después. |
+| **Recorrido** | 3 s → −2.5 s | Una pieza por plano, un color de la paleta por plano, fundido de 0.3 s. Nombre abajo, dentro de la zona segura. |
+| **Cierre** | últimos 2.5 s | Negro Tinta, **«Lo hacemos realidad.»** en blanco y la liga en Rosa Once. |
 
-El orden del recorrido es alfabético. Para ordenarlo por categoría o por lo que
-más se mueve, se pasa `--solo` con la lista en el orden que quieras.
-
-## Ritmo
-
-Con ~3 s por producto, un reel de 90 s aguanta unos **28 productos**. Si el
-catálogo pasa de ahí, el script avisa y hay que partirlo: la salida no es
-apretar los planos a 1 s. El ritmo calmado deja ver el producto; el corte
-rápido solo deja ver que hay muchos.
+Con 12 piezas a ~2.3 s el reel cae en 26 s, dentro de la ventana de TikTok y
+cómodo para Reels.
 
 ## Tratamiento visual
 
-- Producto ocupando entre 40% y 60% del cuadro, el entorno respira.
-- Producto **en uso** desde el primer frame, no en bodegón.
-- Sin texto gritón: el nombre va en 46 px, blanco al 94%, con sombra suave.
-  Nada de cintillos ni precios en pantalla.
-- Nada de fondo blanco de marketplace en el cuerpo del reel: esa foto es para
-  la ficha de producto. Si un producto solo tiene esa, el script lo marca y hay
-  que generarle una toma de contexto antes de publicar.
+Del manual, capítulo *El feed es alegría*:
 
-**Falta definir, y es de Once Once Lab:** paleta, tipografía oficial, si el logo
-entra y dónde, si hay intro/outro de marca, y el tono de la luz. Sin eso el
-reel sale correcto de forma pero neutro de marca.
+- **Un objeto por plano**, protagonista y centrado, con aire.
+- **Fondo = un color sólido de la paleta**, rotando plano a plano. El grid —y el
+  reel— se lee como una fiesta de color, cohesivo por composición, no por tono.
+- **Luz dramática, sombra larga, acabado matte.** Cero desorden.
+- **Watermark «once once LAB» abajo.** Las PNG del catálogo ya lo traen
+  (sufijo `_wm`); el armador no lo añade para no duplicarlo.
+
+### El rosa se administra
+
+`#F0246B` es la firma, no el fondo: **nunca más del 10% de la superficie**. Por
+eso la tarjeta de cierre va en Negro Tinta `#151217` con la liga en rosa, y no
+al revés. Sobre Rosa Once, Frambuesa o Vino se escribe en blanco; sobre Rosa
+Capa o Pastel, en Vino Once o Negro Tinta. Nunca rosa sobre rosa contiguo.
+
+### Tipografía
+
+**Archivo ExtraBold 800** para el rótulo (ancho 112%, tracking −2%),
+**Instrument Sans** para cuerpo, **IBM Plex Mono** para dato técnico. Las tres
+son libres en Google Fonts. Baja el .ttf de Archivo y ponlo en `tipografia`
+dentro del perfil: sin eso, ffmpeg usa su fuente por omisión y el reel pierde
+la voz de la marca.
 
 ## Zona segura 9:16
 
 Nada de texto en los **250 px de arriba** ni en los **350 px de abajo**. El
-rótulo va a 1480 px y la tarjeta de cierre al centro. Ahí es donde IG y TikTok
-montan su propia interfaz.
+rótulo va a 1480 px y la tarjeta de cierre al centro.
 
 ## Copy
 
-Reglas que aplican a cualquier marca:
+Reglas del manual, y no son negociables:
 
-- **3 a 5 hashtags máximo.** Sin hashtags suele rendir más — vale probar.
-- **Copy nativo y distinto por red.** No se recicla el de IG en TikTok.
-- **Un gancho no puede afirmar un hecho falso.** Si el copy dice "liga en bio",
-  la bio tiene que tener liga. Si describe un color, tiene que ser el color que
-  se ve en el cuadro.
-- **No se inventan testimonios.** Prueba social solo con clientes reales.
-
-Plantilla para llenar con lo que sí es cierto el día que se publique:
+- **Copy veraz: impreso en 3D. Nunca «hecho a mano».** Es al revés que otras
+  marcas del taller — aquí el 3D se dice, lo que no se dice es artesanía. Está
+  en `palabras_prohibidas` y el armador se detiene si aparece.
+- **Firma: «Lo hacemos realidad.»**
+- **3 a 5 hashtags.** Uno por categoría al día.
+- Si el copy describe un color, tiene que ser el color que se ve en el cuadro.
 
 ```
-IG Reels
-  Gancho   : <el problema que resuelve el primer producto, en una línea>
-  Cuerpo   : <2 líneas: materia, acabado, cómo se ve en tu espacio>
-  Cierre   : <línea de marca>. <liga>
-  Hashtags : <3 a 5, o ninguno>
+IG Reels @once.oncelab
+  Hook     : <el deseo, en una línea>
+  Cuerpo   : <la pieza, su color, dónde va en tu casa>
+  Firma    : Lo hacemos realidad. <liga>
+  Hashtags : <3 a 5>
 
 TikTok
-  Gancho   : <más directo, la pregunta que se hace quien lo necesita>
-  Cierre   : <liga> — bio máximo 80 caracteres
+  Hook 3 s : <directo, con el objeto en pantalla>
+  Pantalla : texto en pantalla + música trend
+  Cierre   : <liga>
 ```
 
-**Si Once Once Lab tiene algo que nunca dice** —como MPMX, que jamás menciona
-impresión 3D— va en `palabras_prohibidas` del perfil y el script se detiene
-solo cuando aparezca.
+Para Pinterest, el manual pide título SEO con keywords —maceta, lámpara,
+florero, decoración 3D— y tableros por categoría.
 
 ## Antes de publicar
 
-1. **Abrir el MP4 completo**, con audio. No el nombre del archivo, no el
-   timestamp: el video.
-2. **Abrir la hoja de contacto** que deja el script en `qc/`. Tienen que
-   aparecer todos los productos y ningún cuadro en blanco.
-3. **Verificar que no haya duplicado**: si ya hay una pieza de estos productos
-   en esa red, no se publica.
-4. **Verificar la liga** abriéndola, y la bio si el copy la menciona.
-5. Si el reel lleva voz en off, **escucharla completa** y cotejar cada dato que
-   afirme contra lo publicado: medidas, materiales, colores.
+1. **Abrir el MP4 completo**, con audio.
+2. **Abrir la hoja de contacto** en `qc/`: las 12 piezas, ningún cuadro en
+   blanco, ningún nombre cortado.
+3. **Verificar el rosa**: que no se haya vuelto fondo en ningún plano.
+4. **Verificar la liga** abriéndola.
+5. Si lleva voz, escucharla completa y cotejar cada dato: medidas, material,
+   color.
 
 ## Pendiente
 
-- Llenar `marcas/once-once-lab.json`: ruta del material, línea de cierre, liga,
-  colores y tipografía.
-- La pista de música.
-- Los clips de intro y outro, si Once Once Lab los tiene. Si existen, se pasan
-  con `--intro` / `--outro` y el script solo los conforma, nunca los regenera.
+- `raiz` en `marcas/once-once-lab.json`: la ruta local de `Productos once LAB`
+  ya sincronizada.
+- La liga de compra.
+- El .ttf de Archivo ExtraBold.
+- La pista de música trend.

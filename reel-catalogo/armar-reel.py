@@ -40,11 +40,11 @@ FPS = 30
 SAFE_TOP = 250
 SAFE_BOTTOM = 350
 
-# Ventanas por plataforma (BLOQUE F del skill de MPMX).
-REDES = {
-    # red:      (destino nomenclatura, seg min, seg max, seg objetivo)
-    "reels":    ("IG-reel", 7, 90, 70),
-    "tiktok":   ("TT-reel", 24, 38, 34),
+# Ventanas por plataforma. Cada marca puede traer las suyas en su perfil:
+# las de aqui son solo el punto de partida.
+REDES_POR_DEFECTO = {
+    "reels":  {"destino": "IG-reel", "min": 7,  "max": 90, "objetivo": 70},
+    "tiktok": {"destino": "TT-reel", "min": 24, "max": 38, "objetivo": 34},
 }
 
 # Todo lo que cambia entre marcas vive en marcas/<marca>.json, no aqui.
@@ -60,6 +60,8 @@ MARCA_POR_DEFECTO = {
     "color_liga": "0xE8C8A0",
     "tipografia": "",        # archivo .ttf/.otf o carpeta donde buscarlo
     "palabras_prohibidas": [],
+    "nombres": {},           # archivo o carpeta -> nombre en pantalla
+    "redes": {},             # ventanas por red; se fusiona sobre REDES_POR_DEFECTO
     "seg_min": 1.4,
     "seg_max": 3.5,
 }
@@ -157,6 +159,16 @@ class Producto:
         self.origen = ""
         self.nombre = ""
         self.es_video = False
+
+
+def nombre_de_producto(carpeta: Path, sku: str, nombres: dict) -> str:
+    """
+    El perfil de marca manda: si trae un nombre para este sku (o para el
+    archivo), se usa tal cual. Si no, se busca ficha y al final el sku limpio.
+    """
+    if sku in nombres:
+        return nombres[sku]
+    return nombre_desde_ficha(carpeta, sku)
 
 
 def nombre_desde_ficha(carpeta: Path, sku: str) -> str:
@@ -264,7 +276,8 @@ def base_catalogo(raiz: Path, sub: str) -> Path:
     return base
 
 
-def leer_catalogo(base: Path, solo: list[str], excluir: list[str]) -> list[Producto]:
+def leer_catalogo(base: Path, solo: list[str], excluir: list[str],
+                  nombres: dict) -> list[Producto]:
     """
     Acepta tres formas de catalogo, en este orden:
       1. Una carpeta por producto con fotos/ dentro (la forma de MPMX)
@@ -285,7 +298,7 @@ def leer_catalogo(base: Path, solo: list[str], excluir: list[str]) -> list[Produ
     for carpeta in carpetas:
         p = Producto(carpeta.name, carpeta)
         p.toma, p.origen, p.es_video = elegir_toma(carpeta)
-        p.nombre = nombre_desde_ficha(carpeta, carpeta.name)
+        p.nombre = nombre_de_producto(carpeta, carpeta.name, nombres)
         productos.append(p)
 
     # Si ninguna subcarpeta traia material, el catalogo es plano: un archivo por producto.
@@ -301,7 +314,7 @@ def leer_catalogo(base: Path, solo: list[str], excluir: list[str]) -> list[Produ
                 p.toma = f
                 p.origen = "archivo suelto"
                 p.es_video = f.suffix.lower() in EXT_VID
-                p.nombre = nombre_desde_ficha(base, f.stem)
+                p.nombre = nombre_de_producto(base, f.stem, nombres)
                 productos.append(p)
     return productos
 
@@ -541,7 +554,8 @@ def poner_musica(video: Path, audio: Path, salida: Path, dry: bool) -> None:
 
 # ---------------------------------------------------------------- QC
 
-def qc(salida: Path, red: str, esperado_prods: int, esperado_dur: float) -> None:
+def qc(salida: Path, red: str, esperado_prods: int, esperado_dur: float,
+       smin: float, smax: float) -> None:
     """Un archivo no es el que crees hasta que lo abres."""
     print("\n== QC ==")
     info = sondear(salida)
@@ -565,7 +579,6 @@ def qc(salida: Path, red: str, esperado_prods: int, esperado_dur: float) -> None
     log(f"audio ......... {a['codec_name'] + ' ' + str(a.get('channels')) + 'ch' if a else 'SIN AUDIO'}")
     log(f"peso .......... {peso:.1f} MB")
 
-    _, smin, smax, _ = REDES[red]
     if not (smin <= dur <= smax):
         aviso(f"{dur:.1f} s queda fuera de la ventana de {red} ({smin}-{smax} s).")
     if not a:
@@ -594,7 +607,8 @@ def main() -> None:
     ap.add_argument("--marca", default="mpmx",
                     help="Perfil de marca: nombre de un archivo en marcas/ o ruta a un .json")
     ap.add_argument("--raiz", type=Path, help="Anula la raiz del perfil de marca")
-    ap.add_argument("--red", choices=sorted(REDES), default="reels")
+    ap.add_argument("--red", default="reels",
+                    help="Red destino; las ventanas salen del perfil de marca")
     ap.add_argument("--audio", type=Path, help="Pista de musica (obligatoria en la practica)")
     ap.add_argument("--liga", help="Liga que aparece en la tarjeta de cierre")
     ap.add_argument("--cta", help="Linea de cierre arriba de la liga")
@@ -618,8 +632,6 @@ def main() -> None:
         if not shutil.which(bin_):
             morir(f"Falta {bin_} en el PATH.")
 
-    destino, smin, smax, objetivo = REDES[args.red]
-
     # Perfil de marca: rutas, copy y colores. Nada de esto esta cableado.
     ruta_marca = Path(args.marca)
     if ruta_marca.suffix != ".json":
@@ -629,9 +641,20 @@ def main() -> None:
     cta = args.cta if args.cta is not None else marca["cta"]
     liga = args.liga if args.liga is not None else marca["liga"]
     seg_min, seg_max = float(marca["seg_min"]), float(marca["seg_max"])
+
+    redes = {k: dict(v) for k, v in REDES_POR_DEFECTO.items()}
+    for nombre_red, cfg in (marca["redes"] or {}).items():
+        redes.setdefault(nombre_red, {}).update(cfg)
+    if args.red not in redes:
+        morir(f"La red '{args.red}' no esta definida. "
+              f"Disponibles: {', '.join(sorted(redes))}")
+    r = redes[args.red]
+    destino, smin, smax, objetivo = r["destino"], r["min"], r["max"], r["objetivo"]
+
     print(f"\n== Marca ==")
     log(f"perfil ........ {marca['nombre']}  ({ruta_marca.name})")
     log(f"material ...... {raiz}")
+    log(f"red ........... {args.red}  ({smin}-{smax} s)")
 
     print(f"\n== Catalogo ==")
     base = base_catalogo(raiz, marca["catalogo"])
@@ -639,6 +662,7 @@ def main() -> None:
         base,
         [s.strip() for s in args.solo.split(",") if s.strip()],
         [s.strip() for s in args.excluir.split(",") if s.strip()],
+        marca["nombres"] or {},
     )
     if not productos:
         morir(f"No se encontro ningun producto en {base}.")
@@ -798,7 +822,7 @@ def main() -> None:
             shutil.copy2(cuerpo, salida)
 
         print(f"\n  {salida}")
-        qc(salida, args.red, n, total)
+        qc(salida, args.red, n, total, smin, smax)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

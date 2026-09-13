@@ -29,7 +29,7 @@ lado.
 | Perfil | Estado |
 |---|---|
 | `marcas/mpmx.json` | Listo. Market Pulse MX, estructura `01-PRODUCTOS/`. |
-| `marcas/once-once-lab.json` | **Sin llenar.** Faltan `raiz`, `cta`, `liga`, `tipografia` y colores. El script se detiene y te dice qué falta. |
+| `marcas/once-once-lab.json` | Colores, tipografía, firma, palabras prohibidas, ventanas por red y nombres de producto, tomados del Manual de Identidad v2.0. **Faltan `raiz`, `liga` y el .ttf de Archivo** — el script se detiene y te dice cuál. |
 
 Para una marca nueva se copia un perfil y se llena. Los campos están
 documentados dentro de `once-once-lab.json`.
