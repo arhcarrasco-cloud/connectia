@@ -15,6 +15,7 @@
   const TABLA = 'cx_sesiones';
   const BUCKET = 'cx-docs';
   const LOCAL_KEY = 'cotizadorConnectiaSessions';
+  const PORTAL_URL = 'https://connectia.mx/cotizador-proyectos/';
 
   let sb = null;
   let user = null;
@@ -24,6 +25,7 @@
   let snapshot = new Map(); // id -> JSON, para detectar cambios
   let readyCbs = [];
   let booted = false;
+  let recuperando = false;
 
   /* ---------------- UI: pantalla de acceso ---------------- */
   function injectStyles() {
@@ -106,6 +108,55 @@
     return el;
   }
 
+  /* Pantalla para definir la nueva contraseña (llega desde el correo de recuperación) */
+  function mostrarRecuperacion() {
+    recuperando = true;
+    const ov = document.getElementById('cxAuthOverlay');
+    if (!ov) return;
+    ov.classList.remove('hidden');
+    const q = id => document.getElementById(id);
+    q('cxaTabLogin').style.display = 'none';
+    q('cxaTabSignup').style.display = 'none';
+    q('cxaForgot').style.display = 'none';
+    q('cxaNombreWrap').style.display = 'none';
+    q('cxaEmail').closest('.cxa-field').style.display = 'none';
+    q('cxaSub').textContent = 'Define tu nueva contraseña para el Cotizador de Proyectos.';
+    const pw = q('cxaPassWrap');
+    pw.querySelector('label').textContent = 'Nueva contraseña';
+    q('cxaPass').value = '';
+    q('cxaPass').placeholder = 'Mínimo 8 caracteres';
+    q('cxaPass').setAttribute('autocomplete', 'new-password');
+    if (!q('cxaPass2')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'cxa-field';
+      wrap.innerHTML = '<label for="cxaPass2">Confirmar contraseña</label><input type="password" id="cxaPass2" autocomplete="new-password" placeholder="Escríbela otra vez">';
+      pw.parentNode.insertBefore(wrap, pw.nextSibling);
+    }
+    q('cxaSubmit').textContent = 'Guardar contraseña';
+    mode = 'recovery';
+    msg('');
+  }
+
+  async function guardarNuevaPass() {
+    const btn = document.getElementById('cxaSubmit');
+    const p1 = document.getElementById('cxaPass').value;
+    const p2 = (document.getElementById('cxaPass2') || {}).value || '';
+    if (p1.length < 8) { msg('La contraseña debe tener al menos 8 caracteres.'); return; }
+    if (p1 !== p2) { msg('Las dos contraseñas no coinciden.'); return; }
+    btn.disabled = true; btn.textContent = 'Guardando…';
+    try {
+      const { error } = await sb.auth.updateUser({ password: p1 });
+      if (error) throw error;
+      history.replaceState(null, '', location.pathname);
+      recuperando = false;
+      msg('Contraseña actualizada. Entrando…', 'ok');
+      await afterLogin();
+    } catch (e) {
+      msg(traduceError(e));
+      btn.disabled = false; btn.textContent = 'Guardar contraseña';
+    }
+  }
+
   let mode = 'login';
   function setMode(m) {
     mode = m;
@@ -141,6 +192,7 @@
 
   async function onSubmit(ev) {
     ev.preventDefault();
+    if (mode === 'recovery') { await guardarNuevaPass(); return; }
     const btn = document.getElementById('cxaSubmit');
     const email = document.getElementById('cxaEmail').value.trim().toLowerCase();
     const pass = document.getElementById('cxaPass').value;
@@ -152,7 +204,7 @@
       if (mode === 'signup') {
         const { data, error } = await sb.auth.signUp({
           email, password: pass,
-          options: { data: { nombre: nombre || email.split('@')[0] }, emailRedirectTo: location.href.split('#')[0] }
+          options: { data: { nombre: nombre || email.split('@')[0] }, emailRedirectTo: PORTAL_URL }
         });
         if (error) throw error;
         if (data.session) { await afterLogin(); return; }
@@ -176,9 +228,9 @@
     const email = (document.getElementById('cxaEmail').value || '').trim().toLowerCase();
     if (!email) { msg('Escribe tu correo arriba y vuelve a dar clic.'); return; }
     try {
-      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split('#')[0] });
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: PORTAL_URL });
       if (error) throw error;
-      msg('Te enviamos un correo para restablecer tu contraseña.', 'ok');
+      msg('Listo: te mandamos un correo a ' + email + ' con el enlace para crear una contraseña nueva. Ábrelo desde este mismo navegador; el enlace te regresa a esta página.', 'ok');
     } catch (e) { msg(traduceError(e)); }
   }
 
@@ -404,19 +456,27 @@
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
     buildOverlay();
+    const hash = location.hash || '';
+    const esRecuperacion = hash.indexOf('type=recovery') !== -1 || location.search.indexOf('type=recovery') !== -1;
+    const errHash = hash.match(/error_description=([^&]+)/);
+
+    sb.auth.onAuthStateChange((evt) => {
+      if (evt === 'SIGNED_OUT') location.reload();
+      if (evt === 'PASSWORD_RECOVERY') mostrarRecuperacion();
+    });
+
+    if (errHash) {
+      history.replaceState(null, '', location.pathname);
+      msg('Ese enlace ya expiró o se usó. Pide uno nuevo con "¿Olvidaste tu contraseña?".');
+    }
+
     const { data: { session } } = await sb.auth.getSession();
+    if (esRecuperacion) { mostrarRecuperacion(); return; }
     if (session) { await afterLogin(); }
     else {
       const em = localStorage.getItem('cxUltimoCorreo');
       if (em) document.getElementById('cxaEmail').value = em;
     }
-    sb.auth.onAuthStateChange((evt) => {
-      if (evt === 'SIGNED_OUT') location.reload();
-      if (evt === 'PASSWORD_RECOVERY') {
-        const np = prompt('Escribe tu nueva contraseña (mínimo 8 caracteres):');
-        if (np && np.length >= 8) sb.auth.updateUser({ password: np }).then(() => alert('Contraseña actualizada. Ya puedes entrar.'));
-      }
-    });
   }
 
   /* ---------------- panel de cuentas (solo admin) ---------------- */
