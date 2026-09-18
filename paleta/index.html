@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paleta de colores</title>
+<meta name="description" content="Paleta de 14 colores con valores HEX, RGB y CMYK. Clic en cualquier valor para copiarlo.">
+<link rel="stylesheet" href="paleta.css">
+<style>
+  :root {
+    --bg: #FAF8F4; --fg: #111111; --muted: #6F6F6F; --line: #E4E0D8; --card: #FFFFFF;
+    --sans: "Cooper Hewitt", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --display: "Coplette", "Cooper Hewitt", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #141414; --fg: #F4F1EB; --muted: #A5A19A; --line: #2A2A2A; --card: #1C1C1C; }
+  }
+  :root[data-theme="dark"] { --bg: #141414; --fg: #F4F1EB; --muted: #A5A19A; --line: #2A2A2A; --card: #1C1C1C; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1200px; margin: 0 auto; padding: 48px 16px 80px; }
+  header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.02em; line-height: 1.1; }
+  .sub { color: var(--muted); font-size: 15px; max-width: 52ch; }
+  .tools { display: flex; gap: 8px; }
+  .tools button { font: inherit; font-size: 13px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--fg); cursor: pointer; }
+  .tools button:hover { border-color: var(--fg); }
+  .strip { display: flex; height: 14px; border-radius: 999px; overflow: hidden; margin: 28px 0 36px; border: 1px solid var(--line); }
+  .strip span { flex: 1; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .swatch { display: flex; flex-direction: column; justify-content: space-between; width: 100%; aspect-ratio: 4 / 3; padding: 16px; background: var(--c); color: var(--t); border: 0; cursor: pointer; text-align: left; font: inherit; }
+  .swatch .nombre { font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
+  .swatch .hex { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; opacity: .9; }
+  .datos { padding: 12px 16px 14px; display: grid; gap: 6px; }
+  .datos div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 13px; }
+  dt { color: var(--muted); letter-spacing: .06em; font-size: 11px; text-transform: uppercase; }
+  dd button { font: inherit; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; background: none; border: 0; color: var(--fg); cursor: pointer; padding: 2px 0; border-bottom: 1px dashed transparent; }
+  dd button:hover { border-bottom-color: var(--muted); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--fg); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-size: 14px; opacity: 0; transition: .25s; pointer-events: none; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+  footer code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--card); border: 1px solid var(--line); padding: 2px 6px; border-radius: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Paleta de colores</h1>
+      <p class="sub">14 colores con valores HEX, RGB y CMYK. Haz clic en cualquier valor para copiarlo.</p>
+    </div>
+    <div class="tools">
+      <button id="copiar-css">Copiar CSS</button>
+      <button id="descargar-json">Descargar JSON</button>
+    </div>
+  </header>
+  <div class="strip" aria-hidden="true"><span style="background:#F8C8D8"></span><span style="background:#F26BA5"></span><span style="background:#E4007C"></span><span style="background:#FF7F11"></span><span style="background:#FFD400"></span><span style="background:#6B3E26"></span><span style="background:#4B5320"></span><span style="background:#2FA84F"></span><span style="background:#40E0D0"></span><span style="background:#1C39BB"></span><span style="background:#EDE6D6"></span><span style="background:#8A8A8A"></span><span style="background:#FFFFFF"></span><span style="background:#111111"></span></div>
+  <section class="grid">
+    <article class="card" style="--c:#F8C8D8;--t:#111111">
+      <button class="swatch" data-copy="#F8C8D8" aria-label="Copiar #F8C8D8">
+        <span class="nombre">Rosa claro</span>
+        <span class="hex">#F8C8D8</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(248, 200, 216)">248, 200, 216</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(0%, 19%, 13%, 3%)">0 · 19 · 13 · 3</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--rosa-claro)">--rosa-claro</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#F26BA5;--t:#FFFFFF">
+      <button class="swatch" data-copy="#F26BA5" aria-label="Copiar #F26BA5">
+        <span class="nombre">Rosa</span>
+        <span class="hex">#F26BA5</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(242, 107, 165)">242, 107, 165</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(0%, 56%, 32%, 5%)">0 · 56 · 32 · 5</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--rosa)">--rosa</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#E4007C;--t:#FFFFFF">
+      <button class="swatch" data-copy="#E4007C" aria-label="Copiar #E4007C">
+        <span class="nombre">Rosa mexicano</span>
+        <span class="hex">#E4007C</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(228, 0, 124)">228, 0, 124</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(0%, 100%, 46%, 11%)">0 · 100 · 46 · 11</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--rosa-mexicano)">--rosa-mexicano</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#FF7F11;--t:#111111">
+      <button class="swatch" data-copy="#FF7F11" aria-label="Copiar #FF7F11">
+        <span class="nombre">Anaranjado</span>
+        <span class="hex">#FF7F11</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(255, 127, 17)">255, 127, 17</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(0%, 50%, 93%, 0%)">0 · 50 · 93 · 0</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--anaranjado)">--anaranjado</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#FFD400;--t:#111111">
+      <button class="swatch" data-copy="#FFD400" aria-label="Copiar #FFD400">
+        <span class="nombre">Amarillo</span>
+        <span class="hex">#FFD400</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(255, 212, 0)">255, 212, 0</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(0%, 17%, 100%, 0%)">0 · 17 · 100 · 0</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--amarillo)">--amarillo</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#6B3E26;--t:#FFFFFF">
+      <button class="swatch" data-copy="#6B3E26" aria-label="Copiar #6B3E26">
+        <span class="nombre">Café</span>
+        <span class="hex">#6B3E26</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(107, 62, 38)">107, 62, 38</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(0%, 42%, 64%, 58%)">0 · 42 · 64 · 58</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--cafe)">--cafe</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#4B5320;--t:#FFFFFF">
+      <button class="swatch" data-copy="#4B5320" aria-label="Copiar #4B5320">
+        <span class="nombre">Verde militar</span>
+        <span class="hex">#4B5320</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(75, 83, 32)">75, 83, 32</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(10%, 0%, 61%, 67%)">10 · 0 · 61 · 67</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--verde-militar)">--verde-militar</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#2FA84F;--t:#FFFFFF">
+      <button class="swatch" data-copy="#2FA84F" aria-label="Copiar #2FA84F">
+        <span class="nombre">Verde normal</span>
+        <span class="hex">#2FA84F</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(47, 168, 79)">47, 168, 79</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(72%, 0%, 53%, 34%)">72 · 0 · 53 · 34</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--verde)">--verde</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#40E0D0;--t:#111111">
+      <button class="swatch" data-copy="#40E0D0" aria-label="Copiar #40E0D0">
+        <span class="nombre">Turquesa</span>
+        <span class="hex">#40E0D0</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(64, 224, 208)">64, 224, 208</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(71%, 0%, 7%, 12%)">71 · 0 · 7 · 12</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--turquesa)">--turquesa</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#1C39BB;--t:#FFFFFF">
+      <button class="swatch" data-copy="#1C39BB" aria-label="Copiar #1C39BB">
+        <span class="nombre">Azul rey</span>
+        <span class="hex">#1C39BB</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(28, 57, 187)">28, 57, 187</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(85%, 70%, 0%, 27%)">85 · 70 · 0 · 27</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--azul-rey)">--azul-rey</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#EDE6D6;--t:#111111">
+      <button class="swatch" data-copy="#EDE6D6" aria-label="Copiar #EDE6D6">
+        <span class="nombre">Hueso</span>
+        <span class="hex">#EDE6D6</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(237, 230, 214)">237, 230, 214</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(0%, 3%, 10%, 7%)">0 · 3 · 10 · 7</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--hueso)">--hueso</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#8A8A8A;--t:#FFFFFF">
+      <button class="swatch" data-copy="#8A8A8A" aria-label="Copiar #8A8A8A">
+        <span class="nombre">Gris</span>
+        <span class="hex">#8A8A8A</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(138, 138, 138)">138, 138, 138</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(0%, 0%, 0%, 46%)">0 · 0 · 0 · 46</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--gris)">--gris</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#FFFFFF;--t:#111111">
+      <button class="swatch" data-copy="#FFFFFF" aria-label="Copiar #FFFFFF">
+        <span class="nombre">Blanco</span>
+        <span class="hex">#FFFFFF</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(255, 255, 255)">255, 255, 255</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(0%, 0%, 0%, 0%)">0 · 0 · 0 · 0</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--blanco)">--blanco</button></dd></div>
+      </dl>
+    </article>
+    <article class="card" style="--c:#111111;--t:#FFFFFF">
+      <button class="swatch" data-copy="#111111" aria-label="Copiar #111111">
+        <span class="nombre">Negro</span>
+        <span class="hex">#111111</span>
+      </button>
+      <dl class="datos">
+        <div><dt>RGB</dt><dd><button data-copy="rgb(17, 17, 17)">17, 17, 17</button></dd></div>
+        <div><dt>CMYK</dt><dd><button data-copy="cmyk(0%, 0%, 0%, 93%)">0 · 0 · 0 · 93</button></dd></div>
+        <div><dt>CSS</dt><dd><button data-copy="var(--negro)">--negro</button></dd></div>
+      </dl>
+    </article>
+  </section>
+  <footer>Variables CSS en <code>paleta.css</code> · datos en <code>paleta.json</code></footer>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+  const toast = document.getElementById('toast'); let t;
+  function aviso(msg) { toast.textContent = msg; toast.classList.add('on'); clearTimeout(t); t = setTimeout(() => toast.classList.remove('on'), 1400); }
+  async function copiar(txt) { try { await navigator.clipboard.writeText(txt); aviso('Copiado: ' + txt); } catch (e) { aviso('No se pudo copiar'); } }
+  document.querySelectorAll('[data-copy]').forEach(el => el.addEventListener('click', () => copiar(el.dataset.copy)));
+  document.getElementById('copiar-css').addEventListener('click', async () => {
+    try { const css = await (await fetch('paleta.css')).text(); copiar(css); } catch (e) { aviso('No se pudo leer paleta.css'); }
+  });
+  document.getElementById('descargar-json').addEventListener('click', () => { const a = document.createElement('a'); a.href = 'paleta.json'; a.download = 'paleta.json'; a.click(); });
+</script>
+</body>
+</html>

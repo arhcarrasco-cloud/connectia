@@ -1,0 +1,31 @@
+/* Paleta — 14 colores. Uso: color: var(--rosa-mexicano); */
+:root {
+  --rosa-claro: #F8C8D8;
+  --rosa-claro-rgb: 248, 200, 216;
+  --rosa: #F26BA5;
+  --rosa-rgb: 242, 107, 165;
+  --rosa-mexicano: #E4007C;
+  --rosa-mexicano-rgb: 228, 0, 124;
+  --anaranjado: #FF7F11;
+  --anaranjado-rgb: 255, 127, 17;
+  --amarillo: #FFD400;
+  --amarillo-rgb: 255, 212, 0;
+  --cafe: #6B3E26;
+  --cafe-rgb: 107, 62, 38;
+  --verde-militar: #4B5320;
+  --verde-militar-rgb: 75, 83, 32;
+  --verde: #2FA84F;
+  --verde-rgb: 47, 168, 79;
+  --turquesa: #40E0D0;
+  --turquesa-rgb: 64, 224, 208;
+  --azul-rey: #1C39BB;
+  --azul-rey-rgb: 28, 57, 187;
+  --hueso: #EDE6D6;
+  --hueso-rgb: 237, 230, 214;
+  --gris: #8A8A8A;
+  --gris-rgb: 138, 138, 138;
+  --blanco: #FFFFFF;
+  --blanco-rgb: 255, 255, 255;
+  --negro: #111111;
+  --negro-rgb: 17, 17, 17;
+}

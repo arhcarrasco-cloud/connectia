@@ -1,0 +1,243 @@
+{
+  "nombre": "Paleta Connectia — 14 colores",
+  "colores": [
+    {
+      "slug": "rosa-claro",
+      "nombre": "Rosa claro",
+      "hex": "#F8C8D8",
+      "rgb": [
+        248,
+        200,
+        216
+      ],
+      "cmyk": [
+        0,
+        19,
+        13,
+        3
+      ],
+      "texto": "#111111"
+    },
+    {
+      "slug": "rosa",
+      "nombre": "Rosa",
+      "hex": "#F26BA5",
+      "rgb": [
+        242,
+        107,
+        165
+      ],
+      "cmyk": [
+        0,
+        56,
+        32,
+        5
+      ],
+      "texto": "#FFFFFF"
+    },
+    {
+      "slug": "rosa-mexicano",
+      "nombre": "Rosa mexicano",
+      "hex": "#E4007C",
+      "rgb": [
+        228,
+        0,
+        124
+      ],
+      "cmyk": [
+        0,
+        100,
+        46,
+        11
+      ],
+      "texto": "#FFFFFF"
+    },
+    {
+      "slug": "anaranjado",
+      "nombre": "Anaranjado",
+      "hex": "#FF7F11",
+      "rgb": [
+        255,
+        127,
+        17
+      ],
+      "cmyk": [
+        0,
+        50,
+        93,
+        0
+      ],
+      "texto": "#111111"
+    },
+    {
+      "slug": "amarillo",
+      "nombre": "Amarillo",
+      "hex": "#FFD400",
+      "rgb": [
+        255,
+        212,
+        0
+      ],
+      "cmyk": [
+        0,
+        17,
+        100,
+        0
+      ],
+      "texto": "#111111"
+    },
+    {
+      "slug": "cafe",
+      "nombre": "Café",
+      "hex": "#6B3E26",
+      "rgb": [
+        107,
+        62,
+        38
+      ],
+      "cmyk": [
+        0,
+        42,
+        64,
+        58
+      ],
+      "texto": "#FFFFFF"
+    },
+    {
+      "slug": "verde-militar",
+      "nombre": "Verde militar",
+      "hex": "#4B5320",
+      "rgb": [
+        75,
+        83,
+        32
+      ],
+      "cmyk": [
+        10,
+        0,
+        61,
+        67
+      ],
+      "texto": "#FFFFFF"
+    },
+    {
+      "slug": "verde",
+      "nombre": "Verde normal",
+      "hex": "#2FA84F",
+      "rgb": [
+        47,
+        168,
+        79
+      ],
+      "cmyk": [
+        72,
+        0,
+        53,
+        34
+      ],
+      "texto": "#FFFFFF"
+    },
+    {
+      "slug": "turquesa",
+      "nombre": "Turquesa",
+      "hex": "#40E0D0",
+      "rgb": [
+        64,
+        224,
+        208
+      ],
+      "cmyk": [
+        71,
+        0,
+        7,
+        12
+      ],
+      "texto": "#111111"
+    },
+    {
+      "slug": "azul-rey",
+      "nombre": "Azul rey",
+      "hex": "#1C39BB",
+      "rgb": [
+        28,
+        57,
+        187
+      ],
+      "cmyk": [
+        85,
+        70,
+        0,
+        27
+      ],
+      "texto": "#FFFFFF"
+    },
+    {
+      "slug": "hueso",
+      "nombre": "Hueso",
+      "hex": "#EDE6D6",
+      "rgb": [
+        237,
+        230,
+        214
+      ],
+      "cmyk": [
+        0,
+        3,
+        10,
+        7
+      ],
+      "texto": "#111111"
+    },
+    {
+      "slug": "gris",
+      "nombre": "Gris",
+      "hex": "#8A8A8A",
+      "rgb": [
+        138,
+        138,
+        138
+      ],
+      "cmyk": [
+        0,
+        0,
+        0,
+        46
+      ],
+      "texto": "#FFFFFF"
+    },
+    {
+      "slug": "blanco",
+      "nombre": "Blanco",
+      "hex": "#FFFFFF",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "cmyk": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "texto": "#111111"
+    },
+    {
+      "slug": "negro",
+      "nombre": "Negro",
+      "hex": "#111111",
+      "rgb": [
+        17,
+        17,
+        17
+      ],
+      "cmyk": [
+        0,
+        0,
+        0,
+        93
+      ],
+      "texto": "#FFFFFF"
+    }
+  ]
+}
