@@ -1,0 +1,149 @@
+{
+  "folio": "COT-2026-0001",
+  "sufijo": "borrador interno",
+  "fecha": "23 de septiembre de 2026",
+  "vigencia": "15 días naturales",
+  "referencia": "Fichas coleccionables ASTRA",
+  "cliente": {
+    "razon_social": "ASTRA",
+    "direccion": [
+      "Datos fiscales por confirmar"
+    ]
+  },
+  "bloques": [
+    {
+      "tipo": "conceptos",
+      "eyebrow": "Alcance",
+      "subtitulo": "Producción de 500 fichas coleccionables personalizadas",
+      "items": [
+        {
+          "titulo": "Diseño y modelado 3D",
+          "texto": "Modelado paramétrico de la ficha a partir del render de referencia: cuerpo, canto con franjas, relieve de logotipo y textos de anverso y reverso. Incluye preparación de archivos de producción."
+        },
+        {
+          "titulo": "Producción por impresión 3D FDM",
+          "texto": "Manufactura en PLA Matte sobre granja de 4 equipos en paralelo. Incluye placa de muestra previa para aprobación de color y acabado."
+        },
+        {
+          "titulo": "Acabado, control de calidad y entrega",
+          "texto": "Desbarbado manual pieza por pieza, control dimensional y de tono por muestreo, y empaque en bolsas de 50 piezas dentro de caja única."
+        }
+      ]
+    },
+    {
+      "tipo": "tabla",
+      "columnas": [
+        "Concepto",
+        "Acabado",
+        "Cant.",
+        "P. unitario",
+        "Importe"
+      ],
+      "filas": [
+        [
+          {
+            "titulo": "Opción B — Ficha bicolor",
+            "subtitulo": "Ø 38.1 mm (1.5\") × 3 mm · PLA Matte"
+          },
+          "Cuerpo negro con logotipo, textos y franjas del canto en naranja",
+          "500",
+          "$10.75",
+          "$5,375.00"
+        ],
+        [
+          {
+            "titulo": "Opción A — Ficha monocolor",
+            "subtitulo": "Ø 38.1 mm (1.5\") × 3 mm · PLA Matte"
+          },
+          "Negro a un solo color, logotipo y textos en relieve",
+          "500",
+          "$9.05",
+          "$4,525.00"
+        ]
+      ],
+      "pie": "Los totales de este documento corresponden a la Opción B, que reproduce el render de referencia. La Opción A es una alternativa de menor costo.",
+      "anchos": [
+        "29%",
+        "37%",
+        "8%",
+        "13%",
+        "13%"
+      ]
+    },
+    {
+      "tipo": "specs",
+      "titulo": "Especificaciones técnicas",
+      "pares": [
+        [
+          "Diámetro",
+          "38.1 mm (1.5 pulgadas)"
+        ],
+        [
+          "Grosor",
+          "3.0 mm"
+        ],
+        [
+          "Material",
+          "PLA Matte"
+        ],
+        [
+          "Proceso",
+          "Impresión 3D FDM · altura de capa 0.16 mm"
+        ],
+        [
+          "Peso por pieza",
+          "2.96 g aproximado"
+        ],
+        [
+          "Acabado",
+          "Mate, canto desbarbado a mano"
+        ],
+        [
+          "Cantidad",
+          "500 piezas"
+        ],
+        [
+          "Tiempo de producción",
+          "4 días hábiles"
+        ]
+      ]
+    },
+    {
+      "tipo": "totales",
+      "lineas": [
+        [
+          "Subtotal",
+          5375.0
+        ],
+        [
+          "IVA 16%",
+          860.0
+        ]
+      ],
+      "total": 6235.0
+    },
+    {
+      "tipo": "importe_letra",
+      "texto": "SEIS MIL DOSCIENTOS TREINTA Y CINCO PESOS 00/100 M.N."
+    },
+    {
+      "tipo": "nota",
+      "titulo": "Opción A — monocolor",
+      "texto": "Si se elige la versión monocolor, el subtotal es de $4,525.00, IVA $724.00 y total $5,249.00 MXN. En esta versión el logotipo y los textos se resuelven en relieve sobre el cuerpo de la ficha, no en contraste de color."
+    },
+    {
+      "tipo": "terminos",
+      "puntos": [
+        "Vigencia de esta cotización: 15 días naturales a partir de la fecha de emisión.",
+        "Forma de pago: 50% al confirmar el pedido y 50% antes de la salida a producción.",
+        "Tiempo de producción: 4 días hábiles contados a partir de la aprobación de la muestra física.",
+        "Antes de producir el lote se entrega una placa de muestra de 32 piezas para aprobación de color, relieve y acabado.",
+        "El PLA no reproduce sistemas Pantone. El naranja se ajusta al tono de filamento más cercano disponible y queda sujeto a aprobación en la muestra física.",
+        "Precios expresados en pesos mexicanos (MXN) con IVA desglosado.",
+        "No incluye envío. Entrega en CDMX sin costo o paquetería nacional con cargo adicional aproximado de $210.00 por el lote completo.",
+        "Precio de reorden, con el diseño ya cubierto: $9.47 por pieza en bicolor y $7.78 por pieza en monocolor.",
+        "Cantidades superiores a 1,000 piezas se recotizan."
+      ]
+    }
+  ]
+}
