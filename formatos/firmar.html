@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Firma electrónica · Connectia</title>
+<link rel="icon" href="../logo.png">
+<style>
+:root{--indigo:#201040;--violet:#6030A0;--hot:#7B3FF2;--lime:#C8FF00;--ink:#0A0118;--slate:#6B6580;--mist:#E9E6F0;--paper:#F7F5FB;--ok:#16803c;--bad:#C0392B}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);background:var(--paper)}
+.top{background:var(--indigo);color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
+.top img{height:26px}
+.top span{font-size:11px;letter-spacing:2px;font-weight:700;color:var(--lime)}
+.wrap{max-width:760px;margin:0 auto;padding:22px 16px 60px}
+.eyebrow{color:var(--hot);font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase}
+h1{font-size:26px;letter-spacing:-.02em;margin:6px 0 6px}
+.lead{color:var(--slate);font-size:15px;line-height:1.5;margin:0 0 18px}
+.panel{background:#fff;border:1px solid var(--mist);border-radius:16px;padding:18px;margin-bottom:14px}
+.doc{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--mist)}
+.doc:last-child{border-bottom:none}
+.doc b{display:block}
+.doc small{color:var(--slate)}
+.pill{font-size:11px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.p-turno{background:#ede4ff;color:#5b21b6}.p-ok{background:#dcfce7;color:#166534}.p-wait{background:#fef3c7;color:#92400e}.p-bad{background:#fee2e2;color:#991b1b}
+.btn{border:none;border-radius:999px;padding:13px 22px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
+.btn-primary{background:var(--violet);color:#fff;width:100%}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.btn-line{background:#fff;color:var(--violet);border:1.5px solid var(--violet);padding:8px 16px;font-size:13px}
+.btn-link{background:none;color:var(--bad);font-size:13px;padding:8px 0;text-decoration:underline}
+.viewer{width:100%;height:560px;border:1px solid var(--mist);border-radius:12px;margin-top:10px;background:#fff}
+.pad{width:100%;height:170px;border:2px dashed #cbbff0;border-radius:12px;background:#fff;touch-action:none;display:block}
+label.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;margin:14px 0}
+label.chk input{margin-top:3px;width:18px;height:18px;accent-color:var(--violet)}
+.muted{color:var(--slate);font-size:12.5px}
+.center{text-align:center}
+.big{font-size:44px;margin:10px 0}
+textarea{width:100%;border:1px solid var(--mist);border-radius:10px;padding:10px;font-family:inherit;font-size:14px}
+.err{color:var(--bad);font-size:14px;margin-top:10px}
+.spinner{width:34px;height:34px;border:3px solid var(--mist);border-top-color:var(--violet);border-radius:50%;animation:s 1s linear infinite;margin:60px auto}
+@keyframes s{to{transform:rotate(360deg)}}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="top"><img src="../logo.png" alt="connectia" onerror="this.outerHTML='<b style=&quot;font-size:20px&quot;>connectia</b>'"><span>FIRMA ELECTRÓNICA</span></div>
+<div class="wrap" id="app"><div class="spinner"></div></div>
+
+<script>
+const FN='https://mduxlmnlwycwknyapwsx.supabase.co/functions/v1/enviar-contrato';
+const app=document.getElementById('app');
+const token=new URLSearchParams(location.search).get('t');
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let SOBRE=null, urls={};
+
+async function api(body){
+  const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  let j=null;try{j=await r.json();}catch(e){}
+  if(!r.ok||(j&&j.error))throw new Error((j&&j.error)||'No se pudo conectar. Intenta de nuevo.');
+  return j;
+}
+function blobUrl(b64){const bin=atob(b64);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return URL.createObjectURL(new Blob([a],{type:'application/pdf'}));}
+function estado(d){
+  if(d.mi_turno)return'<span class="pill p-turno">Tu firma</span>';
+  if(d.status==='aprobado')return'<span class="pill p-ok">Firmado</span>';
+  if(d.status==='rechazado')return'<span class="pill p-bad">Rechazado</span>';
+  return'<span class="pill p-wait">En proceso</span>';
+}
+function mensaje(icon,titulo,texto){app.innerHTML=`<div class="panel center" style="padding:36px 20px"><div class="big">${icon}</div><h1>${esc(titulo)}</h1><p class="lead">${texto}</p></div>`;}
+
+async function cargar(){
+  if(!token)return mensaje('🔒','Liga incompleta','Abre la liga directamente desde el correo que recibiste.');
+  try{SOBRE=await api({type:'sobre',token});}catch(e){return mensaje('⚠️','No pudimos abrir el sobre',esc(e.message));}
+  SOBRE.docs.forEach(d=>urls[d.folio]=blobUrl(d.pdf));
+  const pend=SOBRE.docs.filter(d=>d.mi_turno);
+  if(SOBRE.usado||!pend.length){
+    return pinta(false, SOBRE.usado?'Ya firmaste este sobre. Cuando se completen todas las firmas te llegará la copia en PDF por correo.':'En este momento no hay documentos pendientes de tu firma en este sobre.');
+  }
+  if(SOBRE.vencido)return mensaje('⏳','Liga vencida','Pide a Administración que te reenvíe la liga de firma.');
+  pinta(true);
+}
+
+function pinta(puedeFirmar,nota){
+  const n=SOBRE.docs.length, s=SOBRE;
+  app.innerHTML=`
+    <div class="eyebrow">${esc(s.paso_txt)} · Entrega de equipo</div>
+    <h1>Hola ${esc((s.firmante||'').split(' ')[0])}</h1>
+    <p class="lead">${s.paso==='empleado'
+      ?`Revisa ${n>1?`los ${n} documentos`:'el documento'} de la entrega de tu equipo y firma de recibido. Tu firma se aplica a ${n>1?'ambos':'él'}.`
+      :`Es tu turno de firmar ${n>1?`los ${n} documentos`:'el documento'} de entrega de equipo de <b>${esc(s.colaborador)}</b>. Tu firma se aplica a ${n>1?'ambos':'él'}.`}</p>
+    <div class="panel">
+      ${s.docs.map(d=>`<div class="doc"><div><b>${esc(d.nombre)}</b><small>${esc(d.folio)}</small></div>
+        <div style="display:flex;gap:8px;align-items:center">${estado(d)}<button class="btn btn-line" data-ver="${esc(d.folio)}">Ver</button></div></div>
+        <div id="v-${esc(d.folio)}" class="hidden"></div>`).join('')}
+    </div>
+    ${nota?`<div class="panel center"><div class="big">✅</div><p class="lead" style="margin:0">${esc(nota)}</p></div>`:''}
+    ${puedeFirmar?`
+    <div class="panel">
+      <div class="eyebrow" style="margin-bottom:8px">Tu firma</div>
+      <canvas class="pad" id="pad"></canvas>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+        <span class="muted">Dibuja con el dedo o el mouse</span><button class="btn btn-line" id="limpiar">Limpiar</button></div>
+      <label class="chk"><input type="checkbox" id="acepto"><span>He leído ${n>1?'los documentos':'el documento'} y ${s.paso==='empleado'?'recibo el equipo a entera satisfacción, aceptando la carta responsiva y el resguardo':'autorizo la entrega descrita'}. Acepto firmar electrónicamente; mi firma, fecha, hora e IP quedan registradas.</span></label>
+      <button class="btn btn-primary" id="firmar" disabled>Firmar ${n>1?'ambos documentos':'documento'}</button>
+      <div class="err hidden" id="err"></div>
+      <div class="center" style="margin-top:10px"><button class="btn btn-link" id="rechazar">No estoy de acuerdo / rechazar</button></div>
+      <div id="rechazoBox" class="hidden" style="margin-top:8px"><textarea id="motivo" rows="3" placeholder="Explica el motivo (ej. el número de serie no coincide)"></textarea>
+        <button class="btn btn-line" style="margin-top:8px;color:var(--bad);border-color:var(--bad)" id="confRechazo">Confirmar rechazo</button></div>
+    </div>
+    <p class="muted center">Liga personal. No la reenvíes. FACILITADORES PUBLICITARIOS HS, S.A. DE C.V. · Connectia</p>`:''}`;
+  app.querySelectorAll('[data-ver]').forEach(b=>b.onclick=()=>{
+    const f=b.dataset.ver, box=document.getElementById('v-'+f);
+    const movil=window.matchMedia('(max-width:700px)').matches;
+    if(movil){window.open(urls[f],'_blank');return;}
+    if(box.classList.contains('hidden')){box.innerHTML=`<iframe class="viewer" src="${urls[f]}"></iframe>`;box.classList.remove('hidden');b.textContent='Ocultar';}
+    else{box.classList.add('hidden');box.innerHTML='';b.textContent='Ver';}
+  });
+  if(puedeFirmar)activaFirma();
+}
+
+function activaFirma(){
+  const c=document.getElementById('pad'),ctx=c.getContext('2d');let dib=false,tiene=false;
+  const fit=()=>{const r=c.getBoundingClientRect();c.width=r.width*2;c.height=r.height*2;ctx.scale(2,2);ctx.lineWidth=2.4;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#201040';};
+  fit();
+  const pos=e=>{const r=c.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};};
+  const ini=e=>{dib=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault();};
+  const mov=e=>{if(!dib)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();tiene=true;valida();e.preventDefault();};
+  const fin=()=>dib=false;
+  c.addEventListener('mousedown',ini);c.addEventListener('mousemove',mov);window.addEventListener('mouseup',fin);
+  c.addEventListener('touchstart',ini,{passive:false});c.addEventListener('touchmove',mov,{passive:false});c.addEventListener('touchend',fin);
+  const btn=document.getElementById('firmar'),chk=document.getElementById('acepto'),err=document.getElementById('err');
+  const valida=()=>btn.disabled=!(tiene&&chk.checked);
+  chk.onchange=valida;
+  document.getElementById('limpiar').onclick=()=>{ctx.clearRect(0,0,c.width,c.height);tiene=false;valida();};
+  btn.onclick=async()=>{
+    btn.disabled=true;btn.textContent='Firmando…';err.classList.add('hidden');
+    // recorta y reduce la firma a PNG ligero
+    const out=document.createElement('canvas');out.width=600;out.height=Math.round(600*c.height/c.width);
+    out.getContext('2d').drawImage(c,0,0,out.width,out.height);
+    try{
+      const r=await api({type:'firmar',token,firma:out.toDataURL('image/png'),decision:'aprobado'});
+      mensaje('✅','¡Listo, firmado!',`Firmaste ${r.firmados>1?`los ${r.firmados} documentos`:'el documento'}. ${SOBRE.paso==='direccion'?'Con tu firma se completa el sobre: a todos les llega la copia en PDF.':'Avisamos a la siguiente persona en la cadena. Cuando se completen todas las firmas recibirás la copia en PDF.'}`);
+    }catch(e){err.textContent=e.message;err.classList.remove('hidden');btn.textContent='Firmar';valida();}
+  };
+  document.getElementById('rechazar').onclick=()=>document.getElementById('rechazoBox').classList.toggle('hidden');
+  document.getElementById('confRechazo').onclick=async()=>{
+    const m=document.getElementById('motivo').value.trim();if(!m){err.textContent='Escribe el motivo del rechazo.';err.classList.remove('hidden');return;}
+    try{await api({type:'firmar',token,decision:'rechazado',comentario:m});mensaje('🛑','Rechazo registrado','Avisamos a Administración con tu motivo para que lo corrijan.');}
+    catch(e){err.textContent=e.message;err.classList.remove('hidden');}
+  };
+}
+cargar();
+</script>
+</body>
+</html>

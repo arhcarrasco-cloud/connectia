@@ -803,12 +803,16 @@ function renderNuevo(slug){
   const sc=FORM_SCHEMAS[slug];const ft=ftBySlug(slug);const p=STATE.profile;
   if(STATE.slug!==slug){STATE.slug=slug;STATE.draft=null;STATE.rows=[];STATE.atts=[];}
   if(!STATE.rows.length)STATE.rows=[blankRow(sc)];
-  const chain=(ft.approval_chain||[]).map(r=>ROLES[r]||r).join(' → ');
+  const chain=(ft.approval_chain||[]).map(r=>r==='empleado'?'Colaborador (recibe)':(ROLES[r]||r)).join(' → ');
+  const sobre=(ft.approval_chain||[])[0]==='empleado';
+  const paraOtro=sobre&&['admin','direccion','finanzas'].includes(p.role);
   app.innerHTML=`${topbar()}<div class="page"><div class="container">
     <div class="eyebrow">${esc(sc.eyebrow)}</div>
     <h1 style="font-size:30px;font-weight:800;letter-spacing:-.02em;margin:6px 0 4px">${esc(ft.name)}</h1>
     <p style="color:var(--slate);margin-bottom:8px">${esc(sc.intro)}</p>
-    <div class="banner">Ruta de aprobación: <b>${esc(chain)}</b>. Firmarás al enviar.</div>
+    <div class="banner">${sobre?`Orden de firma: <b>${esc(chain)}</b>. Al enviar, cada quien recibe por correo su liga personal para firmar${slug==='asignacion-equipos'?' (se genera también la carta responsiva y se firman juntas)':''}. Al final todos reciben copia en PDF.`:`Ruta de aprobación: <b>${esc(chain)}</b>. Firmarás al enviar.`}</div>
+    ${paraOtro?`<div class="panel"><h2>Colaborador que recibe el equipo</h2><div class="ph">Registra la entrega a su nombre; él firma primero desde su correo.</div>
+      <div class="field"><select id="paraColab"><option value="">— Yo mismo —</option></select></div></div>`:''}
     ${slug==='viaticos'?`<div class="warnbox">
       <b>Cómo funciona el anticipo.</b> Al autorizarse, se abre tu periodo de comprobación: <b>7 días naturales contados desde tu fecha de regreso</b>.
       Dentro de ese plazo subes los comprobantes; al vencer, el expediente <b>se sella y ya no se puede editar</b>.
@@ -845,7 +849,7 @@ function renderNuevo(slug){
       <button class="btn-line" id="saveDraft">Guardar borrador</button>
       <button class="btn-line" id="shareDraft">✉️ Enviar borrador</button>
       <button class="btn-line" id="dlDraft">⬇︎ Descargar PDF</button>
-      <button class="btn-primary" id="sendBtn">Firmar y enviar a aprobación →</button>
+      <button class="btn-primary" id="sendBtn">${sobre?'Enviar a firma →':'Firmar y enviar a aprobación →'}</button>
     </div></div></div>`;
   bindTop();
   // header fields
@@ -865,6 +869,17 @@ function renderNuevo(slug){
   $('#shareDraft').onclick=()=>openShareModal();
   $('#dlDraft').onclick=()=>descargarPdf();
   $('#sendBtn').onclick=()=>enviar(slug);
+  if(paraOtro){
+    STATE.paraColab=null;
+    db.from('profiles').select('id,full_name,email,department,position').order('full_name').then(({data})=>{
+      const sel=$('#paraColab');if(!sel)return;
+      const lista=(data||[]).filter(x=>/@connectia\.mx$/i.test(x.email||'')&&x.id!==STATE.user.id);
+      sel.innerHTML+=lista.map(x=>`<option value="${x.id}">${esc(x.full_name||x.email)}${x.position?' · '+esc(x.position):''}</option>`).join('');
+      sel.onchange=()=>{const x=lista.find(y=>y.id===sel.value);STATE.paraColab=x?x.id:null;
+        const set=(k,v)=>{const el=$('#fld_'+k);if(el)el.value=v||'';};
+        const me=STATE.profile;const src=x||me;set('nombre',src.full_name);set('area',src.department);set('puesto',src.position);};
+    });
+  }
 }
 
 /* =================== BORRADOR: compartir / descargar =================== */
@@ -1017,6 +1032,21 @@ async function enviar(slug){
   if(!STATE.rows.some(r=>String(r[reqCol]||'').trim()!==''&&(reqCol!=='importe'||parseFloat(r[reqCol])>0)))return toast('Agrega al menos un renglón válido.');
   for(const f of (sc.fields||[]))if(f.req&&!(($('#fld_'+f.k)||{}).value||'').trim())return toast('Completa: '+f.label);
   if(sc.attachReq&&!STATE.atts.length)return toast('Adjunta al menos un comprobante (PDF/XML).');
+  const ftS=ftBySlug(slug);
+  if((ftS.approval_chain||[])[0]==='empleado'){
+    // Flujo tipo sobre: nadie firma aquí; cada firmante recibe su liga por correo.
+    if(STATE.paraColab&&STATE.paraColab!==STATE.user.id){
+      const {error}=await db.rpc('crear_para_colaborador',{p_colaborador:STATE.paraColab,p_slug:slug,p_data:collectData(slug)});
+      if(error)return toast(error.message);
+      if(STATE.draft&&STATE.draft.id)await db.from('submissions').delete().eq('id',STATE.draft.id);
+    }else{
+      const id=await saveDraft(false);if(!id)return;
+      const {error}=await db.rpc('enviar_submission',{p_submission_id:id});
+      if(error)return toast(error.message);
+    }
+    STATE.draft=null;STATE.rows=[];STATE.atts=[];STATE.slug=null;STATE.paraColab=null;
+    toast('¡Enviado! Llegan las ligas de firma por correo.');go('historico');return;
+  }
   const id=await saveDraft(false);if(!id)return;
   openSignModal(async(firma)=>{
     const {error}=await db.rpc('enviar_submission',{p_submission_id:id});
@@ -1041,7 +1071,7 @@ function pendientesQuery(){
   return db.from('submissions').select('*, form_types(name,icon), approvals(*)').eq('status','pendiente').order('submitted_at',{ascending:true}).then(res=>{
     if(res.error)return{data:[],error:res.error};
     const role=STATE.profile.role,uid=STATE.user.id;
-    const mine=(res.data||[]).filter(s=>{const st=(s.approvals||[]).find(a=>a.step_order===s.current_step);if(!st)return false;if(st.role==='jefe')return st.approver_id===uid||(st.approver_id==null&&role==='jefe');return st.role===role||role==='admin';});
+    const mine=(res.data||[]).filter(s=>{const st=(s.approvals||[]).find(a=>a.step_order===s.current_step);if(!st)return false;if(st.role==='empleado')return s.submitted_by===uid;if(st.role==='jefe')return st.approver_id===uid||(st.approver_id==null&&role==='jefe');return st.role===role||role==='admin';});
     return{data:mine,error:null};
   });
 }
@@ -1124,7 +1154,7 @@ async function renderDetalle(id){
       <div class="who">${d.firma_solicitante?esc(d.nombre||'')+(s.firma_recibo_at?' · '+new Date(s.firma_recibo_at).toLocaleString('es-MX'):''):(s.status==='por_firmar'?'Esperando firma del colaborador':'Se habilita al terminar las autorizaciones')}</div></div></div>`:'');
   renderActionPanel(s,aps);
 }
-function canIApprove(s,aps){if(s.status!=='pendiente')return false;const st=aps.find(a=>a.step_order===s.current_step);if(!st)return false;const role=STATE.profile.role,uid=STATE.user.id;if(st.role==='jefe')return st.approver_id===uid||(st.approver_id==null&&role==='jefe');return st.role===role||role==='admin';}
+function canIApprove(s,aps){if(s.status!=='pendiente')return false;const st=aps.find(a=>a.step_order===s.current_step);if(!st)return false;const role=STATE.profile.role,uid=STATE.user.id;if(st.role==='empleado')return s.submitted_by===uid;if(st.role==='jefe')return st.approver_id===uid||(st.approver_id==null&&role==='jefe');return st.role===role||role==='admin';}
 function renderActionPanel(s,aps){
   const el=$('#actionPanel');
   if(s.status==='por_firmar'&&s.submitted_by===STATE.user.id){
