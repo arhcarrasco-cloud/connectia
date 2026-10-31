@@ -98,7 +98,7 @@ tbody td input,tbody td select{padding:8px 9px;border-radius:8px;font-size:13px}
 .legalbox .t b{color:var(--violet);font-weight:700;min-width:24px}
 .status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;text-transform:capitalize}
 .st-borrador{background:var(--mist);color:var(--slate)}.st-pendiente{background:#fef3c7;color:#92400e}
-.st-aprobado{background:#dcfce7;color:#166534}.st-rechazado{background:#fee2e2;color:#991b1b}
+.st-aprobado{background:#dcfce7;color:#166534}.st-por_firmar{background:#ede4ff;color:#5b21b6}.st-rechazado{background:#fee2e2;color:#991b1b}
 .list-item{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--mist);border-radius:14px;padding:16px 18px;margin-bottom:12px;cursor:pointer;transition:.15s}
 .list-item:hover{border-color:var(--violet);box-shadow:var(--shadow)}
 .list-item .folio{font-weight:700;font-size:14px}
@@ -334,6 +334,7 @@ function route(){
     case 'comprobar':return renderComprobar(STATE.arg);
     case 'finanzas':return renderFinanzas();
     case 'equipo':return renderEquipo();
+    case 'historico':return renderHistorico();
     default:return renderLanding();
   }
 }
@@ -408,6 +409,7 @@ function topbar(){
       <div class="nav">
         <button class="navlink ${STATE.view==='landing'?'active':''}" data-go="landing">${esc(tituloSeccion())}</button>
         <button class="navlink ${STATE.view==='misformatos'?'active':''}" data-go="misformatos">Mis solicitudes</button>
+        <button class="navlink ${STATE.view==='historico'?'active':''}" data-go="historico">Histórico de responsivas</button>
         ${isApprover()?`<button class="navlink ${STATE.view==='aprobaciones'?'active':''}" data-go="aprobaciones">Aprobaciones <span id="apbadge"></span></button>`:''}
         ${['finanzas','admin'].includes(p.role)?`<button class="navlink ${STATE.view==='finanzas'?'active':''}" data-go="finanzas">Finanzas <span id="fzbadge"></span></button>`:''}
         ${p.role==='admin'?`<button class="navlink ${STATE.view==='equipo'?'active':''}" data-go="equipo">Equipo</button>`:''}
@@ -1063,7 +1065,7 @@ function renderSubList(el,rows,own){
       <div class="meta">${esc(d.nombre||'')} · ${new Date(s.submitted_at||s.created_at).toLocaleDateString('es-MX')}${own?'':' · paso '+(s.current_step+1)}${
         comprobando&&falta>0?` · <b style="color:#C0392B">faltan ${money(falta)} por comprobar</b>`:''}</div></div>
       <div style="text-align:right">${s.total_amount?`<div class="amt">${money(s.total_amount)}</div>`:''}
-      ${pl?`<span class="plazo ${pl.cls}">${esc(pl.txt)}</span>`:`<span class="status st-${s.status}">${s.status}</span>`}</div></div>`;}).join('');
+      ${pl?`<span class="plazo ${pl.cls}">${esc(pl.txt)}</span>`:`<span class="status st-${s.status}">${esc(statusTxt(s.status))}</span>`}</div></div>`;}).join('');
   // Los viaticos en comprobacion abren directo la pantalla de comprobar.
   el.querySelectorAll('[data-id]').forEach(it=>it.onclick=()=>go(it.dataset.comprobar?'comprobar':'detalle',it.dataset.id));
 }
@@ -1080,7 +1082,7 @@ async function renderDetalle(id){
   cont.innerHTML=`<button class="btn-line btn-sm" id="back">← Volver</button>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin:16px 0 4px;gap:16px;flex-wrap:wrap">
       <div><div class="eyebrow">${esc(ft.name||'')}</div><h1 style="font-size:26px;font-weight:800;letter-spacing:-.02em">${esc(s.folio||'Borrador')}</h1></div>
-      <span class="status st-${s.status}" style="font-size:14px">${s.status}</span></div>
+      <span class="status st-${s.status}" style="font-size:14px">${esc(statusTxt(s.status))}</span></div>
 
     <div class="panel"><h2>Datos</h2><div class="dkv" style="margin-top:14px">
       ${(sc.header||[]).concat(sc.fields||[]).map(f=>`<div><div class="k">${esc(f.label)}</div><div class="v">${esc(d[f.k]||'—')}</div></div>`).join('')}
@@ -1096,7 +1098,7 @@ async function renderDetalle(id){
     ${sc.legal?`<div class="panel"><h2>${esc(sc.legal.title)}</h2><div class="legalbox" style="margin-top:8px">${esc(sc.legal.text)}</div></div>`:''}
     ${sc.legalList?`<div class="panel"><h2>${esc(sc.legalList.title)}</h2><div class="legalbox" style="margin-top:8px">${sc.legalList.items.map(it=>`<div class="t"><b>${it[0]}</b><div><b style="color:var(--ink)">${esc(it[1])}</b> ${esc(it[2])}</div></div>`).join('')}</div></div>`:''}
 
-    <div class="panel"><h2>Comprobantes (${atts.length})</h2><div class="att-list" style="margin-top:14px" id="datts">${atts.length?'':'<div style="color:var(--slate);font-size:13px">Sin adjuntos.</div>'}</div></div>
+    <div class="panel"><h2>${sc.total?'Comprobantes':'Documentos'} (${atts.length})</h2><div class="att-list" style="margin-top:14px" id="datts">${atts.length?'':'<div style="color:var(--slate);font-size:13px">Sin adjuntos.</div>'}</div></div>
 
     ${d.firma_solicitante?`<div class="panel"><h2>Firma del solicitante</h2><div class="tl-body"><div class="sig" style="margin-top:8px"><img src="${d.firma_solicitante}"/></div><div class="who">${esc(d.nombre||'')}</div></div></div>`:''}
 
@@ -1116,12 +1118,34 @@ async function renderDetalle(id){
       <div class="tl-body"><div class="role">${ROLES[a.role]||a.role}</div>
       <div class="who">${a.approver_name?esc(a.approver_name):(a.status==='pendiente'?'En espera':'—')}${a.decided_at?' · '+new Date(a.decided_at).toLocaleString('es-MX'):''}</div>
       ${a.comment?`<div style="font-size:13px;margin-top:4px">“${esc(a.comment)}”</div>`:''}
-      ${a.signature?`<div class="sig"><img src="${a.signature}"/></div>`:''}</div></div>`;}).join('');
+      ${a.signature?`<div class="sig"><img src="${a.signature}"/></div>`:''}</div></div>`;}).join('')
+    + (ft.firma_colaborador_final?`<div class="tl-step ${d.firma_solicitante?'done':(s.status==='por_firmar'?'curr':'')}"><div class="tl-dot"><div class="circle">${d.firma_solicitante?'✓':(aps.length+1)}</div></div>
+      <div class="tl-body"><div class="role">Firma de recibo · Colaborador</div>
+      <div class="who">${d.firma_solicitante?esc(d.nombre||'')+(s.firma_recibo_at?' · '+new Date(s.firma_recibo_at).toLocaleString('es-MX'):''):(s.status==='por_firmar'?'Esperando firma del colaborador':'Se habilita al terminar las autorizaciones')}</div></div></div>`:'');
   renderActionPanel(s,aps);
 }
 function canIApprove(s,aps){if(s.status!=='pendiente')return false;const st=aps.find(a=>a.step_order===s.current_step);if(!st)return false;const role=STATE.profile.role,uid=STATE.user.id;if(st.role==='jefe')return st.approver_id===uid||(st.approver_id==null&&role==='jefe');return st.role===role||role==='admin';}
 function renderActionPanel(s,aps){
-  const el=$('#actionPanel');if(!canIApprove(s,aps)){el.innerHTML='';return;}
+  const el=$('#actionPanel');
+  if(s.status==='por_firmar'&&s.submitted_by===STATE.user.id){
+    el.innerHTML=`<div class="panel" style="border:2px solid var(--violet-hot)">
+      <div class="eyebrow">Último paso · Tu firma de recibo</div>
+      <h2 style="margin-top:6px">La Empresa ya autorizó la entrega</h2>
+      <p style="color:var(--slate);font-size:14px;margin:8px 0 14px">Revisa el equipo y los términos de arriba. Al firmar aceptas la responsiva y el resguardo; a todos les llega copia en PDF y queda guardada en el histórico.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn-ok" id="doRecibo">✍️ Firmar de recibido</button><button class="btn-line" id="pdfDet">Ver PDF</button></div></div>`;
+    $('#doRecibo').onclick=()=>openSignModal(async(firma)=>{
+      if(!firma)return toast('Para la responsiva se requiere tu firma dibujada.');
+      const {error}=await db.rpc('firmar_recibo',{p_submission_id:s.id,p_firma:firma});
+      if(error)return toast(error.message);toast('¡Firmado! Se envió copia a todos ✓');go('detalle',s.id);
+    },'Firma de recibo','Recibo el equipo a entera satisfacción y acepto la carta responsiva.');
+    $('#pdfDet').onclick=()=>pdfDeId(s.id);
+    return;
+  }
+  if(!canIApprove(s,aps)){
+    el.innerHTML=s.status!=='borrador'?`<div style="margin-top:4px"><button class="btn-line" id="pdfDet">⬇︎ Descargar PDF</button></div>`:'';
+    const b=$('#pdfDet');if(b)b.onclick=()=>pdfDeId(s.id);
+    return;
+  }
   const st=aps.find(a=>a.step_order===s.current_step);
   el.innerHTML=`<div class="panel" style="border:2px solid var(--violet-hot)">
     <div class="eyebrow">Te toca decidir · ${ROLES[st.role]}</div>
@@ -1133,6 +1157,44 @@ function renderActionPanel(s,aps){
     if(error)return toast(error.message);toast('Aprobado ✓');go('detalle',s.id);
   },`Firma · ${ROLES[st.role]}`,'Apruebo esta solicitud conforme a la política interna.');
   $('#doReject').onclick=async()=>{const c=$('#apComment').value.trim();if(!c)return toast('Indica el motivo del rechazo.');const {error}=await db.rpc('decidir_aprobacion',{p_submission_id:s.id,p_decision:'rechazado',p_firma:null,p_comentario:c});if(error)return toast(error.message);toast('Solicitud rechazada');go('detalle',s.id);};
+}
+
+function statusTxt(st){return ({borrador:'borrador',pendiente:'en autorización',por_firmar:'por firmar',aprobado:'firmado',rechazado:'rechazado',comprobando:'comprobando',sellado:'sellado'})[st]||st;}
+async function pdfDeId(id){toast('Generando PDF…');const j=await callFn({type:'descargar',submission_id:id});if(!j||!j.pdf)return;pdfDownload(j.pdf,j.folio);toast('PDF descargado ✓');}
+
+/* =================== HISTORICO DE RESPONSIVAS =================== */
+// Lista permanente de asignaciones de equipo y cartas responsivas (todo lo que ya salió de borrador).
+// Dirección/Finanzas/Admin ven todas; cada colaborador ve las suyas (RLS).
+async function renderHistorico(){
+  app.innerHTML=`${topbar()}<div class="page"><div class="container">
+    <div class="eyebrow">Administración · Resguardo de equipos</div>
+    <h1 style="font-size:28px;font-weight:800;letter-spacing:-.02em;margin:6px 0 6px">Histórico de responsivas</h1>
+    <p style="color:var(--slate);margin-bottom:14px">Cada documento recorre: autorizaciones → firma de recibo del colaborador → copia en PDF a todos. Aquí queda guardado.</p>
+    <div class="seg" id="hfil" style="max-width:560px;margin-bottom:16px">
+      <button class="on" data-f="">Todas</button><button data-f="pendiente">En autorización</button><button data-f="por_firmar">Por firmar</button><button data-f="aprobado">Firmadas</button></div>
+    <div id="hlist"><div class="spinner"></div></div></div></div>`;
+  bindTop();
+  const slugs=['asignacion-equipos','carta-responsiva'];
+  const ftIds=STATE.formTypes.filter(f=>slugs.includes(f.slug)).map(f=>f.id);
+  const {data,error}=await db.from('submissions').select('id,folio,status,current_step,data,submitted_at,firma_recibo_at,submitted_by,form_types(name,slug,icon)').in('form_type_id',ftIds).neq('status','borrador').order('submitted_at',{ascending:false});
+  const all=data||[];let fil='';
+  const pinta=()=>{
+    const rows=all.filter(s=>!fil||s.status===fil);
+    const el=$('#hlist');
+    if(error){el.innerHTML=`<div class="empty">${esc(error.message)}</div>`;return;}
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="ic">🗂️</div><p>Sin documentos en esta vista.</p></div>';return;}
+    el.innerHTML=`<div class="tbl-wrap"><table class="read-tbl"><thead><tr><th>Folio</th><th>Documento</th><th>Colaborador</th><th>Equipo</th><th>No. de serie</th><th>Enviado</th><th>Estado</th><th></th></tr></thead><tbody>${
+      rows.map(s=>{const d=s.data||{},r=(d.rows||[])[0]||{},ft=s.form_types||{};
+        return `<tr data-id="${s.id}" style="cursor:pointer"><td><b>${esc(s.folio||'')}</b></td><td>${esc(ft.name||'')}</td><td>${esc(d.nombre||'')}<div style="font-size:12px;color:var(--slate)">${esc(d.puesto||'')}</div></td>
+        <td style="max-width:240px">${esc(r.descripcion||'')}</td><td style="font-family:monospace">${esc(r.serie||'')}</td>
+        <td>${s.submitted_at?new Date(s.submitted_at).toLocaleDateString('es-MX'):''}</td>
+        <td><span class="status st-${s.status}">${esc(statusTxt(s.status))}</span></td>
+        <td><button class="btn-line btn-sm" data-pdf="${s.id}">PDF</button></td></tr>`;}).join('')}</tbody></table></div>`;
+    el.querySelectorAll('[data-pdf]').forEach(b=>b.onclick=(e)=>{e.stopPropagation();pdfDeId(b.dataset.pdf);});
+    el.querySelectorAll('tr[data-id]').forEach(t=>t.onclick=()=>go('detalle',t.dataset.id));
+  };
+  document.querySelectorAll('#hfil [data-f]').forEach(b=>b.onclick=()=>{fil=b.dataset.f;document.querySelectorAll('#hfil [data-f]').forEach(x=>x.classList.remove('on'));b.classList.add('on');pinta();});
+  pinta();
 }
 
 /* =================== SIGNATURE MODAL =================== */
