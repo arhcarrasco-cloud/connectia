@@ -807,7 +807,7 @@ function renderNuevo(slug){
   if(STATE.slug!==slug){STATE.slug=slug;STATE.draft=null;STATE.rows=[];STATE.atts=[];}
   if(!STATE.rows.length)STATE.rows=[blankRow(sc)];
   const chain=(ft.approval_chain||[]).map(r=>r==='empleado'?'Colaborador (recibe)':(ROLES[r]||r)).join(' → ');
-  const sobre=(ft.approval_chain||[])[0]==='empleado';
+  const sobre=(ft.approval_chain||[]).includes('empleado');
   const paraOtro=sobre&&['admin','direccion','finanzas'].includes(p.role);
   app.innerHTML=`${topbar()}<div class="page"><div class="container">
     <div class="eyebrow">${esc(sc.eyebrow)}</div>
@@ -1036,7 +1036,7 @@ async function enviar(slug){
   for(const f of (sc.fields||[]))if(f.req&&!(($('#fld_'+f.k)||{}).value||'').trim())return toast('Completa: '+f.label);
   if(sc.attachReq&&!STATE.atts.length)return toast('Adjunta al menos un comprobante (PDF/XML).');
   const ftS=ftBySlug(slug);
-  if((ftS.approval_chain||[])[0]==='empleado'){
+  if((ftS.approval_chain||[]).includes('empleado')){
     // Flujo tipo sobre: nadie firma aquí; cada firmante recibe su liga por correo.
     if(STATE.paraColab&&STATE.paraColab!==STATE.user.id){
       const {error}=await db.rpc('crear_para_colaborador',{p_colaborador:STATE.paraColab,p_slug:slug,p_data:collectData(slug)});
