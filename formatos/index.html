@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Formatos · Connectia</title>
+<link rel="icon" href="../assets/logo/connectia-square.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -21,8 +22,10 @@ body{font-family:'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif;back
 a{color:var(--violet-hot);text-decoration:none}
 .eyebrow{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.2em;color:var(--violet-hot)}
 .hidden{display:none!important}
-.wordmark{font-weight:800;letter-spacing:-.04em;font-size:22px}
-.wordmark.light{color:#fff}
+/* Logo oficial (PNG del brandbook): morado sobre claro, blanco sobre oscuro. Nunca texto tipografiado.
+   El wordmark ocupa el tercio inferior del PNG (la constelación va arriba), por eso la altura es mayor que la del texto que sustituye. */
+.wordmark{display:block;height:52px;width:auto}
+.wordmark.light{height:44px}
 button{font-family:inherit;cursor:pointer;border:none;border-radius:999px;font-weight:600;transition:.15s}
 .btn-primary{background:var(--violet);color:#fff;padding:13px 26px;font-size:15px}
 .btn-primary:hover{background:var(--violet-hot)}
@@ -343,7 +346,7 @@ function route(){
 let authMode='login';
 function renderAuth(){
   app.innerHTML=`<div class="auth-wrap"><div class="auth-card">
-    <div class="wordmark" style="color:var(--violet)">connectia</div>
+    <img class="wordmark" src="../assets/logo/connectia-purple.png" alt="connectia" />
     <div class="eyebrow" style="margin-top:14px">Portal de formatos · MX</div>
     <h2>${authMode==='login'?'Inicia sesión':'Crea tu cuenta'}</h2>
     <p class="sub">Digitaliza, firma y aprueba tus formatos administrativos.</p>
@@ -405,7 +408,7 @@ function topbar(){
   const p=STATE.profile||{};const ini=(p.full_name||'?').trim().slice(0,1).toUpperCase();
   return `<div class="topbar">
     <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-      <div class="wordmark light" style="cursor:pointer" data-go="landing">connectia</div>
+      <img class="wordmark light" src="../assets/logo-oficial-white.png" alt="connectia" style="cursor:pointer" data-go="landing" />
       <div class="nav">
         <button class="navlink ${STATE.view==='landing'?'active':''}" data-go="landing">${esc(tituloSeccion())}</button>
         <button class="navlink ${STATE.view==='misformatos'?'active':''}" data-go="misformatos">Mis solicitudes</button>
