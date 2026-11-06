@@ -245,6 +245,27 @@
     _exportPDF();
   };
 
+  // Cotización para cliente (formato Odoo): mismo criterio que el PDF interno. Sin folio del
+  // ERP se ofrece emitir (folio COT consecutivo) o exportar como BORRADOR.
+  const _exportarPDFCliente = global.exportarPDFCliente;
+  if (typeof _exportarPDFCliente === 'function') {
+    global.exportarPDFCliente = async function () {
+      if (!link.folio) {
+        if (rolErp && confirm('Esta cotización aún no tiene folio del ERP.\n\nAceptar = emitirla ahora (folio consecutivo COT) y generar la cotización cliente.\nCancelar = generarla como BORRADOR sin folio.')) {
+          const ok = await emitir(true);
+          if (!ok) return;
+        } else {
+          const f = $('folio'); const prev = f.value;
+          f.value = 'BORRADOR (sin folio)';
+          try { await _exportarPDFCliente(); } finally { f.value = prev; }
+          return;
+        }
+      }
+      $('folio').value = link.folio;
+      return _exportarPDFCliente();
+    };
+  }
+
   /* ---------- emitir ---------- */
   function partidasYcosteo() {
     const partidas = [], filas = [], faltan = [];

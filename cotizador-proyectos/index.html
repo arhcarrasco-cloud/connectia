@@ -764,7 +764,7 @@
     <input class="client-address" id="direccionCliente" placeholder="Dirección del cliente">
   </div>
 
-  <h1 class="quote-title">Cotización <input class="folio-input" id="folio" value="COT-2026-0001"></h1>
+  <h1 class="quote-title">Cotización <input class="folio-input" id="folio" value="" readonly placeholder="sin folio" title="Folio consecutivo asignado por el ERP al emitir"></h1>
 
   <div class="ref-row">
     <div class="ref-item">
@@ -1231,7 +1231,7 @@ let rows = [
   {concepto:"Pantalla digital Interlomas", cantidad:1, costoUnitario:null, manualPC:true, precioUnitarioManual:78}
 ];
 
-document.getElementById('fechaCotizacion').valueAsDate = new Date();
+document.getElementById('fechaCotizacion').value = new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10); // fecha local (CDMX), no UTC
 
 /* ---------- Utilidades ---------- */
 function fmt(n){
@@ -1859,7 +1859,7 @@ function newSession(){
   setFieldVal('referencia','');
   setFieldVal('vigencia','15 días naturales');
   setFieldVal('conceptoGeneral','');
-  document.getElementById('fechaCotizacion').valueAsDate = new Date();
+  document.getElementById('fechaCotizacion').value = new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10); // fecha local (CDMX), no UTC
   commissions = [{label:"Agencia", pct:18},{label:"Vendedor", pct:1}];
   targetPct = 20;
   renderCommList();
@@ -2793,7 +2793,7 @@ function renderDetalle(){
         </div>
         <div class="seal-field"><label>Inicio de campaña</label><input type="date" id="edCampInicio" value="${(p.campania&&p.campania.inicio)||''}"></div>
         <div class="seal-field"><label>Fin de campaña</label><input type="date" id="edCampFin" value="${(p.campania&&p.campania.fin)||''}"></div>
-        <div class="seal-field"><label>Folio</label><input id="edFolio" value="${CX.esc(p.folio)}"></div>
+        <div class="seal-field"><label>Folio ERP</label><input id="edFolio" value="${CX.esc(p.folio)}" readonly title="Lo asigna el ERP al emitir"></div>
         <div class="seal-field"><label>Proveedor</label><input id="edProvNombre" value="${CX.esc(pr.nombre||'')}"></div>
         <div class="seal-field"><label>Etapa</label><select id="edEtapa">
           ${['Cotización','Cerrado'].map(x=>`<option ${p.etapa===x?'selected':''}>${x}</option>`).join('')}
@@ -3142,21 +3142,12 @@ function cxPieDePagina(doc, d){
   doc.text('Página ' + pg + ' / ' + doc.internal.getNumberOfPages(), R, H-33, {align:'right'});
 }
 
-/* Asegura folio consecutivo global antes de emitir al cliente */
+/* El folio oficial (COT-AAAA-0NNN) lo asigna SIEMPRE el ERP al emitir (erp-link.js:
+   erp.cotizacion_desde_cotizador + trigger trg_cot_folio). Aquí solo se lee el que ya hay;
+   erp-link.js envuelve exportarPDFCliente para emitir primero si falta. */
 async function cxAsegurarFolio(){
   const campo = document.getElementById('folio');
-  const actual = (campo && campo.value || '').trim();
-  if(actual) return actual;
-  if(!(window.CXAUTH && CXAUTH.cloud)) return '';
-  try{
-    const f = await CXAUTH.folioNuevo(currentSessionId || null);
-    if(campo){ campo.value = f; }
-    if(typeof saveSessionSilent === 'function') saveSessionSilent();
-    return f;
-  }catch(e){
-    alert('No se pudo asignar el folio consecutivo: ' + e.message);
-    return '';
-  }
+  return (campo && campo.value || '').trim();
 }
 
 /* Cotización del cotizador en pantalla */
@@ -3222,14 +3213,11 @@ async function exportarPDFClienteProyecto(id){
   });
   if(!conceptos.length){ alert('Ese proyecto no tiene conceptos con precio al cliente.'); return; }
 
-  let folio = (h.folio||'').trim();
-  if(!folio && window.CXAUTH && CXAUTH.cloud){
-    try{
-      folio = await CXAUTH.folioNuevo(id);
-      s.data.header = s.data.header || {}; s.data.header.folio = folio;
-      persistSessions(loadSessions());
-      renderBoard();
-    }catch(e){ alert('No se pudo asignar folio: ' + e.message); }
+  // Solo el folio del ERP (data.erp.folio). Folios de texto libre de sesiones viejas no valen.
+  let folio = ((data.erp && data.erp.folio) || '').trim();
+  if(!folio){
+    if(!confirm('Este proyecto aún no tiene folio del ERP.\n\nPara folio oficial: ábrelo en el cotizador y usa "Emitir en ERP".\n\nAceptar = exportar como BORRADOR sin folio.')) return;
+    folio = 'BORRADOR (sin folio)';
   }
   const ivaOn = !(h.ivaOn === false);
   const iva = ivaOn ? subtotal*0.16 : 0;
@@ -3306,5 +3294,6 @@ function cxArrancar(){
 if(window.CXAUTH && CXAUTH.cloud) CXAUTH.onReady(cxArrancar);
 else cxArrancar();
 </script>
+<script src="erp-link.js"></script>
 </body>
 </html>
