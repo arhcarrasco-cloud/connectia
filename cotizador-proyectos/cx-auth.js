@@ -540,6 +540,7 @@
 
   global.CXAUTH = {
     cloud: true,
+    get sb() { return sb; },          // cliente Supabase (lo usa erp-link.js para el ERP)
     get user() { return user; },
     get perfil() { return perfil; },
     isAdmin,
