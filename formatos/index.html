@@ -177,6 +177,16 @@ const SUPABASE_URL="https://mduxlmnlwycwknyapwsx.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kdXhsbW5sd3ljd2tueWFwd3N4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NDI1NTcsImV4cCI6MjA5MTQxODU1N30.UYL47zkWp8Zzgg8-opN1DwMczkyeTcMwPfUhhbCsSPc";
 // Sesion siempre guardada: no se pide login otra vez al volver ni al recargar.
 // OJO: no cambiar storageKey (el default es sb-<ref>-auth-token); cambiarlo tira las sesiones vivas.
+// SSO desde el ERP: erp.connectia.mx/ERP/rh/administracion embebe este portal con la sesión
+// del usuario en el FRAGMENTO (#sso=1&at=…&rt=…). Se lee ANTES de crear el cliente, se limpia
+// el hash (replaceState) y en init() se hace setSession: no se piden credenciales.
+const SSO_IN=(function(){
+  const h=location.hash||''; if(h.indexOf('sso=1')===-1)return null;
+  const f=new URLSearchParams(h.slice(1));
+  history.replaceState(null,'',location.pathname+location.search);
+  const at=f.get('at'),rt=f.get('rt'); return at&&rt?{at,rt}:null;
+})();
+function jwtSub(t){try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub||null;}catch(e){return null;}}
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage}
 });
@@ -303,7 +313,16 @@ async function init(){
   // El token se captura UNA vez aqui y se mantiene fresco con onAuthStateChange.
   // No volver a llamar getSession() en caliente: se cuelga (deadlock de navigator.locks en supabase-js v2).
   sb.auth.onAuthStateChange((_e,s)=>{ STATE.token=s?s.access_token:null; });
-  const {data:{session}}=await sb.auth.getSession();
+  let {data:{session}}=await sb.auth.getSession();
+  if(SSO_IN){
+    if(session&&session.user&&session.user.id===jwtSub(SSO_IN.at)){
+      // Ya había sesión del mismo usuario: se conserva y la recibida (nueva) se cierra sola.
+      if(session.access_token!==SSO_IN.at)fetch(SUPABASE_URL+'/auth/v1/logout?scope=local',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SSO_IN.at}}).catch(()=>{});
+    }else{
+      const r=await sb.auth.setSession({access_token:SSO_IN.at,refresh_token:SSO_IN.rt});
+      if(!r.error&&r.data&&r.data.session)session=r.data.session; else console.error('[formatos] SSO',r.error);
+    }
+  }
   if(session){STATE.user=session.user;STATE.token=session.access_token;await loadProfile();await loadFormTypes();await loadCfg();}
   route();
 }
@@ -426,7 +445,7 @@ function topbar(){
 }
 function bindTop(){
   document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
-  const lo=$('#logout');if(lo)lo.onclick=async()=>{await sb.auth.signOut();STATE.user=null;STATE.profile=null;STATE.token=null;STATE.view='landing';route();};
+  const lo=$('#logout');if(lo)lo.onclick=async()=>{await sb.auth.signOut({scope:'local'});STATE.user=null;STATE.profile=null;STATE.token=null;STATE.view='landing';route();};
   updateApBadge();updateFzBadge();
 }
 async function updateFzBadge(){

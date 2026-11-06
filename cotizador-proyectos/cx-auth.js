@@ -27,6 +27,64 @@
   let booted = false;
   let recuperando = false;
 
+  /* ---------------- SSO desde el ERP ----------------
+     erp.connectia.mx/ERP/cotizaciones/proyecto redirige aquí con la sesión del usuario en el
+     FRAGMENTO: #sso=1&at=<access>&rt=<refresh>&cliente_id=…&cli=…&oportunidad_id=…&opp=…&ejecutivo_id=…
+     Se lee de forma síncrona al cargar este script (antes de crear el cliente Supabase y antes
+     de que erp-link.js lea nada), se guarda el contexto en sessionStorage y se limpia el hash
+     con history.replaceState para que los tokens no queden en la barra ni en el historial. */
+  const ERP_ENTRADA = 'https://erp.connectia.mx/ERP/cotizaciones/proyecto';
+  const SSO_TRY_KEY = 'cxSsoIntento';
+  const SSO_IN = (function leerFragmento() {
+    const h = location.hash || '';
+    if (h.indexOf('sso=1') === -1) return null;
+    const f = new URLSearchParams(h.slice(1));
+    history.replaceState(null, '', location.pathname + location.search);
+    if (f.get('cliente_id') || f.get('oportunidad_id')) {
+      try {
+        sessionStorage.setItem('cxErpCtx', JSON.stringify({
+          cliente_id: f.get('cliente_id') || '', cliente_codigo: f.get('cli') || '',
+          oportunidad_id: f.get('oportunidad_id') || '', oportunidad_folio: f.get('opp') || '',
+          ejecutivo_id: f.get('ejecutivo_id') || ''
+        }));
+      } catch (e) {}
+    }
+    const at = f.get('at'), rt = f.get('rt');
+    return at && rt ? { at, rt } : null;
+  })();
+  function jwtSub(t) {
+    try { return JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub || null; }
+    catch (e) { return null; }
+  }
+  /* La sesión que manda el ERP es nueva; si aquí ya había una del mismo usuario se usa la
+     existente y la recibida se cierra (scope local = solo esa sesión) para no acumularlas. */
+  function cerrarSesionSobrante(at) {
+    fetch(SUPABASE_URL + '/auth/v1/logout?scope=local', {
+      method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + at }
+    }).catch(() => {});
+  }
+  async function aplicarSSO() {
+    if (!SSO_IN) return false;
+    sessionStorage.removeItem(SSO_TRY_KEY);
+    const { data: { session: actual } } = await sb.auth.getSession();
+    if (actual && actual.user && actual.user.id === jwtSub(SSO_IN.at)) {
+      if (actual.access_token !== SSO_IN.at) cerrarSesionSobrante(SSO_IN.at);
+      return true;
+    }
+    const { error } = await sb.auth.setSession({ access_token: SSO_IN.at, refresh_token: SSO_IN.rt });
+    if (error) { console.error('[CX] SSO', error); msg('No se pudo abrir tu sesión del ERP. Vuelve a entrar desde erp.connectia.mx o usa tu correo.'); return false; }
+    return true;
+  }
+  /* Sin sesión: se pide al ERP (que ya tiene la sesión o hace el login allá y regresa).
+     Guardia de 2 min para no ciclar si el ERP no puede devolverla. */
+  function pedirSesionAlErp() {
+    const t = Number(sessionStorage.getItem(SSO_TRY_KEY) || 0);
+    if (Date.now() - t < 120000) return false;
+    sessionStorage.setItem(SSO_TRY_KEY, String(Date.now()));
+    location.replace(ERP_ENTRADA);
+    return true;
+  }
+
   /* ---------------- UI: pantalla de acceso ---------------- */
   function injectStyles() {
     if (document.getElementById('cxAuthStyles')) return;
@@ -75,6 +133,7 @@
         <p class="cxa-eyebrow">Connectia</p>
         <h1 class="cxa-brand">Cotizador de Proyectos</h1>
         <p class="cxa-sub" id="cxaSub">Entra con tu correo. Cada quien ve y edita sus propios proyectos.</p>
+        <a class="cxa-btn" href="${ERP_ENTRADA}" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin:0 0 16px;background:#201040">Entrar con mi sesión del ERP</a>
         <div class="cxa-tabs">
           <button class="cxa-tab active" id="cxaTabLogin" type="button">Entrar</button>
           <button class="cxa-tab" id="cxaTabSignup" type="button">Crear cuenta</button>
@@ -470,9 +529,11 @@
       msg('Ese enlace ya expiró o se usó. Pide uno nuevo con "¿Olvidaste tu contraseña?".');
     }
 
-    const { data: { session } } = await sb.auth.getSession();
     if (esRecuperacion) { mostrarRecuperacion(); return; }
+    await aplicarSSO();
+    const { data: { session } } = await sb.auth.getSession();
     if (session) { await afterLogin(); }
+    else if (!SSO_IN && !errHash && pedirSesionAlErp()) { return; }
     else {
       const em = localStorage.getItem('cxUltimoCorreo');
       if (em) document.getElementById('cxaEmail').value = em;
@@ -560,7 +621,10 @@
     onReady(fn) { if (booted) fn(); else readyCbs.push(fn); },
     async logout() {
       if (user) localStorage.setItem('cxUltimoCorreo', user.email);
-      await sb.auth.signOut();
+      // scope local: cierra solo la sesión de este navegador en el cotizador; el ERP sigue abierto.
+      // Se marca el intento SSO para que la recarga muestre el acceso en vez de volver a entrar solo.
+      sessionStorage.setItem(SSO_TRY_KEY, String(Date.now()));
+      await sb.auth.signOut({ scope: 'local' });
       location.reload();
     },
     async usuarios() {

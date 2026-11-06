@@ -7,6 +7,8 @@
      mismo consecutivo que el resto de cotizaciones del ERP. Aquí nunca se calcula.
    - Re-emitir: borrador -> se actualiza (mismo folio); enviada -> revisión (folio nuevo, v+1).
    Contexto desde el ERP (erp.connectia.mx/ERP/cotizaciones/proyecto):
+     llega en el #fragmento junto con la sesión SSO (cx-auth.js lo pasa a sessionStorage
+     'cxErpCtx' y limpia el hash). Se sigue aceptando el formato viejo en query string:
      ?origen=erp&cliente_id=…&cli=CLI-…&oportunidad_id=…&opp=OPP-…&ejecutivo_id=…
    ============================================================ */
 (function (global) {
