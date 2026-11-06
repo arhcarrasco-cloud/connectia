@@ -704,6 +704,8 @@
     body{background:#fff;padding:0;}
     .quote-wrap{box-shadow:none;border:none;}
   }
+.btn-cliente{background:#872B90;color:#fff;border:1px solid #872B90}
+.btn-cliente:hover{background:#6f2277}
 .btn-danger{background:#fff;color:#a4262c;border:1px solid #f0c2c2}
 .btn-danger:hover{background:#fdecec}
 .del-btn{background:transparent;border:0;cursor:pointer;font-size:15px;opacity:.45;padding:4px 6px;border-radius:6px}
@@ -733,7 +735,8 @@
   </div>
   <div class="export-group" id="groupCotizador">
     <button class="btn btn-seal" onclick="sellarProyecto()">🔒 Guardar y sellar proyecto</button>
-    <button class="btn btn-export" onclick="exportPDF()">Exportar PDF</button>
+    <button class="btn btn-export btn-cliente" onclick="exportarPDFCliente()">📄 Cotización cliente</button>
+    <button class="btn btn-export" onclick="exportPDF()">PDF interno</button>
     <button class="btn btn-export" onclick="exportExcel()">Exportar Excel</button>
   </div>
   <div class="export-group hidden" id="groupProyectos">
@@ -761,7 +764,7 @@
     <input class="client-address" id="direccionCliente" placeholder="Dirección del cliente">
   </div>
 
-  <h1 class="quote-title">Cotización <input class="folio-input" id="folio" value="" readonly placeholder="sin folio" title="Folio consecutivo asignado por el ERP al emitir"></h1>
+  <h1 class="quote-title">Cotización <input class="folio-input" id="folio" value="COT-2026-0001"></h1>
 
   <div class="ref-row">
     <div class="ref-item">
@@ -1118,6 +1121,7 @@
     <div class="modal-body" id="dBody"></div>
     <div class="modal-foot">
       <div style="display:flex;gap:10px;align-items:center;">
+        <button class="btn btn-cliente" onclick="exportarPDFClienteProyecto(sesionActiva)">📄 Cotización cliente</button>
         <button class="btn btn-secondary" onclick="abrirEnCotizador()">✎ Abrir en el cotizador</button>
         <span class="session-status" id="dStatus"></span>
       </div>
@@ -1227,7 +1231,7 @@ let rows = [
   {concepto:"Pantalla digital Interlomas", cantidad:1, costoUnitario:null, manualPC:true, precioUnitarioManual:78}
 ];
 
-document.getElementById('fechaCotizacion').value = new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10); // fecha local (CDMX), no UTC
+document.getElementById('fechaCotizacion').valueAsDate = new Date();
 
 /* ---------- Utilidades ---------- */
 function fmt(n){
@@ -1855,7 +1859,7 @@ function newSession(){
   setFieldVal('referencia','');
   setFieldVal('vigencia','15 días naturales');
   setFieldVal('conceptoGeneral','');
-  document.getElementById('fechaCotizacion').value = new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10); // fecha local (CDMX), no UTC
+  document.getElementById('fechaCotizacion').valueAsDate = new Date();
   commissions = [{label:"Agencia", pct:18},{label:"Vendedor", pct:1}];
   targetPct = 20;
   renderCommList();
@@ -2789,7 +2793,7 @@ function renderDetalle(){
         </div>
         <div class="seal-field"><label>Inicio de campaña</label><input type="date" id="edCampInicio" value="${(p.campania&&p.campania.inicio)||''}"></div>
         <div class="seal-field"><label>Fin de campaña</label><input type="date" id="edCampFin" value="${(p.campania&&p.campania.fin)||''}"></div>
-        <div class="seal-field"><label>Folio ERP</label><input id="edFolio" value="${CX.esc(p.folio)}" readonly title="Lo asigna el ERP al emitir"></div>
+        <div class="seal-field"><label>Folio</label><input id="edFolio" value="${CX.esc(p.folio)}"></div>
         <div class="seal-field"><label>Proveedor</label><input id="edProvNombre" value="${CX.esc(pr.nombre||'')}"></div>
         <div class="seal-field"><label>Etapa</label><select id="edEtapa">
           ${['Cotización','Cerrado'].map(x=>`<option ${p.etapa===x?'selected':''}>${x}</option>`).join('')}
@@ -2939,6 +2943,313 @@ async function quitarDoc(slotKey){
 
 document.getElementById('detalleModal').addEventListener('click', function(e){ if(e.target===this) cerrarDetalle(); });
 
+
+/* ============================================================
+   COTIZACIÓN PARA CLIENTE — formato Odoo (Facilitadores Publicitarios HS)
+   Solo precios finales. Nada de costos, comisiones ni márgenes.
+   ============================================================ */
+const CX_EMISOR = {
+  nombre: 'Facilitadores Publicitarios HS',
+  dir: ['Hacienda de Temoluco #130, Colonia Villaquietud,',
+        'Alcaldía Coyoacán, C.P. 04960, Ciudad de México,',
+        'México'],
+  rfc: 'FPH181203KA8',
+  tag: 'Everything is connected'
+};
+const CX_MORADO = [135, 43, 144];
+const CX_TINTA  = [17, 24, 39];
+const CX_GRIS   = [110, 110, 120];
+const CX_AGUA   = [238, 238, 238];
+
+/* Helvetica no trae todos los signos tipográficos: los normaliza para que no salgan basura */
+function cxTxt(t){
+  return String(t==null?'':t)
+    .replace(/[\u2033\u201C\u201D\u00AB\u00BB]/g,'"')
+    .replace(/[\u2032\u2018\u2019]/g,"'")
+    .replace(/[\u2013\u2014\u2212]/g,'-')
+    .replace(/\u2026/g,'...')
+    .replace(/\u00A0/g,' ');
+}
+function cxMoney(v){
+  const n = Number(v)||0;
+  return '$ ' + n.toLocaleString('es-MX',{minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function cxFechaLarga(iso){
+  if(!iso) return '';
+  const p = String(iso).slice(0,10).split('-');
+  if(p.length!==3) return iso;
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+function cxVencimiento(iso, vigencia){
+  const m = String(vigencia||'').match(/(\d+)/);
+  if(!iso || !m) return '';
+  const d = CX.parseDate(iso);
+  if(!d) return '';
+  d.setDate(d.getDate() + parseInt(m[1],10));
+  return cxFechaLarga(new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10));
+}
+function cxNumeroALetras(num){
+  const ent = Math.floor(Math.abs(num)); const cent = Math.round((Math.abs(num)-ent)*100);
+  const UNI=['','UN','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE','DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS','DIECISIETE','DIECIOCHO','DIECINUEVE','VEINTE'];
+  const DEC=['','','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+  const CEN=['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS','SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+  function c(n){
+    if(n===0) return '';
+    if(n===100) return 'CIEN';
+    let t='';
+    const ce=Math.floor(n/100), de=Math.floor((n%100)/10), un=n%10;
+    if(ce) t+=CEN[ce]+' ';
+    const r=n%100;
+    if(r<=20) t+=UNI[r];
+    else { t+=DEC[de]; if(un) t+=' Y '+UNI[un]; }
+    return t.trim();
+  }
+  function miles(n){
+    if(n===0) return 'CERO';
+    const mill=Math.floor(n/1000000), mil=Math.floor((n%1000000)/1000), res=n%1000;
+    let t='';
+    if(mill) t += (mill===1?'UN MILLÓN ':c(mill)+' MILLONES ');
+    if(mil)  t += (mil===1?'MIL ':c(mil)+' MIL ');
+    if(res)  t += c(res);
+    return t.trim();
+  }
+  return miles(ent) + ' PESOS ' + String(cent).padStart(2,'0') + '/100 M.N.';
+}
+
+/* Dibuja el PDF a partir de un objeto de datos neutro */
+function cxDibujarCotizacionCliente(d){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait', unit:'pt', format:'a4'});
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const M = 42, R = W - M;
+
+  /* --- encabezado: logo + datos del emisor --- */
+  doc.addImage('data:image/png;base64,'+LOGO_B64, 'PNG', M, 38, 92, 23);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...CX_TINTA);
+  CX_EMISOR.dir.forEach((l,i)=> doc.text(l, 300, 46 + i*13));
+
+  /* --- cliente --- */
+  let y = 186;
+  doc.setFontSize(9.5);
+  doc.text(cxTxt(d.cliente || '—'), 300, y); y += 13;
+  (d.dirCliente||'').split(/\n|,\s*(?=[A-ZÁÉÍÓÚ0-9])/).filter(Boolean).slice(0,4).forEach(l=>{ doc.text(cxTxt(l.trim()), 300, y); y += 13; });
+  if(d.rfcCliente){ doc.text('RFC: ' + cxTxt(d.rfcCliente), 300, y); y += 13; }
+
+  /* --- título --- */
+  doc.setFont('helvetica','bold'); doc.setFontSize(19); doc.setTextColor(...CX_MORADO);
+  doc.text('Número de cotización ' + cxTxt(d.folio || ''), M, 300);
+
+  /* --- fila de campos --- */
+  const campos = [
+    ['Fecha de cotización', d.fecha || ''],
+    ['Vencimiento', d.vencimiento || ''],
+    ['Vendedor', d.vendedor || '']
+  ];
+  const xs = [M, M+170, M+360];
+  doc.setFontSize(8.5);
+  campos.forEach((c,i)=>{
+    doc.setFont('helvetica','bold'); doc.setTextColor(...CX_MORADO);
+    doc.text(c[0], xs[i], 324);
+    doc.setFont('helvetica','normal'); doc.setTextColor(...CX_TINTA);
+    doc.setFontSize(9.5);
+    doc.text(cxTxt(c[1]), xs[i], 340);
+    doc.setFontSize(8.5);
+  });
+
+  /* --- marca de agua --- */
+  doc.setFont('helvetica','bold'); doc.setFontSize(95); doc.setTextColor(...CX_AGUA);
+  doc.text('connectia', W/2, 560, {align:'center'});
+
+  /* --- tabla de conceptos --- */
+  doc.autoTable({
+    startY: 362,
+    margin: {left:M, right:M},
+    theme: 'plain',
+    head: [['DESCRIPCIÓN','CANTIDAD','PRECIO UNITARIO','IMPUESTOS','IMPORTE']],
+    body: d.conceptos.map(c => [
+      cxTxt(c.desc),
+      (Number(c.cant)||0).toLocaleString('es-MX',{minimumFractionDigits:2, maximumFractionDigits:2}) + ' Unidades',
+      cxMoney(c.precioUnit),
+      d.ivaOn ? 'IVA(16%)' : '—',
+      cxMoney(c.importe)
+    ]),
+    styles: { font:'helvetica', fontSize:9, cellPadding:{top:7,bottom:7,left:2,right:2}, textColor: CX_TINTA, lineWidth:0 },
+    headStyles: { fontSize:8, fontStyle:'normal', textColor: CX_GRIS, cellPadding:{top:4,bottom:7,left:2,right:2},
+                  lineWidth:{bottom:0.7}, lineColor:[17,24,39] },
+    columnStyles: {
+      0:{cellWidth:'auto'},
+      1:{cellWidth:85, halign:'right'},
+      2:{cellWidth:95, halign:'right'},
+      3:{cellWidth:68, halign:'right'},
+      4:{cellWidth:85, halign:'right'}
+    },
+    didDrawPage: function(){ cxPieDePagina(doc, d); }
+  });
+
+  /* --- totales --- */
+  let ty = doc.lastAutoTable.finalY;
+  doc.setDrawColor(...CX_TINTA); doc.setLineWidth(1.1);
+  doc.line(M, ty + 2, R, ty + 2);
+  ty += 26;
+  const xLabel = 330, xVal = R;
+  const filas = [['Subtotal', d.subtotal, false]];
+  if(d.ivaOn) filas.push(['IVA 16%', d.iva, false]);
+  filas.push(['Total', d.total, true]);
+  doc.setFontSize(9.5);
+  filas.forEach((f, i) => {
+    if(f[2]){ doc.setFont('helvetica','bold'); doc.setTextColor(...CX_MORADO); }
+    else { doc.setFont('helvetica','normal'); doc.setTextColor(...CX_TINTA); }
+    doc.text(f[0], xLabel, ty);
+    doc.text(cxMoney(f[1]), xVal, ty, {align:'right'});
+    if(!f[2]){
+      doc.setDrawColor(215,215,220); doc.setLineWidth(0.5);
+      doc.line(xLabel - 8, ty + 10, R, ty + 10);
+    }
+    ty += 30;
+  });
+  doc.setDrawColor(...CX_TINTA); doc.setLineWidth(1.1);
+  doc.line(xLabel - 8, ty - 18, R, ty - 18);
+
+  /* --- importe con letra y condiciones --- */
+  let by = doc.lastAutoTable.finalY + 26;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...CX_GRIS);
+  doc.text('Importe total con letra: ' + cxNumeroALetras(d.total), M, by, {maxWidth: 270});
+  by += 26;
+  if(d.terminosPago){ doc.setTextColor(...CX_TINTA); doc.setFontSize(9); doc.text('Términos de pago: ' + cxTxt(d.terminosPago), M, by); by += 18; }
+  if(d.condiciones){
+    doc.setTextColor(...CX_GRIS); doc.setFontSize(7.8);
+    const yCond = Math.max(by, ty + 10);
+    doc.text(doc.splitTextToSize(cxTxt(d.condiciones), R - M), M, yCond);
+  }
+
+  cxPieDePagina(doc, d);
+  return doc;
+}
+
+function cxPieDePagina(doc, d){
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const M = 42, R = W - M;
+  doc.setDrawColor(225,225,230); doc.setLineWidth(0.5);
+  doc.line(M, H-62, R, H-62);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...CX_GRIS);
+  doc.text(d.vendedorEmail || '', M, H-46);
+  doc.setTextColor(...CX_MORADO);
+  doc.text(CX_EMISOR.tag, R, H-46, {align:'right'});
+  doc.setTextColor(...CX_GRIS); doc.setFontSize(8);
+  const pg = doc.internal.getCurrentPageInfo().pageNumber;
+  doc.text('Página ' + pg + ' / ' + doc.internal.getNumberOfPages(), R, H-33, {align:'right'});
+}
+
+/* Asegura folio consecutivo global antes de emitir al cliente */
+async function cxAsegurarFolio(){
+  const campo = document.getElementById('folio');
+  const actual = (campo && campo.value || '').trim();
+  if(actual) return actual;
+  if(!(window.CXAUTH && CXAUTH.cloud)) return '';
+  try{
+    const f = await CXAUTH.folioNuevo(currentSessionId || null);
+    if(campo){ campo.value = f; }
+    if(typeof saveSessionSilent === 'function') saveSessionSilent();
+    return f;
+  }catch(e){
+    alert('No se pudo asignar el folio consecutivo: ' + e.message);
+    return '';
+  }
+}
+
+/* Cotización del cotizador en pantalla */
+async function exportarPDFCliente(){
+  const data = getExportData();
+  const conceptos = data
+    .filter(d => d["Precio Cliente Total"] !== '' && d["Precio Cliente Total"] !== null)
+    .map(d => ({
+      desc: d["Concepto"] || '',
+      cant: d["Cantidad"],
+      precioUnit: d["Precio Unit. Cliente"],
+      importe: d["Precio Cliente Total"]
+    }));
+  if(!conceptos.length){ alert('Captura al menos un concepto con precio al cliente.'); return; }
+
+  const folio = await cxAsegurarFolio();
+  const t = currentTotals();
+  const ivaOn = document.getElementById('ivaToggle').checked;
+  const vendedor = (window.CXAUTH && CXAUTH.perfil) ? (CXAUTH.perfil.nombre || CXAUTH.perfil.email) : '';
+  const vendedorEmail = (window.CXAUTH && CXAUTH.user) ? CXAUTH.user.email : '';
+  const fechaIso = fieldVal('fechaCotizacion');
+
+  const doc = cxDibujarCotizacionCliente({
+    folio: folio || '—',
+    fecha: cxFechaLarga(fechaIso),
+    vencimiento: cxVencimiento(fechaIso, fieldVal('vigencia')),
+    vendedor, vendedorEmail,
+    cliente: fieldVal('razonSocial') || fieldVal('clienteNombre') || '',
+    dirCliente: fieldVal('direccionCliente') || '',
+    conceptos,
+    ivaOn,
+    subtotal: t.precioCliente,
+    iva: t.iva,
+    total: t.total,
+    terminosPago: fieldVal('vigencia') || '',
+    condiciones: (document.getElementById('terminos') || {}).value || ''
+  });
+  doc.save('Cotizacion-' + (folio || 'Connectia') + '.pdf');
+}
+
+/* Cotización de un proyecto ya guardado (pestaña Proyectos) */
+async function exportarPDFClienteProyecto(id){
+  const s = loadSessions().find(x => x.id === id);
+  if(!s){ alert('No encontré esa sesión.'); return; }
+  const data = s.data || {};
+  const h = data.header || {};
+  const gComms = data.commissions || [];
+  const target = data.targetPct || 0;
+  const conceptos = [];
+  let subtotal = 0;
+  (data.rows||[]).forEach(r => {
+    const comms = Array.isArray(r.commOverride) ? r.commOverride : gComms;
+    const pctSum = comms.reduce((a,c)=> a + (parseFloat(c.pct)||0), 0)/100;
+    const qty = (!r.cantidad || isNaN(r.cantidad) || r.cantidad<=0) ? 1 : r.cantidad;
+    const cu = (r.costoUnitario===null||r.costoUnitario===undefined||isNaN(r.costoUnitario)) ? null : r.costoUnitario;
+    let pu = null;
+    if(r.manualPC) pu = (r.precioUnitarioManual===null||r.precioUnitarioManual===undefined||isNaN(r.precioUnitarioManual)) ? null : r.precioUnitarioManual;
+    else if(cu!==null){ const f = 1 - pctSum - target/100; if(f>0) pu = cu/f; }
+    if(pu===null) return;
+    const pt = pu*qty;
+    subtotal += pt;
+    conceptos.push({desc: r.concepto||'', cant: qty, precioUnit: pu, importe: pt});
+  });
+  if(!conceptos.length){ alert('Ese proyecto no tiene conceptos con precio al cliente.'); return; }
+
+  let folio = (h.folio||'').trim();
+  if(!folio && window.CXAUTH && CXAUTH.cloud){
+    try{
+      folio = await CXAUTH.folioNuevo(id);
+      s.data.header = s.data.header || {}; s.data.header.folio = folio;
+      persistSessions(loadSessions());
+      renderBoard();
+    }catch(e){ alert('No se pudo asignar folio: ' + e.message); }
+  }
+  const ivaOn = !(h.ivaOn === false);
+  const iva = ivaOn ? subtotal*0.16 : 0;
+  const resp = (s.data && s.data.responsable) || {};
+  const doc = cxDibujarCotizacionCliente({
+    folio: folio || '—',
+    fecha: cxFechaLarga(h.fechaCotizacion || (s.savedAt||'').slice(0,10)),
+    vencimiento: cxVencimiento(h.fechaCotizacion, h.vigencia),
+    vendedor: resp.nombre || s.ownerEmail || '',
+    vendedorEmail: resp.email || s.ownerEmail || '',
+    cliente: h.razonSocial || h.clienteNombre || s.name || '',
+    dirCliente: h.direccionCliente || '',
+    conceptos, ivaOn,
+    subtotal, iva, total: subtotal + iva,
+    terminosPago: h.vigencia || '',
+    condiciones: h.terminos || ''
+  });
+  doc.save('Cotizacion-' + (folio || s.name) + '.pdf');
+}
+
 function exportarProyectosExcel(){
   const list = aplicarFiltros(buildBoardRows());
   const data = list.map(p => {
@@ -2995,6 +3306,5 @@ function cxArrancar(){
 if(window.CXAUTH && CXAUTH.cloud) CXAUTH.onReady(cxArrancar);
 else cxArrancar();
 </script>
-<script src="erp-link.js"></script>
 </body>
 </html>

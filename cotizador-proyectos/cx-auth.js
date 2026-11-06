@@ -540,12 +540,17 @@
 
   global.CXAUTH = {
     cloud: true,
-    get sb() { return sb; },          // cliente Supabase (lo usa erp-link.js para el ERP)
     get user() { return user; },
     get perfil() { return perfil; },
     isAdmin,
     puedeEditar,
     all() { return cache; },
+    /* Folio consecutivo global: lo entrega la base, igual para todos los usuarios */
+    async folioNuevo(sesionId) {
+      const { data, error } = await sb.rpc('cx_folio_siguiente', { p_sesion: sesionId || null });
+      if (error) { console.error('[CX] folio', error); throw new Error(error.message); }
+      return data;
+    },
     cuentas() { return cuentas; },
     responsableDe,
     asignarResponsable,
